@@ -161,7 +161,7 @@ different groups of each subset automatically.
     sex:
     - - Male
     - - Female
-    timepoint:
+    timepoint_months:
     - - '9'
       - '24'
     - - '24'
@@ -174,20 +174,20 @@ different groups of each subset automatically.
     defining a subset:
     ```
     {'sex': [['Male'], ['Female']],
-     'timepoint': [['9', '24'], ['24', '36']],
+     'timepoint_months': [['9', '24'], ['24', '36']],
      'income': [['<15000'], ['>15000']]}    
     ```
     In this example, there will be one subset for:
      - samples having `Male` in column `sex`
      - samples having `Female` in column `sex`
-     - samples having `9` or `24` in column `timepoint`
-     - samples having `24` or `36` in column `timepoint`
+     - samples having `9` or `24` in column `timepoint_months`
+     - samples having `24` or `36` in column `timepoint_months`
      - samples having a value inferior to `15000` in column `income`
      - samples having a value superior to `15000` in column `income`
     
 - The output is self contained, e.g.: `tab_abyssal_V9_braycurtis_sex_Female__timepoint_months_permanova.qzv` is for the `Female` subset of metadata 
 variable `sex` (it also does the result for `Male` etc), and using PERMANOVA to perform comparison between 
-the groups in columns `timepoint`. 
+the groups in columns `timepoint_months`. 
 
  
 ## Usage
