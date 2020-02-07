@@ -248,14 +248,14 @@ routine_qiime2_analyses \
 ```
 The standard output shows you the scripts that have been written with qiime2 commands and that need to be run:
 ```
-# Fetching datasets (abyssal_V4, abyssal_V9)
+# Fetching data and metadata (in abyssal_V4, abyssal_V9)
 # Filter samples for a min number of 10000 reads
-qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_filtered/1_run_import_filtered.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_filtered/1_run_import_filtered.pbs
 # Shear Web of Life tree to features' genome IDs
-qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_abyssal_V4/0_import_tree.pbs
-qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_abyssal_V9/0_import_tree.pbs
-qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_abyssal_V4_min10000_376s/0_import_tree.pbs
-qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_abyssal_V9_min10000_376s/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_abyssal_V4/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_abyssal_V9/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_abyssal_V4_min10000_376s/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_abyssal_V9_min10000_376s/0_import_tree.pbs
 # Calculate beta diversity indices
 [TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/beta/2_run_beta.sh
 # Export beta diversity matrices
@@ -277,9 +277,9 @@ qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_abyssal_
 Warning: First make sure you run alpha -> alpha merge -> alpha export before running volatility
         (if you need the alpha as a response variable)!
 [TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/longitudinal/5_run_volatility.sh
-# DEICODE (groups config in routine_qiime2_analyses/example_PERMANOVA.yml)
+# DEICODE (groups config in ./routine_qiime2_analyses/example_PERMANOVA.yml)
 sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/deicode/3_run_beta_deicode.sh
-# PERMANOVA (groups config in routine_qiime2_analyses/example_PERMANOVA.yml)
+# PERMANOVA (groups config in ./routine_qiime2_analyses/example_PERMANOVA.yml)
 [TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/permanova/3_run_beta_group_significance.sh
 ```
 
