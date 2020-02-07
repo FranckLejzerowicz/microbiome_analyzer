@@ -1,0 +1,11 @@
+income:
+- - '<15000'
+- - '>15000'
+sex:
+- - Male
+- - Female
+timepoint_months:
+- - '9'
+  - '24'
+- - '24'
+  - '36'
