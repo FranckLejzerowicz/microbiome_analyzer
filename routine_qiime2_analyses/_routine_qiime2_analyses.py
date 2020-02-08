@@ -12,7 +12,7 @@ from os.path import abspath, isfile, exists
 
 from routine_qiime2_analyses._routine_q2_io_utils import get_prjct_nm, get_datasets
 from routine_qiime2_analyses._routine_q2_phylo import shear_tree
-from routine_qiime2_analyses._routine_q2_filter import filter_rare_samples
+from routine_qiime2_analyses._routine_q2_filter import import_datasets, filter_rare_samples
 from routine_qiime2_analyses._routine_q2_beta import run_beta, export_beta, run_pcoas, run_emperor
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
                                                        run_correlations, run_volatility,
@@ -34,7 +34,7 @@ def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
     :param project_name: Nick name for your project.
     :param p_qiime2_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
     :param p_perm_subsets: Subsets for PERMANOVA.
-    :param p_perm_groups: Groups to tests between in each PERMANOVA subset (yml file path).
+    :param p_perm_groups: Groups to test between in each PERMANOVA subset (yml file path).
     :param p_longi_column: If data is longitudinal; provide the time metadata column for volatility analysis.
     :param thresh: Minimum number of reads per sample to be kept.
     :param force: Force the re-writing of scripts for all commands.
@@ -62,6 +62,7 @@ def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
     prjct_nm = get_prjct_nm(project_name)
 
     datasets, datasets_read, datasets_features = get_datasets(i_datasets, i_folder, gid, biom)
+    import_datasets(i_folder, datasets, force, prjct_nm, qiime_env)
 
     if thresh:
         filter_rare_samples(i_folder, datasets, datasets_read, datasets_features,
