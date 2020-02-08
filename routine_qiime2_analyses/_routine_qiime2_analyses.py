@@ -15,7 +15,8 @@ from routine_qiime2_analyses._routine_q2_phylo import shear_tree
 from routine_qiime2_analyses._routine_q2_filter import filter_rare_samples
 from routine_qiime2_analyses._routine_q2_beta import run_beta, export_beta, run_pcoas, run_emperor
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
-                                                       run_correlations, run_volatility)
+                                                       run_correlations, run_volatility,
+                                                       run_alpha_group_significance)
 from routine_qiime2_analyses._routine_q2_permanova import run_permanova
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
 
@@ -98,6 +99,9 @@ def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
     if p_perm_groups:
         run_deicode(i_folder, datasets, p_perm_groups,
                     force, prjct_nm, qiime_env)
+        run_alpha_group_significance(i_folder, diversities, p_perm_groups,
+                                     distances['alpha'], force, prjct_nm, qiime_env)
+
         if p_perm_subsets:
             run_permanova(i_folder, datasets, betas,
                           distances['beta'], p_perm_subsets, p_perm_groups,

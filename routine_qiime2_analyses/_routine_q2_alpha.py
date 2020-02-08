@@ -7,10 +7,13 @@
 # ----------------------------------------------------------------------------
 
 import os
+import yaml
+import pandas as pd
+import multiprocessing
 from os.path import basename, dirname, isdir, isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
-from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder
+from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder, run_import, run_export
 
 
 def run_alpha(i_folder: str, datasets, alpha_metrics: list,
@@ -227,3 +230,107 @@ def run_volatility(i_folder: str, datasets: dict, p_longi_column: str,
                     os.remove(out_sh)
     if written:
         print('[TO RUN] sh', run_pbs)
+
+
+def run_alpha_group_significance(i_folder: str, diversities: dict, p_perm_groups: str, alpha_metrics: list,
+                                 force: bool, prjct_nm: str, qiime_env: str):
+
+    print("# Kruskal-Wallis (groups config in %s)" % p_perm_groups)
+    def run_multi_kw(odir, meta_pd, div_qza, case, case_var, case_vals, sh):
+
+        cur_rad = odir + '/' + basename(div_qza).replace('.qza', '_%s' % case)
+        new_qzv = '%s_kruskal-wallis.qzv' % cur_rad
+
+        new_meta = '%s.meta' % cur_rad
+        new_tsv = '%s.tsv' % cur_rad
+        new_div = '%s.qza' % cur_rad
+
+        if force or not isfile(new_qzv):
+            if 'ALL' in case:
+                new_meta_pd = meta_pd.copy()
+                sh.write('cp %s %s\n' % (div_qza, new_div))
+            else:
+                if len([x for x in case_vals if '>' in x or '<' in x]):
+                    new_meta_pd = meta_pd.copy()
+                    for case_val in case_vals:
+                        if case_val[0] == '>':
+                            new_meta_pd = new_meta_pd[new_meta_pd[case_var] >= float(case_val[1:])].copy()
+                        elif case_val[0] == '<':
+                            new_meta_pd = new_meta_pd[new_meta_pd[case_var] <= float(case_val[1:])].copy()
+                else:
+                    new_meta_pd = meta_pd[meta_pd[case_var].isin(case_vals)].copy()
+                print(new_tsv)
+                print(new_div)
+                print(new_divfd)
+                cmd = run_export(new_div, new_tsv, '')
+                sh.write(cmd)
+                new_tsv_pd = pd.read_csv(new_tsv, header=0, index_col=0, sep='\t')
+                new_tsv_pd = new_tsv_pd.loc[new_meta_pd.index.tolist(),:]
+                new_tsv_pd.reset_index().to_csv(new_tsv, index=False, sep='\t')
+                cmd = run_import(new_div, new_tsv, 'AlphaDiversity')
+                sh.write(cmd)
+            new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
+
+            cmd = [
+                'qiime diversity alpha-group-significance'
+                '--i-alpha-diversity', new_div,
+                '--m-metadata-file', new_meta,
+                '--o-visualization', new_qzv]
+            sh.write('echo "%s"\n' % ' '.join(cmd))
+            sh.write('%s\n' % ' '.join(cmd))
+            sh.write('rm %s' % new_meta)
+
+
+    job_folder = get_job_folder(i_folder, 'alpha_group_significance')
+    job_folder2 = get_job_folder(i_folder, 'alpha_group_significance/chunks')
+
+    with open(p_perm_groups) as handle:
+        cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
+    cases_dict.update({'ALL': [[]]})
+
+    jobs = []
+    first_print = 0
+    main_sh = '%s/6_run_alpha_group_significance.sh' % job_folder
+    with open(main_sh, 'w') as o:
+        for dataset in diversities:
+            odir = get_analysis_folder(i_folder, 'alpha_group_significance/%s' % dataset)
+            out_sh = '%s/run_alpha_group_significance_%s.sh' % (job_folder2, dataset)
+            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            o.write('qsub %s\n' % out_pbs)
+            with open(out_sh, 'w') as sh:
+                for qza, divs in diversities[dataset].items():
+                    meta = divs[0]
+                    divs = divs[1:]
+                    meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
+                    for div_qza in divs:
+                        for metric in alpha_metrics:
+                            if metric in div_qza:
+                                break
+                        # if not isfile(div_qza):
+                        if 0:
+                            if first_print:
+                                print('Alpha diversity must be measured already to automatise Kruskal-Wallis tests\n'
+                                      '\t(re-run this after step "1_run_alpha.sh" is done)')
+                                first_print += 1
+                            continue
+
+                        for case_var, case_vals_list in cases_dict.items():
+                            for case_vals in case_vals_list:
+                                if len(case_vals):
+                                    case = '%s_%s_%s' % (metric, case_var, '-'.join(
+                                        [x.replace('<', 'below').replace('>', 'above') for x in case_vals]))
+                                else:
+                                    case = '%s_%s' % (metric, case_var)
+                                p = multiprocessing.Process(
+                                    target=run_multi_kw,
+                                    args=(odir, meta_pd, div_qza, case, case_var, case_vals, sh)
+                                )
+                                p.start()
+                                jobs.append(p)
+                                print(fds)
+            xpbs_call(out_sh, out_pbs, '%s.perm.%s' % (prjct_nm, dataset), qiime_env,
+                      '2', '1', '1', '2', 'gb')
+    for j in jobs:
+        j.join()
+
+    print('[TO RUN] sh', main_sh)

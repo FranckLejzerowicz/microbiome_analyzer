@@ -43,6 +43,35 @@ def run_import(input_path: str, output_path: str, typ: str) -> str:
     return cmd
 
 
+def run_export(input_path: str, output_path: str, typ: str) -> str:
+    """
+    Return the export qiime2 command.
+
+    :param input_path: input file path.
+    :param output_path: output file path.
+    :param typ: qiime2 type.
+    :return: command to qiime2.
+    """
+    cmd = ''
+    if typ.startswith("FeatureTable"):
+        if not output_path.endswith('biom'):
+            cur_biom = '%s.biom' % splitext(output_path)[0]
+            cmd += 'qiime tools export --input-path %s --output-path %s\n' % (input_path, splitext(output_path)[0])
+            cmd += 'mv %s/*.biom %s\n' % (splitext(output_path)[0], cur_biom)
+            cmd += 'biom convert -i %s -o %s.tmp --to-tsv\n' % (cur_biom, output_path)
+            cmd += 'tail -n +2 %s.tmp > %s\n' % (output_path, output_path)
+            cmd += 'rm -rf %s %s.tmp\n' % (splitext(output_path)[0], output_path)
+        else:
+            cmd += 'qiime tools export --input-path %s --output-path %s\n' % (input_path, splitext(output_path)[0])
+            cmd += 'mv %s/*.biom %s\n' % (splitext(input_path)[0], output_path)
+            cmd += 'rm -rf %s\n' % splitext(input_path)[0]
+    else:
+        cmd += 'qiime tools export --input-path %s --output-path %s\n' % (input_path, splitext(output_path)[0])
+        cmd += 'mv %s/*.tsv %s\n' % (splitext(output_path)[0], output_path)
+        cmd += 'rm -rf %s\n' % splitext(output_path)[0]
+    return cmd
+
+
 def get_corresponding_meta(path):
     """
     Automatically gets the metadata file corresponding to the tsv / biom file.
