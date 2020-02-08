@@ -13,6 +13,31 @@ from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
 from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, run_import
 
 
+def import_datasets(i_folder: str, datasets: dict, force: bool,
+                    prjct_nm: str, qiime_env: str) -> None:
+
+    print('# Import tables to qiime2')
+    job_folder = get_job_folder(i_folder, 'import_tables')
+
+    out_sh = '%s/0_run_import.sh' % job_folder
+    out_pbs = '%s.pbs' % splitext(out_sh)[0]
+    written = 0
+    with open(out_sh, 'w') as sh:
+        for dataset, tsvs_metas_lists in datasets.items():
+            for tsv_meta in tsvs_metas_lists:
+                cmd = run_import(tsv_meta[0], '%s.qza' % splitext(tsv_meta[0]), 'FeatureTable[Frequency]')
+                sh.write('%s\n' % ' '.join(cmd))
+                written += 1
+
+    if force or written:
+        xpbs_call(out_sh, out_pbs, prjct_nm, qiime_env,
+                  '1', '1', '1', '100', 'mb')
+        print('[TO RUN] qsub', out_pbs)
+    else:
+        print('\nNothing written in', out_sh, '--> removed')
+        os.remove(out_sh)
+
+
 def filter_rare_samples(i_folder: str, datasets: dict, datasets_read: dict, datasets_features: dict,
                         force: bool, prjct_nm: str, qiime_env: str, thresh: int, gid: bool) -> (dict, dict, dict):
     """
