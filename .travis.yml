@@ -4,4 +4,4 @@ language: python
       install:
         - python setup.py build_ext --inplace --force install
       script:
-        - python ./routine_qiime2_analyses/test/test_routine_qiime2_analyses.py
+        - python ./routine_qiime2_analyses/tests/test_routine_qiime2_analyses.py

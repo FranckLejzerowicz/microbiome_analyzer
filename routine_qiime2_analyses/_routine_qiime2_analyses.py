@@ -34,7 +34,7 @@ def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
     :param project_name: Nick name for your project.
     :param p_qiime2_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
     :param p_perm_subsets: Subsets for PERMANOVA.
-    :param p_perm_groups: Groups to test between in each PERMANOVA subset (yml file path).
+    :param p_perm_groups: Groups to tests between in each PERMANOVA subset (yml file path).
     :param p_longi_column: If data is longitudinal; provide the time metadata column for volatility analysis.
     :param thresh: Minimum number of reads per sample to be kept.
     :param force: Force the re-writing of scripts for all commands.

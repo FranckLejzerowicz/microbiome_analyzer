@@ -40,7 +40,7 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "-g", "--p-perm-groups", required=False, show_default=True, default=False,
-    help="Groups to test between in each PERMANOVA subset. Must be a yaml file, e.g.\n"
+    help="Groups to tests between in each PERMANOVA subset. Must be a yaml file, e.g.\n"
          "(see example in 'example_PERMANOVA.yml' and the README)"
 )
 @click.option(
