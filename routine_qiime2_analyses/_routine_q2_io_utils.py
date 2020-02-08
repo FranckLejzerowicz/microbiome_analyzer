@@ -28,7 +28,7 @@ def run_import(input_path: str, output_path: str, typ: str) -> str:
             cur_biom = '%s.biom' % splitext(input_path)[0]
             cmd += 'biom convert'
             cmd += ' -i %s -o %s' % (input_path, cur_biom)
-            cmd += '--table-type="OTU table" --to-hdf5\n'
+            cmd += ' --table-type="OTU table" --to-hdf5\n'
             cmd += 'qiime tools import'
             cmd += ' --input-path %s --output-path %s' % (cur_biom, output_path)
             cmd += ' --type "FeatureTable[Frequency]"\n'
