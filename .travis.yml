@@ -1,7 +1,0 @@
-language: python
-      python:
-        - "3.7"
-      install:
-        - python setup.py build_ext --inplace --force install
-      script:
-        - python ./routine_qiime2_analyses/tests/test_routine_qiime2_analyses.py
