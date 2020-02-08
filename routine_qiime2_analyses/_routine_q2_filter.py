@@ -26,7 +26,7 @@ def import_datasets(i_folder: str, datasets: dict, force: bool,
         for dataset, tsvs_metas_lists in datasets.items():
             for tsv_meta in tsvs_metas_lists:
                 cmd = run_import(tsv_meta[0], '%s.qza' % splitext(tsv_meta[0])[0], 'FeatureTable[Frequency]')
-                sh.write('%s\n' % ' '.join(cmd))
+                sh.write('%s\n' % cmd)
                 written += 1
 
     if force or written:
