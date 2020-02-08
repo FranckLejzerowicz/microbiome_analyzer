@@ -61,6 +61,9 @@ setup(
     ],
     classifiers=classifiers,
     entry_points={'console_scripts': standalone},
+    package_data={
+        'routine_qiime2_analyses': ['tests/*/*/*'],
+    },
     python_requires='>=3.6',
     # dependency_links = ['http://github.com/mtai/python-gearman/tarball/master#egg=gearman-2.0.0beta']
 )
