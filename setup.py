@@ -54,15 +54,15 @@ setup(
     packages=find_packages(),
     install_requires=[
         "click",
-        "numpy<1.14.0,>=1.9.2",
+        "numpy >= 1.12.1",
         "pandas",
-        "scikit-bio",
+        "scikit-bio == 0.5.4",
         "pyyaml"
     ],
     classifiers=classifiers,
     entry_points={'console_scripts': standalone},
     package_data={
-        'routine_qiime2_analyses': ['tests/*/*/*'],
+        'routine_qiime2_analyses': ['test/*/*/*'],
     },
     python_requires='>=3.6',
     # dependency_links = ['http://github.com/mtai/python-gearman/tarball/master#egg=gearman-2.0.0beta']
