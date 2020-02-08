@@ -1,7 +1,6 @@
 *.DS_Store
 .idea
 Xpbs.egg-info/
-test_out/
 build/
 dist/
 routine_qiime2_analyses.egg-info/
