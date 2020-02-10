@@ -9,7 +9,7 @@
 import os
 import yaml
 import pandas as pd
-from os.path import basename, isfile, isdir
+from os.path import basename, isfile, splitext
 import multiprocessing
 
 from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
@@ -20,15 +20,17 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
                 force: bool, prjct_nm: str, qiime_env: str):
 
     print('# DEICODE (groups config in %s)' % p_perm_groups)
-    def run_multi_deicode(
-            rt, job_folder2, dat, tsv, tsv_pd, meta_pd,
-            case, case_var, case_vals, force, prjct_nm, qiime_env):
+
+    def run_multi_deicode(rt, job_folder2, tsv, meta_pd,
+                          case, case_var, case_vals,
+                          force, prjct_nm, qiime_env):
 
         written = 0
         out_sh = '%s/run_beta_deicode_%s.sh' % (job_folder2, case)
         out_pbs = out_sh.replace('.sh', '.pbs')
         with open(out_sh, 'w') as sh:
 
+            qza = '%s.qza' % splitext(tsv)[0]
             cur_rad = '/'.join([rt, basename(tsv).replace('.tsv', '_%s' % case)])
             new_tsv = '%s.tsv' % cur_rad
             new_meta = new_tsv.replace('/tab_', '/meta_')
@@ -52,13 +54,19 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
                     new_meta_pd = meta_pd[meta_pd[case_var].isin(case_vals)].copy()
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
 
-                new_tsv_pd = tsv_pd[new_meta_pd.index.tolist()].copy()
-                new_tsv_pd = new_tsv_pd.loc[new_tsv_pd.sum(1) > 0, :]
-                new_tsv_pd = new_tsv_pd.loc[:, new_tsv_pd.sum(0) > 0]
-                new_tsv_pd.reset_index().to_csv(new_tsv, index=False, sep='\t')
-
-                cmd = run_import(new_tsv, new_qza, "FeatureTable[Frequency]")
+                cmd = ['qiime', 'feature-table', 'filter-samples',
+                       '--i-table', qza,
+                       '--m-metadata-file', new_meta,
+                       '--o-filtered-table', new_qza]
+                sh.write('echo "%s"\n' % ' '.join(cmd))
                 sh.write('%s\n' % ' '.join(cmd))
+
+                # new_tsv_pd = tsv_pd[new_meta_pd.index.tolist()].copy()
+                # new_tsv_pd = new_tsv_pd.loc[new_tsv_pd.sum(1) > 0, :]
+                # new_tsv_pd = new_tsv_pd.loc[:, new_tsv_pd.sum(0) > 0]
+                # new_tsv_pd.reset_index().to_csv(new_tsv, index=False, sep='\t')
+                # cmd = run_import(new_tsv, new_qza, "FeatureTable[Frequency]")
+                # sh.write('%s\n' % ' '.join(cmd))
 
                 cmd = [
                     'qiime', 'deicode', 'rpca',
@@ -104,7 +112,6 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
 
             for tsv_meta in tsvs_metas_list:
                 tsv, meta = tsv_meta
-                tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t')
                 meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
 
                 for case_var, case_vals_list in cases_dict.items():
@@ -119,8 +126,9 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
                         p = multiprocessing.Process(
                             target=run_multi_deicode,
                             args=(
-                                rt, job_folder2, dat, tsv, tsv_pd, meta_pd,
-                                case, case_var, case_vals, force, prjct_nm, qiime_env,
+                                rt, job_folder2, tsv, meta_pd,
+                                case, case_var, case_vals,
+                                force, prjct_nm, qiime_env,
                             )
                         )
                         p.start()

@@ -22,13 +22,16 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
 
     print("# PERMANOVA (groups config in %s)" % p_perm_groups)
     def run_multi_perm(
-            job_folder2, odir, dat,
-            mat, mat_pd,
-            tsv, tsv_pd,
+            job_folder2, odir,
+            # mat, mat_pd,
+            mat_qza,
+            tsv,
+            # tsv, tsv_pd,
             meta_pd,
             case_, case_var, case_vals,
             testing_groups):
 
+        qza = '%s.qza' % splitext(tsv)[0]
         written = 0
         out_sh = '%s/run_beta_group_significance_%s.sh' % (job_folder2, case_)
         out_pbs = out_sh.replace('.sh', '.pbs')
@@ -46,10 +49,11 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                 new_meta = new_tsv.replace('/tab_', '/meta_')
                 new_qza = '%s.qza' % cur_rad
                 new_qzv = '%s_permanova.qzv' % cur_rad
+                # new_mat = '%s/%s.tsv' % (odir, basename(mat).replace('.tsv', '_%s' % case))
+                # new_mat_qza = new_mat.replace('.tsv', '.qza')
+                new_mat_qza = '%s/%s.tsv' % (odir, basename(mat_qza).replace('.qza', '_%s.qza' % case))
 
                 if force or not isfile(new_qzv):
-                    new_mat = '%s/%s.tsv' % (odir, basename(mat).replace('.tsv', '_%s' % case))
-                    new_mat_qza = new_mat.replace('.tsv', '.qza')
 
                     if 'ALL' in case:
                         new_meta_pd = meta_pd.copy()
@@ -72,21 +76,33 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                         new_meta_pd = pd.concat([q2types, new_meta_pd])
                         new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
 
-                        new_mat_pd = mat_pd.loc[
-                            new_meta_pd.index.tolist()[1:],
-                            new_meta_pd.index.tolist()[1:]
-                        ].copy()
-                        new_mat_pd.to_csv(new_mat, index=True, sep='\t')
+                        cmd = ['qiime', 'diversity', 'filter-distance-matrix',
+                               '--m-metadata-file', new_meta,
+                               '--i-distance-matrix', mat_qza,
+                               '--o-filtered-distance-matrix', new_mat_qza]
+                        sh.write('echo "%s"\n' % ' '.join(cmd))
+                        sh.write('%s\n' % ' '.join(cmd))
+                        # new_mat_pd = mat_pd.loc[
+                        #     new_meta_pd.index.tolist()[1:],
+                        #     new_meta_pd.index.tolist()[1:]
+                        # ].copy()
+                        # new_mat_pd.to_csv(new_mat, index=True, sep='\t')
+                        # cmd = run_import(new_mat, new_mat_qza, "DistanceMatrix")
+                        # sh.write(cmd)
 
-                        new_tsv_pd = tsv_pd[new_meta_pd.index.tolist()[1:]].copy()
-                        new_tsv_pd = new_tsv_pd.loc[new_tsv_pd.sum(1) > 0, :]
-                        new_tsv_pd = new_tsv_pd.loc[:, new_tsv_pd.sum(0) > 0]
-                        new_tsv_pd.reset_index().to_csv(new_tsv, index=False, sep='\t')
 
-                        cmd = run_import(new_tsv, new_qza, "FeatureTable[Frequency]")
-                        sh.write(cmd)
-                        cmd = run_import(new_mat, new_mat_qza, "DistanceMatrix")
-                        sh.write(cmd)
+                        cmd = ['qiime', 'feature-table', 'filter-samples',
+                               '--i-table', qza,
+                               '--m-metadata-file', new_meta,
+                               '--o-filtered-table', new_qza]
+                        sh.write('echo "%s"\n' % ' '.join(cmd))
+                        sh.write('%s\n' % ' '.join(cmd))
+                        # new_tsv_pd = tsv_pd[new_meta_pd.index.tolist()[1:]].copy()
+                        # new_tsv_pd = new_tsv_pd.loc[new_tsv_pd.sum(1) > 0, :]
+                        # new_tsv_pd = new_tsv_pd.loc[:, new_tsv_pd.sum(0) > 0]
+                        # new_tsv_pd.reset_index().to_csv(new_tsv, index=False, sep='\t')
+                        # cmd = run_import(new_tsv, new_qza, "FeatureTable[Frequency]")
+                        # sh.write(cmd)
 
                         cmd = [
                             'qiime', 'diversity', 'beta-group-significance',
@@ -121,22 +137,21 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
             odir = get_analysis_folder(i_folder, 'permanova/%s' % dat)
             for tsv_meta in tsvs_metas_list:
                 tsv, meta = tsv_meta
-                tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t')
                 meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
 
                 for mat_qza in betas[dat][meta]:
-                    mat = mat_qza.replace('.qza', '.tsv')
+                    # mat = mat_qza.replace('.qza', '.tsv')
                     for metric in beta_metrics:
-                        if metric in mat:
+                        if metric in mat_qza:
                             break
 
-                    if not isfile(mat):
+                    if not isfile(mat_qza):
                         if not first_print:
                             print('Beta diversity, distances matrices must be generated already to automatise PERMANOVA\n'
                                   '\t(re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)')
                             first_print += 1
                         continue
-                    mat_pd = pd.read_csv(mat, header=0, index_col=0, sep='\t')
+                    # mat_pd = pd.read_csv(mat, header=0, index_col=0, sep='\t')
 
                     for case_var, case_vals_list in cases_dict.items():
                         testing_groups = testing_groups + [case_var]
@@ -151,9 +166,11 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                             p = multiprocessing.Process(
                                 target=run_multi_perm,
                                 args=(
-                                    job_folder2, odir, dat,
-                                    mat, mat_pd,
-                                    tsv, tsv_pd,
+                                    job_folder2, odir,
+                                    # mat, mat_pd,
+                                    mat_qza,
+                                    tsv,
+                                    # tsv, tsv_pd,
                                     meta_pd,
                                     case, case_var, case_vals,
                                     testing_groups
@@ -172,20 +189,24 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
                force: bool, prjct_nm: str, qiime_env: str):
 
     print("# Run Adonis (groups config in %s)" % p_perm_groups)
-    def run_multi_adonis(formula, odir, dat, mat, mat_pd, tsv, tsv_pd,
+    def run_multi_adonis(formula, odir,
+                         # mat, mat_pd,
+                         mat_qza,
+                         tsv,
                          meta_pd, case, case_var, case_vals, out_sh):
 
+        qza = '%s.qza' % splitext(tsv)[0]
         with open(out_sh, 'w') as cur_sh:
             cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
             new_tsv = '%s.tsv' % cur_rad
             new_meta = new_tsv.replace('/tab_', '/meta_')
             new_qza = '%s.qza' % cur_rad
             new_qzv = '%s_adonis.qzv' % cur_rad
-            print(new_qzv)
+            # new_mat = '%s/%s.tsv' % (odir, basename(mat).replace('.tsv', '_%s' % case))
+            # new_mat_qza = new_mat.replace('.tsv', '.qza')
+            new_mat_qza = '%s/%s.tsv' % (odir, basename(mat_qza).replace('.qza', '_%s.qza' % case))
 
             if force or not isfile(new_qzv):
-                new_mat = '%s/%s.tsv' % (odir, basename(mat).replace('.tsv', '_%s' % case))
-                new_mat_qza = new_mat.replace('.tsv', '.qza')
 
                 if 'ALL' in case:
                     new_meta_pd = meta_pd.copy()
@@ -199,21 +220,33 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
                 else:
                     new_meta_pd = meta_pd[meta_pd[case_var].isin(case_vals)].copy()
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-                new_mat_pd = mat_pd.loc[
-                    new_meta_pd.index.tolist()[1:],
-                    new_meta_pd.index.tolist()[1:]
-                ].copy()
-                new_mat_pd.to_csv(new_mat, index=True, sep='\t')
 
-                new_tsv_pd = tsv_pd[new_meta_pd.index.tolist()[1:]].copy()
-                new_tsv_pd = new_tsv_pd.loc[new_tsv_pd.sum(1) > 0, :]
-                new_tsv_pd = new_tsv_pd.loc[:, new_tsv_pd.sum(0) > 0]
-                new_tsv_pd.reset_index().to_csv(new_tsv, index=False, sep='\t')
+                cmd = ['qiime', 'diversity', 'filter-distance-matrix',
+                       '--m-metadata-file', new_meta,
+                       '--i-distance-matrix', mat_qza,
+                       '--o-filtered-distance-matrix', new_mat_qza]
+                cur_sh.write('echo "%s"\n' % ' '.join(cmd))
+                cur_sh.write('%s\n' % ' '.join(cmd))
+                # new_mat_pd = mat_pd.loc[
+                #     new_meta_pd.index.tolist()[1:],
+                #     new_meta_pd.index.tolist()[1:]
+                # ].copy()
+                # new_mat_pd.to_csv(new_mat, index=True, sep='\t')
+                # cmd = run_import(new_mat, new_mat_qza, "DistanceMatrix")
+                # cur_sh.write(cmd)
 
-                cmd = run_import(new_tsv, new_qza, "FeatureTable[Frequency]")
-                cur_sh.write(cmd)
-                cmd = run_import(new_mat, new_mat_qza, "DistanceMatrix")
-                cur_sh.write(cmd)
+                cmd = ['qiime', 'feature-table', 'filter-samples',
+                       '--i-table', qza,
+                       '--m-metadata-file', new_meta,
+                       '--o-filtered-table', new_qza]
+                cur_sh.write('echo "%s"\n' % ' '.join(cmd))
+                cur_sh.write('%s\n' % ' '.join(cmd))
+                # new_tsv_pd = tsv_pd[new_meta_pd.index.tolist()[1:]].copy()
+                # new_tsv_pd = new_tsv_pd.loc[new_tsv_pd.sum(1) > 0, :]
+                # new_tsv_pd = new_tsv_pd.loc[:, new_tsv_pd.sum(0) > 0]
+                # new_tsv_pd.reset_index().to_csv(new_tsv, index=False, sep='\t')
+                # cmd = run_import(new_tsv, new_qza, "FeatureTable[Frequency]")
+
                 cmd = ['qiime', 'diversity', 'adonis',
                        '--i-distance-matrix', new_mat_qza,
                        '--m-metadata-file', new_meta,
@@ -248,21 +281,21 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
             with open(out_sh, 'w') as sh:
                 for tsv_meta in tsvs_metas_list:
                     tsv, meta = tsv_meta
-                    tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t')
+                    # tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t')
                     meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
 
                     for mat_qza in betas[dat][meta]:
-                        mat = mat_qza.replace('.qza', '.tsv')
+                        # mat = mat_qza.replace('.qza', '.tsv')
                         for metric in beta_metrics:
-                            if metric in mat:
+                            if metric in mat_qza:
                                 break
-                        if not isfile(mat):
+                        if not isfile(mat_qza):
                             if not first_print:
                                 print('Beta diversity, distances matrices must be generated already to automatise adonis\n'
                                       '\t(re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)')
                                 first_print += 1
                             continue
-                        mat_pd = pd.read_csv(mat, header=0, index_col=0, sep='\t')
+                        # mat_pd = pd.read_csv(mat, header=0, index_col=0, sep='\t')
                         for form, formula in formulas.items():
                             for case_var, case_vals_list in cases_dict.items():
                                 for case_vals in case_vals_list:
@@ -273,16 +306,12 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
                                         case = '%s_%s_%s' % (metric, case_var, form)
                                     out_sh = '%s/run_adonis_%s_%s.sh' % (job_folder2, dat, case)
                                     sh.write('sh %s\n' % out_sh)
-                                    print(form)
-                                    print(formula)
-                                    print(case_var)
-                                    print(case_vals)
-                                    print(case)
-                                    print(out_sh)
-                                    print(out_shd)
                                     p = multiprocessing.Process(
                                         target=run_multi_adonis,
-                                        args=(formula, odir, dat, mat, mat_pd, tsv, tsv_pd,
+                                        args=(formula, odir,
+                                              # mat, mat_pd,
+                                              mat_qza,
+                                              tsv,
                                               meta_pd, case, case_var, case_vals, out_sh)
                                     )
                                     p.start()
