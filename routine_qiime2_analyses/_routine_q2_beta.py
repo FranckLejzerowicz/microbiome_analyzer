@@ -150,10 +150,20 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict,
     job_folder2 = get_job_folder(i_datasets_folder, 'emperor/chunks')
     odir = get_analysis_folder(i_datasets_folder, 'emperor')
 
+    first_print = 0
     run_pbs = '%s/4_run_emperor.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dataset, meta_pcoas in pcoas_d.items():
-            for meta, pcoas in meta_pcoas.items():
+            for meta_, pcoas in meta_pcoas.items():
+                meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
+                if not isfile(meta_alphas):
+                    meta = meta_
+                    if not first_print:
+                        print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
+                              '\t(if you want alpha diversity as a variable in the PCoA)!')
+                        first_print += 1
+                else:
+                    meta = meta_alphas
                 for pcoa in pcoas:
                     out_sh = '%s/run_emperor_%s_%s.sh' % (job_folder2, dataset, basename(pcoa.split('_DM_')[0]))
                     out_pbs = '%s.pbs' % splitext(out_sh)[0]
