@@ -29,10 +29,7 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
         out_pbs = out_sh.replace('.sh', '.pbs')
         with open(out_sh, 'w') as sh:
 
-            cur_folder = '/'.join([rt, dat])
-            if not isdir(cur_folder):
-                os.makedirs(cur_folder)
-            cur_rad = '/'.join([cur_folder, basename(tsv).replace('.tsv', '_%s' % case)])
+            cur_rad = '/'.join([rt, basename(tsv).replace('.tsv', '_%s' % case)])
             new_tsv = '%s.tsv' % cur_rad
             new_meta = new_tsv.replace('/tab_', '/meta_')
             new_mat_qza = '%s_DM.qza' % cur_rad

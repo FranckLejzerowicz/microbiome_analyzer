@@ -41,17 +41,14 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                 else:
                     case = '%s__%s' % (case_, testing_group)
 
-                cur_folder = odir + '/' + dat
-                if not isdir(cur_folder):
-                    os.makedirs(cur_folder)
-                cur_rad = cur_folder + '/' + basename(tsv).replace('.tsv', '_%s' % case)
+                cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
                 new_tsv = '%s.tsv' % cur_rad
                 new_meta = new_tsv.replace('/tab_', '/meta_')
                 new_qza = '%s.qza' % cur_rad
                 new_qzv = '%s_permanova.qzv' % cur_rad
 
                 if force or not isfile(new_qzv):
-                    new_mat = '%s/%s.tsv' % (cur_folder, basename(mat).replace('.tsv', '_%s' % case))
+                    new_mat = '%s/%s.tsv' % (odir, basename(mat).replace('.tsv', '_%s' % case))
                     new_mat_qza = new_mat.replace('.tsv', '.qza')
 
                     if 'ALL' in case:
@@ -179,10 +176,7 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
                          meta_pd, case, case_var, case_vals, out_sh):
 
         with open(out_sh, 'w') as cur_sh:
-            cur_folder = odir + '/' + dat
-            if not isdir(cur_folder):
-                os.makedirs(cur_folder)
-            cur_rad = cur_folder + '/' + basename(tsv).replace('.tsv', '_%s' % case)
+            cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
             new_tsv = '%s.tsv' % cur_rad
             new_meta = new_tsv.replace('/tab_', '/meta_')
             new_qza = '%s.qza' % cur_rad
@@ -190,7 +184,7 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
             print(new_qzv)
 
             if force or not isfile(new_qzv):
-                new_mat = '%s/%s.tsv' % (cur_folder, basename(mat).replace('.tsv', '_%s' % case))
+                new_mat = '%s/%s.tsv' % (odir, basename(mat).replace('.tsv', '_%s' % case))
                 new_mat_qza = new_mat.replace('.tsv', '.qza')
 
                 if 'ALL' in case:
@@ -229,8 +223,6 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
                        '--o-visualization', new_qzv]
                 cur_sh.write('echo "%s"\n' % ' '.join(cmd))
                 cur_sh.write('%s\n' % ' '.join(cmd))
-                print(cmd)
-                print(cmdd)
 
     job_folder = get_job_folder(i_folder, 'adonis')
     job_folder2 = get_job_folder(i_folder, 'adonis/chunks')
