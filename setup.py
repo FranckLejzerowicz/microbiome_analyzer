@@ -54,7 +54,6 @@ setup(
     packages=find_packages(),
     install_requires=[
         "click",
-        #"numpy >= 1.14.0",
         "pandas",
         "scikit-bio == 0.5.4",
         "pyyaml"
