@@ -57,7 +57,7 @@ setup(
         #"numpy >= 1.14.0",
         "pandas",
         "scikit-bio == 0.5.4",
-        "pyyaml"
+        "pyyaml == 5.1"
     ],
     classifiers=classifiers,
     entry_points={'console_scripts': standalone},
