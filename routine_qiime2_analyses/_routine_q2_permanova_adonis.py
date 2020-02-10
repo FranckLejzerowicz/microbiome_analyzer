@@ -83,7 +83,6 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                         # cmd = run_import(new_mat, new_mat_qza, "DistanceMatrix")
                         # sh.write(cmd)
 
-
                         cmd = ['qiime', 'feature-table', 'filter-samples',
                                '--i-table', qza,
                                '--m-metadata-file', new_meta,
@@ -97,13 +96,12 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                         # cmd = run_import(new_tsv, new_qza, "FeatureTable[Frequency]")
                         # sh.write(cmd)
 
-                        cmd = [
-                            'qiime', 'diversity', 'beta-group-significance',
-                            '--i-distance-matrix', new_mat_qza,
-                            '--m-metadata-file', new_meta,
-                            '--m-metadata-column', testing_group,
-                            '--p-permutations', '2999',
-                            '--o-visualization', new_qzv]
+                        cmd = ['qiime', 'diversity', 'beta-group-significance',
+                               '--i-distance-matrix', new_mat_qza,
+                               '--m-metadata-file', new_meta,
+                               '--m-metadata-column', testing_group,
+                               '--p-permutations', '2999',
+                               '--o-visualization', new_qzv]
                         sh.write('echo "%s"\n' % ' '.join(cmd))
                         sh.write('%s\n' % ' '.join(cmd))
                         written += 1
