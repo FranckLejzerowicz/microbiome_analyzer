@@ -21,15 +21,8 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                   force: bool, prjct_nm: str, qiime_env: str):
 
     print("# PERMANOVA (groups config in %s)" % p_perm_groups)
-    def run_multi_perm(
-            job_folder2, odir,
-            # mat, mat_pd,
-            mat_qza,
-            tsv,
-            # tsv, tsv_pd,
-            meta_pd,
-            case_, case_var, case_vals,
-            testing_groups):
+    def run_multi_perm(job_folder2, odir, mat_qza, tsv, meta_pd,
+                       case_, case_var, case_vals, testing_groups):
 
         qza = '%s.qza' % splitext(tsv)[0]
         written = 0
@@ -140,7 +133,6 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                 meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
 
                 for mat_qza in betas[dat][meta]:
-                    # mat = mat_qza.replace('.qza', '.tsv')
                     for metric in beta_metrics:
                         if metric in mat_qza:
                             break
@@ -151,7 +143,6 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                                   '\t(re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)')
                             first_print += 1
                         continue
-                    # mat_pd = pd.read_csv(mat, header=0, index_col=0, sep='\t')
 
                     for case_var, case_vals_list in cases_dict.items():
                         testing_groups = testing_groups + [case_var]
@@ -165,22 +156,13 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                             o.write('qsub %s\n' % out_pbs)
                             p = multiprocessing.Process(
                                 target=run_multi_perm,
-                                args=(
-                                    job_folder2, odir,
-                                    # mat, mat_pd,
-                                    mat_qza,
-                                    tsv,
-                                    # tsv, tsv_pd,
-                                    meta_pd,
-                                    case, case_var, case_vals,
-                                    testing_groups
-                                )
+                                args=(job_folder2, odir, mat_qza, tsv, meta_pd,
+                                      case, case_var, case_vals, testing_groups)
                             )
                             p.start()
                             jobs.append(p)
     for j in jobs:
         j.join()
-
     print('[TO RUN] sh', main_sh)
 
 
@@ -189,10 +171,7 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
                force: bool, prjct_nm: str, qiime_env: str):
 
     print("# Run Adonis (groups config in %s)" % p_perm_groups)
-    def run_multi_adonis(formula, odir,
-                         # mat, mat_pd,
-                         mat_qza,
-                         tsv,
+    def run_multi_adonis(formula, odir, mat_qza, tsv,
                          meta_pd, case, case_var, case_vals, out_sh):
 
         qza = '%s.qza' % splitext(tsv)[0]
@@ -308,10 +287,7 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
                                     sh.write('sh %s\n' % out_sh)
                                     p = multiprocessing.Process(
                                         target=run_multi_adonis,
-                                        args=(formula, odir,
-                                              # mat, mat_pd,
-                                              mat_qza,
-                                              tsv,
+                                        args=(formula, odir, mat_qza, tsv,
                                               meta_pd, case, case_var, case_vals, out_sh)
                                     )
                                     p.start()
@@ -322,5 +298,4 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
 
     for j in jobs:
         j.join()
-
     print('[TO RUN] sh', main_sh)
