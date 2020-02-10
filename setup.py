@@ -55,7 +55,8 @@ setup(
     install_requires=[
         "click",
         "pandas",
-        "scikit-bio == 0.5.4",
+        "numpy",
+        "scikit-bio",
         "pyyaml"
     ],
     classifiers=classifiers,
