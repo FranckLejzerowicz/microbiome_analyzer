@@ -94,7 +94,8 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
     job_folder2 = get_job_folder(i_folder, 'deicode/chunks')
 
     with open(p_perm_groups) as handle:
-        cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
+        cases_dict = yaml.load(handle)
+        # cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
     cases_dict.update({'ALL': [[]]})
 
     jobs = []
