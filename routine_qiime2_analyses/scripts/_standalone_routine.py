@@ -35,13 +35,13 @@ from routine_qiime2_analyses import __version__
     help="name of your qiime2 conda environment (e.g. qiime2-2019.10)."
 )
 @click.option(
-    "-p", "--p-perm-subsets", multiple=True, required=False, show_default=True, default=False,
-    help="Groups to tests between in each PERMANOVA subset. Must be a yaml file, e.g.\n"
-         "(see example in 'example_PERMANOVA.yml' and the README)."
+    "-s", "--p-perm-subsets", multiple=True, required=False, show_default=True, default=False,
+    help="Groups to tests between in each PERMANOVA subset."
 )
 @click.option(
     "-g", "--p-perm-groups", required=False, show_default=True,
-    default=False, help="Subsets for PERMANOVA."
+    default=False, help="Subsets for PERMANOVA. Must be a yaml file, e.g.\n"
+         "(see example in 'example_PERMANOVA.yml' and the README)."
 )
 @click.option(
     "-a", "--p-adonis-formulas", default=False, show_default=True,
