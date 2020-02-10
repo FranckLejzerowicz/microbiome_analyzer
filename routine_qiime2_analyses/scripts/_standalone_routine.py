@@ -20,7 +20,7 @@ from routine_qiime2_analyses import __version__
 @click.option(
     "-d", "--i-datasets", multiple=True, required=True,
     help="Identifier(s) of the dataset(s) (e.g. 'abyssal_V9' for inputs"
-         "'data/tab_abyssal_V9.tsv and 'metadata/meta_abyssal_V9.tsv')"
+         "'data/tab_test2.tsv and 'metadata/meta_test2.tsv')"
 )
 @click.option(
     "-t", "--i-wol-tree", required=False, show_default=True, default = None,
