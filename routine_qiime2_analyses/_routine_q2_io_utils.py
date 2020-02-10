@@ -39,7 +39,7 @@ def run_import(input_path: str, output_path: str, typ: str) -> str:
     else:
         cmd += 'qiime tools import'
         cmd += ' --input-path %s --output-path %s' % (input_path, output_path)
-        cmd += ' --type "DistanceMatrix"\n'
+        cmd += ' --type "%s"\n' % typ
     return cmd
 
 

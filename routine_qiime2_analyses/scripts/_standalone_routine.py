@@ -35,13 +35,18 @@ from routine_qiime2_analyses import __version__
     help="name of your qiime2 conda environment (e.g. qiime2-2019.10)."
 )
 @click.option(
-    "-p", "--p-perm-subsets", multiple=True, required=False,
-    show_default=True, default=False, help="Subsets for PERMANOVA."
+    "-p", "--p-perm-subsets", multiple=True, required=False, show_default=True, default=False,
+    help="Groups to tests between in each PERMANOVA subset. Must be a yaml file, e.g.\n"
+         "(see example in 'example_PERMANOVA.yml' and the README)."
 )
 @click.option(
-    "-g", "--p-perm-groups", required=False, show_default=True, default=False,
-    help="Groups to tests between in each PERMANOVA subset. Must be a yaml file, e.g.\n"
-         "(see example in 'example_PERMANOVA.yml' and the README)"
+    "-g", "--p-perm-groups", required=False, show_default=True,
+    default=False, help="Subsets for PERMANOVA."
+)
+@click.option(
+    "-a", "--p-adonis-formulas", default=False, show_default=True,
+    help="Formula for Adonis tests for each PERMANOVA subset. Must be a yaml file, e.g.\n"
+         "(see example in 'example_ADONIS.yml' and the README)."
 )
 @click.option(
     "-l", "--p-longi-column", default=False, show_default=True,
@@ -77,6 +82,7 @@ def standalone_routine(
         p_reads_filter,
         p_perm_subsets,
         p_perm_groups,
+        p_adonis_formulas,
         force, i_wol_tree,
         p_qiime2_env, biom
 ):
@@ -89,6 +95,7 @@ def standalone_routine(
         p_reads_filter,
         p_perm_subsets,
         p_perm_groups,
+        p_adonis_formulas,
         force, i_wol_tree,
         p_qiime2_env, biom
     )

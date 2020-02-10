@@ -30,7 +30,7 @@ def import_datasets(i_folder: str, datasets: dict, force: bool,
                 written += 1
 
     if force or written:
-        xpbs_call(out_sh, out_pbs, prjct_nm, qiime_env,
+        xpbs_call(out_sh, out_pbs, '%s.mprt' % prjct_nm, qiime_env,
                   '1', '1', '1', '100', 'mb')
         print('[TO RUN] qsub', out_pbs)
     else:
@@ -93,7 +93,7 @@ def filter_rare_samples(i_folder: str, datasets: dict, datasets_read: dict, data
                 written += 1
 
     if force or written:
-        xpbs_call(out_sh, out_pbs, prjct_nm, qiime_env,
+        xpbs_call(out_sh, out_pbs, '%s.fltr' % prjct_nm, qiime_env,
                   '4', '4', '1', '100', 'mb')
         print('[TO RUN] qsub', out_pbs)
     else:

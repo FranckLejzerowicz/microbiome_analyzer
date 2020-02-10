@@ -17,13 +17,13 @@ from routine_qiime2_analyses._routine_q2_beta import run_beta, export_beta, run_
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
                                                        run_correlations, run_volatility,
                                                        run_alpha_group_significance)
-from routine_qiime2_analyses._routine_q2_permanova import run_permanova
+from routine_qiime2_analyses._routine_q2_permanova_adonis import run_permanova, run_adonis
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
 
 
 def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
                             gid: bool, p_longi_column: str, thresh: int,
-                            p_perm_subsets: str, p_perm_groups: str,
+                            p_perm_subsets: tuple, p_perm_groups: str, p_formulas: str,
                             force: bool, i_wol_tree: str, qiime_env: str, biom: bool):
     """
     Main qiime2 functions writer.
@@ -35,6 +35,7 @@ def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
     :param p_qiime2_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
     :param p_perm_subsets: Subsets for PERMANOVA.
     :param p_perm_groups: Groups to test between in each PERMANOVA subset (yml file path).
+    :param p_formulas: Formula for Adonis tests for each PERMANOVA subset (yml file path).
     :param p_longi_column: If data is longitudinal; provide the time metadata column for volatility analysis.
     :param thresh: Minimum number of reads per sample to be kept.
     :param force: Force the re-writing of scripts for all commands.
@@ -107,3 +108,6 @@ def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
             run_permanova(i_folder, datasets, betas,
                           distances['beta'], p_perm_subsets, p_perm_groups,
                           force, prjct_nm, qiime_env)
+        if p_formulas:
+            run_adonis(p_formulas, i_folder, datasets, betas,
+                       distances['beta'], p_perm_groups, force, prjct_nm, qiime_env)
