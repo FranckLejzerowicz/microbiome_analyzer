@@ -9,7 +9,6 @@
 import os
 import yaml
 import pandas as pd
-import subprocess
 import multiprocessing
 from os.path import basename, dirname, isdir, isfile, splitext
 
@@ -143,7 +142,6 @@ def export_meta_alpha(i_folder: str, to_export: list,
 def run_correlations(i_folder: str, datasets: dict, diversities: dict,
                      force: bool, prjct_nm: str, qiime_env: str):
 
-
     print('# Correlate numeric metadata variables with alpha diversity indices')
     job_folder = get_job_folder(i_folder, 'alpha_correlations')
     job_folder2 = get_job_folder(i_folder, 'alpha_correlations/chunks')
@@ -201,7 +199,7 @@ def run_volatility(i_folder: str, datasets: dict, p_longi_column: str,
                         print('\nWarning: First make sure you run alpha -> alpha merge -> alpha export'
                               ' before running volatility\n\t(if you need the alpha as a response variable)!')
                         first_print += 1
-                    # continue
+                    continue
                 with open(meta) as f:
                     for line in f:
                         break
