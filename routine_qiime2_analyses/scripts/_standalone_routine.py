@@ -15,12 +15,13 @@ from routine_qiime2_analyses import __version__
 @click.command()
 @click.option(
     "-i", "--i-datasets-folder", required=True,
-    help="Path to the folder containing the .tsv datasets."
+    help="Path to the folder containing the sub-folders 'data' and 'metadata'."
 )
 @click.option(
     "-d", "--i-datasets", multiple=True, required=True,
-    help="Identifier(s) of the dataset(s) (e.g. 'abyssal_V9' for inputs"
-         "'data/tab_test2.tsv and 'metadata/meta_test2.tsv')"
+    help="Identifier(s) of the dataset(s) (e.g. '-d test1 -d test2' for inputs"
+         "'data/tab_test1.tsv + metadata/meta_test1.tsv' as"
+         " well as 'data/tab_test2.tsv + metadata/meta_test2.tsv')"
 )
 @click.option(
     "-t", "--i-wol-tree", required=False, show_default=True, default = None,

@@ -22,16 +22,16 @@ for which another folder containing metadata for these samples is present, and r
 
 
 ## Installation
-
+```
+pip install git+https://github.com/FranckLejzerowicz/routine_qiime2_analyses.git
+```
+or 
 ```
 git clone https://github.com/FranckLejzerowicz/routine_qiime2_analyses.git
 cd routine_qiime2_analyses
 python setup.py build_ext --inplace --force install
 ```
-or
-```
-pip install git+https://github.com/FranckLejzerowicz/routine_qiime2_analyses.git
-```
+
 *_Note that python should be python3_
 
 ### Depencency
@@ -149,12 +149,12 @@ Finally, the stout tells out what to copy-paste on the HPC terminal to actually 
 It is possible to run PERMANOVA for a series of user-defined subsets of the data and to test difference between 
 different groups of each subset automatically.
 
-- **permanova tests** (`-p`):
+- **permanova tests** (`-s`):
     ```
-    routine_qiime2_analyses -p sex -p age_cat -i ./test/files -d abyssal_V9 -n abyssals -e qiime2-2019.10
+    routine_qiime2_analyses -s sex -s age_cat -i ./test/files -d abyssal_V9 -n abyssals -e qiime2-2019.10
     ```
-    This use of `-p` will result in one test for each factor to the column `sex`, as well as one subset for each
-    factor to the column `age_cat`. As in this example, note that `-p` can be used multiple time, once per group. 
+    This use of `-s` will result in one test for each factor to the column `sex`, as well as one subset for each
+    factor to the column `age_cat`. As in this example, note that `-s` can be used multiple time, once per group. 
     
 - **group subsets** (`-g`): a config file must be provided in the following .yml format:  
     ```
