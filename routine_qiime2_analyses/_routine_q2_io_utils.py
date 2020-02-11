@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import os
+import re
 import sys
 import pandas as pd
 from glob import glob
@@ -153,7 +154,13 @@ def get_datasets(i_datasets: tuple, i_folder: str, gid: bool, biom: bool) -> (di
         datasets.setdefault(dat, []).append([path, meta])
         datasets_read.setdefault(dat, []).append([path_pd, meta_pd])
         if gid:
-            datasets_features[dat] = dict([x.split('__')[-1], x] for x in path_pd.index.tolist())
+            features_names = path_pd.index.tolist()
+            found_gids = {}
+            for features_name in features_names:
+                if re.search('G\d{9}', features_name):
+                    found_gids[re.search('G\d{9}', features_name).group(0)] = features_name
+            if found_gids:
+                datasets_features[dat] = found_gids
     return datasets, datasets_read, datasets_features
 
 
