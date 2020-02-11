@@ -39,7 +39,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_features:dict, bet
                         out_fp = '%s/%s_%s_DM.qza' % (odir, basename(splitext(qza)[0]), metric)
                         if force or not os.path.isfile(out_fp):
                             if 'unifrac' in metric:
-                                if not datasets_features[dataset]:
+                                if dataset not in datasets_features:
                                     continue
                                 cmd = [
                                     'qiime', 'diversity', 'beta-phylogenetic',

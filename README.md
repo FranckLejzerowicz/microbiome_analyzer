@@ -23,13 +23,13 @@ for which another folder containing metadata for these samples is present, and r
 
 ## Installation
 ```
-pip install git+https://github.com/FranckLejzerowicz/routine_qiime2_analyses.git
+pip install --upgrade git+git@github.com:FranckLejzerowicz/routine_qiime2_analyses.git@master
 ```
 or 
 ```
 git clone https://github.com/FranckLejzerowicz/routine_qiime2_analyses.git
 cd routine_qiime2_analyses
-python setup.py build_ext --inplace --force install
+python3 setup.py build_ext --inplace --force install
 ```
 
 *_Note that python should be python3_

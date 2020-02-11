@@ -43,7 +43,7 @@ def run_alpha(i_folder: str, datasets: dict, datasets_features:dict, alpha_metri
                         out_tsv = '%s.tsv' % splitext(out_fp)[0]
                         if force or not isfile(out_fp):
                             if metric == 'faith_pd':
-                                if not datasets_features[dataset]:
+                                if dataset not in datasets_features:
                                     continue
                                 cmd = [
                                     'qiime', 'diversity', 'alpha-phylogenetic',
