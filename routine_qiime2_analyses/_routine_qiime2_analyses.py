@@ -79,6 +79,7 @@ def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
                  'beta': ['jaccard', 'braycurtis', 'aitchison']}
     wol_trees = {}
     if datasets_features:
+        print(datasets_features.keys())
         distances['alpha'].append('faith_pd')
         distances['beta'].extend(['unweighted_unifrac', 'weighted_unifrac'])
         wol_trees = shear_tree(datasets_features, i_folder, prjct_nm,

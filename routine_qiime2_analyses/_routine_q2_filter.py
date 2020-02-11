@@ -74,7 +74,7 @@ def filter_rare_samples(i_folder: str, datasets: dict, datasets_read: dict, data
                 tab_filt_pd = tab_filt_pd.loc[:, tab_filt_pd.sum(0) > 0]
                 meta_filt_pd = meta_pd.loc[tab_filt_pd.columns.tolist()].copy()
 
-                dat_filt = '%s_min%s_%ss' % (dat, thresh, meta_filt_pd.shape[0])
+                dat_filt = '%s_min%s_%ss' % (dat, thresh, meta_filt_pd.shape[1])
                 tab_filt_fp = '%s/data/tab_%s.tsv' % (i_folder, dat_filt)
                 meta_filt_fp = tab_filt_fp.replace('/data/', '/metadata/').replace('tab_', 'meta_')
                 datasets_update.setdefault(dat_filt, []).append([tab_filt_fp, meta_filt_fp])

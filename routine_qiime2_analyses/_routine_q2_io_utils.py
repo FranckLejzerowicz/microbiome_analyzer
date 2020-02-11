@@ -161,6 +161,7 @@ def get_datasets(i_datasets: tuple, i_folder: str, gid: bool, biom: bool) -> (di
                     found_gids[re.search('G\d{9}', features_name).group(0)] = features_name
             if found_gids:
                 datasets_features[dat] = found_gids
+
     return datasets, datasets_read, datasets_features
 
 
