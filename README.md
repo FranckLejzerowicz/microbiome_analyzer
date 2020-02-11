@@ -205,8 +205,9 @@ the groups in columns `timepoint_months`.
 ## ADONIS
 
 It is possible to run R's Adonis in Qiime2 for a series of user-defined formulas to test difference as in PERMANOVA
-for multivariate data but with continuous metadata variables as regressors. This will performed on each of the subsets
-set with the `-g` option above **group subsets**.
+for multivariate data but with continuous and multiple metadata variables as regressors
+(see [http://cc.oulu.fi/~jarioksa/softhelp/vegan/html/adonis.html](http://cc.oulu.fi/~jarioksa/softhelp/vegan/html/adonis.html)).
+The passed models will perform on each of the subsets defined in the file passed to option `-g`, as above.
 
 - **adonis formula** (`-a`): a config file must be provided in the following .yml format:
     ```
@@ -223,6 +224,7 @@ set with the `-g` option above **group subsets**.
     which in R, would correspond to these commands:
      - `adonis(<bray_curtis_distance_matrix-file> ~ sex + income * timepoint_months, <metadata-file>)`
      - `adonis(<bray_curtis_distance_matrix-file> ~ income * timepoint_months, <metadata-file>)`
+     
     For example:
     ```
     routine_qiime2_analyses \
@@ -236,38 +238,12 @@ set with the `-g` option above **group subsets**.
     ```
     This use of `-a` will result in one test for each formula placed as rows in the .yml file. 
     
-- **group subsets** (`-g`): a config file must be provided in the following .yml format:  
-    ```
-    sex:
-    - - Male
-    - - Female
-    timepoint_months:
-    - - '9'
-      - '24'
-    - - '24'
-      - '36'  
-    income:
-    - - '<15000'
-    - - '>15000'
-    ```
-    which is interpreted as a dictionary which for each metadata variable, lists one or more factor(s) 
-    defining a subset:
-    ```
-    {'sex': [['Male'], ['Female']],
-     'timepoint_months': [['9', '24'], ['24', '36']],
-     'income': [['<15000'], ['>15000']]}    
-    ```
-    In this example, there will be one subset for:
-     - samples having `Male` in column `sex`
-     - samples having `Female` in column `sex`
-     - samples having `9` or `24` in column `timepoint_months`
-     - samples having `24` or `36` in column `timepoint_months`
-     - samples having a value inferior to `15000` in column `income`
-     - samples having a value superior to `15000` in column `income`
+- **group subsets** (`-g`): a config file must be provided in the following .yml format.
+This is the exact same file (and thus format) as for the PERMANOVA above.   
     
-- The output is self contained, e.g.: `tab_abyssal_V9_braycurtis_sex_Female__timepoint_months_permanova.qzv` is for the `Female` subset of metadata 
-variable `sex` (it also does the result for `Male` etc), and using PERMANOVA to perform comparison between 
-the groups in columns `timepoint_months`. 
+- The output is self contained, e.g.: `tab_test1_braycurtis_sex_Female__sexPLUSincomeINTERtime_adonis.qzv` is for
+the `Female` subset of metadata variable `sex` (it also does the result for `Male` etc), and using ADONIS to perform
+testing between the groups in columns `timepoint_months`. 
 
  
  
