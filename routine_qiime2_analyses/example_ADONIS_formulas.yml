@@ -1,2 +1,2 @@
-timeCOMBIsexPLUSincome: "timepoint_months*sex+income"
-timePLUSincome: "timepoint_months+income"
+timeINTERsexPLUSincome: "sex+income*timepoint_months"
+timePLUSincome: "income+timepoint_months"
