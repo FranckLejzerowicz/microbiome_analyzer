@@ -16,7 +16,7 @@ from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
 from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder, run_import, run_export
 
 
-def run_alpha(i_folder: str, datasets, alpha_metrics: list,
+def run_alpha(i_folder: str, datasets: dict, datasets_features:dict, alpha_metrics: list,
               wol_trees: dict, force: bool, prjct_nm: str, qiime_env: str) -> dict:
 
     print('# Calculate alpha diversity indices')
@@ -41,9 +41,10 @@ def run_alpha(i_folder: str, datasets, alpha_metrics: list,
                         odir = get_analysis_folder(i_folder, 'alpha/%s' % dataset)
                         out_fp = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]), metric)
                         out_tsv = '%s.tsv' % splitext(out_fp)[0]
-                        divs.append(out_fp)
                         if force or not isfile(out_fp):
                             if metric == 'faith_pd':
+                                if not datasets_features[dataset]:
+                                    continue
                                 cmd = [
                                     'qiime', 'diversity', 'alpha-phylogenetic',
                                     '--i-table', qza,
@@ -64,6 +65,7 @@ def run_alpha(i_folder: str, datasets, alpha_metrics: list,
                             sh.write('echo "%s"\n' % cmd)
                             sh.write('%s\n' % cmd)
                             written += 1
+                        divs.append(out_fp)
                     diversities[dataset][qza] = divs
             if written:
                 xpbs_call(out_sh, out_pbs, '%s.mg.lph.%s' % (prjct_nm, dataset), qiime_env,

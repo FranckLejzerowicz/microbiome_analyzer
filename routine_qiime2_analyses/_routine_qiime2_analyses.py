@@ -79,7 +79,6 @@ def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
                  'beta': ['jaccard', 'braycurtis', 'aitchison']}
     wol_trees = {}
     if datasets_features:
-        print(datasets_features.keys())
         distances['alpha'].append('faith_pd')
         distances['beta'].extend(['unweighted_unifrac', 'weighted_unifrac'])
         wol_trees = shear_tree(datasets_features, i_folder, prjct_nm,
@@ -87,7 +86,7 @@ def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
     # ---------------------------------------------------------------------------------------
 
     # ALPHA ---------------------------------------------------
-    diversities = run_alpha(i_folder, datasets, distances['alpha'],
+    diversities = run_alpha(i_folder, datasets, datasets_features, distances['alpha'],
                             wol_trees, force, prjct_nm, qiime_env)
     to_export = merge_meta_alpha(i_folder, diversities,
                                  force, prjct_nm, qiime_env)
@@ -101,7 +100,7 @@ def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
     # ---------------------------------------------------------
 
     # BETA ----------------------------------------------------
-    betas = run_beta(i_folder, datasets, distances['beta'],
+    betas = run_beta(i_folder, datasets, datasets_features, distances['beta'],
                      wol_trees, force, prjct_nm, qiime_env)
     export_beta(i_folder, betas,
                 force, prjct_nm, qiime_env)
