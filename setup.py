@@ -65,6 +65,7 @@ setup(
         'routine_qiime2_analyses': [
             'test/*/*/*'
             'resources/*'
+            'examples/*'
         ],
     },
     include_package_data=True,

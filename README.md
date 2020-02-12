@@ -245,7 +245,7 @@ different groups of each subset automatically.
     routine_qiime2_analyses \
         -t sex \
         -t age_cat \
-        -g ./routine_qiime2_analyses/example_PERMANOVA.yml \
+        -g ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml \
         -i ./routine_qiime2_analyses/test/files \
         -d dataset_number_1 \
         -d test2 \
@@ -284,8 +284,8 @@ The passed models will perform on each of the subsets defined in the file passed
     For example:
     ```
     routine_qiime2_analyses \
-        -a ./routine_qiime2_analyses/example_ADONIS_formulas.yml \
-        -g ./routine_qiime2_analyses/example_PERMANOVA.yml \
+        -a ./routine_qiime2_analyses/examples/example_ADONIS_formulas.yml \
+        -g ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml \
         -i ./routine_qiime2_analyses/test/files \
         -d dataset_number_1 \
         -d dataset_number_2 \
@@ -333,12 +333,12 @@ routine_qiime2_analyses -i <input_folder_path> -d <dataset_name> -n <project_nam
                                 sex -d age_cat').  [default: False]
   -g, --p-perm-groups TEXT      Subsets for PERMANOVA. Must be a yaml file,
                                 e.g.
-                                (see example in 'example_PERMANOVA.yml'
+                                (see example in 'examples/example_PERMANOVA_subsets.yml'
                                 and the README).  [default: False]
   -a, --p-adonis-formulas TEXT  Formula for Adonis tests for each PERMANOVA
                                 subset. Must be a yaml file, e.g.
                                 (see example
-                                in 'example_ADONIS.yml' and the README).
+                                in 'examples/example_ADONIS_formulas.yml' and the README).
                                 [default: False]
   -l, --p-longi-column TEXT     If data is longitudinal; provide the time
                                 metadata columnfor volatility analysis.
@@ -370,8 +370,8 @@ routine_qiime2_analyses  \
     -e qiime2-2019.10  \
     -t sex \
     -t age_cat  \
-    -g ./routine_qiime2_analyses/example_PERMANOVA.yml  \
-    -a ./routine_qiime2_analyses/example_ADONIS_formulas.yml  \
+    -g ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml  \
+    -a ./routine_qiime2_analyses/examples/example_ADONIS_formulas.yml  \
     --gid  \
     -l timepoint_months
     -f 10000
@@ -411,15 +411,15 @@ Warning: First make sure you run alpha -> alpha merge -> alpha export before run
 Warning: Make sure you first run alpha -> alpha merge -> alpha export
         (if you want alpha diversity as a variable in the PCoA)!
 [TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/emperor/4_run_emperor.sh
-# DEICODE (groups config in ./routine_qiime2_analyses/example_PERMANOVA.yml)
+# DEICODE (groups config in ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml)
 sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/deicode/3_run_beta_deicode.sh
-# Kruskal-Wallis (groups config in ./routine_qiime2_analyses/example_PERMANOVA.yml)
+# Kruskal-Wallis (groups config in ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml)
 [TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha_group_significance/6_run_alpha_group_significance.sh
-# PERMANOVA (groups config in ./routine_qiime2_analyses/example_PERMANOVA.yml)
+# PERMANOVA (groups config in ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml)
 Beta diversity, distances matrices must be generated already to automatise PERMANOVA
         (re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)
 [TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/permanova/3_run_beta_group_significance.sh
-# Run Adonis (groups config in ./routine_qiime2_analyses/example_PERMANOVA.yml)
+# Run Adonis (groups config in ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml)
 Beta diversity, distances matrices must be generated already to automatise adonis
         (re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)
 [TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/adonis/3_run_adonis.sh
