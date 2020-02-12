@@ -153,7 +153,7 @@ def get_datasets(i_datasets: tuple, i_folder: str, gid: bool, biom: bool) -> (di
         meta_pd = pd.read_csv(meta, header=0, sep='\t')
         datasets.setdefault(dat, []).append([path, meta])
         datasets_read.setdefault(dat, []).append([path_pd, meta_pd])
-        if gid and str(tab_filt_pd.index.dtype) == 'object':
+        if gid and str(path_pd.index.dtype) == 'object':
             features_names = path_pd.index.tolist()
             found_gids = {}
             for features_name in features_names:
