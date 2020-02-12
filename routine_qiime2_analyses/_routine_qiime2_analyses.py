@@ -23,7 +23,7 @@ from routine_qiime2_analyses._routine_q2_deicode import run_deicode
 
 def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
                             gid: bool, p_longi_column: str, thresh: int,
-                            p_perm_subsets: tuple, p_perm_groups: str, p_formulas: str,
+                            p_perm_tests: tuple, p_perm_groups: str, p_formulas: str,
                             force: bool, i_wol_tree: str, qiime_env: str, biom: bool):
     """
     Main qiime2 functions writer.
@@ -33,7 +33,7 @@ def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
     :param i_wol_tree: default on barnacle /projects/wol/profiling/dbs/wol/phylogeny/web_of_life_tree.nwk.
     :param project_name: Nick name for your project.
     :param p_qiime2_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
-    :param p_perm_subsets: Subsets for PERMANOVA.
+    :param p_perm_tests: Subsets for PERMANOVA.
     :param p_perm_groups: Groups to test between in each PERMANOVA subset (yml file path).
     :param p_formulas: Formula for Adonis tests for each PERMANOVA subset (yml file path).
     :param p_longi_column: If data is longitudinal; provide the time metadata column for volatility analysis.
@@ -116,9 +116,9 @@ def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
         run_alpha_group_significance(i_folder, diversities, p_perm_groups,
                                      distances['alpha'], force, prjct_nm, qiime_env)
 
-        if p_perm_subsets:
+        if p_perm_tests:
             run_permanova(i_folder, datasets, betas,
-                          distances['beta'], p_perm_subsets, p_perm_groups,
+                          distances['beta'], p_perm_tests, p_perm_groups,
                           force, prjct_nm, qiime_env)
         if p_formulas:
             run_adonis(p_formulas, i_folder, datasets, betas,

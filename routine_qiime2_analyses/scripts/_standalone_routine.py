@@ -19,13 +19,14 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "-d", "--i-datasets", multiple=True, required=True,
-    help="Identifier(s) of the dataset(s) (e.g. '-d test1 -d test2' for inputs"
-         "'data/tab_test1.tsv + metadata/meta_test1.tsv' as"
-         " well as 'data/tab_test2.tsv + metadata/meta_test2.tsv')"
+    help="Identifier(s) of the dataset(s) (e.g. '-d dataset_number_1 -d dataset_number_2' for inputs"
+         "'data/tab_dataset_number_1.tsv + metadata/meta_dataset_number_1.tsv' as"
+         " well as 'data/tab_dataset_number_2.tsv + metadata/meta_dataset_number_2.tsv')"
 )
 @click.option(
     "-t", "--i-wol-tree", required=False, show_default=True, default = None,
-    help="default on barnacle /projects/wol/profiling/dbs/wol/phylogeny/tree.nwk"
+    help="path to the tree containing the genome IDs alse present in the features names "
+         "(On barnacle, it is there: /projects/wol/profiling/dbs/wol/phylogeny/tree.nwk)."
 )
 @click.option(
     "-n", "--p-project-name", required=True, show_default=True,
@@ -33,11 +34,12 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "-e", "--p-qiime2-env", required=True, show_default=True,
-    help="name of your qiime2 conda environment (e.g. qiime2-2019.10)."
+    help="name of your qiime2 conda environment (e.g. qiime2-2019.10) "
 )
 @click.option(
-    "-s", "--p-perm-subsets", multiple=True, required=False, show_default=True, default=False,
-    help="Groups to tests between in each PERMANOVA subset."
+    "-t", "--p-perm-tests", multiple=True, required=False, show_default=True, default=False,
+    help="Groups to tests between in each PERMANOVA subset "
+         "(multiple values are possible, e.g. '-d sex -d age_cat')."
 )
 @click.option(
     "-g", "--p-perm-groups", required=False, show_default=True,
@@ -81,7 +83,7 @@ def standalone_routine(
         p_project_name,
         gid, p_longi_column,
         p_reads_filter,
-        p_perm_subsets,
+        p_perm_tests,
         p_perm_groups,
         p_adonis_formulas,
         force, i_wol_tree,
@@ -94,7 +96,7 @@ def standalone_routine(
         p_project_name,
         gid, p_longi_column,
         p_reads_filter,
-        p_perm_subsets,
+        p_perm_tests,
         p_perm_groups,
         p_adonis_formulas,
         force, i_wol_tree,
