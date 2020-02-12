@@ -33,7 +33,7 @@ cd routine_qiime2_analyses
 python3 setup.py build_ext --inplace --force install
 ```
 
-*_Note that python should be python3_
+*_Note that python and pip should be python3_
 
 ### Depencency
 
