@@ -1,3 +1,3 @@
-resources/web_of_life_tre.nwk
-examples/example_ADONIS_formulas.yml
-examples/example_PERMANOVA_subsets.yml
+include resources/web_of_life_tre.nwk
+include examples/example_ADONIS_formulas.yml
+include examples/example_PERMANOVA_subsets.yml
