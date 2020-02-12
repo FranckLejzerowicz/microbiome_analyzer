@@ -87,6 +87,8 @@ def filter_rare_samples(i_folder: str, datasets: dict, datasets_read: dict, data
                     features_names = tab_filt_pd.index.tolist()
                     found_gids = {}
                     for features_name in features_names:
+                        print(dat)
+                        print(features_name[:10])
                         if re.search('G\d{9}', features_name):
                             found_gids[re.search('G\d{9}', features_name).group(0)] = features_name
                     if found_gids:
