@@ -89,7 +89,7 @@ def filter_rare_samples(i_folder: str, datasets: dict, datasets_read: dict, data
                     for features_name in features_names:
                         if re.search('G\d{9}', features_name):
                             found_gids[re.search('G\d{9}', features_name).group(0)] = features_name
-                    if found_gids:
+                    if len(found_gids) == len(features_names):
                         datasets_features[dat_filt] = found_gids
 
                 qza = tab_filt_fp.replace('.tsv', '.qza')

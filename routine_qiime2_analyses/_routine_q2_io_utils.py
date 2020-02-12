@@ -156,11 +156,13 @@ def get_datasets(i_datasets: tuple, i_folder: str, gid: bool, biom: bool) -> (di
         if gid and str(path_pd.index.dtype) == 'object':
             features_names = path_pd.index.tolist()
             found_gids = {}
-            print(features_names[:10])
             for features_name in features_names:
-                if re.search('G\d{9}', features_name):
-                    found_gids[re.search('G\d{9}', features_name).group(0)] = features_name
-            if found_gids:
+                try:
+                    if re.search('G\d{9}', features_name):
+                        found_gids[re.search('G\d{9}', features_name).group(0)] = features_name
+                except TypeError:
+                    print(features_names[:10])
+            if len(found_gids) == len(features_names):
                 datasets_features[dat] = found_gids
 
     return datasets, datasets_read, datasets_features
