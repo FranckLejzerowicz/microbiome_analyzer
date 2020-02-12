@@ -18,6 +18,7 @@ for which another folder containing metadata for these samples is present, and r
 - **beta** diversity analysis (for now, using "jaccard", "braycurtis", "aitchison" metrics),
 - **deicode**
 - **permanova**
+- **adonis**
 - ... _(more to come)_
 
 
@@ -55,7 +56,7 @@ The input is strict (so that it runs well):
 - name of the dataset(s) that appear _internally_ in these folder's file names (options `-d`).
 There must be a perfect matching of this _internal_ name in the features/metadata file pairs, e.g.
     ```
-    abyssal_folder
+    datasets_folder
     ├── metadata
     │   └── meta_dataset_number_1.tsv
     │   └── meta_dataset_number_2.tsv
@@ -69,11 +70,11 @@ There must be a perfect matching of this _internal_ name in the features/metadat
     **The analysis is performed as follows:**
     - If both datasets are to be processed:
     ```
-    routine_qiime2_analyses -i abyssal_folder -d dataset_number_1 -d dataset_number_2 -n abyssals -e qiime2-2019.10
+    routine_qiime2_analyses -i datasets_folder -d dataset_number_1 -d dataset_number_2 -n jobs_name -e qiime2-2019.10
     ```
     - If only the `dataset_number_2` dataset is to be processed:
     ```
-    routine_qiime2_analyses -i abyssal_folder -d dataset_number_2 -n abyssalV9 -e qiime2-2019.10
+    routine_qiime2_analyses -i datasets_folder -d dataset_number_2 -n jobs_name -e qiime2-2019.10
     ```
 In fact, the tool simply generates scripts files that need to be started manually, and which
 output should be scrutinized manually (**highly recommended**). This just a way to help you
@@ -86,62 +87,119 @@ After running this command (you can try):
 routine_qiime2_analyses -i ./routine_qiime2_analyses/test/files -d dataset_number_1 -n jobs_name -e qiime2-2019.10
 ```
 You would obtain _files_ in the `jobs` folders (scripts to check and run),
-and _folders_ in the `qiime` folder (locations for qiime2 outputs):
+and _folders_ in the `qiime` folder (locations for qiime2 outputs).
 ```
 .
+├── data
+│   ├── tab_dataset_number_1.tsv
+│   └── tab_dataset_number_2.tsv
+├── jobs
+│   ├── alpha
+│   ├── alpha_correlations
+│   ├── beta
+│   ├── emperor
+│   ├── import_tables
+│   └── pcoa
+├── metadata
+│   ├── meta_dataset_number_1.tsv
+│   └── meta_dataset_number_2.tsv
+└── qiime
+    ├── alpha
+    │   └── dataset_number_1
+    ├── alpha_correlations
+    │   └── dataset_number_1
+    ├── beta
+    │   └── dataset_number_1
+    ├── emperor
+    │   └── dataset_number_1
+    └── pcoa
+        └── dataset_number_1
+```
+
+The jobs to run are in printed in the stdout, i.e. the commands to copy-paste on the
+HPC terminal to actually run the jobs are those after the `[TO RUN]` indicators that print
+in the terminal as you run `routine_qiime2_analyses`, here, for the above example:  
+```
+# Fetching data and metadata (in dataset_number_1)
+# Import tables to qiime2
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_tables/0_run_import.pbs
+# Calculate alpha diversity indices
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha/1_run_alpha.sh
+# Merge alpha diversity indices to metadata
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha/2_run_merge_alphas.sh
+# Export alpha diversity indices to metadata
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha/3_run_merge_alpha_export.pbs
+# Correlate numeric metadata variables with alpha diversity indices
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha_correlations/4_run_alpha_correlation.sh
+# Calculate beta diversity indices
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/beta/2_run_beta.sh
+# Export beta diversity matrices
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/beta/2x_run_beta_export.pbs
+# Calculate principal coordinates
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/pcoa/3_run_pcoa.sh
+# Make EMPeror plots
+
+Warning: Make sure you first run alpha -> alpha merge -> alpha export
+        (if you want alpha diversity as a variable in the PCoA)!
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/emperor/4_run_emperor.sh
+```
+The job are labeled for you to get a suggestion of the order in which to run them
+(this is essentially what `snakemake` would do but it does but the whole point
+ here is to have some human verification.)
+
+## **WARNING**: Check the jobs scripts first!
+
+The files to copy-paste in the HPC terminal all have a name that start by a number. 
+However, different things happen if the file name ends with: 
+- `.pbs`: submit one HPC job (_that may consist in of several qiime2 commands, e.g. import multiple artefacts_)
+- `.sh`: script that submits multiple HPC jobs (_each may also consist of several qiime2 commands_)
+  - these multiple jobs are the `.pbs` files in the subfolders named `chunks`
+
+**PLEASE ALWAYS DO CHECK OF THE ACTUAL QIIME2 COMMANDS, WRITTEN IN THE `.pbs` FILES**  
+
+Example:
+```
 ├── jobs
 │   ├── alpha
 │   │   ├── 1_run_alpha.sh
 │   │   ├── 2_run_merge_alphas.sh
 │   │   ├── 3_run_merge_alpha_export.pbs
 │   │   ├── 3_run_merge_alpha_export.sh
+│   │   └── chunks
+│   │       ├── run_alpha_dataset_number_1.pbs
+│   │       ├── run_alpha_dataset_number_1.sh
+│   │       ├── run_merge_alpha_dataset_number_1.pbs
+│   │       └── run_merge_alpha_dataset_number_1.sh
 │   ├── alpha_correlations
 │   │   ├── 4_run_alpha_correlation.sh
+│   │   └── chunks
+│   │       ├── run_alpha_correlation_dataset_number_1.pbs
+│   │       └── run_alpha_correlation_dataset_number_1.sh
 │   ├── beta
 │   │   ├── 2_run_beta.sh
 │   │   ├── 2x_run_beta_export.pbs
 │   │   ├── 2x_run_beta_export.sh
+│   │   └── chunks
+│   │       ├── run_beta_dataset_number_1.pbs
+│   │       └── run_beta_dataset_number_1.sh
 │   ├── emperor
 │   │   ├── 4_run_emperor.sh
+│   │   └── chunks
+│   │       ├── run_emperor_dataset_number_1_tab_dataset_number_1_aitchison.pbs
+│   │       ├── run_emperor_dataset_number_1_tab_dataset_number_1_aitchison.sh
+│   │       ├── run_emperor_dataset_number_1_tab_dataset_number_1_braycurtis.pbs
+│   │       ├── run_emperor_dataset_number_1_tab_dataset_number_1_braycurtis.sh
+│   │       ├── run_emperor_dataset_number_1_tab_dataset_number_1_jaccard.pbs
+│   │       └── run_emperor_dataset_number_1_tab_dataset_number_1_jaccard.sh
+│   ├── import_tables
+│   │   ├── 0_run_import.pbs
+│   │   └── 0_run_import.sh
 │   └── pcoa
 │       ├── 3_run_pcoa.sh
-├── metadata
-│   ├── meta_dataset_number_1.tsv
-│   └── meta_dataset_number_2.tsv
-└── qiime
-    ├── alpha
-    │   └── dataset_number_2
-    ├── alpha_correlations
-    │   └── dataset_number_2
-    ├── beta
-    │   └── dataset_number_2
-    ├── emperor
-    │   └── dataset_number_2
-    └── pcoa
-        └── dataset_number_2
-```
-The job are labeled for you to know in what order to run them. I recommend you check the output,
-which is what snakemake does not allow you to do easily for a long workflow.    
+│       └── chunks
+│           ├── run_PCoA_dataset_number_1.pbs
+│           └── run_PCoA_dataset_number_1.sh
 
-Finally, the stout tells out what to copy-paste on the HPC terminal to actually run the jobs: 
-```
-# Fetching data and metadata (in dataset_number_2)
-# Calculate beta diversity indices
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/beta/2_run_beta.sh
-# Export beta diversity matrices
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/beta/2x_run_beta_export.pbs
-# Calculate principal coordinates
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/pcoa/3_run_pcoa.sh
-# Make EMPeror plots
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/emperor/4_run_emperor.sh
-# Calculate alpha diversity indices
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/alpha/1_run_alpha.sh
-# Merge alpha diversity indices to metadata
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/alpha/2_run_merge_alphas.sh
-# Export alpha diversity indices to metadata
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/alpha/3_run_merge_alpha_export.pbs
-# Correlate numeric metadata variables with alpha diversity indices
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/alpha_correlations/4_run_alpha_correlation.sh
 ```
 
 ## PERMANOVA
@@ -254,23 +312,39 @@ routine_qiime2_analyses -i <input_folder_path> -d <dataset_name> -n <project_nam
 ### Optional arguments
 
 ``` 
-  -i, --i-datasets-folder TEXT  Path to the folder containing the .tsv
-                                datasets  [required]
-  -t, --i-wol-tree TEXT         default on barnacle /projects/wol/profiling/db
-                                s/wol/phylogeny/tree.nwk  [default: /projects/
-                                wol/profiling/dbs/wol/phylogeny/tree.nwk]
+  -i, --i-datasets-folder TEXT  Path to the folder containing the sub-folders
+                                'data' and 'metadata'.  [required]
+  -d, --i-datasets TEXT         Identifier(s) of the dataset(s) (e.g. '-d
+                                dataset_number_1 -d dataset_number_2' for
+                                inputs'data/tab_dataset_number_1.tsv +
+                                metadata/meta_dataset_number_1.tsv' as well as
+                                'data/tab_dataset_number_2.tsv +
+                                metadata/meta_dataset_number_2.tsv')
+                                [required]
+  -t, --i-wol-tree TEXT         path to the tree containing the genome IDs
+                                alse present in the features names (On
+                                barnacle, it is there: /projects/wol/profiling
+                                /dbs/wol/phylogeny/tree.nwk).
   -n, --p-project-name TEXT     Nick name for your project.  [required]
   -e, --p-qiime2-env TEXT       name of your qiime2 conda environment (e.g.
-                                qiime2-2019.10).  [required]
-  -p, --p-perm-subsets TEXT     Subsets for PERMANOVA.  [default: False]
-  -g, --p-perm-groups TEXT      Groups to test between in each PERMANOVA
+                                qiime2-2019.10)   [required]
+  -t, --p-perm-tests TEXT       Groups to tests between in each PERMANOVA
+                                subset (multiple values are possible, e.g. '-d
+                                sex -d age_cat').  [default: False]
+  -g, --p-perm-groups TEXT      Subsets for PERMANOVA. Must be a yaml file,
+                                e.g.
+                                (see example in 'example_PERMANOVA.yml'
+                                and the README).  [default: False]
+  -a, --p-adonis-formulas TEXT  Formula for Adonis tests for each PERMANOVA
                                 subset. Must be a yaml file, e.g.
                                 (see example
-                                in 'example_PERMANOVA.yml' and the README)
+                                in 'example_ADONIS.yml' and the README).
                                 [default: False]
   -l, --p-longi-column TEXT     If data is longitudinal; provide the time
                                 metadata columnfor volatility analysis.
                                 [default: False]
+  -f, --p-reads-filter INTEGER  Minimum number of reads per sample to be kept.
+                                [default: 0]
   --force / --no-force          Force the re-writing of scripts for all
                                 commands(default is to not re-run if output
                                 file exists).  [default: False]
@@ -281,61 +355,74 @@ routine_qiime2_analyses -i <input_folder_path> -d <dataset_name> -n <project_nam
                                 [default: False]
   --version                     Show the version and exit.
   --help                        Show this message and exit.
-
 ```
+
 ## Example
 
 For the command:
-
 ```
-routine_qiime2_analyses \
-    -i ./test/files \
-    -d dataset_number_1 \
-    -d dataset_number_2 \
-    -n abyssal_jobs \
-    -t ./test/files/WoL_tree/tree.nwk \
-    -e q2 \
-    -p timepoint_months \
-    -l timepoint_months \
-    --gid \
-    -g ./routine_qiime2_analyses/example_PERMANOVA.yml \
-    -f 10000 
+routine_qiime2_analyses  \
+    -i ./routine_qiime2_analyses/test/files  \
+    -d dataset_number_1  \
+    -d dataset_number_2  \
+    -t ./routine_qiime2_analyses/resources/web_of_life_tree.nwk  \
+    -n test_name  \
+    -e qiime2-2019.10  \
+    -t sex \
+    -t age_cat  \
+    -g ./routine_qiime2_analyses/example_PERMANOVA.yml  \
+    -a ./routine_qiime2_analyses/example_ADONIS_formulas.yml  \
+    --gid  \
+    -l timepoint_months
+    -f 10000
 ```
 The standard output shows you the scripts that have been written with qiime2 commands and that need to be run:
 ```
 # Fetching data and metadata (in dataset_number_1, dataset_number_2)
+# Import tables to qiime2
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_tables/0_run_import.pbs
 # Filter samples for a min number of 10000 reads
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_filtered/1_run_import_filtered.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_filtered/1_run_import_filtered.pbs
 # Shear Web of Life tree to features' genome IDs
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_1/0_import_tree.pbs
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_2/0_import_tree.pbs
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_1_min10000_376s/0_import_tree.pbs
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_2_min10000_376s/0_import_tree.pbs
-# Calculate beta diversity indices
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/beta/2_run_beta.sh
-# Export beta diversity matrices
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/beta/2x_run_beta_export.pbs
-# Calculate principal coordinates
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/pcoa/3_run_pcoa.sh
-# Make EMPeror plots
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/emperor/4_run_emperor.sh
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_1/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_2/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_1_min10000_339s/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_2_min10000_339s/0_import_tree.pbs
 # Calculate alpha diversity indices
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/alpha/1_run_alpha.sh
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha/1_run_alpha.sh
 # Merge alpha diversity indices to metadata
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/alpha/2_run_merge_alphas.sh
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha/2_run_merge_alphas.sh
 # Export alpha diversity indices to metadata
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/alpha/3_run_merge_alpha_export.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha/3_run_merge_alpha_export.pbs
 # Correlate numeric metadata variables with alpha diversity indices
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/alpha_correlations/4_run_alpha_correlation.sh
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha_correlations/4_run_alpha_correlation.sh
 # Longitudinal change in alpha diversity indices
 
 Warning: First make sure you run alpha -> alpha merge -> alpha export before running volatility
         (if you need the alpha as a response variable)!
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/longitudinal/5_run_volatility.sh
+# Calculate beta diversity indices
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/beta/2_run_beta.sh
+# Export beta diversity matrices
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/beta/2x_run_beta_export.pbs
+# Calculate principal coordinates
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/pcoa/3_run_pcoa.sh
+# Make EMPeror plots
+
+Warning: Make sure you first run alpha -> alpha merge -> alpha export
+        (if you want alpha diversity as a variable in the PCoA)!
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/emperor/4_run_emperor.sh
 # DEICODE (groups config in ./routine_qiime2_analyses/example_PERMANOVA.yml)
-sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/deicode/3_run_beta_deicode.sh
+sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/deicode/3_run_beta_deicode.sh
+# Kruskal-Wallis (groups config in ./routine_qiime2_analyses/example_PERMANOVA.yml)
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha_group_significance/6_run_alpha_group_significance.sh
 # PERMANOVA (groups config in ./routine_qiime2_analyses/example_PERMANOVA.yml)
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/permanova/3_run_beta_group_significance.sh
+Beta diversity, distances matrices must be generated already to automatise PERMANOVA
+        (re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/permanova/3_run_beta_group_significance.sh
+# Run Adonis (groups config in ./routine_qiime2_analyses/example_PERMANOVA.yml)
+Beta diversity, distances matrices must be generated already to automatise adonis
+        (re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)
+[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/adonis/3_run_adonis.sh
 ```
 
 
