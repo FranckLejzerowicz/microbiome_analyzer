@@ -57,23 +57,23 @@ There must be a perfect matching of this _internal_ name in the features/metadat
     ```
     abyssal_folder
     ├── metadata
-    │   └── meta_abyssal_V4.tsv
-    │   └── meta_abyssal_V9.tsv
+    │   └── meta_dataset_number_1.tsv
+    │   └── meta_dataset_number_2.tsv
     ├── data
-    │   └── tab_abyssal_V4.tsv
-    │   └── tab_abyssal_V9.tsv
+    │   └── tab_dataset_number_1.tsv
+    │   └── tab_dataset_number_2.tsv
     ```
-    In this case, the matching _internal_ names are `abyssal_V4` and `abyssal_V9`. Note that a found `data` 
+    In this case, the matching _internal_ names are `dataset_number_1` and `dataset_number_2`. Note that a found `data` 
     .tsv/.biom files that do not have a matching `metadata` .tsv path will be ignored.
 
     **The analysis is performed as follows:**
     - If both datasets are to be processed:
     ```
-    routine_qiime2_analyses -i abyssal_folder -d abyssal_V4 -d abyssal_V9 -n abyssals -e qiime2-2019.10
+    routine_qiime2_analyses -i abyssal_folder -d dataset_number_1 -d dataset_number_2 -n abyssals -e qiime2-2019.10
     ```
-    - If only the `abyssal_V9` dataset is to be processed:
+    - If only the `dataset_number_2` dataset is to be processed:
     ```
-    routine_qiime2_analyses -i abyssal_folder -d abyssal_V9 -n abyssalV9 -e qiime2-2019.10
+    routine_qiime2_analyses -i abyssal_folder -d dataset_number_2 -n abyssalV9 -e qiime2-2019.10
     ```
 In fact, the tool simply generates scripts files that need to be started manually, and which
 output should be scrutinized manually (**highly recommended**). This just a way to help you
@@ -83,7 +83,7 @@ obtain the standard qiime2 command lines pre-written for Torque/Slurm and ready 
 
 After running this command (you can try):
 ```
-routine_qiime2_analyses -i ./test/files -d abyssal_V9 -n abyssals -e qiime2-2019.10
+routine_qiime2_analyses -i ./routine_qiime2_analyses/test/files -d dataset_number_1 -n jobs_name -e qiime2-2019.10
 ```
 You would obtain _files_ in the `jobs` folders (scripts to check and run),
 and _folders_ in the `qiime` folder (locations for qiime2 outputs):
@@ -106,26 +106,26 @@ and _folders_ in the `qiime` folder (locations for qiime2 outputs):
 │   └── pcoa
 │       ├── 3_run_pcoa.sh
 ├── metadata
-│   ├── meta_abyssal_V4.tsv
-│   └── meta_abyssal_V9.tsv
+│   ├── meta_dataset_number_1.tsv
+│   └── meta_dataset_number_2.tsv
 └── qiime
     ├── alpha
-    │   └── abyssal_V9
+    │   └── dataset_number_2
     ├── alpha_correlations
-    │   └── abyssal_V9
+    │   └── dataset_number_2
     ├── beta
-    │   └── abyssal_V9
+    │   └── dataset_number_2
     ├── emperor
-    │   └── abyssal_V9
+    │   └── dataset_number_2
     └── pcoa
-        └── abyssal_V9
+        └── dataset_number_2
 ```
 The job are labeled for you to know in what order to run them. I recommend you check the output,
 which is what snakemake does not allow you to do easily for a long workflow.    
 
 Finally, the stout tells out what to copy-paste on the HPC terminal to actually run the jobs: 
 ```
-# Fetching data and metadata (in abyssal_V9)
+# Fetching data and metadata (in dataset_number_2)
 # Calculate beta diversity indices
 [TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/beta/2_run_beta.sh
 # Export beta diversity matrices
@@ -149,10 +149,8 @@ Finally, the stout tells out what to copy-paste on the HPC terminal to actually 
 It is possible to run PERMANOVA for a series of user-defined subsets of the data and to test difference between 
 different groups of each subset automatically.
 
-- **permanova tests** (`-s`):
-    ```
-    routine_qiime2_analyses -s sex -s age_cat -i ./test/files -d abyssal_V9 -n abyssals -e qiime2-2019.10
-    ```
+- **permanova tests** (`-t`):
+
     This use of `-s` will result in one test for each factor to the column `sex`, as well as one subset for each
     factor to the column `age_cat`. As in this example, note that `-s` can be used multiple time, once per group. 
     
@@ -187,17 +185,17 @@ different groups of each subset automatically.
     For example:
     ```
     routine_qiime2_analyses \
-        -s sex \
-        -s age_cat \
-        -g example_PERMANOVA.yml \
-        -i ./test/files \
-        -d test1 \
+        -t sex \
+        -t age_cat \
+        -g ./routine_qiime2_analyses/example_PERMANOVA.yml \
+        -i ./routine_qiime2_analyses/test/files \
+        -d dataset_number_1 \
         -d test2 \
         -n test \
         -e qiime2-2019.10
     ```
         
-- The output is self contained, e.g.: `tab_abyssal_V9_braycurtis_sex_Female__timepoint_months_permanova.qzv` is for the `Female` subset of metadata 
+- The output is self contained, e.g.: `tab_dataset_number_2_braycurtis_sex_Female__timepoint_months_permanova.qzv` is for the `Female` subset of metadata 
 variable `sex` (it also does the result for `Male` etc), and using PERMANOVA to perform comparison between 
 the groups in columns `timepoint_months`. 
 
@@ -228,12 +226,12 @@ The passed models will perform on each of the subsets defined in the file passed
     For example:
     ```
     routine_qiime2_analyses \
-        -a example_ADONIS_formulas.yml \
-        -g example_PERMANOVA.yml \
-        -i ./test/files \
-        -d test1 \
-        -d test2 \
-        -n test \
+        -a ./routine_qiime2_analyses/example_ADONIS_formulas.yml \
+        -g ./routine_qiime2_analyses/example_PERMANOVA.yml \
+        -i ./routine_qiime2_analyses/test/files \
+        -d dataset_number_1 \
+        -d dataset_number_2 \
+        -n jobs_name \
         -e qiime2-2019.10
     ```
     This use of `-a` will result in one test for each formula placed as rows in the .yml file. 
@@ -241,7 +239,7 @@ The passed models will perform on each of the subsets defined in the file passed
 - **group subsets** (`-g`): a config file must be provided in the following .yml format.
 This is the exact same file (and thus format) as for the PERMANOVA above.   
     
-- The output is self contained, e.g.: `tab_test1_braycurtis_sex_Female__sexPLUSincomeINTERtime_adonis.qzv` is for
+- The output is self contained, e.g.: `tab_dataset_number_1_braycurtis_sex_Female__sexPLUSincomeINTERtime_adonis.qzv` is for
 the `Female` subset of metadata variable `sex` (it also does the result for `Male` etc), and using ADONIS to perform
 testing between the groups in columns `timepoint_months`. 
 
@@ -250,7 +248,7 @@ testing between the groups in columns `timepoint_months`.
 ## Usage
 
 ```
-routine_qiime2_analyses -i <input_folder_path> -n <project_name> -e <qiime2_env> [OPTIONS]
+routine_qiime2_analyses -i <input_folder_path> -d <dataset_name> -n <project_name> -e <qiime2_env> [OPTIONS]
 ```
 
 ### Optional arguments
@@ -292,8 +290,8 @@ For the command:
 ```
 routine_qiime2_analyses \
     -i ./test/files \
-    -d abyssal_V4 \
-    -d abyssal_V9 \
+    -d dataset_number_1 \
+    -d dataset_number_2 \
     -n abyssal_jobs \
     -t ./test/files/WoL_tree/tree.nwk \
     -e q2 \
@@ -305,14 +303,14 @@ routine_qiime2_analyses \
 ```
 The standard output shows you the scripts that have been written with qiime2 commands and that need to be run:
 ```
-# Fetching data and metadata (in abyssal_V4, abyssal_V9)
+# Fetching data and metadata (in dataset_number_1, dataset_number_2)
 # Filter samples for a min number of 10000 reads
 [TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_filtered/1_run_import_filtered.pbs
 # Shear Web of Life tree to features' genome IDs
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_abyssal_V4/0_import_tree.pbs
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_abyssal_V9/0_import_tree.pbs
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_abyssal_V4_min10000_376s/0_import_tree.pbs
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_abyssal_V9_min10000_376s/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_1/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_2/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_1_min10000_376s/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_2_min10000_376s/0_import_tree.pbs
 # Calculate beta diversity indices
 [TO RUN] sh /Data/Programs/routine_qiime2_analyses/test/files/jobs/beta/2_run_beta.sh
 # Export beta diversity matrices
