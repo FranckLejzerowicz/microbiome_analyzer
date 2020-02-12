@@ -67,6 +67,7 @@ setup(
             'resources/*'
         ],
     },
+    include_package_data=True,
     python_requires='>=3.6',
     # dependency_links = ['http://github.com/mtai/python-gearman/tarball/master#egg=gearman-2.0.0beta']
 )
