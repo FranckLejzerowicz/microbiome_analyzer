@@ -13,7 +13,7 @@ from os.path import basename, isfile, isdir, splitext
 import multiprocessing
 
 from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
-from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder, run_import
+from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder
 
 
 def run_permanova(i_folder: str, datasets: dict, betas: dict,
@@ -115,8 +115,8 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
     job_folder2 = get_job_folder(i_folder, 'permanova/chunks')
 
     with open(p_perm_groups) as handle:
-        cases_dict = yaml.load(handle)
-        # cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
+        # cases_dict = yaml.load(handle)
+        cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
     cases_dict.update({'ALL': [[]]})
 
     jobs = []
@@ -238,13 +238,13 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
     job_folder2 = get_job_folder(i_folder, 'adonis/chunks')
 
     with open(p_perm_groups) as handle:
-        cases_dict = yaml.load(handle)
-        # cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
+        # cases_dict = yaml.load(handle)
+        cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
     cases_dict.update({'ALL': [[]]})
 
     with open(p_formulas) as handle:
-        formulas = yaml.load(handle)
-        # formulas = yaml.load(handle, Loader=yaml.FullLoader)
+        # formulas = yaml.load(handle)
+        formulas = yaml.load(handle, Loader=yaml.FullLoader)
 
     jobs = []
     first_print = 0
