@@ -24,7 +24,7 @@ for which another folder containing metadata for these samples is present, and r
 
 ## Installation
 ```
-pip install --upgrade git+git@github.com:FranckLejzerowicz/routine_qiime2_analyses.git@master
+pip install --upgrade git+https://github.com/FranckLejzerowicz/routine_qiime2_analyses.git
 ```
 or 
 ```
