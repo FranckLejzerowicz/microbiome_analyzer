@@ -209,8 +209,8 @@ different groups of each subset automatically.
 
 - **permanova tests** (`-t`):
 
-    This use of `-s` will result in one test for each factor to the column `sex`, as well as one subset for each
-    factor to the column `age_cat`. As in this example, note that `-s` can be used multiple time, once per group. 
+    This use of `-t` will result in one test for each factor to the column `sex`, as well as one subset for each
+    factor to the column `age_cat`. As in this example, note that `-t` can be used multiple time, once per group. 
     
 - **group subsets** (`-g`): a config file must be provided in the following .yml format:  
     ```
@@ -253,8 +253,8 @@ different groups of each subset automatically.
         -e qiime2-2019.10
     ```
         
-- The output is self contained, e.g.: `tab_dataset_number_2_braycurtis_sex_Female__timepoint_months_permanova.qzv` is for the `Female` subset of metadata 
-variable `sex` (it also does the result for `Male` etc), and using PERMANOVA to perform comparison between 
+- The output is self contained, e.g.: `tab_dataset_number_2_braycurtis_sex_Female__timepoint_months_permanova.qzv`
+is for the `Female` subset of metadata variable `sex` (it also does the result for `Male` etc), and using PERMANOVA to perform comparison between 
 the groups in columns `timepoint_months`. 
 
 
@@ -329,8 +329,8 @@ routine_qiime2_analyses -i <input_folder_path> -d <dataset_name> -n <project_nam
   -e, --p-qiime2-env TEXT       name of your qiime2 conda environment (e.g.
                                 qiime2-2019.10)   [required]
   -t, --p-perm-tests TEXT       Groups to tests between in each PERMANOVA
-                                subset (multiple values are possible, e.g. '-d
-                                sex -d age_cat').  [default: False]
+                                subset (multiple values are possible, e.g. '-t
+                                sex -t age_cat').  [default: False]
   -g, --p-perm-groups TEXT      Subsets for PERMANOVA. Must be a yaml file,
                                 e.g.
                                 (see example in 'examples/example_PERMANOVA_subsets.yml'
