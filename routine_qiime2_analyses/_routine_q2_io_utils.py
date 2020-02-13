@@ -174,7 +174,7 @@ def gID_or_DNA(dat: str, path: str, path_pd: pd.DataFrame, datasets_read: dict,
             datasets_features[dat] = found_gids
             if correction_needed:
                 path_pd.index = path_pd.index.str.replace(r'[; ]+', '|')
-                path_pd.reset_index().to_csv('%s.tmp' % path, index=False, sep='\t')
+                path_pd.reset_index().to_csv(path, index=False, sep='\t')
                 datasets_read[dat][0] = path_pd
                 datasets_phylo[dat] = ('wol', 1)
             else:
