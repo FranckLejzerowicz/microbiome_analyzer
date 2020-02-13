@@ -21,13 +21,11 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
 
     print('# DEICODE (groups config in %s)' % p_perm_groups)
 
-    def run_multi_deicode(rt, job_folder2, tsv, meta_pd,
+    def run_multi_deicode(rt, out_sh, out_pbs, tsv, meta_pd,
                           case, case_var, case_vals,
                           force, prjct_nm, qiime_env):
 
         written = 0
-        out_sh = '%s/run_beta_deicode_%s.sh' % (job_folder2, case)
-        out_pbs = out_sh.replace('.sh', '.pbs')
         with open(out_sh, 'w') as sh:
 
             qza = '%s.qza' % splitext(tsv)[0]
@@ -104,35 +102,36 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
     cases_dict.update({'ALL': [[]]})
 
     jobs = []
+    all_shs = []
     main_sh = '%s/3_run_beta_deicode.sh' % job_folder
     with open(main_sh, 'w') as o:
-
-        for dat, tsvs_metas_list in datasets.items():
+        for dat, tsv_meta_pds in datasets.items():
+            tsv, meta = tsv_meta_pds
             rt = get_analysis_folder(i_folder, 'deicode/%s' % dat)
-
-            for tsv_meta in tsvs_metas_list:
-                tsv, meta = tsv_meta
-                meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
-
-                for case_var, case_vals_list in cases_dict.items():
-                    for case_vals in case_vals_list:
-                        if len(case_vals):
-                            case = '%s_%s' % (
-                                case_var, '-'.join([x.replace('<', 'below').replace('>', 'above') for x in case_vals]))
-                        else:
-                            case = case_var
-                        out_pbs = '%s/run_beta_deicode_%s.pbs' % (job_folder2, case)
-                        o.write('qsub %s\n' % out_pbs)
-                        p = multiprocessing.Process(
-                            target=run_multi_deicode,
-                            args=(
-                                rt, job_folder2, tsv, meta_pd,
-                                case, case_var, case_vals,
-                                force, prjct_nm, qiime_env,
-                            )
+            meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
+            for case_var, case_vals_list in cases_dict.items():
+                for case_vals in case_vals_list:
+                    if len(case_vals):
+                        case = '%s_%s' % (
+                            case_var, '-'.join([x.replace('<', 'below').replace('>', 'above') for x in case_vals]))
+                    else:
+                        case = case_var
+                    out_sh = '%s/run_beta_deicode_%s.sh' % (job_folder2, case)
+                    all_shs.append(out_sh)
+                    out_pbs = out_sh.replace('.sh', '.pbs')
+                    o.write('qsub %s\n' % out_pbs)
+                    p = multiprocessing.Process(
+                        target=run_multi_deicode,
+                        args=(
+                            rt, out_sh, out_pbs, tsv, meta_pd,
+                            case, case_var, case_vals,
+                            force, prjct_nm, qiime_env,
                         )
-                        p.start()
-                        jobs.append(p)
+                    )
+                    p.start()
+                    jobs.append(p)
     for j in jobs:
         j.join()
-    print('sh', main_sh)
+
+    if len([1 for sh in all_shs for line in open(sh).readlines() if len(line.strip())]):
+        print('sh', main_sh)
