@@ -19,14 +19,19 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "-d", "--i-datasets", multiple=True, required=True,
-    help="Identifier(s) of the dataset(s) (e.g. '-d dataset_number_1 -d dataset_number_2' for inputs"
-         "'data/tab_dataset_number_1.tsv + metadata/meta_dataset_number_1.tsv' as"
-         " well as 'data/tab_dataset_number_2.tsv + metadata/meta_dataset_number_2.tsv')"
+    help="Dataset(s) identifier(s). Multiple is possible: e.g. -d dataset_number_1 and "
+         "-d dataset_number_2 for 'tab_dataset_number_1.tsv' and tab_dataset_number_2.tsv'."
 )
 @click.option(
-    "-t", "--i-wol-tree", required=False, show_default=True, default = None,
-    help="path to the tree containing the genome IDs alse present in the features names "
+    "-w", "--i-wol-tree", required=False, show_default=True, default = 'resources/wol_tree.nwk',
+    help="path to the tree containing the genome IDs (will check if exist in features names)"
          "(On barnacle, it is there: /projects/wol/profiling/dbs/wol/phylogeny/tree.nwk)."
+)
+@click.option(
+    "-x", "--i-sepp-tree", required=False, show_default=True, default = None,
+    help="Qiime2 SEPP reference database to use for 16S reads placement: "
+         "https://docs.qiime2.org/2019.10/data-resources/#sepp-reference-databases "
+         "(auto detection of datasets' tables with sequences as features)."
 )
 @click.option(
     "-n", "--p-project-name", required=True, show_default=True,
@@ -65,15 +70,6 @@ from routine_qiime2_analyses import __version__
     help="Force the re-writing of scripts for all commands"
          "(default is to not re-run if output file exists)."
 )
-@click.option(
-    "--gid/--no-gid", default=False, show_default=True,
-    help="If feature names have the genome ID (to use the Web of Life tree)."
-)
-@click.option(
-    "--biom/--no-biom", default=False, show_default=True,
-    help="Use biom files in the input folder"
-         "(automatic if there's no .tsv but only .biom file(s))."
-)
 @click.version_option(__version__, prog_name="routine_qiime2_analyses")
 
 
@@ -87,7 +83,8 @@ def standalone_routine(
         p_perm_groups,
         p_adonis_formulas,
         force, i_wol_tree,
-        p_qiime2_env, biom
+        i_sepp_tree,
+        p_qiime2_env
 ):
 
     routine_qiime2_analyses(
@@ -100,7 +97,8 @@ def standalone_routine(
         p_perm_groups,
         p_adonis_formulas,
         force, i_wol_tree,
-        p_qiime2_env, biom
+        i_sepp_tree,
+        p_qiime2_env
     )
 
 
