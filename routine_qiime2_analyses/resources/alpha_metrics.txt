@@ -1,0 +1,4 @@
+observed_otus
+pielou_e
+shannon
+faith_pd
