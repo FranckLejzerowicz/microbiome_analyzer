@@ -70,7 +70,7 @@ def routine_qiime2_analyses(i_datasets: tuple, i_folder: str, project_name: str,
     prjct_nm = get_prjct_nm(project_name)
 
     # INIT ----------------------------------------------------------------------------------
-    datasets, datasets_read, datasets_features = get_datasets(i_datasets, i_folder, gid, biom)
+    datasets, datasets_read, datasets_features = get_datasets(i_datasets, i_folder, gid)
     import_datasets(i_folder, datasets, force, prjct_nm, qiime_env)
     if thresh:
         filter_rare_samples(i_folder, datasets, datasets_read, datasets_features,

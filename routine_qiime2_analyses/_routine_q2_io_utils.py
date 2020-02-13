@@ -183,7 +183,7 @@ def gID_or_DNA(dat: str, path: str, path_pd: pd.DataFrame, datasets_read: dict,
             datasets_phylo[dat] = ('amplicon', 0)
 
 
-def get_datasets(i_datasets: tuple, i_datasets_folder: str, biom: bool) -> (dict, dict, dict, dict):
+def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict, dict):
     """
     Collect the pairs of features tables / metadata tables, formatted as in qiime2. e.g:
 
@@ -203,7 +203,6 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str, biom: bool) -> (dict
 
     :param i_datasets: Internal name identifying the datasets in the input folder.
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :param biom: Use biom files in the input folder
     :return
     """
     print('# Fetching data and metadata (in %s)' % ', '.join(i_datasets))
