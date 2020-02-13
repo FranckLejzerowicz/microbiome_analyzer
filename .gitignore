@@ -1,5 +1,6 @@
 *.DS_Store
 .idea
+..bfg-report
 Xpbs.egg-info/
 build/
 dist/
