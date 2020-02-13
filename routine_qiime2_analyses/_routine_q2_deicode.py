@@ -19,15 +19,11 @@ from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_ana
 def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
                 force: bool, prjct_nm: str, qiime_env: str):
 
-    print('# DEICODE (groups config in %s)' % p_perm_groups)
-
     def run_multi_deicode(rt, out_sh, out_pbs, tsv, meta_pd,
                           case, case_var, case_vals,
                           force, prjct_nm, qiime_env):
-
         written = 0
         with open(out_sh, 'w') as sh:
-
             qza = '%s.qza' % splitext(tsv)[0]
             cur_rad = '/'.join([rt, basename(tsv).replace('.tsv', '_%s' % case)])
             new_tsv = '%s.tsv' % cur_rad
@@ -38,7 +34,6 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
             ordi_qzv = '%s_deicode_ordination_biplot.qzv' % cur_rad
 
             if force or not isfile(ordi_qzv):
-
                 if 'ALL' in case:
                     new_meta_pd = meta_pd.copy()
                 elif len([x for x in case_vals if '>' in x or '<' in x]):
@@ -52,39 +47,29 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
                     new_meta_pd = meta_pd[meta_pd[case_var].isin(case_vals)].copy()
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
 
-                cmd = ['qiime', 'feature-table', 'filter-samples',
-                       '--i-table', qza,
-                       '--m-metadata-file', new_meta,
-                       '--o-filtered-table', new_qza]
-                sh.write('echo "%s"\n' % ' '.join(cmd))
-                sh.write('%s\n' % ' '.join(cmd))
+                cmd = 'qiime feature-table filter-samples \\ \n'
+                cmd += '--i-table %s \\ \n' % qza
+                cmd += '--m-metadata-file %s \\ \n' % new_meta
+                cmd += '--o-filtered-table %s \\ \n' % new_qza
+                sh.write('echo "%s"\n' % cmd)
+                sh.write('%s\n' % cmd)
 
-                # new_tsv_pd = tsv_pd[new_meta_pd.index.tolist()].copy()
-                # new_tsv_pd = new_tsv_pd.loc[new_tsv_pd.sum(1) > 0, :]
-                # new_tsv_pd = new_tsv_pd.loc[:, new_tsv_pd.sum(0) > 0]
-                # new_tsv_pd.reset_index().to_csv(new_tsv, index=False, sep='\t')
-                # cmd = run_import(new_tsv, new_qza, "FeatureTable[Frequency]")
-                # sh.write('%s\n' % ' '.join(cmd))
+                cmd = 'qiime deicode rpca \\ \n'
+                cmd += '--i-table %s \\ \n' % new_qza
+                cmd += '--p-min-feature-count 10 \\ \n'
+                cmd += '--p-min-sample-count 500 \\ \n'
+                cmd += '--o-biplot %s \\ \n' % ordi_qza
+                cmd += '--o-distance-matrix %s\n' % new_mat_qza
+                sh.write('echo "%s"\n' % cmd)
+                sh.write('%s\n' % cmd)
 
-                cmd = [
-                    'qiime', 'deicode', 'rpca',
-                    '--i-table', new_qza,
-                    '--p-min-feature-count', '10',
-                    '--p-min-sample-count', '500',
-                    '--o-biplot', ordi_qza,
-                    '--o-distance-matrix', new_mat_qza
-                ]
-                sh.write('echo "%s"\n' % ' '.join(cmd))
-                sh.write('%s\n' % ' '.join(cmd))
-                cmd = [
-                    'qiime', 'emperor', 'biplot',
-                    '--i-biplot', ordi_qza,
-                    '--m-sample-metadata-file', new_meta,
-                    '--o-visualization', ordi_qzv,
-                    '--p-number-of-features', '20'
-                ]
-                sh.write('echo "%s"\n' % ' '.join(cmd))
-                sh.write('%s\n' % ' '.join(cmd))
+                cmd = 'qiime emperor biplot'
+                cmd += '--i-biplot %s \\ \n' % ordi_qza
+                cmd += '--m-sample-metadata-file %s \\ \n' % new_meta
+                cmd += '--o-visualization %s \\ \n' % ordi_qzv
+                cmd += '--p-number-of-features 20\n'
+                sh.write('echo "%s"\n' % cmd)
+                sh.write('%s\n' % cmd)
                 written += 1
 
         if written:
@@ -134,4 +119,5 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
         j.join()
 
     if len([1 for sh in all_shs for line in open(sh).readlines() if len(line.strip())]):
+        print('# DEICODE (groups config in %s)' % p_perm_groups)
         print('sh', main_sh)
