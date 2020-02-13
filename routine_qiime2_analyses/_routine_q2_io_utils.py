@@ -80,7 +80,7 @@ def get_corresponding_meta(path):
     :param path: Path of the tsv / biom file.
     :return:
     """
-    meta_rad = splitext(path.replace('/data/', '/metadata/').replace('/tab_', '/meta_'))[0]
+    meta_rad = path.replace('/data/', '/metadata/').replace('/tab_', '/meta_')
     meta_files = glob('%s.*' % meta_rad)
     if len(meta_files) != 1:
         print('No metadata found for %s\n(was looking for %s)' % (path, meta_rad))
