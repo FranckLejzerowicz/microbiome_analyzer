@@ -287,9 +287,10 @@ def run_alpha_group_significance(i_folder: str, diversities: dict, p_perm_groups
     job_folder = get_job_folder(i_folder, 'alpha_group_significance')
     job_folder2 = get_job_folder(i_folder, 'alpha_group_significance/chunks')
 
-    with open(p_perm_groups) as handle:
-        # cases_dict = yaml.load(handle)
-        cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
+    if p_perm_groups:
+        with open(p_perm_groups) as handle:
+            # cases_dict = yaml.load(handle)
+            cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
     cases_dict.update({'ALL': [[]]})
 
     jobs = []
@@ -338,5 +339,8 @@ def run_alpha_group_significance(i_folder: str, diversities: dict, p_perm_groups
     for j in jobs:
         j.join()
 
-    print("# Kruskal-Wallis (groups config in %s)" % p_perm_groups)
+    if p_perm_groups:
+        print("# Kruskal-Wallis on alpha diversity (groups config in %s)" % p_perm_groups)
+    else:
+        print("# Kruskal-Wallis on alpha diversity")
     print('[TO RUN] sh', main_sh)

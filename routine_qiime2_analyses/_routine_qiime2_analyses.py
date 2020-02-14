@@ -107,17 +107,16 @@ def routine_qiime2_analyses(i_datasets: tuple, i_datasets_folder: str, project_n
     # ---------------------------------------------------------
 
     # STATS -----------------------------------------------------------------------
-    if p_perm_groups:
-        run_deicode(i_datasets_folder, datasets, p_perm_groups,
-                    force, prjct_nm, qiime_env)
-        run_alpha_group_significance(i_datasets_folder, diversities, p_perm_groups,
-                                     force, prjct_nm, qiime_env)
+    run_deicode(i_datasets_folder, datasets, p_perm_groups,
+                force, prjct_nm, qiime_env)
+    run_alpha_group_significance(i_datasets_folder, diversities, p_perm_groups,
+                                 force, prjct_nm, qiime_env)
 
-        if p_perm_tests:
-            run_permanova(i_datasets_folder, datasets, betas,
-                          p_perm_tests, p_perm_groups,
-                          force, prjct_nm, qiime_env)
-        if p_formulas:
-            run_adonis(p_formulas, i_datasets_folder, datasets, betas,
-                       p_perm_groups, force, prjct_nm, qiime_env)
+    if p_perm_tests:
+        run_permanova(i_datasets_folder, datasets, betas,
+                      p_perm_tests, p_perm_groups,
+                      force, prjct_nm, qiime_env)
+    if p_formulas:
+        run_adonis(p_formulas, i_datasets_folder, datasets, betas,
+                   p_perm_groups, force, prjct_nm, qiime_env)
     # ------------------------------------------------------------------------------

@@ -100,9 +100,10 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
     job_folder = get_job_folder(i_folder, 'permanova')
     job_folder2 = get_job_folder(i_folder, 'permanova/chunks')
 
-    with open(p_perm_groups) as handle:
-        # cases_dict = yaml.load(handle)
-        cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
+    if p_perm_groups:
+        with open(p_perm_groups) as handle:
+            # cases_dict = yaml.load(handle)
+            cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
     cases_dict.update({'ALL': [[]]})
 
     jobs = []
@@ -151,7 +152,10 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
         j.join()
 
     if len([1 for sh in all_shs for line in open(sh).readlines() if len(line.strip())]):
-        print("# PERMANOVA (groups config in %s)" % p_perm_groups)
+        if p_perm_groups:
+            print("# PERMANOVA (groups config in %s)" % p_perm_groups)
+        else:
+            print("# PERMANOVA")
         print('[TO RUN] sh', main_sh)
 
 
@@ -214,9 +218,10 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
     job_folder = get_job_folder(i_folder, 'adonis')
     job_folder2 = get_job_folder(i_folder, 'adonis/chunks')
 
-    with open(p_perm_groups) as handle:
-        # cases_dict = yaml.load(handle)
-        cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
+    if p_perm_groups:
+        with open(p_perm_groups) as handle:
+            # cases_dict = yaml.load(handle)
+            cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
     cases_dict.update({'ALL': [[]]})
 
     with open(p_formulas) as handle:
@@ -276,5 +281,8 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
         j.join()
 
     if len([1 for sh in all_shs for line in open(sh).readlines() if len(line.strip())]):
-        print("# Run Adonis (groups config in %s)" % p_perm_groups)
+        if p_perm_groups:
+            print("# Run Adonis (groups config in %s)" % p_perm_groups)
+        else:
+            print("# Run Adonis")
         print('[TO RUN] sh', main_sh)

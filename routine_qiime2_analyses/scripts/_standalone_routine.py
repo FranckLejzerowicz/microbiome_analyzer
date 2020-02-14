@@ -47,17 +47,17 @@ from routine_qiime2_analyses import __version__
          "(multiple values are possible, e.g. '-d sex -d age_cat')."
 )
 @click.option(
-    "-g", "--p-perm-groups", required=False, show_default=True,
-    default=False, help="Subsets for PERMANOVA. Must be a yaml file, e.g.\n"
+    "-g", "--p-perm-groups", required=False, show_default=True, default=False,
+    help="Subsets for PERMANOVA. Must be a yaml file, e.g.\n"
          "(see example in 'examples/example_PERMANOVA_subsets.yml' and the README)."
 )
 @click.option(
-    "-a", "--p-adonis-formulas", default=False, show_default=True,
+    "-a", "--p-adonis-formulas", required=False, default=False, show_default=True,
     help="Formula for Adonis tests for each PERMANOVA subset. Must be a yaml file, e.g.\n"
          "(see example in 'examples/example_ADONIS_formulas.yml' and the README)."
 )
 @click.option(
-    "-l", "--p-longi-column", default=False, show_default=True,
+    "-l", "--p-longi-column", required=False, default=False, show_default=True,
     help="If data is longitudinal; provide the time metadata column"
          "for volatility analysis."
 )
