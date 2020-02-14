@@ -139,11 +139,10 @@ def shear_tree(i_datasets_folder: str, datasets_phylo: dict, datasets_features: 
         with open(main_sh, 'w') as main_o:
             for dat in wol_datasets:
                 cur_datasets_features = datasets_features[dat]
-                wol_features_ = wol.shear(list(cur_datasets_features.keys()))
-                wol_features = wol_features_.copy()
+                wol_features = wol.shear(list(cur_datasets_features.keys()))
                 # rename the tip per the features names associated with each gID
-                for tip in wol_features_.tips():
-                    wol_features.find(tip).name = cur_datasets_features[str(tip.name)]
+                for tip in wol_features.tips():
+                    tip.name = cur_datasets_features[tip.name]
 
                 analysis_folder = get_analysis_folder(i_datasets_folder, 'fasta_phylo/%s' % dat)
                 wol_features_fpo = '%s/tree_%s.nwk' % (analysis_folder, dat)
