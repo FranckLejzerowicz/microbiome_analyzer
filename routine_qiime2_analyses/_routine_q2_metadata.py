@@ -19,11 +19,12 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
     :param cases_dict: cases to check for possible use (need metadata presence)
     :return: checked cases.
     """
+    to_pop = []
     meta_pd_vars = set(meta_pd.columns.tolist())
     for variable, factors_lists in cases_dict.items():
         if variable not in meta_pd_vars:
             print('  ! [not analyzed] variable %s not in %s' % (variable, basename(meta)))
-            cases_dict.pop(variable)
+            to_pop.append(variable)
         else:
             factors = set(meta_pd[variable].unique().tolist())
             for factors_list in factors_lists:
@@ -32,7 +33,10 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
                     print('  ! [not analyzed] factors of variable %s not in %s:' % (variable, basename(meta)))
                     for factor in factors:
                         print('     - %s' % factor)
-                    cases_dict.pop(variable)
+                    to_pop.append(variable)
+    if to_pop:
+        for pop in to_pop:
+            cases_dict.pop(pop)
     return cases_dict
 
 
@@ -44,11 +48,15 @@ def check_metadata_formulas(meta: str, meta_pd: pd.DataFrame,
     :param formulas: formulas to check for possible use (need metadata presence)
     :return: checked formulas.
     """
+    to_pop = []
     meta_pd_vars = set(meta_pd.columns.tolist())
     for formula_name, formula in formulas.items():
         terms = set(re.split('[*+-/]+', formula.strip('"').strip("'")))
         for variable in terms:
             if variable not in meta_pd_vars:
                 print('  ! [not analyzed] variable %s not in %s' % (variable, basename(meta)))
-                formulas.pop(variable)
+                to_pop.append(variable)
+    if to_pop:
+        for pop in to_pop:
+            formulas.pop(pop)
     return formulas
