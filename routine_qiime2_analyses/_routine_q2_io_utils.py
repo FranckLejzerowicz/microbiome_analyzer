@@ -294,7 +294,7 @@ def get_wol_tree(i_wol_tree: str) -> str:
     if not isfile(i_wol_tree):
         print('%s does not exist\nExiting...' % i_wol_tree)
         sys.exit(1)
-    elif not i_wol_tree.endswith('nwk'):
+    if not i_wol_tree.endswith('.nwk'):
         if i_wol_tree.endswith('qza'):
             i_wol_tree_nwk = '%s.nwk' % splitext(i_wol_tree)[0]
             if isfile(i_wol_tree_nwk):
@@ -306,6 +306,8 @@ def get_wol_tree(i_wol_tree: str) -> str:
             # need more formal checks (sniff in skbio / stdout in "qiime tools peek")
             print('%s is not a .nwk (tree) file or not a qiime2 Phylogeny artefact\nExiting...' % i_wol_tree)
             sys.exit(1)
+    else:
+        return i_wol_tree
 
 
 def get_sepp_tree(i_sepp_tree: str) -> str:
