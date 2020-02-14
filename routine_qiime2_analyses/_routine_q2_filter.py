@@ -13,8 +13,8 @@ from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
 from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, run_import
 
 
-def import_datasets(i_datasets_folder: str, datasets: dict, force: bool,
-                    prjct_nm: str, qiime_env: str) -> None:
+def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
+                    force: bool, prjct_nm: str, qiime_env: str) -> None:
 
     job_folder = get_job_folder(i_datasets_folder, 'import_tables')
 
@@ -25,7 +25,12 @@ def import_datasets(i_datasets_folder: str, datasets: dict, force: bool,
         for dat, tsv_meta_pds in datasets.items():
             tsv, meta = tsv_meta_pds
             qza = '%s.qza' % splitext(tsv)[0]
-            if force or not isfile(qza):
+            if datasets_phylo[dat][1]:
+                cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
+                sh.write('echo "%s"\n' % cmd)
+                sh.write('%s\n' % cmd)
+                written += 1
+            elif force or not isfile(qza):
                 cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
                 sh.write('echo "%s"\n' % cmd)
                 sh.write('%s\n' % cmd)
