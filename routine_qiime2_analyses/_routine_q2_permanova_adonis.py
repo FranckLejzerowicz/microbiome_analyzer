@@ -130,7 +130,7 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                     continue
 
                 for case_var, case_vals_list in cases_dict.items():
-                    testing_groups = testing_groups + [case_var]
+                    testing_groups = list(testing_groups) + [case_var]
                     for case_vals in case_vals_list:
                         if len(case_vals):
                             case = '%s_%s_%s' % (metric, case_var, '-'.join(
