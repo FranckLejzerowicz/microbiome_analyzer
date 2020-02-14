@@ -37,7 +37,7 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
             if force or not isfile(ordi_qzv):
                 if 'ALL' in case:
                     new_meta_pd = meta_pd.copy()
-                elif len([x for x in case_vals if '>' in x or '<' in x]):
+                elif len([x for x in case_vals if x[0]=='>' or x[0]=='<']):
                     new_meta_pd = meta_pd.copy()
                     for case_val in case_vals:
                         if case_val[0] == '>':
@@ -95,7 +95,8 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
         for dat, tsv_meta_pds in datasets.items():
             tsv, meta = tsv_meta_pds
             rt = get_analysis_folder(i_folder, 'deicode/%s' % dat)
-            meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t', dtype=str)
+            # meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t', dtype=str)
+            meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
             for case_var, case_vals_list in cases_dict.items():
                 for case_vals in case_vals_list:

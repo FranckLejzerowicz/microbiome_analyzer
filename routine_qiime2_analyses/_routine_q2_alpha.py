@@ -262,7 +262,7 @@ def run_alpha_group_significance(i_folder: str, diversities: dict, p_perm_groups
                     cur_o.write('cp %s %s\n' % (div_qza, new_div))
                 else:
                     new_tsv = '%s.tsv' % cur_rad
-                    if len([x for x in case_vals if '>' in x or '<' in x]):
+                    if len([x for x in case_vals if x[0] == '>' or x[0] == '<']):
                         new_meta_pd = meta_pd.copy()
                         for case_val in case_vals:
                             if case_val[0] == '>':
@@ -309,7 +309,8 @@ def run_alpha_group_significance(i_folder: str, diversities: dict, p_perm_groups
                 for qza, divs in diversities[dataset].items():
                     meta = divs[0]
                     divs = divs[1:]
-                    meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t', dtype=str)
+                    meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
+                    # meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t', dtype=str)
                     cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
                     for div_qza in divs:
                         for metric in alpha_metrics:
