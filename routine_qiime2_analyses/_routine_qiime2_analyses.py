@@ -82,8 +82,8 @@ def routine_qiime2_analyses(i_datasets: tuple, i_datasets_folder: str, project_n
              i_sepp_tree, trees, force, qiime_env)
     # ------------------------------------------------------------------------------------------
 
-    # ALPHA ---------------------------------------------------
-    diversities = run_alpha(i_datasets_folder, datasets,
+    # ALPHA ------------------------------------------------------------
+    diversities = run_alpha(i_datasets_folder, datasets, datasets_phylo,
                             trees, force, prjct_nm, qiime_env)
     to_export = merge_meta_alpha(i_datasets_folder, diversities,
                                  force, prjct_nm, qiime_env)
@@ -94,11 +94,11 @@ def routine_qiime2_analyses(i_datasets: tuple, i_datasets_folder: str, project_n
     if p_longi_column:
         run_volatility(i_datasets_folder, datasets, p_longi_column,
                        force, prjct_nm, qiime_env)
-    # ---------------------------------------------------------
+    # ------------------------------------------------------------------
 
     # BETA ----------------------------------------------------
-    betas = run_beta(i_datasets_folder, datasets, trees,
-                     force, prjct_nm, qiime_env)
+    betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
+                     trees, force, prjct_nm, qiime_env)
     export_beta(i_datasets_folder, betas,
                 force, prjct_nm, qiime_env)
     pcoas = run_pcoas(i_datasets_folder, betas,
