@@ -19,7 +19,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
 )
 
 
-def run_alpha(i_folder: str, datasets: dict, trees: dict,
+def run_alpha(i_folder: str, datasets: dict, datasets_phylo: dict, trees: dict,
               force: bool, prjct_nm: str, qiime_env: str) -> dict:
 
     alpha_metrics = get_metrics('alpha_metrics')
@@ -46,10 +46,13 @@ def run_alpha(i_folder: str, datasets: dict, trees: dict,
                     out_tsv = '%s.tsv' % splitext(out_fp)[0]
                     if force or not isfile(out_fp):
                         if metric in ['faith_pd']:
-                            if dataset not in trees:
+                            if not datasets_phylo[dataset][0]:
                                 continue
                             cmd = 'qiime diversity alpha-phylogenetic \\ \n'
-                            cmd += '--i-table %s \\ \n' % trees[dataset][0]
+                            if datasets_phylo[dataset][1]:
+                                cmd += '--i-table %s \\ \n' % trees[dataset][0]
+                            else:
+                                cmd += '--i-table %s \\ \n' % qza
                             cmd += '--i-phylogeny %s \\ \n' % trees[dataset][1]
                             cmd += '--p-metric %s \\ \n' % metric
                             cmd += '--o-alpha-diversity %s\n' % out_fp
