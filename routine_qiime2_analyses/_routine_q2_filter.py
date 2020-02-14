@@ -25,9 +25,6 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
         for dat, tsv_meta_pds in datasets.items():
             tsv, meta = tsv_meta_pds
             qza = '%s.qza' % splitext(tsv)[0]
-            print(datasets_phylo[dat][1])
-            print(datasets_phylo[dat][1])
-            print(datasets_phylo[dat][1])
             if datasets_phylo[dat][1]:
                 cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
                 sh.write('echo "%s"\n' % cmd)
