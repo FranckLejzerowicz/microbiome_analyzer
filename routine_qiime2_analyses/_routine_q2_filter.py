@@ -7,8 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import os
-import re
-from os.path import splitext
+from os.path import isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
 from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, run_import
@@ -25,10 +24,12 @@ def import_datasets(i_datasets_folder: str, datasets: dict, force: bool,
     with open(out_sh, 'w') as sh:
         for dat, tsv_meta_pds in datasets.items():
             tsv, meta = tsv_meta_pds
-            cmd = run_import(tsv, '%s.qza' % splitext(tsv)[0], 'FeatureTable[Frequency]')
-            sh.write('echo "%s"\n' % cmd)
-            sh.write('%s\n' % cmd)
-            written += 1
+            qza = '%s.qza' % splitext(tsv)[0]
+            if force or not isfile(qza):
+                cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
+                sh.write('echo "%s"\n' % cmd)
+                sh.write('%s\n' % cmd)
+                written += 1
 
     if force or written:
         xpbs_call(out_sh, out_pbs, '%s.mprt' % prjct_nm, qiime_env,
