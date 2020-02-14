@@ -233,7 +233,7 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
             tsv, meta = tsv_meta_pds
             odir = get_analysis_folder(i_folder, 'adonis/%s' % dat)
             out_sh = '%s/run_adonis_%s.sh' % (job_folder2, dat)
-            all_shs.append(all_shs)
+            all_shs.append(out_sh)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as sh:
                 # tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t')
