@@ -22,6 +22,8 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
     to_pop = []
     meta_pd_vars = set(meta_pd.columns.tolist())
     for variable, factors_lists in cases_dict.items():
+        if variable == 'ALL':
+            continue
         if variable not in meta_pd_vars:
             print('  ! [not analyzed] variable %s not in %s' % (variable, basename(meta)))
             to_pop.append(variable)
@@ -31,7 +33,7 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
                 if factors_list[0][0] in ['>', '<']:
                     continue
                 factors_common = set(factors_list) & factors
-                if sorted(factors_common) != sorted(factors):
+                if sorted(factors_common) != sorted(factors_list):
                     print('  ! [not analyzed] factors of variable %s not in %s:' % (variable, basename(meta)))
                     print("factors_common")
                     print(factors_common)
