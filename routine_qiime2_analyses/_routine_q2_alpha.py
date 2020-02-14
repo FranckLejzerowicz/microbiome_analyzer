@@ -309,7 +309,7 @@ def run_alpha_group_significance(i_folder: str, diversities: dict, p_perm_groups
                 for qza, divs in diversities[dataset].items():
                     meta = divs[0]
                     divs = divs[1:]
-                    meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
+                    meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t', dtype=str)
                     cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
                     for div_qza in divs:
                         for metric in alpha_metrics:

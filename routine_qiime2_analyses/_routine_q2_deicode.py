@@ -95,7 +95,7 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
         for dat, tsv_meta_pds in datasets.items():
             tsv, meta = tsv_meta_pds
             rt = get_analysis_folder(i_folder, 'deicode/%s' % dat)
-            meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
+            meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t', dtype=str)
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
             for case_var, case_vals_list in cases_dict.items():
                 for case_vals in case_vals_list:

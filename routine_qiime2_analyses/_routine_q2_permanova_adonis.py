@@ -117,7 +117,7 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
         for dat, tsv_meta_pds in datasets.items():
             tsv, meta = tsv_meta_pds
             odir = get_analysis_folder(i_folder, 'permanova/%s' % dat)
-            meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
+            meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t', dtype=str)
 
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
 
@@ -247,7 +247,7 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as sh:
                 # tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t')
-                meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
+                meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t', dtype=str)
 
                 cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
                 formulas = check_metadata_formulas(meta, meta_pd, dict(formulas))

@@ -28,22 +28,13 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
             print('  ! [not analyzed] variable %s not in %s' % (variable, basename(meta)))
             to_pop.append(variable)
         else:
-            factors = set(meta_pd[variable].unique().tolist())
+            factors = set(meta_pd[variable].str.unique().tolist())
             for factors_list in factors_lists:
                 if factors_list[0][0] in ['>', '<']:
                     continue
-                print('---------------------')
-                print('to compare:')
-                print(set(factors_list))
-                print(factors)
-                print('---------------------')
                 factors_common = set(factors_list) & factors
                 if sorted(factors_common) != sorted(factors_list):
                     print('  ! [not analyzed] factors of variable %s not in %s:' % (variable, basename(meta)))
-                    print("factors_common")
-                    print(factors_common)
-                    print("factors")
-                    print(factors)
                     for factor in factors_list:
                         print('     - %s' % factor)
                     to_pop.append(variable)
