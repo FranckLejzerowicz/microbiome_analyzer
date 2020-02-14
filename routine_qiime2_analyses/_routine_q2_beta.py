@@ -53,8 +53,8 @@ def run_beta(i_datasets_folder: str, datasets: dict, trees: dict,
                         cmd += '--p-metric %s \\ \n' % metric
                         cmd += '--p-n-jobs 1 \\ \n'
                         cmd += '--o-distance-matrix %s\n' % out_fp
-                        sh.write('echo "%s"\n' % ' '.join(cmd))
-                        sh.write('%s\n' % ' '.join(cmd))
+                        sh.write('echo "%s"\n' % cmd)
+                        sh.write('%s\n' % cmd)
                         written += 1
                     divs.append(out_fp)
                 betas[dataset][meta] = divs
