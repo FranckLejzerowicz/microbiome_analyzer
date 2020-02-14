@@ -139,9 +139,7 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                         else:
                             case = '%s_%s' % (metric, case_var)
                         out_sh = '%s/run_beta_group_significance_%s.sh' % (job_folder2, case)
-                        all_shs.append(out_sh)
                         out_pbs = '%s.pbs' % splitext(out_sh)[0]
-                        o.write('qsub %s\n' % out_pbs)
                         p = multiprocessing.Process(
                             target=run_multi_perm,
                             args=(out_sh, out_pbs, odir, mat_qza, tsv, meta_pd,
@@ -149,6 +147,9 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                         )
                         p.start()
                         jobs.append(p)
+                        if isfile(out_sh):
+                            all_shs.append(out_sh)
+                            o.write('qsub %s\n' % out_pbs)
     for j in jobs:
         j.join()
 
