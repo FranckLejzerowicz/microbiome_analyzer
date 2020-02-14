@@ -64,7 +64,8 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
                             [(['#q2:types'] + ['categorical'] * new_meta_pd.shape[1])],
                             columns=new_meta_pd.reset_index().columns.tolist(),
                         )
-                        q2types = q2types.set_index('#SampleID')
+                        q2types.rename(columns={q2types.columns.tolist()[0]: new_meta_pd.index.name}, inplace=True)
+                        q2types.set_index(new_meta_pd.index.name, inplace=True)
                         new_meta_pd = pd.concat([q2types, new_meta_pd])
                         new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
 
