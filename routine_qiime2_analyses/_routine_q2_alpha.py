@@ -290,11 +290,11 @@ def run_alpha_group_significance(i_folder: str, diversities: dict, p_perm_groups
     job_folder = get_job_folder(i_folder, 'alpha_group_significance')
     job_folder2 = get_job_folder(i_folder, 'alpha_group_significance/chunks')
 
+    cases_dict = {'ALL': [[]]}
     if p_perm_groups:
         with open(p_perm_groups) as handle:
             # cases_dict = yaml.load(handle)
-            cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
-    cases_dict.update({'ALL': [[]]})
+            cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
 
     jobs = []
     first_print = 0

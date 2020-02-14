@@ -101,11 +101,11 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
     job_folder = get_job_folder(i_folder, 'permanova')
     job_folder2 = get_job_folder(i_folder, 'permanova/chunks')
 
+    cases_dict = {'ALL': [[]]}
     if p_perm_groups:
         with open(p_perm_groups) as handle:
             # cases_dict = yaml.load(handle)
-            cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
-    cases_dict.update({'ALL': [[]]})
+            cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
 
     jobs = []
     all_shs = []
@@ -220,11 +220,11 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
     job_folder = get_job_folder(i_folder, 'adonis')
     job_folder2 = get_job_folder(i_folder, 'adonis/chunks')
 
+    cases_dict = {'ALL': [[]]}
     if p_perm_groups:
         with open(p_perm_groups) as handle:
             # cases_dict = yaml.load(handle)
-            cases_dict = yaml.load(handle, Loader=yaml.FullLoader)
-    cases_dict.update({'ALL': [[]]})
+            cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
 
     with open(p_formulas) as handle:
         # formulas = yaml.load(handle)
