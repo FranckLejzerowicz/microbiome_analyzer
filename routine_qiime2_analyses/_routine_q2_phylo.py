@@ -132,6 +132,8 @@ def shear_tree(i_datasets_folder: str, datasets_phylo: dict, datasets_features: 
         job_folder2 = get_job_folder(i_datasets_folder, 'import_trees/chunks')
 
         i_wol_tree = get_wol_tree(i_wol_tree)
+        print(i_wol_tree)
+        print(i_wol_treedsa)
         wol = TreeNode.read(i_wol_tree)
 
         written = 0
