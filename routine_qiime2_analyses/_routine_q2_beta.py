@@ -13,8 +13,8 @@ from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
 from routine_qiime2_analyses._routine_q2_io_utils import get_metrics, get_job_folder, get_analysis_folder, run_export
 
 
-def run_beta(i_datasets_folder: str, datasets: dict, trees: dict,
-             force: bool, prjct_nm: str, qiime_env: str) -> dict:
+def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
+             trees: dict, force: bool, prjct_nm: str, qiime_env: str) -> dict:
 
     beta_metrics = get_metrics('beta_metrics')
 
@@ -39,10 +39,10 @@ def run_beta(i_datasets_folder: str, datasets: dict, trees: dict,
                     out_fp = '%s/%s_%s_DM.qza' % (odir, basename(splitext(qza)[0]), metric)
                     if force or not os.path.isfile(out_fp):
                         if 'unifrac' in metric:
-                            if dataset not in trees:
+                            if not datasets_phylo[dataset][0]:
                                 continue
-                            cmd = 'qiime diversity beta-phylogenetic \\ \n'
-                            if trees[dataset][0]:
+                            cmd = 'qiime diversity alpha-phylogenetic \\ \n'
+                            if datasets_phylo[dataset][1]:
                                 cmd += '--i-table %s \\ \n' % trees[dataset][0]
                             else:
                                 cmd += '--i-table %s \\ \n' % qza
