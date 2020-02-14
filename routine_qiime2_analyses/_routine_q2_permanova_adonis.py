@@ -14,6 +14,7 @@ import multiprocessing
 
 from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
 from routine_qiime2_analyses._routine_q2_io_utils import get_metrics, get_job_folder, get_analysis_folder
+from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict, check_metadata_formulas
 
 
 def run_permanova(i_folder: str, datasets: dict, betas: dict,
@@ -101,11 +102,11 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
     job_folder = get_job_folder(i_folder, 'permanova')
     job_folder2 = get_job_folder(i_folder, 'permanova/chunks')
 
-    cases_dict = {'ALL': [[]]}
+    main_cases_dict = {'ALL': [[]]}
     if p_perm_groups:
         with open(p_perm_groups) as handle:
             # cases_dict = yaml.load(handle)
-            cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
+            main_cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
 
     jobs = []
     all_shs = []
@@ -117,6 +118,8 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
             tsv, meta = tsv_meta_pds
             odir = get_analysis_folder(i_folder, 'permanova/%s' % dat)
             meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
+
+            cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
 
             for mat_qza in betas[dat][meta]:
                 for metric in beta_metrics:
@@ -220,11 +223,11 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
     job_folder = get_job_folder(i_folder, 'adonis')
     job_folder2 = get_job_folder(i_folder, 'adonis/chunks')
 
-    cases_dict = {'ALL': [[]]}
+    main_cases_dict = {'ALL': [[]]}
     if p_perm_groups:
         with open(p_perm_groups) as handle:
             # cases_dict = yaml.load(handle)
-            cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
+            main_cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
 
     with open(p_formulas) as handle:
         # formulas = yaml.load(handle)
@@ -245,6 +248,9 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
             with open(out_sh, 'w') as sh:
                 # tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t')
                 meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
+
+                cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
+                formulas = check_metadata_formulas(meta, meta_pd, dict(formulas))
 
                 for mat_qza in betas[dat][meta]:
                     # mat = mat_qza.replace('.qza', '.tsv')
