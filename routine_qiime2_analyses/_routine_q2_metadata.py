@@ -66,3 +66,18 @@ def check_metadata_formulas(meta: str, meta_pd: pd.DataFrame,
         for pop in to_pop:
             formulas.pop(pop)
     return formulas
+
+
+def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame, main_testing_groups: tuple) -> tuple:
+    """
+    :param meta: metadata file name.
+    :param meta_pd: metadata table.
+    :param main_testing_groups: groups to test for (need metadata presence)
+    :return: checked testing groups.
+    """
+    meta_pd_vars = set(meta_pd.columns.tolist())
+    main_testing = [variable for variable in main_testing_groups if variable in meta_pd_vars]
+    for variable in main_testing_groups:
+        if variable not in main_testing:
+            print('  [not analyzed] variable %s not in %s' % (variable, basename(meta)))
+    return main_testing

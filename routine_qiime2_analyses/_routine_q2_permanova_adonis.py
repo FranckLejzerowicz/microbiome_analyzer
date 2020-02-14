@@ -14,11 +14,15 @@ import multiprocessing
 
 from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
 from routine_qiime2_analyses._routine_q2_io_utils import get_metrics, get_job_folder, get_analysis_folder
-from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict, check_metadata_formulas
+from routine_qiime2_analyses._routine_q2_metadata import (
+    check_metadata_cases_dict,
+    check_metadata_formulas,
+    check_metadata_testing_groups
+)
 
 
 def run_permanova(i_folder: str, datasets: dict, betas: dict,
-                  testing_groups: tuple, p_perm_groups: str,
+                  main_testing_groups: tuple, p_perm_groups: str,
                   force: bool, prjct_nm: str, qiime_env: str):
 
     beta_metrics = get_metrics('beta_metrics')
@@ -121,6 +125,7 @@ def run_permanova(i_folder: str, datasets: dict, betas: dict,
             # meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t', dtype=str)
 
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
+            testing_groups = check_metadata_testing_groups(meta, meta_pd, main_testing_groups)
 
             for mat_qza in betas[dat][meta]:
                 for metric in beta_metrics:
