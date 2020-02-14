@@ -14,6 +14,7 @@ import multiprocessing
 
 from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
 from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder, run_import
+from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
 
 
 def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
@@ -81,11 +82,11 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
     job_folder = get_job_folder(i_folder, 'deicode')
     job_folder2 = get_job_folder(i_folder, 'deicode/chunks')
 
-    cases_dict = {'ALL': [[]]}
+    main_cases_dict = {'ALL': [[]]}
     if p_perm_groups:
         with open(p_perm_groups) as handle:
             # cases_dict = yaml.load(handle)
-            cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
+            main_cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
 
     jobs = []
     all_shs = []
@@ -95,6 +96,7 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
             tsv, meta = tsv_meta_pds
             rt = get_analysis_folder(i_folder, 'deicode/%s' % dat)
             meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
+            cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
             for case_var, case_vals_list in cases_dict.items():
                 for case_vals in case_vals_list:
                     if len(case_vals):

@@ -17,6 +17,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics, get_job_folder, get_analysis_folder,
     run_import, run_export
 )
+from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
 
 
 def run_alpha(i_folder: str, datasets: dict, datasets_phylo: dict, trees: dict,
@@ -290,11 +291,11 @@ def run_alpha_group_significance(i_folder: str, diversities: dict, p_perm_groups
     job_folder = get_job_folder(i_folder, 'alpha_group_significance')
     job_folder2 = get_job_folder(i_folder, 'alpha_group_significance/chunks')
 
-    cases_dict = {'ALL': [[]]}
+    main_cases_dict = {'ALL': [[]]}
     if p_perm_groups:
         with open(p_perm_groups) as handle:
             # cases_dict = yaml.load(handle)
-            cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
+            main_cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
 
     jobs = []
     first_print = 0
@@ -309,6 +310,7 @@ def run_alpha_group_significance(i_folder: str, diversities: dict, p_perm_groups
                     meta = divs[0]
                     divs = divs[1:]
                     meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
+                    cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
                     for div_qza in divs:
                         for metric in alpha_metrics:
                             if metric in div_qza:
