@@ -19,14 +19,14 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
     :param cases_dict: cases to check for possible use (need metadata presence)
     :return: checked cases.
     """
-    to_pop = []
+    to_pop = set()
     meta_pd_vars = set(meta_pd.columns.tolist())
     for variable, factors_lists in cases_dict.items():
         if variable == 'ALL':
             continue
         if variable not in meta_pd_vars:
-            print('  ! [not analyzed] variable %s not in %s' % (variable, basename(meta)))
-            to_pop.append(variable)
+            print('  [not analyzed] variable %s not in %s' % (variable, basename(meta)))
+            to_pop.add(variable)
         else:
             factors = set(meta_pd[variable].unique().astype(str).tolist())
             for factors_list in factors_lists:
@@ -34,10 +34,12 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
                     continue
                 factors_common = set(factors_list) & factors
                 if sorted(factors_common) != sorted(factors_list):
-                    print('  ! [not analyzed] factors of variable %s not in %s:' % (variable, basename(meta)))
-                    for factor in factors_list:
-                        print('     - %s' % factor)
-                    to_pop.append(variable)
+                    factors_print = ', '.join([factor for factor in factors_list[:5]])
+                    if len(factors_list) > 5:
+                        factors_print = '%s, ...' % factors_print
+                    print('  [not analyzed] factors of variable %s not in %s (%s)' % (
+                        variable, basename(meta), factors_print))
+                    to_pop.add(variable)
     if to_pop:
         for pop in to_pop:
             cases_dict.pop(pop)
@@ -58,7 +60,7 @@ def check_metadata_formulas(meta: str, meta_pd: pd.DataFrame,
         terms = set(re.split('[*+-/]+', formula.strip('"').strip("'")))
         for variable in terms:
             if variable not in meta_pd_vars:
-                print('  ! [not analyzed] variable %s not in %s' % (variable, basename(meta)))
+                print('  [not analyzed] variable %s not in %s' % (variable, basename(meta)))
                 to_pop.append(variable)
     if to_pop:
         for pop in to_pop:
