@@ -185,7 +185,7 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
 
     def run_multi_adonis(formulas, odir, betas, tsv,
                          meta_pd, cases_dict,
-                         out_sh, out_pbs):
+                         out_sh, out_pbs, dat):
         written = 0
         qza = '%s.qza' % splitext(tsv)[0]
         with open(out_sh, 'w') as cur_sh:
@@ -294,7 +294,7 @@ def run_adonis(p_formulas: str, i_folder: str, datasets: dict, betas: dict,
             target=run_multi_adonis,
             args=(formulas, odir, betas, tsv,
                   meta_pd, cases_dict,
-                  out_sh, out_pbs)
+                  out_sh, out_pbs, dat)
         )
         p.start()
         jobs.append(p)
