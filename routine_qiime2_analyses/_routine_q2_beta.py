@@ -41,7 +41,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                         if 'unifrac' in metric:
                             if not datasets_phylo[dataset][0]:
                                 continue
-                            cmd = 'qiime diversity alpha-phylogenetic \\ \n'
+                            cmd = 'qiime diversity beta-phylogenetic \\ \n'
                             if datasets_phylo[dataset][1]:
                                 cmd += '--i-table %s \\ \n' % trees[dataset][0]
                             else:
