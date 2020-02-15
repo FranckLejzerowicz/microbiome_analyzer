@@ -64,7 +64,7 @@ def run_deicode(i_folder: str, datasets: dict, p_perm_groups: str,
                 sh.write('echo "%s"\n' % cmd)
                 sh.write('%s\n' % cmd)
 
-                cmd = 'qiime emperor biplot'
+                cmd = 'qiime emperor biplot \\ \n'
                 cmd += '--i-biplot %s \\ \n' % ordi_qza
                 cmd += '--m-sample-metadata-file %s \\ \n' % new_meta
                 cmd += '--o-visualization %s \\ \n' % ordi_qzv
