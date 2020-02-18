@@ -7,128 +7,124 @@
 # ----------------------------------------------------------------------------
 
 import os
-import yaml
 import pandas as pd
 import multiprocessing
 from os.path import basename, dirname, isdir, isfile, splitext
 
-from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
+from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, xpbs_call
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics, get_job_folder, get_analysis_folder,
-    run_import, run_export
+    run_export, write_main_sh, get_main_cases_dict
 )
 from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
+from routine_qiime2_analyses._routine_q2_cmds import (
+    get_case, write_alpha_group_significance_cmd,
+    get_new_meta_pd, get_new_alpha_div, write_metadata_tabulate,
+    write_diversity_alpha, write_diversity_alpha_correlation,
+    write_longitudinal_volatility
+)
 
 
-def run_alpha(i_folder: str, datasets: dict, datasets_phylo: dict, trees: dict,
+def run_alpha(i_datasets_folder: str, datasets: dict, datasets_phylo: dict, trees: dict,
               force: bool, prjct_nm: str, qiime_env: str) -> dict:
+    """
+    Computes the alpha diversity vectors for each dataset.
 
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param datasets: dataset -> [tsv, meta]
+    :param datasets_phylo: to be updated with ('tree_to_use', 'corrected_or_not') per dataset.
+    :param trees: to be update with tree to use for a dataset phylogenetic analyses.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Short nick name for your project.
+    :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
+    :return: {
+                'dataset1': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }],
+                'dataset2': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }],
+                '...'
+             }
+    """
     alpha_metrics = get_metrics('alpha_metrics')
-
-    job_folder = get_job_folder(i_folder, 'alpha')
-    job_folder2 = get_job_folder(i_folder, 'alpha/chunks')
-
+    job_folder = get_job_folder(i_datasets_folder, 'alpha')
+    job_folder2 = get_job_folder(i_datasets_folder, 'alpha/chunks')
     written = 0
     diversities = {}
     run_pbs = '%s/1_run_alpha.sh' % job_folder
     with open(run_pbs, 'w') as o:
-        for dataset, tsv_meta_pds in datasets.items():
+        for dat, tsv_meta_pds in datasets.items():
             tsv, meta = tsv_meta_pds
-            if dataset not in diversities:
-                diversities[dataset] = [meta, {}]
-            out_sh = '%s/run_alpha_%s.sh' % (job_folder2, dataset)
+            if dat not in diversities:
+                diversities[dat] = [meta, {}]
+            out_sh = '%s/run_alpha_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
-            with open(out_sh, 'w') as sh:
+            with open(out_sh, 'w') as cur_sh:
                 qza = '%s.qza' % splitext(tsv)[0]
                 divs = []
                 for metric in alpha_metrics:
-                    odir = get_analysis_folder(i_folder, 'alpha/%s' % dataset)
+                    odir = get_analysis_folder(i_datasets_folder, 'alpha/%s' % dat)
                     out_fp = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]), metric)
                     out_tsv = '%s.tsv' % splitext(out_fp)[0]
                     if force or not isfile(out_fp):
-                        if metric in ['faith_pd']:
-                            if not datasets_phylo[dataset][0]:
-                                continue
-                            cmd = 'qiime diversity alpha-phylogenetic \\ \n'
-                            if datasets_phylo[dataset][1]:
-                                cmd += '--i-table %s \\ \n' % trees[dataset][0]
-                            else:
-                                cmd += '--i-table %s \\ \n' % qza
-                            cmd += '--i-phylogeny %s \\ \n' % trees[dataset][1]
-                            cmd += '--p-metric %s \\ \n' % metric
-                            cmd += '--o-alpha-diversity %s\n' % out_fp
-                        else:
-                            cmd = 'qiime diversity alpha \\ \n'
-                            cmd += '--i-table %s \\ \n' % qza
-                            cmd += '--p-metric %s \\ \n' % metric
-                            cmd += '--o-alpha-diversity %s\n' % out_fp
-                        sh.write('echo "%s"\n' % cmd)
-                        sh.write('%s\n\n' % cmd)
-                        written += 1
-                    if force or not isfile(out_tsv):
+                        ret_continue = write_diversity_alpha(out_fp, datasets_phylo, trees,
+                                                             dat, qza, metric, cur_sh)
+                        if ret_continue:
+                            continue
                         cmd = run_export(out_fp, out_tsv, '')
-                        sh.write('echo "%s"\n' % cmd)
-                        sh.write('%s\n\n' % cmd)
+                        cur_sh.write('echo "%s"\n' % cmd)
+                        cur_sh.write('%s\n\n' % cmd)
                         written += 1
                     divs.append(out_fp)
-                diversities[dataset][1][qza] = divs
-            if written:
-                xpbs_call(out_sh, out_pbs, '%s.mg.lph.%s' % (prjct_nm, dataset), qiime_env,
-                          '4', '1', '1', '1', 'gb')
-                o.write('qsub %s\n' % out_pbs)
-            else:
-                os.remove(out_sh)
+                diversities[dat][1][qza] = divs
+            run_xpbs(out_sh, out_pbs, '%s.mg.lph.%s' % (prjct_nm, dat),
+                     qiime_env, '4', '1', '1', '1', 'gb', written, 'single', o)
     if written:
         print('# Calculate alpha diversity indices')
         print('[TO RUN] sh', run_pbs)
     return diversities
 
 
-def merge_meta_alpha(i_folder: str, diversities: dict,
+def merge_meta_alpha(i_datasets_folder: str, diversities: dict,
                      force: bool, prjct_nm: str, qiime_env: str):
-    job_folder = get_job_folder(i_folder, 'alpha')
-    job_folder2 = get_job_folder(i_folder, 'alpha/chunks')
+    """
+    Computes the alpha diversity vectors for each dataset.
 
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param diversities: paths to [metadata, [alpha_divs]]
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Short nick name for your project.
+    :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
+    :return:
+    """
+    job_folder = get_job_folder(i_datasets_folder, 'alpha')
+    job_folder2 = get_job_folder(i_datasets_folder, 'alpha/chunks')
     written = 0
     to_export = []
     run_pbs = '%s/2_run_merge_alphas.sh' % job_folder
     with open(run_pbs, 'w') as o:
-        for dataset in diversities:
-            out_sh = '%s/run_merge_alpha_%s.sh' % (job_folder2, dataset)
+        for dat, (meta, qza_divs) in diversities.items():
+            out_sh = '%s/run_merge_alpha_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
-            with open(out_sh, 'w') as sh:
-                meta = diversities[dataset][0]
-                for qza, divs in diversities[dataset][1].items():
+            with open(out_sh, 'w') as cur_sh:
+                for qza, divs in qza_divs.items():
                     rad = splitext(qza)[0]
                     out_fp = '%s_alphas.qzv' % rad.replace('/data/', '/metadata/').replace('/tab_', '/meta_')
                     if force or not isfile(out_fp):
                         if not isdir(dirname(out_fp)):
                             os.makedirs(dirname(out_fp))
                         to_export.append(out_fp)
-                        cmd = 'qiime metadata tabulate \\ \n'
-                        cmd += '--o-visualization %s \\ \n' % out_fp
-                        for div in divs:
-                            cmd += '--m-input-file %s \\ \n' % div
-                        cmd += '--m-input-file %s\n' % meta
-                        sh.write('echo "%s"\n' % cmd)
-                        sh.write('%s\n\n' % cmd)
+                        write_metadata_tabulate(out_fp, divs, meta, cur_sh)
                         written += 1
-            if written:
-                xpbs_call(out_sh, out_pbs, '%s.mg.mrg.lph.%s' % (prjct_nm, dataset), qiime_env,
-                          '2', '1', '1', '150', 'mb')
-                o.write('qsub %s\n' % out_pbs)
-            else:
-                os.remove(out_sh)
+            run_xpbs(out_sh, out_pbs, '%s.mrg.lph.%s' % (prjct_nm, dat),
+                     qiime_env, '2', '1', '1', '150', 'mb', written, 'single', o)
     if written:
         print('# Merge alpha diversity indices to metadata')
         print('[TO RUN] sh', run_pbs)
     return to_export
 
 
-def export_meta_alpha(i_folder: str, to_export: list,
+def export_meta_alpha(i_datasets_folder: str, to_export: list,
                       force: bool, prjct_nm: str, qiime_env: str):
 
-    job_folder = get_job_folder(i_folder, 'alpha')
+    job_folder = get_job_folder(i_datasets_folder, 'alpha')
     out_sh = '%s/3_run_merge_alpha_export.sh' % job_folder
     out_pbs = '%s.pbs' % splitext(out_sh)[0]
     written = 0
@@ -140,21 +136,16 @@ def export_meta_alpha(i_folder: str, to_export: list,
                 sh.write('echo "%s"\n' % cmd)
                 sh.write('%s\n\n' % cmd)
                 written += 1
-    if written:
-        xpbs_call(out_sh, out_pbs, '%s.xprt.lph' % prjct_nm, qiime_env,
-                  '2', '1', '1', '150', 'mb')
-        print('# Export alpha diversity indices to metadata')
-        print('[TO RUN] qsub', out_pbs)
-    else:
-        os.remove(out_sh)
+    run_xpbs(out_sh, out_pbs, '%s.xprt.lph' % prjct_nm,
+             qiime_env, '2', '1', '1', '150', 'mb', written,
+             '# Export alpha diversity indices to metadata')
 
 
-def run_correlations(i_folder: str, datasets: dict, diversities: dict,
+def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                      force: bool, prjct_nm: str, qiime_env: str):
 
-    job_folder = get_job_folder(i_folder, 'alpha_correlations')
-    job_folder2 = get_job_folder(i_folder, 'alpha_correlations/chunks')
-    odir = get_analysis_folder(i_folder, 'alpha_correlations')
+    job_folder = get_job_folder(i_datasets_folder, 'alpha_correlations')
+    job_folder2 = get_job_folder(i_datasets_folder, 'alpha_correlations/chunks')
     written = 0
     run_pbs = '%s/4_run_alpha_correlation.sh' % job_folder
     with open(run_pbs, 'w') as o:
@@ -162,37 +153,26 @@ def run_correlations(i_folder: str, datasets: dict, diversities: dict,
             tsv, meta = tsv_meta_pds
             out_sh = '%s/run_alpha_correlation_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
-            with open(out_sh, 'w') as sh:
+            odir = get_analysis_folder(i_datasets_folder, 'alpha_correlations/%s' % dat)
+            with open(out_sh, 'w') as cur_sh:
                 for method in ['spearman', 'pearson']:
                     for qza in diversities[dat][1]['%s.qza' % splitext(tsv)[0]]:
                         out_fp = qza.replace('.qza', '_%s.qzv' % method).replace('/alpha/', '/alpha_correlations/')
                         if force or not isfile(out_fp):
-                            if not isdir(dirname(out_fp)):
-                                os.makedirs(dirname(out_fp))
-                            cmd = 'qiime diversity alpha-correlation \\ \n'
-                            cmd += '--i-alpha-diversity %s \\ \n' % qza
-                            cmd += '--p-method %s \\ \n' % method
-                            cmd += '--m-metadata-file %s \\ \n' % meta
-                            cmd += '--o-visualization %s\n' % out_fp
-                            sh.write('echo "%s"\n' % cmd)
-                            sh.write('%s\n\n' % cmd)
+                            write_diversity_alpha_correlation(out_fp, qza, method, meta, cur_sh)
                             written += 1
-            if written:
-                xpbs_call(out_sh, out_pbs, '%s.lphcrr.%s' % (prjct_nm, dat), qiime_env,
-                          '10', '1', '1', '1', 'gb')
-                o.write('qsub %s\n' % out_pbs)
-            else:
-                os.remove(out_sh)
+            run_xpbs(out_sh, out_pbs, '%s.lphcrr.%s' % (prjct_nm, dat),
+                     qiime_env, '10', '1', '1', '1', 'gb', written, 'single', o)
     if written:
         print('# Correlate numeric metadata variables with alpha diversity indices')
         print('[TO RUN] sh', run_pbs)
 
 
-def run_volatility(i_folder: str, datasets: dict, p_longi_column: str,
+def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
                    force: bool, prjct_nm: str, qiime_env: str) -> None:
 
-    job_folder = get_job_folder(i_folder, 'longitudinal')
-    job_folder2 = get_job_folder(i_folder, 'longitudinal/chunks')
+    job_folder = get_job_folder(i_datasets_folder, 'longitudinal')
+    job_folder2 = get_job_folder(i_datasets_folder, 'longitudinal/chunks')
     written = 0
     first_print = 0
     first_print2 = 0
@@ -218,111 +198,75 @@ def run_volatility(i_folder: str, datasets: dict, p_longi_column: str,
                 continue
             out_sh = '%s/run_volatility_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
-            with open(out_sh, 'w') as sh:
-                odir = get_analysis_folder(i_folder, 'longitudinal/%s' % dat)
+            with open(out_sh, 'w') as cur_sh:
+                odir = get_analysis_folder(i_datasets_folder, 'longitudinal/%s' % dat)
                 out_fp = '%s/%s_volatility.qzv' % (odir, dat)
                 if force or not isfile(out_fp):
-                    cmd = 'qiime longitudinal volatility \\ \n'
-                    cmd += '--m-metadata-file %s \\ \n' % meta_alphas
-                    cmd += '--p-state-column "%s" \\ \n' % time_point
-                    cmd += '--p-individual-id-column "host_subject_id"'
-                    cmd += '--o-visualization %s\n' % out_fp
-                    sh.write('echo "%s"\n' % cmd)
-                    sh.write('%s\n\n' % cmd)
+                    write_longitudinal_volatility(out_fp, meta_alphas, time_point, cur_sh)
                     written += 1
-            if written:
-                xpbs_call(out_sh, out_pbs, '%s.vltlt.%s' % (prjct_nm, dat), qiime_env,
-                          '2', '1', '1', '100', 'mb')
-                o.write('qsub %s\n' % out_pbs)
-            else:
-                os.remove(out_sh)
+            run_xpbs(out_sh, out_pbs, '%s.vltlt.%s' % (prjct_nm, dat),
+                     qiime_env, '2', '1', '1', '100', 'mb', written, 'single', o)
     if written:
         print('# Longitudinal change in alpha diversity indices')
         print('[TO RUN] sh', run_pbs)
 
 
-def run_alpha_group_significance(i_folder: str, diversities: dict, p_perm_groups: str,
+def run_multi_kw(odir: str, meta_pd: pd.DataFrame, diversities: dict,
+                 alpha_metrics: list, cases_dict: dict, out_sh: str,
+                 out_pbs: str, dat: str, force: bool, prjct_nm: str,
+                 qiime_env: str) -> None:
+    written = 0
+    with open(out_sh, 'w') as cur_sh:
+        for qza, divs in diversities[dat][1].items():
+            for div_qza in divs:
+                for metric in alpha_metrics:
+                    if metric in div_qza:
+                        break
+                for case_var, case_vals_list in cases_dict.items():
+                    for case_vals in case_vals_list:
+                        case = get_case(case_vals, metric, case_var)
+                        if len(case_vals):
+                            case = '%s_%s_%s' % (metric, case_var, '-'.join(
+                                [x.replace('<', 'below').replace('>', 'above') for x in case_vals]))
+                        else:
+                            case = '%s_%s' % (metric, case_var)
+
+                        cur_rad = odir + '/' + basename(div_qza).replace('.qza', '_%s' % case)
+                        new_qzv = '%s_kruskal-wallis.qzv' % cur_rad
+                        if force or not isfile(new_qzv):
+                            new_meta = '%s.meta' % cur_rad
+                            new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+                            new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
+                            new_div = get_new_alpha_div(case, div_qza, cur_rad, new_meta_pd, cur_sh)
+                            write_alpha_group_significance_cmd(new_div, new_meta, new_qzv, cur_sh)
+                            written += 1
+    run_xpbs(out_sh, out_pbs, '%s.kv.%s' % (prjct_nm, dat),
+             qiime_env, '2', '1', '1', '1', 'gb', written, '', None)
+
+
+def run_alpha_group_significance(i_datasets_folder: str, diversities: dict, p_perm_groups: str,
                                  force: bool, prjct_nm: str, qiime_env: str):
+    """
+    Main per-datasat looper for the Kruskal-Wallis tests on alpha diversity vectors.
+
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param diversities:
+    :param p_perm_groups:
+    :param force:
+    :param prjct_nm:
+    :param qiime_env:
+    :return:
+    """
 
     alpha_metrics = get_metrics('alpha_metrics')
-
-    def run_multi_kw(odir, meta_pd, diversities, cases_dict,
-                     out_sh, out_pbs, dat):
-
-        written = 0
-        with open(out_sh, 'w') as cur_sh:
-            for qza, divs in diversities[dat][1].items():
-                for div_qza in divs:
-                    for metric in alpha_metrics:
-                        if metric in div_qza:
-                            break
-                    for case_var, case_vals_list in cases_dict.items():
-                        for case_vals in case_vals_list:
-                            if len(case_vals):
-                                case = '%s_%s_%s' % (metric, case_var, '-'.join(
-                                    [x.replace('<', 'below').replace('>', 'above') for x in case_vals]))
-                            else:
-                                case = '%s_%s' % (metric, case_var)
-
-                            cur_rad = odir + '/' + basename(div_qza).replace('.qza', '_%s' % case)
-                            new_qzv = '%s_kruskal-wallis.qzv' % cur_rad
-                            new_meta = '%s.meta' % cur_rad
-                            new_div = '%s.qza' % cur_rad
-                            if force or not isfile(new_qzv):
-                                if 'ALL' in case:
-                                    new_meta_pd = meta_pd.copy()
-                                    cur_sh.write('echo "cp %s %s"\n' % (div_qza, new_div))
-                                    cur_sh.write('cp %s %s\n' % (div_qza, new_div))
-                                else:
-                                    new_tsv = '%s.tsv' % cur_rad
-                                    if len([x for x in case_vals if x[0] == '>' or x[0] == '<']):
-                                        new_meta_pd = meta_pd.copy()
-                                        for case_val in case_vals:
-                                            if case_val[0] == '>':
-                                                new_meta_pd = new_meta_pd[new_meta_pd[case_var] >= float(case_val[1:])].copy()
-                                            elif case_val[0] == '<':
-                                                new_meta_pd = new_meta_pd[new_meta_pd[case_var] <= float(case_val[1:])].copy()
-                                    else:
-                                        new_meta_pd = meta_pd[meta_pd[case_var].isin(case_vals)].copy()
-                                    new_tsv_pd = pd.read_csv(div_qza.replace('.qza', '.tsv'), header=0, sep='\t')
-                                    new_tsv_pd.rename(columns={new_tsv_pd.columns.tolist()[0]: 'Feature ID'}, inplace=True)
-                                    new_tsv_pd.set_index('Feature ID', inplace=True)
-                                    new_tsv_pd = new_tsv_pd.loc[new_meta_pd.index.tolist(),:]
-                                    new_tsv_pd.reset_index().to_csv(new_tsv, index=False, sep='\t')
-                                    cmd = run_import(new_tsv, new_div, 'SampleData[AlphaDiversity]')
-                                    cur_sh.write('echo "%s"\n' % cmd)
-                                    cur_sh.write('%s\n' % cmd)
-                                new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-
-                                cmd = 'qiime diversity alpha-group-significance \\ \n'
-                                cmd += '--i-alpha-diversity %s \\ \n' % new_div
-                                cmd += '--m-metadata-file %s \\ \n' % new_meta
-                                cmd += '--o-visualization %s\n' % new_qzv
-                                cur_sh.write('echo "%s"\n' % cmd)
-                                cur_sh.write('%s\n\n' % cmd)
-                                written += 1
-        if written:
-            xpbs_call(out_sh, out_pbs, '%s.kv.%s' % (prjct_nm, dat), qiime_env,
-                      '2', '1', '1', '1', 'gb')
-        else:
-            os.remove(out_sh)
-            if isfile(out_pbs):
-                os.remove(out_pbs)
-
-    job_folder = get_job_folder(i_folder, 'alpha_group_significance')
-    job_folder2 = get_job_folder(i_folder, 'alpha_group_significance/chunks')
-
-    main_cases_dict = {'ALL': [[]]}
-    if p_perm_groups:
-        with open(p_perm_groups) as handle:
-            # cases_dict = yaml.load(handle)
-            main_cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
+    main_cases_dict = get_main_cases_dict(p_perm_groups)
 
     jobs = []
     all_sh_pbs = []
     first_print = 0
+    job_folder2 = get_job_folder(i_datasets_folder, 'alpha_group_significance/chunks')
     for dat in diversities:
-        odir = get_analysis_folder(i_folder, 'alpha_group_significance/%s' % dat)
+        odir = get_analysis_folder(i_datasets_folder, 'alpha_group_significance/%s' % dat)
         out_sh = '%s/run_alpha_group_significance_%s.sh' % (job_folder2, dat)
         out_pbs = '%s.pbs' % splitext(out_sh)[0]
         all_sh_pbs.append((out_sh, out_pbs))
@@ -341,24 +285,17 @@ def run_alpha_group_significance(i_folder: str, diversities: dict, p_perm_groups
 
         p = multiprocessing.Process(
             target=run_multi_kw,
-            args=(odir, meta_pd, diversities, cases_dict,
-                  out_sh, out_pbs, dat)
-        )
+            args=(odir, meta_pd, diversities, alpha_metrics, cases_dict,
+                  out_sh, out_pbs, dat, force, prjct_nm, qiime_env))
         p.start()
         jobs.append(p)
 
     for j in jobs:
         j.join()
 
-    main_written = False
-    main_sh = '%s/6_run_alpha_group_significance.sh' % job_folder
-    with open(main_sh, 'w') as main_o:
-        for (sh, pbs) in all_sh_pbs:
-            if isfile(sh):
-                main_o.write('qsub %s\n' % pbs)
-                main_written = True
-
-    if main_written:
+    job_folder = get_job_folder(i_datasets_folder, 'alpha_group_significance')
+    main_sh = write_main_sh(job_folder, '6_run_alpha_group_significance', all_sh_pbs)
+    if main_sh:
         if p_perm_groups:
             print("# Kruskal-Wallis on alpha diversity (groups config in %s)" % p_perm_groups)
         else:

@@ -9,11 +9,34 @@
 import os
 import re
 import sys
-import pandas as pd
+import yaml
 import pkg_resources
+import pandas as pd
 from os.path import basename, splitext, isfile, isdir
 
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
+
+
+def get_main_cases_dict(p_perm_groups: str) -> dict:
+    main_cases_dict = {'ALL': [[]]}
+    if p_perm_groups:
+        with open(p_perm_groups) as handle:
+            # cases_dict = yaml.load(handle)
+            main_cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
+        return main_cases_dict
+
+
+def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: list) -> str:
+    main_written = False
+    main_sh = '%s/%s.sh' % (job_folder, analysis)
+    with open(main_sh, 'w') as main_o:
+        for (sh, pbs) in all_sh_pbs:
+            if isfile(sh):
+                main_o.write('qsub %s\n' % pbs)
+                main_written = True
+    if main_written:
+        return main_sh
+    return ''
 
 
 def run_import(input_path: str, output_path: str, typ: str) -> str:

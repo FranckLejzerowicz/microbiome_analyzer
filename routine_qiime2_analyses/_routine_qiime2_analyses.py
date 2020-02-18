@@ -17,8 +17,9 @@ from routine_qiime2_analyses._routine_q2_beta import run_beta, export_beta, run_
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
                                                        run_correlations, run_volatility,
                                                        run_alpha_group_significance)
-from routine_qiime2_analyses._routine_q2_permanova_adonis import run_permanova, run_adonis
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
+from routine_qiime2_analyses._routine_q2_permanova import run_permanova
+from routine_qiime2_analyses._routine_q2_adonis import run_adonis
 
 
 def routine_qiime2_analyses(i_datasets: tuple, i_datasets_folder: str, project_name: str,

@@ -6,15 +6,15 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os
 import sys
 from skbio.tree import TreeNode
 from os.path import isfile, splitext
 
-from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
+from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_io_utils import (
-    get_job_folder, get_analysis_folder, run_import, get_wol_tree, get_sepp_tree
-)
+    get_job_folder, get_analysis_folder, run_import, get_wol_tree, get_sepp_tree)
+from routine_qiime2_analyses._routine_q2_cmds import (
+    write_fragment_insertion, write_seqs_fasta)
 
 
 def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datasets_phylo: dict,
@@ -69,41 +69,17 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
 
                 out_sh = '%s/run_sepp_%s.sh' % (job_folder2, dat)
                 out_pbs = '%s.pbs' % splitext(out_sh)[0]
-                with open(out_sh, 'w') as sh:
-
+                with open(out_sh, 'w') as cur_sh:
                     if force or not isfile(out_fp_seqs_qza):
-                        with open(out_fp_seqs_fasta, 'w') as fas_o:
-                            for seq in tsv_pd.index:
-                                fas_o.write('>%s\n%s\n' % (seq.strip(), seq.strip()))
-                        cmd = run_import(out_fp_seqs_fasta, out_fp_seqs_qza, 'FeatureData[Sequence]')
-                        sh.write('echo "%s"\n' % cmd)
-                        sh.write('%s\n\n' % cmd)
+                        write_seqs_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, tsv_pd, cur_sh)
                         written += 1
-
                     if force or not isfile(out_fp_sepp_tree):
-                        cmd = 'qiime fragment-insertion sepp \\ \n'
-                        cmd += '--i-representative-sequences %s \\ \n' % out_fp_seqs_qza
-                        cmd += '--i-reference-database %s \\ \n' % ref_tree_qza
-                        cmd += '--o-tree %s \\ \n' % out_fp_sepp_tree
-                        cmd += '--o-placements %s \\ \n' % out_fp_sepp_plac
-                        cmd += '--p-threads 24\n'
-                        sh.write('echo "%s"\n' % cmd)
-                        sh.write('%s\n\n' % cmd)
-
-                        cmd = 'qiime fragment-insertion filter-features \\ \n'
-                        cmd += '--i-table %s \\ \n' % qza
-                        cmd += '--i-tree %s \\ \n' % out_fp_sepp_tree
-                        cmd += '--o-filtered-table %s \\ \n' % qza_in
-                        cmd += '--o-removed-table %s\n' % qza_out
-                        sh.write('echo "%s"\n' % cmd)
-                        sh.write('%s\n\n' % cmd)
+                        write_fragment_insertion(out_fp_seqs_qza, ref_tree_qza,
+                                                 out_fp_sepp_tree, out_fp_sepp_plac,
+                                                 qza, qza_in, qza_out, cur_sh)
                         written += 1
-                if written:
-                    xpbs_call(out_sh, out_pbs, '%s.spp.%s' % (prjct_nm, dat), qiime_env,
-                              '100', '2', '12', '100', 'gb')
-                    main_o.write('qsub %s\n' % out_pbs)
-                else:
-                    os.remove(out_sh)
+                run_xpbs(out_sh, out_pbs, '%s.spp.%s' % (prjct_nm, dat),
+                         qiime_env, '100', '2', '12', '100', 'gb', written, True, main_o)
         if written:
             print("# Fragment insertion using SEPP (%s)" % ', '.join(sepp_datasets))
             print('[TO RUN] sh', main_sh)
@@ -149,22 +125,19 @@ def shear_tree(i_datasets_folder: str, datasets_phylo: dict, datasets_features: 
                 wol_features_qza = wol_features_fpo.replace('.nwk', '.qza')
                 trees[dat] = ('', wol_features_qza)
 
-                run_sh = '%s/run_import_tree_%s.sh' % (job_folder2, dat)
-                run_pbs = run_sh.replace('.sh', '.pbs')
+                out_sh = '%s/run_import_tree_%s.sh' % (job_folder2, dat)
+                out_pbs = out_sh.replace('.sh', '.pbs')
                 wol_features.write(wol_features_fpo)
 
-                with open(run_sh, 'w') as o:
+                with open(out_sh, 'w') as o:
                     if force or not isfile(wol_features_qza):
                         cmd = run_import(wol_features_fpo, wol_features_qza, "Phylogeny[Rooted]")
                         o.write("echo '%s'\n" % cmd)
                         o.write('%s\n\n' % cmd)
                         written += 1
-                if written:
-                    xpbs_call(run_sh, run_pbs, prjct_nm, qiime_env,
-                              '1', '1', '1', '20', 'mb')
-                    main_o.write('qsub %s\n' % run_pbs)
-                else:
-                    os.remove(run_sh)
+
+                run_xpbs(out_sh, out_pbs, '%s.shr.%s' % (prjct_nm, dat),
+                         qiime_env,  '1', '1', '1', '200', 'mb', written, True, main_o)
         if written:
             print("# Shear Web of Life tree to features' genome IDs (%s)" % ', '.join(wol_datasets))
             print('[TO RUN] sh', main_sh)

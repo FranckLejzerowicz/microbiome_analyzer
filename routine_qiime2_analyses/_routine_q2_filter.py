@@ -94,9 +94,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             datasets_features_update[dat_filt] = dict(
                 gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_filt_pd.index
             )
-
             qza = tab_filt_fp.replace('.tsv', '.qza')
-
             cmd = run_import(tab_filt_fp, qza, "FeatureTable[Frequency]")
             sh.write('echo "%s"\n' % cmd)
             sh.write('%s\n' % cmd)
