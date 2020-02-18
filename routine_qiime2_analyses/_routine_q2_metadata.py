@@ -12,11 +12,12 @@ from os.path import basename
 
 
 def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
-                              cases_dict: dict) -> dict:
+                              cases_dict: dict, analysis: str) -> dict:
     """
     :param meta: metadata file name.
     :param meta_pd: metadata table.
     :param cases_dict: cases to check for possible use (need metadata presence).
+    :param analysis: current qiime2 analysis.
     :return: checked cases.
     """
     to_pop = set()
@@ -25,7 +26,7 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
         if variable == 'ALL':
             continue
         if variable not in meta_pd_vars:
-            print('  [not analyzed] variable %s not in %s' % (variable, basename(meta)))
+            print('  [%s] variable %s not in %s' % (variable, basename(meta), analysis))
             to_pop.add(variable)
         else:
             factors = set(meta_pd[variable].unique().astype(str).tolist())
@@ -68,16 +69,18 @@ def check_metadata_formulas(meta: str, meta_pd: pd.DataFrame,
     return formulas
 
 
-def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame, main_testing_groups: tuple) -> list:
+def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame,
+                                  main_testing_groups: tuple, analysis: str) -> list:
     """
     :param meta: metadata file name.
     :param meta_pd: metadata table.
     :param main_testing_groups: groups to test for (need metadata presence).
+    :param analysis: current qiime2 analysis.
     :return: checked testing groups.
     """
     meta_pd_vars = set(meta_pd.columns.tolist())
     main_testing = [variable for variable in main_testing_groups if variable in meta_pd_vars]
     for variable in main_testing_groups:
         if variable not in main_testing:
-            print('  [not analyzed] variable %s not in %s' % (variable, basename(meta)))
+            print('  [%s] variable %s not in %s' % (variable, basename(meta), analysis))
     return main_testing

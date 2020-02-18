@@ -109,7 +109,7 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
         meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
         mat_qzas = betas[dat][meta]
 
-        cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
+        cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'PERMANOVA')
         testing_groups = check_metadata_testing_groups(meta, meta_pd, main_testing_groups)
 
         absence_mat = check_absence_mat(mat_qzas, first_print, 'PERMANOVA')
