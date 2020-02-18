@@ -68,7 +68,7 @@ def check_metadata_formulas(meta: str, meta_pd: pd.DataFrame,
     return formulas
 
 
-def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame, main_testing_groups: tuple) -> tuple:
+def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame, main_testing_groups: tuple) -> list:
     """
     :param meta: metadata file name.
     :param meta_pd: metadata table.

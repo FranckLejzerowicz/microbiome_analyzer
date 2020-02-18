@@ -14,6 +14,9 @@ import pkg_resources
 import pandas as pd
 from os.path import basename, splitext, isfile, isdir
 
+from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
+from routine_qiime2_analyses._routine_q2_cmds import run_export
+
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
 
@@ -32,101 +35,64 @@ def get_main_cases_dict(p_perm_groups: str) -> dict:
         return main_cases_dict
 
 
-def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: list) -> str:
+def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
+                  prjct_nm: str, time: str, n_nodes: str, n_procs: str,
+                  mem_num: str, mem_dim: str, qiime_env: str) -> str:
     """
     Write the main launcher of pbs scripts, written during using multiprocessing.
 
     :param job_folder: folder where the main job is to be written.
     :param analysis: current qqime2 analysis (e.g. PERMANOVA).
     :param all_sh_pbs: collection of all the sh scripts transformed to pbs.
+    :param prjct_nm: Nick name for your project.
+    :param time: walltime in hours.
+    :param n_nodes: number of nodes to use.
+    :param n_procs: number of processors to use.
+    :param mem_num: memory in number.
+    :param mem_dim: memory dimension to the number.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
     :return: either the written launcher or nothing.
     """
-    main_written = False
     main_sh = '%s/%s.sh' % (job_folder, analysis)
+    out_main_sh = ''
     with open(main_sh, 'w') as main_o:
-        for (sh, pbs) in all_sh_pbs:
-            if isfile(sh):
-                main_o.write('qsub %s\n' % pbs)
-                main_written = True
-    if main_written:
-        return main_sh
-    return ''
+        for (dat, out_sh), cur_shs in all_sh_pbs.items():
+            cur_written = False
+            with open(out_sh, 'w') as sh:
+                for cur_sh in cur_shs:
+                    if isfile(cur_sh):
+                        sh.write('sh %s' % cur_sh)
+                        cur_written = True
+            if cur_written:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
+                run_xpbs(out_sh, out_pbs, '%s.%s' % (prjct_nm, dat), qiime_env,
+                         time, n_nodes, n_procs, mem_num, mem_dim, 1, '', None)
+                main_o.write('qsub %s\n' % out_pbs)
+                out_main_sh = main_sh
+            else:
+                os.remove(out_sh)
+    return out_main_sh
 
 
-def run_import(input_path: str, output_path: str, typ: str) -> str:
-    """
-    Return the import qiime2 command.
-
-    :param input_path: input file path.
-    :param output_path: output file path.
-    :param typ: qiime2 type.
-    :return: command to qiime2.
-    """
-    cmd = ''
-    if typ.startswith("FeatureTable"):
-        if not input_path.endswith('biom'):
-            cur_biom = '%s.biom' % splitext(input_path)[0]
-            cmd += 'biom convert \\ \n'
-            cmd += '  -i %s \\ \n' % input_path
-            cmd += '  -o %s \\ \n' % cur_biom
-            cmd += '  --table-type="OTU table" \\ \n'
-            cmd += '  --to-hdf5\n\n'
-            cmd += 'qiime tools import \\ \n'
-            cmd += '  --input-path %s \\ \n' % cur_biom
-            cmd += '  --output-path %s \\ \n' % output_path
-            cmd += '  --type "FeatureTable[Frequency]"\n'
-        else:
-            cmd += 'qiime tools import \\ \n'
-            cmd += '  --input-path %s \\ \n' % input_path
-            cmd += '  --output-path %s \\ \n' % output_path
-            cmd += '  --type "FeatureTable[Frequency]"\n'
-    else:
-        cmd += 'qiime tools import \\ \n'
-        cmd += '  --input-path %s \\ \n' % input_path
-        cmd += '  --output-path %s \\ \n' % output_path
-        cmd += '  --type "%s"\n' % typ
-    return cmd
-
-
-def run_export(input_path: str, output_path: str, typ: str) -> str:
-    """
-    Return the export qiime2 command.
-
-    :param input_path: input file path.
-    :param output_path: output file path.
-    :param typ: qiime2 type.
-    :return: command to qiime2.
-    """
-    cmd = ''
-    if typ.startswith("FeatureTable"):
-        if not output_path.endswith('biom'):
-            cur_biom = '%s.biom' % splitext(output_path)[0]
-            cmd += 'qiime tools export \\ \n'
-            cmd += '  --input-path %s \\ \n' % input_path
-            cmd += '  --output-path %s\n' % splitext(output_path)[0]
-            cmd += 'mv %s/*.biom %s\n' % (splitext(output_path)[0], cur_biom)
-            cmd += 'biom convert'
-            cmd += '  -i %s \\ \n' % cur_biom
-            cmd += '  -o %s.tmp \\ \n' % output_path
-            cmd += '  --to-tsv\n\n'
-            cmd += 'tail -n +2 %s.tmp > %s\n\n' % (output_path, output_path)
-            cmd += 'rm -rf %s %s.tmp\n' % (splitext(output_path)[0], output_path)
-        else:
-            cmd += 'qiime tools export \\ \n'
-            cmd += '  --input-path %s \\ \n' % input_path
-            cmd += '  --output-path %s\n' % splitext(output_path)[0]
-            cmd += 'mv %s/*.biom %s\n' % (splitext(input_path)[0], output_path)
-            cmd += 'rm -rf %s\n' % splitext(input_path)[0]
-    else:
-        cmd += 'qiime tools export \\ \n'
-        cmd += '  --input-path %s \\ \n' % input_path
-        cmd += '  --output-path %s\n' % splitext(output_path)[0]
-        if 'Phylogeny' in typ:
-            cmd += 'mv %s/*.nwk %s\n' % (splitext(output_path)[0], output_path)
-        else:
-            cmd += 'mv %s/*.tsv %s\n' % (splitext(output_path)[0], output_path)
-        cmd += 'rm -rf %s\n' % splitext(output_path)[0]
-    return cmd
+# def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: list) -> str:
+#     """
+#     Write the main launcher of pbs scripts, written during using multiprocessing.
+#
+#     :param job_folder: folder where the main job is to be written.
+#     :param analysis: current qqime2 analysis (e.g. PERMANOVA).
+#     :param all_sh_pbs: collection of all the sh scripts transformed to pbs.
+#     :return: either the written launcher or nothing.
+#     """
+#     main_written = False
+#     main_sh = '%s/%s.sh' % (job_folder, analysis)
+#     with open(main_sh, 'w') as main_o:
+#         for (sh, pbs) in all_sh_pbs:
+#             if isfile(sh):
+#                 main_o.write('qsub %s\n' % pbs)
+#                 main_written = True
+#     if main_written:
+#         return main_sh
+#     return ''
 
 
 def get_corresponding_meta(path: str) -> str:
@@ -191,16 +157,16 @@ def gID_or_DNA(dat: str, path: str, path_pd: pd.DataFrame, datasets_read: dict,
     :param datasets_phylo: to be updated with ('tree_to_use', 'corrected_or_not') per dataset.
     """
     # regex to find the fist non-DNA character
-    not_DNA = re.compile('[^ACGTN].*?')
+    not_dna = re.compile('[^ACGTN].*?')
     if str(path_pd.index.dtype) == 'object':
         features_names = path_pd.index.tolist()
         # check if that's genome IDs
         found_gids = {}
-        DNA = True
+        dna = True
         correction_needed = False
         for features_name in features_names:
-            if DNA and bool(not_DNA.search(features_name)):
-                DNA = False
+            if dna and bool(not_dna.search(features_name)):
+                dna = False
             if re.search('G\d{9}', features_name):
                 if ';' in features_name:
                     correction_needed = True
@@ -217,7 +183,7 @@ def gID_or_DNA(dat: str, path: str, path_pd: pd.DataFrame, datasets_read: dict,
                 datasets_phylo[dat] = ('wol', 1)
             else:
                 datasets_phylo[dat] = ('wol', 0)
-        elif DNA:
+        elif dna:
             datasets_phylo[dat] = ('amplicon', 0)
 
 

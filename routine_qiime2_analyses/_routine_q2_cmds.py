@@ -1,10 +1,90 @@
-
+# ----------------------------------------------------------------------------
+# Copyright (c) 2020, Franck Lejzerowicz.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+# ----------------------------------------------------------------------------
 
 import pandas as pd
 from typing import TextIO
-from os.path import isfile
+from os.path import isfile, splitext
 
-from routine_qiime2_analyses._routine_q2_io_utils import run_import
+
+def run_import(input_path: str, output_path: str, typ: str) -> str:
+    """
+    Return the import qiime2 command.
+
+    :param input_path: input file path.
+    :param output_path: output file path.
+    :param typ: qiime2 type.
+    :return: command to qiime2.
+    """
+    cmd = ''
+    if typ.startswith("FeatureTable"):
+        if not input_path.endswith('biom'):
+            cur_biom = '%s.biom' % splitext(input_path)[0]
+            cmd += 'biom convert \\ \n'
+            cmd += '  -i %s \\ \n' % input_path
+            cmd += '  -o %s \\ \n' % cur_biom
+            cmd += '  --table-type="OTU table" \\ \n'
+            cmd += '  --to-hdf5\n\n'
+            cmd += 'qiime tools import \\ \n'
+            cmd += '  --input-path %s \\ \n' % cur_biom
+            cmd += '  --output-path %s \\ \n' % output_path
+            cmd += '  --type "FeatureTable[Frequency]"\n'
+        else:
+            cmd += 'qiime tools import \\ \n'
+            cmd += '  --input-path %s \\ \n' % input_path
+            cmd += '  --output-path %s \\ \n' % output_path
+            cmd += '  --type "FeatureTable[Frequency]"\n'
+    else:
+        cmd += 'qiime tools import \\ \n'
+        cmd += '  --input-path %s \\ \n' % input_path
+        cmd += '  --output-path %s \\ \n' % output_path
+        cmd += '  --type "%s"\n' % typ
+    return cmd
+
+
+def run_export(input_path: str, output_path: str, typ: str) -> str:
+    """
+    Return the export qiime2 command.
+
+    :param input_path: input file path.
+    :param output_path: output file path.
+    :param typ: qiime2 type.
+    :return: command to qiime2.
+    """
+    cmd = ''
+    if typ.startswith("FeatureTable"):
+        if not output_path.endswith('biom'):
+            cur_biom = '%s.biom' % splitext(output_path)[0]
+            cmd += 'qiime tools export \\ \n'
+            cmd += '  --input-path %s \\ \n' % input_path
+            cmd += '  --output-path %s\n' % splitext(output_path)[0]
+            cmd += 'mv %s/*.biom %s\n' % (splitext(output_path)[0], cur_biom)
+            cmd += 'biom convert'
+            cmd += '  -i %s \\ \n' % cur_biom
+            cmd += '  -o %s.tmp \\ \n' % output_path
+            cmd += '  --to-tsv\n\n'
+            cmd += 'tail -n +2 %s.tmp > %s\n\n' % (output_path, output_path)
+            cmd += 'rm -rf %s %s.tmp\n' % (splitext(output_path)[0], output_path)
+        else:
+            cmd += 'qiime tools export \\ \n'
+            cmd += '  --input-path %s \\ \n' % input_path
+            cmd += '  --output-path %s\n' % splitext(output_path)[0]
+            cmd += 'mv %s/*.biom %s\n' % (splitext(input_path)[0], output_path)
+            cmd += 'rm -rf %s\n' % splitext(input_path)[0]
+    else:
+        cmd += 'qiime tools export \\ \n'
+        cmd += '  --input-path %s \\ \n' % input_path
+        cmd += '  --output-path %s\n' % splitext(output_path)[0]
+        if 'Phylogeny' in typ:
+            cmd += 'mv %s/*.nwk %s\n' % (splitext(output_path)[0], output_path)
+        else:
+            cmd += 'mv %s/*.tsv %s\n' % (splitext(output_path)[0], output_path)
+        cmd += 'rm -rf %s\n' % splitext(output_path)[0]
+    return cmd
 
 
 def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: str,

@@ -12,9 +12,10 @@ from os.path import isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_io_utils import (
-    get_job_folder, get_analysis_folder, run_import, get_wol_tree, get_sepp_tree)
+    get_job_folder, get_analysis_folder, get_wol_tree, get_sepp_tree)
 from routine_qiime2_analyses._routine_q2_cmds import (
     write_fragment_insertion, write_seqs_fasta)
+from routine_qiime2_analyses._routine_q2_cmds import run_import
 
 
 def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datasets_phylo: dict,
@@ -79,7 +80,7 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                                                  qza, qza_in, qza_out, cur_sh)
                         written += 1
                 run_xpbs(out_sh, out_pbs, '%s.spp.%s' % (prjct_nm, dat),
-                         qiime_env, '100', '2', '12', '100', 'gb', written, True, main_o)
+                         qiime_env, '100', '2', '12', '100', 'gb', written, 'single', main_o)
         if written:
             print("# Fragment insertion using SEPP (%s)" % ', '.join(sepp_datasets))
             print('[TO RUN] sh', main_sh)
@@ -137,7 +138,7 @@ def shear_tree(i_datasets_folder: str, datasets_phylo: dict, datasets_features: 
                         written += 1
 
                 run_xpbs(out_sh, out_pbs, '%s.shr.%s' % (prjct_nm, dat),
-                         qiime_env,  '1', '1', '1', '200', 'mb', written, True, main_o)
+                         qiime_env,  '1', '1', '1', '200', 'mb', written, 'single', main_o)
         if written:
             print("# Shear Web of Life tree to features' genome IDs (%s)" % ', '.join(wol_datasets))
             print('[TO RUN] sh', main_sh)

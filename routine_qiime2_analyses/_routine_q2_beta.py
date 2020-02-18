@@ -11,9 +11,17 @@ from os.path import basename, dirname, isdir, isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_io_utils import (
-    get_metrics, get_job_folder, get_analysis_folder, run_export)
+    get_metrics,
+    get_job_folder,
+    get_analysis_folder
+)
 from routine_qiime2_analyses._routine_q2_cmds import (
-    write_diversity_beta, write_diversity_pcoa, write_emperor)
+    write_diversity_beta,
+    write_diversity_pcoa,
+    write_emperor
+)
+from routine_qiime2_analyses._routine_q2_cmds import run_export
+
 
 def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
              trees: dict, force: bool, prjct_nm: str, qiime_env: str) -> dict:

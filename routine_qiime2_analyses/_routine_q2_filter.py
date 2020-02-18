@@ -9,8 +9,8 @@
 from os.path import isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
-from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, run_import
-
+from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder
+from routine_qiime2_analyses._routine_q2_cmds import run_import
 
 def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                     force: bool, prjct_nm: str, qiime_env: str) -> None:

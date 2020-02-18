@@ -6,8 +6,6 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os
-import yaml
 import pandas as pd
 from os.path import basename, isfile, splitext
 import multiprocessing
