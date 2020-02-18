@@ -83,7 +83,7 @@ def get_corresponding_meta(path: str) -> str:
     """
     path_split = abspath(path).split('/')
     meta_rad = '%s/metadata/meta_%s' % ('/'.join(path_split[:-2]),
-                                        '_'.join(basename(path).split('_')[1:]))
+                                        '_'.join(splitext(basename(path))[0].split('_')[1:]))
     meta_tsv = '%s.tsv' % meta_rad
     meta_txt = '%s.txt' % meta_rad
     if isfile(meta_tsv):
