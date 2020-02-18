@@ -12,7 +12,7 @@ import sys
 import yaml
 import pkg_resources
 import pandas as pd
-from os.path import basename, splitext, isfile, isdir
+from os.path import basename, splitext, isfile, isdir, abspath
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_cmds import run_export
@@ -81,7 +81,9 @@ def get_corresponding_meta(path: str) -> str:
     :param path: Path of the tsv / biom file.
     :return: metadata file path.
     """
-    meta_rad = splitext(path.replace('/data/', '/metadata/').replace('/tab_', '/meta_'))[0]
+    path_split = abspath(path).split('/')
+    meta_rad = '%s/metadata/meta_%s' % ('/'.join(path_split[:-2]),
+                                        '_'.join(basename(path).split('_')[1:]))
     meta_tsv = '%s.tsv' % meta_rad
     meta_txt = '%s.txt' % meta_rad
     if isfile(meta_tsv):
