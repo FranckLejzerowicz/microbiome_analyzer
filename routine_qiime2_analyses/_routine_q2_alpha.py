@@ -309,7 +309,7 @@ def run_alpha_group_significance(i_datasets_folder: str, diversities: dict, p_pe
 
         meta = diversities[dat][0]
         meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
-        cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
+        cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'alpha Kruskal-Wallis')
 
         odir = get_analysis_folder(i_datasets_folder, 'alpha_group_significance/%s' % dat)
         for qza, divs in diversities[dat][1].items():
