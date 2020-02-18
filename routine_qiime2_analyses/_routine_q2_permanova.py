@@ -133,7 +133,7 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
                         p = multiprocessing.Process(
                             target=run_multi_perm,
                             args=(odir, tsv, meta_pd, cur_sh, case_, testing_group,
-                                  mat_qza, case_var, case_vals, force, cur_sh))
+                                  mat_qza, case_var, case_vals, force))
                         p.start()
                         jobs.append(p)
     for j in jobs:
