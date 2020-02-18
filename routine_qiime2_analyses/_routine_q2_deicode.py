@@ -96,7 +96,7 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
         tsv, meta = tsv_meta_pds
         meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
 
-        cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict))
+        cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'DEICODE')
 
         p = multiprocessing.Process(
             target=run_multi_deicode,
