@@ -66,7 +66,7 @@ def run_multi_adonis(odir: str, case_vals_list: list, metric: str, case_var: str
                 write_diversity_adonis(new_meta, mat_qza, new_mat_qza, qza,
                                        new_qza, formula, new_qzv, cur_sh_o)
                 remove = False
-    if remove:
+    if remove and isfile(cur_sh):
         os.remove(cur_sh)
 
 

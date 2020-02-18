@@ -270,7 +270,7 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list:
                 new_div = get_new_alpha_div(case, div_qza, cur_rad, new_meta_pd, cur_sh_o)
                 write_alpha_group_significance_cmd(new_div, new_meta, new_qzv, cur_sh_o)
                 remove = False
-    if remove:
+    if remove and isfile(cur_sh):
         os.remove(cur_sh)
 
 

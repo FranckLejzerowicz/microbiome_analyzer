@@ -75,7 +75,7 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
                                                         qza, new_qza, testing_group,
                                                         new_qzv, cur_sh_o)
                 remove = False
-    if remove:
+    if remove and isfile(cur_sh):
         os.remove(cur_sh)
 
 
