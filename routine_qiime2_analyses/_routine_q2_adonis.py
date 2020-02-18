@@ -33,6 +33,25 @@ def run_multi_adonis(odir: str, beta_metrics: list, mat_qzas: list,
                      tsv: str, meta_pd: pd.DataFrame, cases_dict: dict,
                      formulas: dict, dat: str, out_sh: str, out_pbs: str,
                      force: bool, prjct_nm: str, qiime_env: str) -> None:
+    """
+    Run adonis: adonis PERMANOVA test for beta group significance.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/adonis/
+    (in-loop function).
+
+    :param odir: output analysis directory.
+    :param beta_metrics: beta diversity metrics.
+    :param mat_qzas: beta diversity matrices.
+    :param tsv: features table input to the beta diversity matrix.
+    :param meta_pd: metadata table.
+    :param cases_dict: groups to test.
+    :param formulas: formulas to test.
+    :param dat: current dataset.
+    :param out_sh: input bash script file.
+    :param out_pbs: output torque script file.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    """
     written = 0
     qza = '%s.qza' % splitext(tsv)[0]
     with open(out_sh, 'w') as cur_sh:
@@ -55,13 +74,27 @@ def run_multi_adonis(odir: str, beta_metrics: list, mat_qzas: list,
                                                    new_qza, formula, new_qzv, cur_sh)
                             written += 1
     run_xpbs(out_sh, out_pbs, '%s.dns.%s' % (prjct_nm, dat),
-             qiime_env, '2', '1', '1', '1', 'gb', written, False, None)
+             qiime_env, '2', '1', '1', '1', 'gb', written, '', None)
 
 
-def run_adonis(p_formulas: str, i_datasets_folder: str, datasets: dict, betas: dict,
-               p_perm_groups: str, force: bool, prjct_nm: str, qiime_env: str):
+def run_adonis(p_formulas: str, i_data_sets_folder: str, data_sets: dict, betas: dict,
+               p_perm_groups: str, force: bool, prjct_nm: str, qiime_env: str) -> None:
+    """
+    Run beta-group-significance: Beta diversity group significance.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
+    Main per-dataset looper for the ADONIS tests on beta diversity matrices.
 
-    job_folder2 = get_job_folder(i_datasets_folder, 'adonis/chunks')
+    :param p_formulas: formulas to test.
+    :param i_data_sets_folder: Path to the folder containing the data/metadata subfolders.
+    :param data_sets: list of datasets.
+    :param betas: beta diversity matrices.
+    :param p_perm_groups: groups to subset.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    """
+
+    job_folder2 = get_job_folder(i_data_sets_folder, 'adonis/chunks')
     beta_metrics = get_metrics('beta_metrics')
 
     main_cases_dict = get_main_cases_dict(p_perm_groups)
@@ -72,9 +105,9 @@ def run_adonis(p_formulas: str, i_datasets_folder: str, datasets: dict, betas: d
     jobs = []
     all_sh_pbs = []
     first_print = 0
-    for dat, tsv_meta_pds in datasets.items():
+    for dat, tsv_meta_pds in data_sets.items():
 
-        odir = get_analysis_folder(i_datasets_folder, 'adonis/%s' % dat)
+        odir = get_analysis_folder(i_data_sets_folder, 'adonis/%s' % dat)
         out_sh = '%s/run_adonis_%s.sh' % (job_folder2, dat)
         out_pbs = '%s.pbs' % splitext(out_sh)[0]
         all_sh_pbs.append((out_sh, out_pbs))
@@ -100,7 +133,7 @@ def run_adonis(p_formulas: str, i_datasets_folder: str, datasets: dict, betas: d
     for j in jobs:
         j.join()
 
-    job_folder = get_job_folder(i_datasets_folder, 'adonis')
+    job_folder = get_job_folder(i_data_sets_folder, 'adonis')
     main_sh = write_main_sh(job_folder, '3_run_adonis', all_sh_pbs)
     if main_sh:
         if p_perm_groups:

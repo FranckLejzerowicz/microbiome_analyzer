@@ -26,7 +26,26 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 )
 
 
-def run_multi_deicode(odir, tsv, meta_pd, cases_dict, dat, out_sh, out_pbs, force, prjct_nm, qiime_env):
+def run_multi_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame,
+                      cases_dict: dict, dat: str, out_sh: str, out_pbs: str,
+                      force: bool, prjct_nm: str, qiime_env: str) -> None:
+    """
+    Performs robust center log-ratio transform robust PCA and
+    ranks the features by the loadings of the resulting SVD.
+    https://library.qiime2.org/plugins/deicode/19/
+    (in-loop function).
+
+    :param odir: output analysis directory.
+    :param tsv: features table input to the beta diversity matrix.
+    :param meta_pd: metadata table.
+    :param cases_dict: groups to test.
+    :param dat: current dataset.
+    :param out_sh: input bash script file.
+    :param out_pbs: output torque script file.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    """
     written = 0
     qza = '%s.qza' % splitext(tsv)[0]
     with open(out_sh, 'w') as cur_sh:
@@ -46,20 +65,32 @@ def run_multi_deicode(odir, tsv, meta_pd, cases_dict, dat, out_sh, out_pbs, forc
                     write_deicode_biplot(qza, new_meta, new_qza, ordi_qza, new_mat_qza, ordi_qzv, cur_sh)
                     written += 1
     run_xpbs(out_sh, out_pbs, '%s.dcd.%s' % (prjct_nm, dat),
-             qiime_env, '2', '1', '1', '200', 'mb', written, False, None)
+             qiime_env, '2', '1', '1', '200', 'mb', written, '', None)
 
 
-def run_deicode(i_datasets_folder: str, datasets: dict, p_perm_groups: str,
-                force: bool, prjct_nm: str, qiime_env: str):
+def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
+                force: bool, prjct_nm: str, qiime_env: str) -> None:
+    """
+    Performs robust center log-ratio transform robust PCA and
+    ranks the features by the loadings of the resulting SVD.
+    https://library.qiime2.org/plugins/deicode/19/
+    Main per-dataset looper for the ADONIS tests on beta diversity matrices.
 
-    job_folder2 = get_job_folder(i_datasets_folder, 'deicode/chunks')
+    :param i_data_sets_folder: Path to the folder containing the data/metadata subfolders.
+    :param data_sets: list of data_sets.
+    :param p_perm_groups: groups to subset.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    """
+    job_folder2 = get_job_folder(i_data_sets_folder, 'deicode/chunks')
     main_cases_dict = get_main_cases_dict(p_perm_groups)
 
     jobs = []
     all_sh_pbs = []
-    for dat, tsv_meta_pds in datasets.items():
+    for dat, tsv_meta_pds in data_sets.items():
 
-        odir = get_analysis_folder(i_datasets_folder, 'deicode/%s' % dat)
+        odir = get_analysis_folder(i_data_sets_folder, 'deicode/%s' % dat)
         out_sh = '%s/run_beta_deicode_%s.sh' % (job_folder2, dat)
         out_pbs = out_sh.replace('.sh', '.pbs')
         all_sh_pbs.append((out_sh, out_pbs))
@@ -78,7 +109,7 @@ def run_deicode(i_datasets_folder: str, datasets: dict, p_perm_groups: str,
     for j in jobs:
         j.join()
 
-    job_folder = get_job_folder(i_datasets_folder, 'deicode')
+    job_folder = get_job_folder(i_data_sets_folder, 'deicode')
     main_sh = write_main_sh(job_folder, '3_run_beta_deicode', all_sh_pbs)
     if main_sh:
         if p_perm_groups:

@@ -17,6 +17,20 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 
 def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
              trees: dict, force: bool, prjct_nm: str, qiime_env: str) -> dict:
+    """
+    Run beta: Beta diversity.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/beta/
+
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param betas: beta diversity matrices.
+    :param datasets: list of datasets.
+    :param datasets_phylo: phylogenetic decision for each dataset.
+    :param trees: phylogenetic trees.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    :return: deta divesity matrices.
+    """
 
     beta_metrics = get_metrics('beta_metrics')
     job_folder = get_job_folder(i_datasets_folder, 'beta')
@@ -56,6 +70,15 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
 def export_beta(i_datasets_folder: str, betas: dict,
                 force: bool, prjct_nm: str, qiime_env: str) -> None:
+    """
+    Export beta diverity matrices.
+
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param betas: beta diversity matrices.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    """
 
     job_folder = get_job_folder(i_datasets_folder, 'beta')
     out_sh = '%s/2x_run_beta_export.sh' % job_folder
@@ -78,6 +101,17 @@ def export_beta(i_datasets_folder: str, betas: dict,
 
 def run_pcoas(i_datasets_folder: str, betas: dict,
               force: bool, prjct_nm: str, qiime_env: str) -> dict:
+    """
+    Run pcoa: Principal Coordinate Analysis.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa/
+
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param betas: beta diversity matrices.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    :return: principal coordinates ordinations.
+    """
 
     job_folder = get_job_folder(i_datasets_folder, 'pcoa')
     job_folder2 = get_job_folder(i_datasets_folder, 'pcoa/chunks')
@@ -112,6 +146,15 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
 
 def run_emperor(i_datasets_folder: str, pcoas_d: dict,
                 prjct_nm: str, qiime_env: str) -> None:
+    """
+    Run emperor.
+    https://docs.qiime2.org/2019.10/plugins/available/emperor/
+
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param pcoas_d: principal coordinates ordinations.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    """
 
     job_folder = get_job_folder(i_datasets_folder, 'emperor')
     job_folder2 = get_job_folder(i_datasets_folder, 'emperor/chunks')

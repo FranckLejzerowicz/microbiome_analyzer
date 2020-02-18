@@ -33,6 +33,25 @@ def run_multi_perm(odir: str, beta_metrics: list, mat_qzas: list,
                    tsv: str, meta_pd: pd.DataFrame, cases_dict: dict,
                    testing_groups: tuple, dat: str, out_sh: str, out_pbs: str,
                    force: bool, prjct_nm: str, qiime_env: str) -> None:
+    """
+    Run beta-group-significance: Beta diversity group significance.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
+    (in-loop function).
+
+    :param odir: output analysis directory.
+    :param beta_metrics: beta diversity metrics.
+    :param mat_qzas: beta diversity matrices.
+    :param tsv: features table input to the beta diversity matrix.
+    :param meta_pd: metadata table.
+    :param cases_dict: groups to test.
+    :param testing_groups: group to test.
+    :param dat: current dataset.
+    :param out_sh: input bash script file.
+    :param out_pbs: output torque script file.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    """
     written = 0
     qza = '%s.qza' % splitext(tsv)[0]
     with open(out_sh, 'w') as cur_sh:
@@ -66,8 +85,21 @@ def run_multi_perm(odir: str, beta_metrics: list, mat_qzas: list,
 
 def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict,
                   main_testing_groups: tuple, p_perm_groups: str,
-                  force: bool, prjct_nm: str, qiime_env: str):
+                  force: bool, prjct_nm: str, qiime_env: str) -> None:
+    """
+    Run beta-group-significance: Beta diversity group significance.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
+    Main per-dataset looper for the PERMANOVA tests on beta diversity matrices.
 
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param datasets: list of datasets.
+    :param betas: beta diversity matrices.
+    :param main_testing_groups: groups to test.
+    :param p_perm_groups: groups to subset.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    """
     job_folder2 = get_job_folder(i_datasets_folder, 'permanova/chunks')
     beta_metrics = get_metrics('beta_metrics')
 

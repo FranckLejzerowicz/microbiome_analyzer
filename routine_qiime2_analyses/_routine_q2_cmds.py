@@ -9,6 +9,24 @@ from routine_qiime2_analyses._routine_q2_io_utils import run_import
 
 def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: str,
                          qza: str, metric: str, cur_sh: TextIO) -> bool:
+    """
+    Computes a user-specified beta diversity metric for all pairs of samples
+    in a feature table.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/beta/
+    and
+    Computes a user-specified phylogenetic beta diversity metric for all pairs
+    of samples in a feature table.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-phylogenetic/
+
+    :param out_fp: The resulting distance matrix.
+    :param datasets_phylo: pholygenetic decision.
+    :param trees: pholygenetic trees.
+    :param dat: current dataset.
+    :param qza: The feature table containing the samples over which beta diversity should be computed.
+    :param metric: The beta diversity metric to be computed.
+    :param cur_sh: writing file handle.
+    :return: whether the command is to be skipped or not.
+    """
     if 'unifrac' in metric:
         if not datasets_phylo[dat][0]:
             return True
@@ -30,6 +48,14 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
 
 
 def write_diversity_pcoa(DM: str, out_pcoa: str, cur_sh: TextIO) -> None:
+    """
+    Apply principal coordinate analysis.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa/
+
+    :param DM: The distance matrix on which PCoA should be computed.
+    :param out_pcoa: The resulting PCoA matrix.
+    :param cur_sh: writing file handle.
+    """
     cmd = 'qiime diversity pcoa \\ \n'
     cmd += '--i-distance-matrix %s \\ \n' % DM
     cmd += '--o-pcoa %s\n' % out_pcoa
@@ -38,6 +64,16 @@ def write_diversity_pcoa(DM: str, out_pcoa: str, cur_sh: TextIO) -> None:
 
 
 def write_emperor(meta: str, pcoa: str, out_plot: str, cur_sh: TextIO) -> None:
+    """
+    Generates an interactive ordination plot where the user can visually
+    integrate sample metadata.
+    https://docs.qiime2.org/2019.10/plugins/available/emperor/
+
+    :param meta: The sample metadata.
+    :param pcoa: The principal coordinates matrix to be plotted.
+    :param out_plot: VISUALIZATION.
+    :param cur_sh: writing file handle.
+    """
     cmd = 'qiime emperor plot \\ \n'
     cmd += '--m-metadata-file %s \\ \n' % meta
     cmd += '--i-pcoa %s \\ \n' % pcoa
@@ -48,6 +84,14 @@ def write_emperor(meta: str, pcoa: str, out_plot: str, cur_sh: TextIO) -> None:
 
 def write_seqs_fasta(out_fp_seqs_fasta: str, out_fp_seqs_qza: str,
                      tsv_pd: pd.DataFrame, cur_sh: TextIO) -> None:
+    """
+    Write the fasta sequences.
+
+    :param out_fp_seqs_fasta: output sequences fasta file name.
+    :param out_fp_seqs_qza: output sequences qiime2 Artefact file name.
+    :param tsv_pd: table which feature names are sequences.
+    :param cur_sh: writing file handle.
+    """
     with open(out_fp_seqs_fasta, 'w') as fas_o:
         for seq in tsv_pd.index:
             fas_o.write('>%s\n%s\n' % (seq.strip(), seq.strip()))
@@ -60,6 +104,40 @@ def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
                              out_fp_sepp_tree: str, out_fp_sepp_plac: str,
                              qza: str, qza_in: str, qza_out: str,
                              cur_sh: TextIO) -> None:
+    """
+    Perform fragment insertion of sequences using the SEPP algorithm.
+    https://docs.qiime2.org/2019.10/plugins/available/fragment-insertion/sepp/
+
+    and
+
+    Filters fragments not inserted into a phylogenetic tree from a feature-
+    table. Some fragments computed by e.g. Deblur or DADA2 are too remote to
+    get inserted by SEPP into a reference phylogeny. To be able to use the
+    feature-table for downstream analyses like computing Faith's PD or
+    UniFrac, the feature-table must be cleared of fragments that are not part
+    of the phylogenetic tree, because their path length can otherwise not be
+    determined. Typically, the number of rejected fragments is low (<= 10),
+    but it might be worth to inspect the ratio of reads assigned to those
+    rejected fragments.
+    https://docs.qiime2.org/2019.10/plugins/available/fragment-insertion/filter-features/
+
+    :param out_fp_seqs_qza: The sequences to insert into the reference tree.
+    :param ref_tree_qza: The reference database to insert the representative sequences into.
+    :param out_fp_sepp_tree: The tree with inserted feature data.
+    :param out_fp_sepp_plac: Information about the feature placements within the reference tree.
+    :param qza: A feature-table which needs to filtered down to those fragments
+                       that are contained in the tree, e.g. result of a Deblur or DADA2 run.
+    :param qza_in: The input table minus those fragments that were not
+                       part of the tree. This feature-table can be used for
+                       downstream analyses like phylogenetic alpha- or beta-
+                       diversity computation.
+    :param qza_out: Those fragments that got removed from the input table,
+                       because they were not part of the tree. This table is
+                       mainly used for quality control, e.g. to inspect the
+                       ratio of removed reads per sample from the input table.
+                       You can ignore this table for downstream analyses.
+    :param cur_sh: writing file handle.
+    """
     cmd = 'qiime fragment-insertion sepp \\ \n'
     cmd += '--i-representative-sequences %s \\ \n' % out_fp_seqs_qza
     cmd += '--i-reference-database %s \\ \n' % ref_tree_qza
@@ -79,6 +157,19 @@ def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
 
 def write_deicode_biplot(qza: str, new_meta: str, new_qza: str, ordi_qza: str,
                          new_mat_qza: str, ordi_qzv: str, cur_sh: TextIO) -> None:
+    """
+    Performs robust center log-ratio transform robust PCA and
+    ranks the features by the loadings of the resulting SVD.
+    https://library.qiime2.org/plugins/deicode/19/
+
+    :param qza: The feature table from which samples should be filtered.
+    :param new_meta: Sample metadata containing formula terms.
+    :param new_qza: The resulting feature table filtered by sample & Input table of counts.
+    :param ordi_qza: A biplot of the (Robust Aitchison) RPCA feature loadings.
+    :param new_mat_qza: The Aitchison distance ofthe sample loadings from RPCA.
+    :param ordi_qzv: VISUALIZATION
+    :param cur_sh: writing file handle.
+    """
     cmd = 'qiime feature-table filter-samples \\ \n'
     cmd += '--i-table %s \\ \n' % qza
     cmd += '--m-metadata-file %s \\ \n' % new_meta
@@ -103,6 +194,12 @@ def write_deicode_biplot(qza: str, new_meta: str, new_qza: str, ordi_qza: str,
 
 
 def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str) -> None:
+    """
+    Merge the q2-types to the metadata for PERMANOVA.
+
+    :param new_meta_pd: metadata table.
+    :param new_meta: metadata table file name.
+    """
     q2types = pd.DataFrame(
         [(['#q2:types'] + ['categorical'] * new_meta_pd.shape[1])],
         columns=new_meta_pd.reset_index().columns.tolist(),
@@ -114,6 +211,14 @@ def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str) -> None:
 
 
 def check_absence_mat(mat_qzas: list, first_print: int, analysis: str) -> bool:
+    """
+    Check the absence of the beta diversity matrix.
+
+    :param mat_qzas: beta diveristy matrices files names.
+    :param first_print: whether to print the first message or not.
+    :param analysis: Current analysis.
+    :return: Whether the beta diversity matrix is absent or not.
+    """
     presence_mat = [mat_qza for mat_qza in mat_qzas if isfile(mat_qza)]
     if not presence_mat:
         if not first_print:
@@ -127,6 +232,26 @@ def check_absence_mat(mat_qzas: list, first_print: int, analysis: str) -> bool:
 def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat_qza: str,
                                             qza: str, new_qza: str, testing_group: str,
                                             new_qzv: str, cur_sh: TextIO) -> None:
+    """
+    Determine whether groups of samples are significantly different from one
+    another using a permutation-based statistical test.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
+
+    Includes calls to:
+    * filter-distance-matrix: Filter samples from a distance matrix
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/filter-distance-matrix/
+    * filter-samples: Filter samples from table
+    https://docs.qiime2.org/2019.10/plugins/available/feature-table/filter-samples/
+
+    :param new_meta: Sample metadata containing formula terms.
+    :param mat_qza: Distance matrix to filter by sample.
+    :param new_mat_qza: Matrix of distances between pairs of samples.
+    :param qza: The feature table from which samples should be filtered.
+    :param new_qza: The resulting feature table filtered by sample.
+    :param testing_group: Categorical sample metadata column.
+    :param new_qzv: VISUALIZATION.
+    :param cur_sh: writing file handle.
+    """
     cmd = 'qiime diversity filter-distance-matrix \\ \n'
     cmd += '--m-metadata-file %s \\ \n' % new_meta
     cmd += '--i-distance-matrix %s \\ \n' % mat_qza
@@ -152,6 +277,41 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
 def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
                            qza: str, new_qza: str, formula: str,
                            new_qzv: str, cur_sh: TextIO) -> None:
+    """
+    Determine whether groups of samples are significantly different from one
+    another using the ADONIS permutation-based statistical test in vegan-R.
+    The function partitions sums of squares of a multivariate data set, and is
+    directly analogous to MANOVA (multivariate analysis of variance). This
+    action differs from beta_group_significance in that it accepts R formulae
+    to perform multi-way ADONIS tests; beta_group_signficance only performs
+    one-way tests. For more details see
+    http://cc.oulu.fi/~jarioksa/softhelp/vegan/html/adonis.html
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/adonis/
+
+    Includes calls to:
+    * filter-distance-matrix: Filter samples from a distance matrix
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/filter-distance-matrix/
+    * filter-samples: Filter samples from table
+    https://docs.qiime2.org/2019.10/plugins/available/feature-table/filter-samples/
+
+    :param new_meta: Sample metadata containing formula terms.
+    :param mat_qza: Distance matrix to filter by sample.
+    :param new_mat_qza: Matrix of distances between pairs of samples.
+    :param qza: The feature table from which samples should be filtered.
+    :param new_qza: The resulting feature table filtered by sample.
+    :param formula: Model formula containing only independent terms
+                       contained in the sample metadata. These can be
+                       continuous variables or factors, and they can have
+                       interactions as in a typical R formula. E.g., the
+                       formula "treatment+block" would test whether the input
+                       distance matrix partitions based on "treatment" and
+                       "block" sample metadata. The formula "treatment*block"
+                       would test both of those effects as well as their
+                       interaction. Enclose formulae in quotes to avoid
+                       unpleasant surprises.
+    :param new_qzv: VISUALIZATION.
+    :param cur_sh: writing file handle.
+    """
     cmd = 'qiime diversity filter-distance-matrix \\ \n'
     cmd += '--m-metadata-file %s \\ \n' % new_meta
     cmd += '--i-distance-matrix %s \\ \n' % mat_qza
@@ -176,6 +336,13 @@ def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
 
 
 def get_metric(metrics: list, file_name: str) -> str:
+    """
+    Get the currnt diversity from the file name.
+
+    :param metrics: all the diversity metrics.
+    :param file_name: file name.
+    :return: either diversity metric or nothing.
+    """
     for metric in metrics:
         if metric in file_name:
             return metric
@@ -183,6 +350,19 @@ def get_metric(metrics: list, file_name: str) -> str:
 
 
 def get_case(case_vals: list, metric: str, case_var: str, form: str = None) -> str:
+    """
+    Get the current case, which is the concatenation of:
+     - diversity metric.
+     - metadata variable.
+     - metadata variable's values.
+     - formula.
+
+    :param case_vals: variable's values
+    :param metric: diversity metric.
+    :param case_var: metadata variable.
+    :param form: formula.
+    :return: current case.
+    """
     if len(case_vals):
         case = '%s_%s_%s' % (metric, case_var, '-'.join(
             [x.replace('<', 'below').replace('>', 'above') for x in case_vals]))
@@ -196,6 +376,25 @@ def get_case(case_vals: list, metric: str, case_var: str, form: str = None) -> s
 
 def write_longitudinal_volatility(out_fp: str, meta_alphas: str,
                                   time_point: str, cur_sh: TextIO) -> None:
+    """
+    Generate an interactive control chart depicting the longitudinal
+    volatility of sample metadata and/or feature frequencies across time (as
+    set using the "state_column" parameter). Any numeric metadata column (and
+    metadata-transformable artifacts, e.g., alpha diversity results) can be
+    plotted on the y-axis, and are selectable using the "metric_column"
+    selector. Metric values are averaged to compare across any categorical
+    metadata column using the "group_column" selector. Longitudinal volatility
+    for individual subjects sampled over time is co-plotted as "spaghetti"
+    plots if the "individual_id_column" parameter is used. state_column will
+    typically be a measure of time, but any numeric metadata column can be
+    used.
+    https://docs.qiime2.org/2019.10/plugins/available/longitudinal/volatility/
+
+    :param out_fp: VISUALIZATION.
+    :param meta_alphas: Sample metadata file containing arguments will be individual-id-column.
+    :param time_point: Metadata column containing state (time) variable information.
+    :param cur_sh: writing file handle.
+    """
     cmd = 'qiime longitudinal volatility \\ \n'
     cmd += '--m-metadata-file %s \\ \n' % meta_alphas
     cmd += '--p-state-column "%s" \\ \n' % time_point
@@ -207,6 +406,16 @@ def write_longitudinal_volatility(out_fp: str, meta_alphas: str,
 
 def write_diversity_alpha_correlation(out_fp: str, qza: str, method: str,
                                       meta: str, cur_sh: TextIO) -> None:
+    """
+    Determine whether numeric sample metadata columns are correlated with alpha diversity.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-correlation/
+
+    :param out_fp: Vector containing per-sample alpha diversities.
+    :param qza: Vector of alpha diversity values by sample.
+    :param method: The correlation test to be applied.
+    :param meta: The sample metadata.
+    :param cur_sh: writing file handle.
+    """
     cmd = 'qiime diversity alpha-correlation \\ \n'
     cmd += '--i-alpha-diversity %s \\ \n' % qza
     cmd += '--p-method %s \\ \n' % method
@@ -218,6 +427,19 @@ def write_diversity_alpha_correlation(out_fp: str, qza: str, method: str,
 
 def write_diversity_alpha(out_fp: str, datasets_phylo: dict, trees: dict, dat: str,
                           qza: str, metric: str, cur_sh: TextIO) -> bool:
+    """
+    Computes a user-specified alpha diversity metric for all samples in a feature table.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha/
+
+    :param out_fp: Vector containing per-sample alpha diversities.
+    :param datasets_phylo: phylogenetic decision.
+    :param trees: The feature table containing the samples for which alpha diversity should be computed + tree.
+    :param dat: dataset.
+    :param qza: The feature table containing the samples for which alpha diversity should be computed.
+    :param metric: The alpha diversity metric to be computed.
+    :param cur_sh: writing file handle.
+    :return: whether the command is to be skipped or not.
+    """
     if metric in ['faith_pd']:
         if not datasets_phylo[dat][0]:
             return True
@@ -240,6 +462,16 @@ def write_diversity_alpha(out_fp: str, datasets_phylo: dict, trees: dict, dat: s
 
 
 def write_metadata_tabulate(out_fp: str, divs: list, meta: str, cur_sh: TextIO) -> None:
+    """
+    Generate a tabular view of Metadata. The output visualization supports
+    interactive filtering, sorting, and exporting to common file formats.
+    https://docs.qiime2.org/2019.10/plugins/available/metadata/tabulate/
+
+    :param out_fp: VISUALIZATION.
+    :param divs: The alpha diversity vectors to tabulate.
+    :param meta: The metadata to tabulate.
+    :param cur_sh: writing file handle.
+    """
     cmd = 'qiime metadata tabulate \\ \n'
     cmd += '--o-visualization %s \\ \n' % out_fp
     for div in divs:
@@ -250,6 +482,14 @@ def write_metadata_tabulate(out_fp: str, divs: list, meta: str, cur_sh: TextIO) 
 
 
 def write_alpha_group_significance_cmd(alpha: str, metadata: str, visu: str, cur_sh: TextIO) -> None:
+    """
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-group-significance/
+
+    :param alpha: Vector of alpha diversity values by sample.
+    :param metadata: The sample metadata.
+    :param visu: VISUALIZATION.
+    :param cur_sh: writing file handle.
+    """
     cmd = 'qiime diversity alpha-group-significance \\ \n'
     cmd += '--i-alpha-diversity %s \\ \n' % alpha
     cmd += '--m-metadata-file %s \\ \n' % metadata
@@ -260,6 +500,15 @@ def write_alpha_group_significance_cmd(alpha: str, metadata: str, visu: str, cur
 
 def get_new_meta_pd(meta_pd: pd.DataFrame, case: str, case_var: str,
                     case_vals: list) -> pd.DataFrame:
+    """
+    Perform subset.
+
+    :param meta_pd: metadata table.
+    :param case: concatenation of the current subset / test groups.
+    :param case_var: current variable for subset.
+    :param case_vals: current variable's values for subset.
+    :return: Subsetted metadata table.
+    """
     if 'ALL' in case:
         new_meta_pd = meta_pd.copy()
     elif len([x for x in case_vals if x[0] == '>' or x[0] == '<']):
@@ -276,6 +525,16 @@ def get_new_meta_pd(meta_pd: pd.DataFrame, case: str, case_var: str,
 
 def get_new_alpha_div(case: str, div_qza: str, cur_rad: str,
                       new_meta_pd: pd.DataFrame, cur_sh: TextIO) -> str:
+    """
+    Subset the current alpha diversity vector and export.
+
+    :param case: concatenation of the current subset / test groups.
+    :param div_qza: alpha diversity qiime2 Artefact.
+    :param cur_rad: radical of the file.
+    :param new_meta_pd: metadata table.
+    :param cur_sh: writing file handle.
+    :return: subsetted alpha diversity qiime2 Artefact.
+    """
     new_div = '%s.qza' % cur_rad
     if 'ALL' in case:
         cur_sh.write('echo "cp %s %s"\n' % (div_qza, new_div))

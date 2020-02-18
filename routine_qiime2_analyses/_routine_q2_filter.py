@@ -6,16 +6,24 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os
 from os.path import isfile, splitext
 
-from routine_qiime2_analyses._routine_q2_xpbs import xpbs_call
+from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, run_import
 
 
 def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                     force: bool, prjct_nm: str, qiime_env: str) -> None:
+    """
+    Initial import of the .tsv datasets in to Qiime2 Artefact.
 
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param datasets: dataset -> [tsv/biom path, meta path]
+    :param datasets_phylo: to be updated with ('tree_to_use', 'corrected_or_not') per dataset.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Short nick name for your project.
+    :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
+    """
     job_folder = get_job_folder(i_datasets_folder, 'import_tables')
 
     out_sh = '%s/0_run_import.sh' % job_folder
@@ -35,14 +43,9 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
                 sh.write('echo "%s"\n' % cmd)
                 sh.write('%s\n' % cmd)
                 written += 1
-
-    if force or written:
-        xpbs_call(out_sh, out_pbs, '%s.mprt' % prjct_nm, qiime_env,
-                  '1', '1', '1', '100', 'mb')
-        print('# Import tables to qiime2')
-        print('[TO RUN] qsub', out_pbs)
-    else:
-        os.remove(out_sh)
+    run_xpbs(out_sh, out_pbs, '%s.mprt' % prjct_nm,
+             qiime_env,'1', '1', '1', '100', 'mb', written,
+             '# Import tables to qiime2')
 
 
 def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: dict,
@@ -60,16 +63,13 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
     :param prjct_nm: Short nick name for your project.
     :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
     :param thresh: min number of reads per sample to keep it.
-    :return:
     """
-
-    job_folder = get_job_folder(i_datasets_folder, 'import_filtered')
-
     written = 0
     datasets_update = {}
     datasets_read_update = {}
     datasets_features_update = {}
     datasets_phylo_update = {}
+    job_folder = get_job_folder(i_datasets_folder, 'import_filtered')
     out_sh = '%s/1_run_import_filtered.sh' % job_folder
     out_pbs = '%s.pbs' % splitext(out_sh)[0]
     with open(out_sh, 'w') as sh:
@@ -100,13 +100,9 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             sh.write('%s\n' % cmd)
             written += 1
 
-    if force or written:
-        xpbs_call(out_sh, out_pbs, '%s.fltr' % prjct_nm, qiime_env,
-                  '4', '4', '1', '100', 'mb')
-        print('# Filter samples for a min number of %s reads' % thresh)
-        print('[TO RUN] qsub', out_pbs)
-    else:
-        os.remove(out_sh)
+    run_xpbs(out_sh, out_pbs, '%s.fltr' % prjct_nm,
+             qiime_env, '4', '4', '1', '100', 'mb', written,
+             '# Filter samples for a min number of %s reads' % thresh)
 
     datasets.update(datasets_update)
     datasets_read.update(datasets_read_update)

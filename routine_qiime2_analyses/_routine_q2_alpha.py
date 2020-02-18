@@ -37,11 +37,8 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_phylo: dict, tree
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Short nick name for your project.
     :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
-    :return: {
-                'dataset1': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }],
-                'dataset2': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }],
-                '...'
-             }
+    :return: {'dataset1': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }],
+              'dataset2': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }], '...'}
     """
     alpha_metrics = get_metrics('alpha_metrics')
     job_folder = get_job_folder(i_datasets_folder, 'alpha')
@@ -123,6 +120,16 @@ def merge_meta_alpha(i_datasets_folder: str, diversities: dict,
 
 def export_meta_alpha(i_datasets_folder: str, to_export: list,
                       force: bool, prjct_nm: str, qiime_env: str):
+    """
+    Export the alpha diversity vectors.
+
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param to_export: files to export.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    :return:
+    """
 
     job_folder = get_job_folder(i_datasets_folder, 'alpha')
     out_sh = '%s/3_run_merge_alpha_export.sh' % job_folder
@@ -143,7 +150,18 @@ def export_meta_alpha(i_datasets_folder: str, to_export: list,
 
 def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                      force: bool, prjct_nm: str, qiime_env: str):
+    """
+    Run alpha-correlation: Alpha diversity correlation
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-correlation/
 
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param datasets: list of datasets.
+    :param diversities: alpha diversity qiime2 Arfetact per dataset.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    :return:
+    """
     job_folder = get_job_folder(i_datasets_folder, 'alpha_correlations')
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha_correlations/chunks')
     written = 0
@@ -170,7 +188,18 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
 
 def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
                    force: bool, prjct_nm: str, qiime_env: str) -> None:
+    """
+    Run volatility: Generate interactive volatility plot.
+    https://docs.qiime2.org/2019.10/plugins/available/longitudinal/volatility/
 
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param datasets: list of datasets.
+    :param p_longi_column: metadata column that is the time stratification.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    :return:
+    """
     job_folder = get_job_folder(i_datasets_folder, 'longitudinal')
     job_folder2 = get_job_folder(i_datasets_folder, 'longitudinal/chunks')
     written = 0
@@ -215,6 +244,24 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, diversities: dict,
                  alpha_metrics: list, cases_dict: dict, out_sh: str,
                  out_pbs: str, dat: str, force: bool, prjct_nm: str,
                  qiime_env: str) -> None:
+    """
+    Run alpha-group-significance: Alpha diversity comparisons.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-group-significance/
+    (in-loop function).
+
+    :param odir: output analysis directory.
+    :param meta_pd: metadata table.
+    :param diversities: alpha diversity qiime2 Arfetact per dataset.
+    :param alpha_metrics: list of alpha diversity metrics.
+    :param cases_dict: groups to test.
+    :param out_sh: input bash script file.
+    :param out_pbs: output torque script file.
+    :param dat: current dataset.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    :return:
+    """
     written = 0
     with open(out_sh, 'w') as cur_sh:
         for qza, divs in diversities[dat][1].items():
@@ -225,12 +272,6 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, diversities: dict,
                 for case_var, case_vals_list in cases_dict.items():
                     for case_vals in case_vals_list:
                         case = get_case(case_vals, metric, case_var)
-                        if len(case_vals):
-                            case = '%s_%s_%s' % (metric, case_var, '-'.join(
-                                [x.replace('<', 'below').replace('>', 'above') for x in case_vals]))
-                        else:
-                            case = '%s_%s' % (metric, case_var)
-
                         cur_rad = odir + '/' + basename(div_qza).replace('.qza', '_%s' % case)
                         new_qzv = '%s_kruskal-wallis.qzv' % cur_rad
                         if force or not isfile(new_qzv):
@@ -245,19 +286,19 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, diversities: dict,
 
 
 def run_alpha_group_significance(i_datasets_folder: str, diversities: dict, p_perm_groups: str,
-                                 force: bool, prjct_nm: str, qiime_env: str):
+                                 force: bool, prjct_nm: str, qiime_env: str) -> None:
     """
-    Main per-datasat looper for the Kruskal-Wallis tests on alpha diversity vectors.
+    Run alpha-group-significance: Alpha diversity comparisons.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-group-significance/
+    Main per-dataset looper for the Kruskal-Wallis tests on alpha diversity vectors.
 
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :param diversities:
-    :param p_perm_groups:
-    :param force:
-    :param prjct_nm:
-    :param qiime_env:
-    :return:
+    :param diversities: alpha diversity qiime2 Arfetact per dataset.
+    :param p_perm_groups: path to the subsets file.
+    :param force: Force the re-writing of scripts for all commands.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
     """
-
     alpha_metrics = get_metrics('alpha_metrics')
     main_cases_dict = get_main_cases_dict(p_perm_groups)
 

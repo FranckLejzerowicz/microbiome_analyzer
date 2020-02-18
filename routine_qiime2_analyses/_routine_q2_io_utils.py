@@ -18,6 +18,12 @@ RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resource
 
 
 def get_main_cases_dict(p_perm_groups: str) -> dict:
+    """
+    Collect the subsets to perform based on the passed yaml file.
+
+    :param p_perm_groups: path to the yaml file containing groups.
+    :return: subset groups.
+    """
     main_cases_dict = {'ALL': [[]]}
     if p_perm_groups:
         with open(p_perm_groups) as handle:
@@ -27,6 +33,14 @@ def get_main_cases_dict(p_perm_groups: str) -> dict:
 
 
 def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: list) -> str:
+    """
+    Write the main launcher of pbs scripts, written during using multiprocessing.
+
+    :param job_folder: folder where the main job is to be written.
+    :param analysis: current qqime2 analysis (e.g. PERMANOVA).
+    :param all_sh_pbs: collection of all the sh scripts transformed to pbs.
+    :return: either the written launcher or nothing.
+    """
     main_written = False
     main_sh = '%s/%s.sh' % (job_folder, analysis)
     with open(main_sh, 'w') as main_o:
@@ -115,12 +129,12 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
     return cmd
 
 
-def get_corresponding_meta(path):
+def get_corresponding_meta(path: str) -> str:
     """
     Automatically gets the metadata file corresponding to the tsv / biom file.
 
     :param path: Path of the tsv / biom file.
-    :return:
+    :return: metadata file path.
     """
     meta_rad = splitext(path.replace('/data/', '/metadata/').replace('/tab_', '/meta_'))[0]
     meta_tsv = '%s.tsv' % meta_rad
@@ -136,10 +150,11 @@ def get_corresponding_meta(path):
 
 def get_paths(i_datasets: tuple, i_datasets_folder: str) -> dict:
     """
+    Collect the data and metadata files pairs per dataset.
 
     :param i_datasets: Internal name identifying the datasets in the input folder.
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :return:
+    :return: datasets.
     """
     tsvs = []
     paths = {}
@@ -211,14 +226,12 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
     Collect the pairs of features tables / metadata tables, formatted as in qiime2. e.g:
 
         --> Feature table example:
-
         #Feature ID  BVC.1591.10.10  BVC.1509.10.36  BVC.1584.10.10
         G000006785              0.0             0.0           175.0
         G000006925          34614.0          5973.0         12375.0
         G000007265              0.0           903.0           619.0
 
         --> Metadata table example:
-
         SampleID        age_years  age_wk40
         BVC.1591.10.10       0.75      0.79
         BVC.1509.10.36       3.00      0.77
@@ -226,7 +239,7 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
 
     :param i_datasets: Internal name identifying the datasets in the input folder.
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :return
+    :return datasets infomration.
     """
     print('# Fetching data and metadata (in %s)' % ', '.join(i_datasets))
     paths = get_paths(i_datasets, i_datasets_folder)
@@ -268,8 +281,8 @@ def get_job_folder(i_datasets_folder: str, analysis: str):
     Get the job folder name.
 
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :param analysis: name of the qiime2 analysis (e.g. beta)
-    :return: job folder name
+    :param analysis: name of the qiime2 analysis (e.g. beta).
+    :return: job folder name.
     """
     job_folder = '%s/jobs/%s' % (i_datasets_folder, analysis)
     if not isdir(job_folder):
@@ -282,8 +295,8 @@ def get_analysis_folder(i_datasets_folder, analysis):
     Get the output folder name.
 
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :param analysis: name of the qiime2 analysis (e.g. beta)
-    :return: output folder name
+    :param analysis: name of the qiime2 analysis (e.g. beta).
+    :return: output folder name.
     """
     odir = '%s/qiime/%s' % (i_datasets_folder, analysis)
     if not isdir(odir):
@@ -338,7 +351,7 @@ def get_sepp_tree(i_sepp_tree: str) -> str:
     Get the full path of the reference database for SEPP.
 
     :param i_sepp_tree: database to use.
-    :return: path.
+    :return: path of the reference database for SEPP.
     """
     if not isfile(i_sepp_tree):
         print('%s does not exist\nExiting...' % i_sepp_tree)

@@ -41,7 +41,6 @@ def routine_qiime2_analyses(i_datasets: tuple, i_datasets_folder: str, project_n
     :param force: Force the re-writing of scripts for all commands.
     :param i_wol_tree: default to ./routine_qiime2_analyses/resources/wol_tree.nwk.
     :param i_sepp_tree: path to the SEPP database artefact. Default to None.
-    :return None
     """
 
     # check input

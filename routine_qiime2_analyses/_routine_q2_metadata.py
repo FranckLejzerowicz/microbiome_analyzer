@@ -16,7 +16,7 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
     """
     :param meta: metadata file name.
     :param meta_pd: metadata table.
-    :param cases_dict: cases to check for possible use (need metadata presence)
+    :param cases_dict: cases to check for possible use (need metadata presence).
     :return: checked cases.
     """
     to_pop = set()
@@ -51,7 +51,7 @@ def check_metadata_formulas(meta: str, meta_pd: pd.DataFrame,
     """
     :param meta: metadata file name.
     :param meta_pd: metadata table.
-    :param formulas: formulas to check for possible use (need metadata presence)
+    :param formulas: formulas to check for possible use (need metadata presence).
     :return: checked formulas.
     """
     to_pop = []
@@ -72,7 +72,7 @@ def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame, main_testing
     """
     :param meta: metadata file name.
     :param meta_pd: metadata table.
-    :param main_testing_groups: groups to test for (need metadata presence)
+    :param main_testing_groups: groups to test for (need metadata presence).
     :return: checked testing groups.
     """
     meta_pd_vars = set(meta_pd.columns.tolist())
