@@ -61,7 +61,7 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
             with open(out_sh, 'w') as sh:
                 for cur_sh in cur_shs:
                     if isfile(cur_sh):
-                        sh.write('sh %s' % cur_sh)
+                        sh.write('sh %s\n' % cur_sh)
                         cur_written = True
             if cur_written:
                 out_pbs = '%s.pbs' % splitext(out_sh)[0]
