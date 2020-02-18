@@ -319,6 +319,7 @@ def run_alpha_group_significance(i_datasets_folder: str, diversities: dict, p_pe
                 for case_var, case_vals_list in cases_dict.items():
                     cur_sh = '%s/run_adonis_%s_%s_%s.sh' % (
                         job_folder2, dat, metric, case_var)
+                    cur_sh = cur_sh.replace(' ', '-')
                     all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                     p = multiprocessing.Process(
                         target=run_multi_kw,

@@ -118,6 +118,7 @@ def run_adonis(p_formulas: str, i_data_sets_folder: str, data_sets: dict, betas:
                 for case_var, case_vals_list in cases_dict.items():
                     cur_sh = '%s/run_adonis_%s_%s_%s_%s.sh' % (
                         job_folder2, dat, metric, form, case_var)
+                    cur_sh = cur_sh.replace(' ', '-')
                     all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                     p = multiprocessing.Process(
                         target=run_multi_adonis,
