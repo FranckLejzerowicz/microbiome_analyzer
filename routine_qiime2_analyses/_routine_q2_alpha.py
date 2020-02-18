@@ -312,7 +312,7 @@ def run_alpha_group_significance(i_datasets_folder: str, diversities: dict, p_pe
         out_pbs = '%s.pbs' % splitext(out_sh)[0]
         all_sh_pbs.append((out_sh, out_pbs))
 
-        presence_mat = [1 for (qza, divs) in diversities[dat][1] for div in divs if isfile(div)]
+        presence_mat = [1 for qza, divs in diversities[dat][1].items() for div in divs if isfile(div)]
         if not presence_mat:
             if not first_print:
                 print('Alpha diversity must be measured already to automatise Kruskal-Wallis tests\n'
