@@ -29,10 +29,6 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 )
 
 
-# def run_multi_adonis(odir: str, beta_metrics: list, mat_qzas: list,
-#                      tsv: str, meta_pd: pd.DataFrame, cases_dict: dict,
-#                      formulas: dict, dat: str, out_sh: str, out_pbs: str,
-#                      force: bool, prjct_nm: str, qiime_env: str) -> None:
 def run_multi_adonis(odir: str, case_vals_list: list, metric: str, case_var: str,
                      form: str, formula: str, tsv: str, mat_qza: str,
                      meta_pd: pd.DataFrame, cur_sh: str, force: bool) -> None:
@@ -125,8 +121,6 @@ def run_adonis(p_formulas: str, i_data_sets_folder: str, data_sets: dict, betas:
                     all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                     p = multiprocessing.Process(
                         target=run_multi_adonis,
-                        # args=(odir, beta_metrics, mat_qzas, tsv, meta_pd, cases_dict,
-                        #       formulas, dat, out_sh, out_pbs, force, prjct_nm, qiime_env))
                         args=(odir, case_vals_list, metric, case_var, form,
                               formula, tsv, mat_qza, meta_pd, out_sh, force))
                     p.start()

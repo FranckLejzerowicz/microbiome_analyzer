@@ -74,27 +74,6 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
     return out_main_sh
 
 
-# def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: list) -> str:
-#     """
-#     Write the main launcher of pbs scripts, written during using multiprocessing.
-#
-#     :param job_folder: folder where the main job is to be written.
-#     :param analysis: current qqime2 analysis (e.g. PERMANOVA).
-#     :param all_sh_pbs: collection of all the sh scripts transformed to pbs.
-#     :return: either the written launcher or nothing.
-#     """
-#     main_written = False
-#     main_sh = '%s/%s.sh' % (job_folder, analysis)
-#     with open(main_sh, 'w') as main_o:
-#         for (sh, pbs) in all_sh_pbs:
-#             if isfile(sh):
-#                 main_o.write('qsub %s\n' % pbs)
-#                 main_written = True
-#     if main_written:
-#         return main_sh
-#     return ''
-
-
 def get_corresponding_meta(path: str) -> str:
     """
     Automatically gets the metadata file corresponding to the tsv / biom file.
