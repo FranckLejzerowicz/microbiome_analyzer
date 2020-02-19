@@ -38,8 +38,8 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
                     factors_print = ', '.join([factor for factor in factors_list[:5]])
                     if len(factors_list) > 5:
                         factors_print = '%s, ...' % factors_print
-                    print('  [not analyzed] factors of variable %s not in %s (%s)' % (
-                        variable, basename(meta), factors_print))
+                    print('  [%s] factors of variable %s not in %s (%s)' % (
+                        analysis, variable, basename(meta), factors_print))
                     to_pop.add(variable)
     if to_pop:
         for pop in to_pop:
@@ -48,7 +48,7 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
 
 
 def check_metadata_formulas(meta: str, meta_pd: pd.DataFrame,
-                            formulas: dict) -> dict:
+                            formulas: dict, analysis: str) -> dict:
     """
     :param meta: metadata file name.
     :param meta_pd: metadata table.
@@ -61,7 +61,7 @@ def check_metadata_formulas(meta: str, meta_pd: pd.DataFrame,
         terms = set(re.split('[*+-/]+', formula.strip('"').strip("'")))
         for variable in terms:
             if variable not in meta_pd_vars:
-                print('  [not analyzed] variable %s not in %s' % (variable, basename(meta)))
+                print('  [%s] variable %s not in %s' % (analysis, variable, basename(meta)))
                 to_pop.append(variable)
     if to_pop:
         for pop in to_pop:
@@ -82,5 +82,5 @@ def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame,
     main_testing = [variable for variable in main_testing_groups if variable in meta_pd_vars]
     for variable in main_testing_groups:
         if variable not in main_testing:
-            print('  [%s] variable %s not in %s' % (variable, basename(meta), analysis))
+            print('  [%s] variable %s not in %s' % (analysis, variable, basename(meta)))
     return main_testing

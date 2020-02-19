@@ -107,7 +107,7 @@ def run_adonis(p_formulas: str, i_data_sets_folder: str, data_sets: dict, betas:
 
         meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'ADONIS')
-        formulas = check_metadata_formulas(meta, meta_pd, dict(formulas))
+        formulas = check_metadata_formulas(meta, meta_pd, dict(formulas), 'ADONIS')
 
         odir = get_analysis_folder(i_data_sets_folder, 'adonis/%s' % dat)
         for mat_qza in mat_qzas:
