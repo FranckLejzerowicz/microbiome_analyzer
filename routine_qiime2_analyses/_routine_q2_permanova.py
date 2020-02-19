@@ -50,6 +50,11 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
     """
     remove = True
     qza = '%s.qza' % splitext(tsv)[0]
+    if cur_sh == '/projects/danone/polyG/yoshiki/routine/jobs/permanova/chunks/run_beta_group_significance_dnn_gOTU_filt_weighted_unifrac_types_of_plants_6-to-10_types_of_plants.sh':
+        print('')
+        print('')
+        print(qza)
+
     with open(cur_sh, 'w') as cur_sh_o:
         # for mat_qza in mat_qzas:
         #     metric = get_metric(beta_metrics, mat_qza)
@@ -66,14 +71,26 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
         new_qza = '%s.qza' % cur_rad
         new_qzv = '%s_permanova.qzv' % cur_rad
         new_mat_qza = '%s/%s.tsv' % (odir, basename(mat_qza).replace('.qza', '_%s.qza' % case))
+        if cur_sh == '/projects/danone/polyG/yoshiki/routine/jobs/permanova/chunks/run_beta_group_significance_dnn_gOTU_filt_weighted_unifrac_types_of_plants_6-to-10_types_of_plants.sh':
+            print(case)
+            print(cur_rad)
+            print(new_meta)
+            print(new_qza)
+            print(new_qzv)
+            print(new_mat_qza)
         if force or not isfile(new_qzv):
             new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+            if cur_sh == '/projects/danone/polyG/yoshiki/routine/jobs/permanova/chunks/run_beta_group_significance_dnn_gOTU_filt_weighted_unifrac_types_of_plants_6-to-10_types_of_plants.sh':
+                print(new_meta_pd.iloc[:5,:5])
             if new_meta_pd[testing_group].unique().size > 1:
                 add_q2_types_to_meta(new_meta_pd, new_meta)
+                print(new_meta_pd.iloc[:5, :5])
                 write_diversity_beta_group_significance(new_meta, mat_qza, new_mat_qza,
                                                         qza, new_qza, testing_group,
                                                         new_qzv, cur_sh_o)
                 remove = False
+    if cur_sh == '/projects/danone/polyG/yoshiki/routine/jobs/permanova/chunks/run_beta_group_significance_dnn_gOTU_filt_weighted_unifrac_types_of_plants_6-to-10_types_of_plants.sh':
+        print(isfile(cur_sh))
     if remove:
         os.remove(cur_sh)
 
