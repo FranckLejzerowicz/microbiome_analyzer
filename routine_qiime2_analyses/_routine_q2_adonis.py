@@ -55,8 +55,7 @@ def run_multi_adonis(odir: str, case_vals_list: list, metric: str, case_var: str
         for case_vals in case_vals_list:
             case = get_case(case_vals, metric, case_var, form)
             cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
-            new_tsv = '%s.tsv' % cur_rad
-            new_meta = new_tsv.replace('/tab_', '/meta_')
+            new_meta = '%s.meta' % cur_rad
             new_qza = '%s.qza' % cur_rad
             new_qzv = '%s_adonis.qzv' % cur_rad
             new_mat_qza = '%s/%s.tsv' % (odir, basename(mat_qza).replace('.qza', '_%s.qza' % case))

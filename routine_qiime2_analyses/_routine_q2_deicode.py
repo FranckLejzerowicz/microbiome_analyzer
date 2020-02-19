@@ -47,8 +47,7 @@ def run_multi_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
         for case_vals in case_vals_list:
             case = get_case(case_vals, '', case_var)
             cur_rad = '/'.join([odir, basename(tsv).replace('.tsv', '_%s' % case)])
-            new_tsv = '%s.tsv' % cur_rad
-            new_meta = new_tsv.replace('/tab_', '/meta_')
+            new_meta = '%s.meta' % cur_rad
             new_mat_qza = '%s_DM.qza' % cur_rad
             new_qza = '%s.qza' % cur_rad
             ordi_qza = '%s_deicode_ordination.qza' % cur_rad

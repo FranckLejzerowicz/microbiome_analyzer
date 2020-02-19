@@ -62,8 +62,7 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
         #                     continue
         case = '%s__%s' % (case_, testing_group)
         cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
-        new_tsv = '%s.tsv' % cur_rad
-        new_meta = new_tsv.replace('/tab_', '/meta_')
+        new_meta = '%s.meta' % cur_rad
         new_qza = '%s.qza' % cur_rad
         new_qzv = '%s_permanova.qzv' % cur_rad
         new_mat_qza = '%s/%s.tsv' % (odir, basename(mat_qza).replace('.qza', '_%s.qza' % case))

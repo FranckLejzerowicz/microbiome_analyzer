@@ -450,7 +450,7 @@ def get_case(case_vals: list, metric: str, case_var: str, form: str = None) -> s
         case = '%s_%s' % (metric, case_var)
     if form:
         case = '%s_%s' % (case, form)
-    case = case.replace('__', '_')
+    case = case.replace('__', '_').replace(' ', '-')
     return case
 
 
