@@ -26,7 +26,7 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
         if variable == 'ALL':
             continue
         if variable not in meta_pd_vars:
-            print('  [%s] variable %s not in %s' % (variable, basename(meta), analysis))
+            print('  [%s] variable %s not in %s' % (analysis, variable, basename(meta)))
             to_pop.add(variable)
         else:
             factors = set(meta_pd[variable].unique().astype(str).tolist())
