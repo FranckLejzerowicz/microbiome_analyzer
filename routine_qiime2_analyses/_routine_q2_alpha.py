@@ -298,7 +298,6 @@ def run_alpha_group_significance(i_datasets_folder: str, diversities: dict, p_pe
     all_sh_pbs = {}
     first_print = 0
     for dat in diversities:
-
         presence_mat = [1 for qza, divs in diversities[dat][1].items() for div in divs if isfile(div)]
         if not presence_mat:
             if not first_print:
@@ -308,7 +307,8 @@ def run_alpha_group_significance(i_datasets_folder: str, diversities: dict, p_pe
             continue
 
         meta = diversities[dat][0]
-        meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
+        meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype=str)
+        meta_pd.set_index(meta_pd.columns.tolist()[0], inplace=True)
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'alpha Kruskal-Wallis')
 
         odir = get_analysis_folder(i_datasets_folder, 'alpha_group_significance/%s' % dat)
@@ -327,7 +327,6 @@ def run_alpha_group_significance(i_datasets_folder: str, diversities: dict, p_pe
                               metric, case_var, cur_sh, force))
                     p.start()
                     jobs.append(p)
-
     for j in jobs:
         j.join()
 

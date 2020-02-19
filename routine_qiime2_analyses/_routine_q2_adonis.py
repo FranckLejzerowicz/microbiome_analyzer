@@ -105,7 +105,8 @@ def run_adonis(p_formulas: str, i_data_sets_folder: str, data_sets: dict, betas:
         if absence_mat:
             continue
 
-        meta_pd = pd.read_csv(meta, header=0, index_col=0, sep='\t')
+        meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype=str)
+        meta_pd.set_index(meta_pd.columns.tolist()[0], inplace=True)
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'ADONIS')
         formulas = check_metadata_formulas(meta, meta_pd, dict(formulas), 'ADONIS')
 
