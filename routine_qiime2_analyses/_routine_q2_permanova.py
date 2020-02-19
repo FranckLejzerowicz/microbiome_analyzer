@@ -84,7 +84,8 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
                 print(new_meta_pd.iloc[:5,:5])
             if new_meta_pd[testing_group].unique().size > 1:
                 add_q2_types_to_meta(new_meta_pd, new_meta)
-                print(new_meta_pd.iloc[:5, :5])
+                if cur_sh == '/projects/danone/polyG/yoshiki/routine/jobs/permanova/chunks/run_beta_group_significance_dnn_gOTU_filt_weighted_unifrac_types_of_plants_6-to-10_types_of_plants.sh':
+                    print(new_meta_pd.iloc[:5, :5])
                 write_diversity_beta_group_significance(new_meta, mat_qza, new_mat_qza,
                                                         qza, new_qza, testing_group,
                                                         new_qzv, cur_sh_o)
