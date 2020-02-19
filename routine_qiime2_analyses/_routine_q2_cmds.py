@@ -24,24 +24,24 @@ def run_import(input_path: str, output_path: str, typ: str) -> str:
     if typ.startswith("FeatureTable"):
         if not input_path.endswith('biom'):
             cur_biom = '%s.biom' % splitext(input_path)[0]
-            cmd += 'biom convert \\ \n'
-            cmd += '  -i %s \\ \n' % input_path
-            cmd += '  -o %s \\ \n' % cur_biom
-            cmd += '  --table-type="OTU table" \\ \n'
+            cmd += 'biom convert \\\n'
+            cmd += '  -i %s \\\n' % input_path
+            cmd += '  -o %s \\\n' % cur_biom
+            cmd += '  --table-type="OTU table" \\\n'
             cmd += '  --to-hdf5\n\n'
-            cmd += 'qiime tools import \\ \n'
-            cmd += '  --input-path %s \\ \n' % cur_biom
-            cmd += '  --output-path %s \\ \n' % output_path
+            cmd += 'qiime tools import \\\n'
+            cmd += '  --input-path %s \\\n' % cur_biom
+            cmd += '  --output-path %s \\\n' % output_path
             cmd += '  --type "FeatureTable[Frequency]"\n'
         else:
-            cmd += 'qiime tools import \\ \n'
-            cmd += '  --input-path %s \\ \n' % input_path
-            cmd += '  --output-path %s \\ \n' % output_path
+            cmd += 'qiime tools import \\\n'
+            cmd += '  --input-path %s \\\n' % input_path
+            cmd += '  --output-path %s \\\n' % output_path
             cmd += '  --type "FeatureTable[Frequency]"\n'
     else:
-        cmd += 'qiime tools import \\ \n'
-        cmd += '  --input-path %s \\ \n' % input_path
-        cmd += '  --output-path %s \\ \n' % output_path
+        cmd += 'qiime tools import \\\n'
+        cmd += '  --input-path %s \\\n' % input_path
+        cmd += '  --output-path %s \\\n' % output_path
         cmd += '  --type "%s"\n' % typ
     return cmd
 
@@ -59,25 +59,25 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
     if typ.startswith("FeatureTable"):
         if not output_path.endswith('biom'):
             cur_biom = '%s.biom' % splitext(output_path)[0]
-            cmd += 'qiime tools export \\ \n'
-            cmd += '  --input-path %s \\ \n' % input_path
+            cmd += 'qiime tools export \\\n'
+            cmd += '  --input-path %s \\\n' % input_path
             cmd += '  --output-path %s\n' % splitext(output_path)[0]
             cmd += 'mv %s/*.biom %s\n' % (splitext(output_path)[0], cur_biom)
             cmd += 'biom convert'
-            cmd += '  -i %s \\ \n' % cur_biom
-            cmd += '  -o %s.tmp \\ \n' % output_path
+            cmd += '  -i %s \\\n' % cur_biom
+            cmd += '  -o %s.tmp \\\n' % output_path
             cmd += '  --to-tsv\n\n'
             cmd += 'tail -n +2 %s.tmp > %s\n\n' % (output_path, output_path)
             cmd += 'rm -rf %s %s.tmp\n' % (splitext(output_path)[0], output_path)
         else:
-            cmd += 'qiime tools export \\ \n'
-            cmd += '  --input-path %s \\ \n' % input_path
+            cmd += 'qiime tools export \\\n'
+            cmd += '  --input-path %s \\\n' % input_path
             cmd += '  --output-path %s\n' % splitext(output_path)[0]
             cmd += 'mv %s/*.biom %s\n' % (splitext(input_path)[0], output_path)
             cmd += 'rm -rf %s\n' % splitext(input_path)[0]
     else:
-        cmd += 'qiime tools export \\ \n'
-        cmd += '  --input-path %s \\ \n' % input_path
+        cmd += 'qiime tools export \\\n'
+        cmd += '  --input-path %s \\\n' % input_path
         cmd += '  --output-path %s\n' % splitext(output_path)[0]
         if 'Phylogeny' in typ:
             cmd += 'mv %s/*.nwk %s\n' % (splitext(output_path)[0], output_path)
@@ -110,17 +110,17 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
     if 'unifrac' in metric:
         if not datasets_phylo[dat][0]:
             return True
-        cmd = 'qiime diversity beta-phylogenetic \\ \n'
+        cmd = 'qiime diversity beta-phylogenetic \\\n'
         if datasets_phylo[dat][1]:
-            cmd += '--i-table %s \\ \n' % trees[dat][0]
+            cmd += '--i-table %s \\\n' % trees[dat][0]
         else:
-            cmd += '--i-table %s \\ \n' % qza
-        cmd += '--i-phylogeny %s \\ \n' % trees[dat][1]
+            cmd += '--i-table %s \\\n' % qza
+        cmd += '--i-phylogeny %s \\\n' % trees[dat][1]
     else:
-        cmd = 'qiime diversity beta \\ \n'
-        cmd += '--i-table %s \\ \n' % qza
-    cmd += '--p-metric %s \\ \n' % metric
-    cmd += '--p-n-jobs 1 \\ \n'
+        cmd = 'qiime diversity beta \\\n'
+        cmd += '--i-table %s \\\n' % qza
+    cmd += '--p-metric %s \\\n' % metric
+    cmd += '--p-n-jobs 1 \\\n'
     cmd += '--o-distance-matrix %s\n' % out_fp
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
@@ -136,8 +136,8 @@ def write_diversity_pcoa(DM: str, out_pcoa: str, cur_sh: TextIO) -> None:
     :param out_pcoa: The resulting PCoA matrix.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime diversity pcoa \\ \n'
-    cmd += '--i-distance-matrix %s \\ \n' % DM
+    cmd = 'qiime diversity pcoa \\\n'
+    cmd += '--i-distance-matrix %s \\\n' % DM
     cmd += '--o-pcoa %s\n' % out_pcoa
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
@@ -154,9 +154,9 @@ def write_emperor(meta: str, pcoa: str, out_plot: str, cur_sh: TextIO) -> None:
     :param out_plot: VISUALIZATION.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime emperor plot \\ \n'
-    cmd += '--m-metadata-file %s \\ \n' % meta
-    cmd += '--i-pcoa %s \\ \n' % pcoa
+    cmd = 'qiime emperor plot \\\n'
+    cmd += '--m-metadata-file %s \\\n' % meta
+    cmd += '--i-pcoa %s \\\n' % pcoa
     cmd += '--o-visualization %s\n' % out_plot
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
@@ -218,18 +218,18 @@ def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
                        You can ignore this table for downstream analyses.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime fragment-insertion sepp \\ \n'
-    cmd += '--i-representative-sequences %s \\ \n' % out_fp_seqs_qza
-    cmd += '--i-reference-database %s \\ \n' % ref_tree_qza
-    cmd += '--o-tree %s \\ \n' % out_fp_sepp_tree
-    cmd += '--o-placements %s \\ \n' % out_fp_sepp_plac
+    cmd = 'qiime fragment-insertion sepp \\\n'
+    cmd += '--i-representative-sequences %s \\\n' % out_fp_seqs_qza
+    cmd += '--i-reference-database %s \\\n' % ref_tree_qza
+    cmd += '--o-tree %s \\\n' % out_fp_sepp_tree
+    cmd += '--o-placements %s \\\n' % out_fp_sepp_plac
     cmd += '--p-threads 24\n'
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
-    cmd = 'qiime fragment-insertion filter-features \\ \n'
-    cmd += '--i-table %s \\ \n' % qza
-    cmd += '--i-tree %s \\ \n' % out_fp_sepp_tree
-    cmd += '--o-filtered-table %s \\ \n' % qza_in
+    cmd = 'qiime fragment-insertion filter-features \\\n'
+    cmd += '--i-table %s \\\n' % qza
+    cmd += '--i-tree %s \\\n' % out_fp_sepp_tree
+    cmd += '--o-filtered-table %s \\\n' % qza_in
     cmd += '--o-removed-table %s\n' % qza_out
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
@@ -250,24 +250,24 @@ def write_deicode_biplot(qza: str, new_meta: str, new_qza: str, ordi_qza: str,
     :param ordi_qzv: VISUALIZATION
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime feature-table filter-samples \\ \n'
-    cmd += '--i-table %s \\ \n' % qza
-    cmd += '--m-metadata-file %s \\ \n' % new_meta
-    cmd += '--o-filtered-table %s \\ \n' % new_qza
+    cmd = 'qiime feature-table filter-samples \\\n'
+    cmd += '--i-table %s \\\n' % qza
+    cmd += '--m-metadata-file %s \\\n' % new_meta
+    cmd += '--o-filtered-table %s \\\n' % new_qza
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
-    cmd = 'qiime deicode rpca \\ \n'
-    cmd += '--i-table %s \\ \n' % new_qza
-    cmd += '--p-min-feature-count 10 \\ \n'
-    cmd += '--p-min-sample-count 500 \\ \n'
-    cmd += '--o-biplot %s \\ \n' % ordi_qza
+    cmd = 'qiime deicode rpca \\\n'
+    cmd += '--i-table %s \\\n' % new_qza
+    cmd += '--p-min-feature-count 10 \\\n'
+    cmd += '--p-min-sample-count 500 \\\n'
+    cmd += '--o-biplot %s \\\n' % ordi_qza
     cmd += '--o-distance-matrix %s\n' % new_mat_qza
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
-    cmd = 'qiime emperor biplot \\ \n'
-    cmd += '--i-biplot %s \\ \n' % ordi_qza
-    cmd += '--m-sample-metadata-file %s \\ \n' % new_meta
-    cmd += '--o-visualization %s \\ \n' % ordi_qzv
+    cmd = 'qiime emperor biplot \\\n'
+    cmd += '--i-biplot %s \\\n' % ordi_qza
+    cmd += '--m-sample-metadata-file %s \\\n' % new_meta
+    cmd += '--o-visualization %s \\\n' % ordi_qzv
     cmd += '--p-number-of-features 20\n'
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
@@ -333,22 +333,22 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     :param cur_sh: writing file handle.
     """
     cmd = 'qiime diversity filter-distance-matrix \\ \n'
-    cmd += '--m-metadata-file %s \\ \n' % new_meta
-    cmd += '--i-distance-matrix %s \\ \n' % mat_qza
+    cmd += '--m-metadata-file %s \\\n' % new_meta
+    cmd += '--i-distance-matrix %s \\\n' % mat_qza
     cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
-    cmd = 'qiime feature-table filter-samples \\ \n'
-    cmd += '--i-table %s \\ \n' % qza
-    cmd += '--m-metadata-file %s \\ \n' % new_meta
+    cmd = 'qiime feature-table filter-samples \\\n'
+    cmd += '--i-table %s \\\n' % qza
+    cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--o-filtered-table %s\n' % new_qza
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
-    cmd = 'qiime diversity beta-group-significance \\ \n'
-    cmd += '--i-distance-matrix %s \\ \n' % new_mat_qza
-    cmd += '--m-metadata-file %s \\ \n' % new_meta
-    cmd += '--m-metadata-column %s \\ \n' % testing_group
-    cmd += '--p-permutations 2999 \\ \n'
+    cmd = 'qiime diversity beta-group-significance \\\n'
+    cmd += '--i-distance-matrix %s \\\n' % new_mat_qza
+    cmd += '--m-metadata-file %s \\\n' % new_meta
+    cmd += '--m-metadata-column %s \\\n' % testing_group
+    cmd += '--p-permutations 2999 \\\n'
     cmd += '--o-visualization %s\n' % new_qzv
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
@@ -392,7 +392,7 @@ def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
     :param new_qzv: VISUALIZATION.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime diversity filter-distance-matrix \\ \n'
+    cmd = 'qiime diversity filter-distance-matrix \\\n'
     cmd += '--m-metadata-file %s \\ \n' % new_meta
     cmd += '--i-distance-matrix %s \\ \n' % mat_qza
     cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
@@ -475,9 +475,9 @@ def write_longitudinal_volatility(out_fp: str, meta_alphas: str,
     :param time_point: Metadata column containing state (time) variable information.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime longitudinal volatility \\ \n'
-    cmd += '--m-metadata-file %s \\ \n' % meta_alphas
-    cmd += '--p-state-column "%s" \\ \n' % time_point
+    cmd = 'qiime longitudinal volatility \\\n'
+    cmd += '--m-metadata-file %s \\\n' % meta_alphas
+    cmd += '--p-state-column "%s" \\\n' % time_point
     cmd += '--p-individual-id-column "host_subject_id"'
     cmd += '--o-visualization %s\n' % out_fp
     cur_sh.write('echo "%s"\n' % cmd)
@@ -496,10 +496,10 @@ def write_diversity_alpha_correlation(out_fp: str, qza: str, method: str,
     :param meta: The sample metadata.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime diversity alpha-correlation \\ \n'
-    cmd += '--i-alpha-diversity %s \\ \n' % qza
-    cmd += '--p-method %s \\ \n' % method
-    cmd += '--m-metadata-file %s \\ \n' % meta
+    cmd = 'qiime diversity alpha-correlation \\\n'
+    cmd += '--i-alpha-diversity %s \\\n' % qza
+    cmd += '--p-method %s \\\n' % method
+    cmd += '--m-metadata-file %s \\\n' % meta
     cmd += '--o-visualization %s\n' % out_fp
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
@@ -523,18 +523,18 @@ def write_diversity_alpha(out_fp: str, datasets_phylo: dict, trees: dict, dat: s
     if metric in ['faith_pd']:
         if not datasets_phylo[dat][0]:
             return True
-        cmd = 'qiime diversity alpha-phylogenetic \\ \n'
+        cmd = 'qiime diversity alpha-phylogenetic \\\n'
         if datasets_phylo[dat][1]:
-            cmd += '--i-table %s \\ \n' % trees[dat][0]
+            cmd += '--i-table %s \\\n' % trees[dat][0]
         else:
-            cmd += '--i-table %s \\ \n' % qza
-        cmd += '--i-phylogeny %s \\ \n' % trees[dat][1]
-        cmd += '--p-metric %s \\ \n' % metric
+            cmd += '--i-table %s \\\n' % qza
+        cmd += '--i-phylogeny %s \\\n' % trees[dat][1]
+        cmd += '--p-metric %s \\\n' % metric
         cmd += '--o-alpha-diversity %s\n' % out_fp
     else:
-        cmd = 'qiime diversity alpha \\ \n'
-        cmd += '--i-table %s \\ \n' % qza
-        cmd += '--p-metric %s \\ \n' % metric
+        cmd = 'qiime diversity alpha \\\n'
+        cmd += '--i-table %s \\\n' % qza
+        cmd += '--p-metric %s \\\n' % metric
         cmd += '--o-alpha-diversity %s\n' % out_fp
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
@@ -552,10 +552,10 @@ def write_metadata_tabulate(out_fp: str, divs: list, meta: str, cur_sh: TextIO) 
     :param meta: The metadata to tabulate.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime metadata tabulate \\ \n'
-    cmd += '--o-visualization %s \\ \n' % out_fp
+    cmd = 'qiime metadata tabulate \\\n'
+    cmd += '--o-visualization %s \\\n' % out_fp
     for div in divs:
-        cmd += '--m-input-file %s \\ \n' % div
+        cmd += '--m-input-file %s \\\n' % div
     cmd += '--m-input-file %s\n' % meta
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
@@ -570,9 +570,9 @@ def write_alpha_group_significance_cmd(alpha: str, metadata: str, visu: str, cur
     :param visu: VISUALIZATION.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime diversity alpha-group-significance \\ \n'
-    cmd += '--i-alpha-diversity %s \\ \n' % alpha
-    cmd += '--m-metadata-file %s \\ \n' % metadata
+    cmd = 'qiime diversity alpha-group-significance \\\n'
+    cmd += '--i-alpha-diversity %s \\\n' % alpha
+    cmd += '--m-metadata-file %s \\\n' % metadata
     cmd += '--o-visualization %s\n' % visu
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
