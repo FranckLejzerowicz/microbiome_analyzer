@@ -120,7 +120,7 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
             metric = get_metric(beta_metrics, mat_qza)
             out_sh = '%s/run_beta_group_significance_%s_%s.sh' % (job_folder2, dat, metric)
             for case_var, case_vals_list in cases_dict.items():
-                testing_groups_case_var = testing_groups + [case_var]
+                testing_groups_case_var = list(set(testing_groups + [case_var]))
                 for case_vals in case_vals_list:
                     case_ = get_case(case_vals, metric, case_var)
                     print('testing_groups_case_var:', testing_groups_case_var)
