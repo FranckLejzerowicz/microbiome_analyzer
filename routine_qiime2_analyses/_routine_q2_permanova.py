@@ -114,13 +114,11 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
                 testing_groups_case_var = list(set(testing_groups + [case_var]))
                 for case_vals in case_vals_list:
                     case_ = get_case(case_vals, metric, case_var)
-                    print('testing_groups_case_var:', testing_groups_case_var)
                     for testing_group in testing_groups_case_var:
                         if testing_group == 'ALL':
                             continue
                         cur_sh = '%s/run_beta_group_significance_%s_%s_%s.sh' % (
                             job_folder2, dat, case_, testing_group)
-                        print('cur_sh:', cur_sh)
                         cur_sh = cur_sh.replace(' ', '-')
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                         p = multiprocessing.Process(
