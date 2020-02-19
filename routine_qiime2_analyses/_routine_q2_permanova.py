@@ -123,6 +123,7 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
                 testing_groups_case_var = testing_groups + [case_var]
                 for case_vals in case_vals_list:
                     case_ = get_case(case_vals, metric, case_var)
+                    print('testing_groups_case_var:', testing_groups_case_var)
                     for testing_group in testing_groups_case_var:
                         if testing_group == 'ALL':
                             continue
