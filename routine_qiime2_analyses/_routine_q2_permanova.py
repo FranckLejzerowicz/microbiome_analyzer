@@ -51,15 +51,6 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
     remove = True
     qza = '%s.qza' % splitext(tsv)[0]
     with open(cur_sh, 'w') as cur_sh_o:
-        # for mat_qza in mat_qzas:
-        #     metric = get_metric(beta_metrics, mat_qza)
-        #     for case_var, case_vals_list in cases_dict.items():
-        #         testing_groups_case_var = list(testing_groups) + [case_var]
-        #         for case_vals in case_vals_list:
-        #             case_ = get_case(case_vals, metric, case_var)
-        #             for testing_group in testing_groups_case_var:
-        #                 if testing_group == 'ALL':
-        #                     continue
         case = '%s__%s' % (case_, testing_group)
         cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
         new_meta = '%s.meta' % cur_rad
