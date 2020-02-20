@@ -595,9 +595,9 @@ def get_new_meta_pd(meta_pd: pd.DataFrame, case: str, case_var: str,
         new_meta_pd = meta_pd.copy()
         for case_val in case_vals:
             if case_val[0] == '>':
-                new_meta_pd = new_meta_pd[new_meta_pd[case_var] >= float(case_val[1:])].copy()
+                new_meta_pd = new_meta_pd[new_meta_pd[case_var].astype(float) >= float(case_val[1:])].copy()
             elif case_val[0] == '<':
-                new_meta_pd = new_meta_pd[new_meta_pd[case_var] <= float(case_val[1:])].copy()
+                new_meta_pd = new_meta_pd[new_meta_pd[case_var].astype(float) <= float(case_val[1:])].copy()
     else:
         new_meta_pd = meta_pd[meta_pd[case_var].isin(case_vals)].copy()
     return new_meta_pd
