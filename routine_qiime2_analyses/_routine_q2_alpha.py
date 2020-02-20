@@ -101,14 +101,11 @@ def merge_meta_alpha(i_datasets_folder: str, diversities: dict,
         for dat, (meta, qza_divs) in diversities.items():
             out_sh = '%s/run_merge_alpha_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            out_fp = '%s_alphas.qzv' % splitext(meta)[0]
+            to_export.append(out_fp)
             with open(out_sh, 'w') as cur_sh:
                 for qza, divs in qza_divs.items():
-                    rad = splitext(qza)[0]
-                    out_fp = '%s_alphas.qzv' % rad.replace('/data/', '/metadata/').replace('/tab_', '/meta_')
                     if force or not isfile(out_fp):
-                        if not isdir(dirname(out_fp)):
-                            os.makedirs(dirname(out_fp))
-                        to_export.append(out_fp)
                         write_metadata_tabulate(out_fp, divs, meta, cur_sh)
                         written += 1
             run_xpbs(out_sh, out_pbs, '%s.mrg.lph.%s' % (prjct_nm, dat),
