@@ -66,6 +66,17 @@ from routine_qiime2_analyses import __version__
     help="Minimum number of reads per sample to be kept."
 )
 @click.option(
+    "-skip", "--p-skip", default=None, show_default=True, multiple=True,
+    type=click.Choice(['alpha', 'merge_alpha', 'export_alpha', 'alpha_correlations',
+                       'volatility', 'beta', 'export_beta', 'emperor', 'deicode',
+                       'alpha_kw', 'permanova', 'adonis']),
+    help="Steps to skip (e.g. if already done or not necessary)."
+         "\nSkipping 'alpha' will also skip 'merge_alpha', 'export_alpha',"
+         "'alpha_correlations', 'alpha_kw' and 'volatility'."
+         "\nSkipping 'beta' will also skip 'export_beta', 'emperor',"
+         "'deicode', 'permanova', 'adonis''."
+)
+@click.option(
     "--force/--no-force", default=False, show_default=True,
     help="Force the re-writing of scripts for all commands"
          "(default is to not re-run if output file exists)."
@@ -84,7 +95,8 @@ def standalone_routine(
         p_adonis_formulas,
         force, i_wol_tree,
         i_sepp_tree,
-        p_qiime2_env
+        p_qiime2_env,
+        p_skip
 ):
 
     routine_qiime2_analyses(
@@ -98,7 +110,8 @@ def standalone_routine(
         p_adonis_formulas,
         force, i_wol_tree,
         i_sepp_tree,
-        p_qiime2_env
+        p_qiime2_env,
+        p_skip
     )
 
 
