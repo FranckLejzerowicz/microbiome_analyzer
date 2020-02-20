@@ -578,8 +578,8 @@ def write_alpha_group_significance_cmd(alpha: str, metadata: str, visu: str, cur
     cur_sh.write('%s\n\n' % cmd)
 
 
-def get_new_meta_pd(meta_pd: pd.DataFrame, case: str, case_var: str,
-                    case_vals: list) -> pd.DataFrame:
+def get_new_meta_pd(meta_pd: pd.DataFrame, case: str,
+                    case_var: str, case_vals: list) -> pd.DataFrame:
     """
     Perform subset.
 
