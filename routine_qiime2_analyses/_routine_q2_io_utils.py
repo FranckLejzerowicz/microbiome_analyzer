@@ -20,6 +20,19 @@ from routine_qiime2_analyses._routine_q2_cmds import run_export
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
 
+def get_sample_col(meta: str) -> str:
+    """
+    Get the first column of the metadata file.
+
+    :param meta: metadata file name
+    :return: column name
+    """
+    with open(meta) as f:
+        for line in f:
+            break
+    return line.split()[0]
+
+
 def get_main_cases_dict(p_perm_groups: str) -> dict:
     """
     Collect the subsets to perform based on the passed yaml file.

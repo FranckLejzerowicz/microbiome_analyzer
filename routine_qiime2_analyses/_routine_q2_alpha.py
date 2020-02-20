@@ -14,7 +14,7 @@ from os.path import basename, dirname, isdir, isfile, splitext
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics, get_job_folder, get_analysis_folder,
-    write_main_sh, get_main_cases_dict
+    write_main_sh, get_main_cases_dict, get_sample_col
 )
 from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
 from routine_qiime2_analyses._routine_q2_cmds import (
@@ -307,8 +307,9 @@ def run_alpha_group_significance(i_datasets_folder: str, diversities: dict, p_pe
             continue
 
         meta = diversities[dat][0]
-        meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype=str)
-        meta_pd = meta_pd.set_index(meta_pd.columns.tolist()[0])
+        meta_sam_col = get_sample_col(meta)
+        meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str})
+        meta_pd.set_index(meta_sam_col, inplace=True)
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'alpha Kruskal-Wallis')
 
         odir = get_analysis_folder(i_datasets_folder, 'alpha_group_significance/%s' % dat)

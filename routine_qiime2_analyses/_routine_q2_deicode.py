@@ -15,7 +15,8 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_job_folder,
     get_analysis_folder,
     get_main_cases_dict,
-    write_main_sh
+    write_main_sh,
+    get_sample_col
 )
 from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
 from routine_qiime2_analyses._routine_q2_cmds import (
@@ -85,8 +86,9 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
     for dat, tsv_meta_pds in data_sets.items():
 
         tsv, meta = tsv_meta_pds
-        meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype=str)
-        meta_pd.set_index(meta_pd.columns.tolist()[0], inplace=True)
+        meta_sam_col = get_sample_col(meta)
+        meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str})
+        meta_pd.set_index(meta_sam_col, inplace=True)
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'DEICODE')
         out_sh = '%s/run_adonis_%s.sh' % (job_folder2, dat)
         odir = get_analysis_folder(i_data_sets_folder, 'deicode/%s' % dat)
