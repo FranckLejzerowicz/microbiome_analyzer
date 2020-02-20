@@ -16,6 +16,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics, get_job_folder,
     get_analysis_folder,
     get_main_cases_dict,
+    get_formulas_dict,
     write_main_sh
 )
 from routine_qiime2_analyses._routine_q2_metadata import (
@@ -90,8 +91,7 @@ def run_adonis(p_formulas: str, i_data_sets_folder: str, data_sets: dict, betas:
     beta_metrics = get_metrics('beta_metrics')
 
     main_cases_dict = get_main_cases_dict(p_perm_groups)
-    with open(p_formulas) as handle:
-        formulas = yaml.load(handle, Loader=yaml.FullLoader)
+    formulas = get_formulas_dict(p_formulas)
 
     jobs = []
     all_sh_pbs = {}

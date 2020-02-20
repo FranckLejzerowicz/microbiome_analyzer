@@ -37,6 +37,22 @@ def get_main_cases_dict(p_perm_groups: str) -> dict:
         return main_cases_dict
 
 
+def get_formulas_dict(p_formulas: str) -> dict:
+    """
+    Collect the formulas for ADONIS from the passed yaml file.
+
+    :param p_formulas: path to the yaml file containing fomulas.
+    :return: formulas.
+    """
+    if not isfile(p_formulas):
+        print('yaml file containing formulas does not exist:\n%s\nExiting...' % p_formulas)
+        sys.exit(1)
+    with open(p_formulas) as handle:
+        formulas = yaml.load(handle, Loader=yaml.FullLoader)
+    return formulas
+
+
+
 def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
                   prjct_nm: str, time: str, n_nodes: str, n_procs: str,
                   mem_num: str, mem_dim: str, qiime_env: str) -> str:
