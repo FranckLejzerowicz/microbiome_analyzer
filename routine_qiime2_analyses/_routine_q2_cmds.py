@@ -621,7 +621,7 @@ def get_new_alpha_div(case: str, div_qza: str, cur_rad: str,
         cur_sh.write('cp %s %s\n' % (div_qza, new_div))
     else:
         new_tsv = '%s.tsv' % cur_rad
-        new_tsv_pd = pd.read_csv(div_qza.replace('.qza', '.tsv'), header=0, sep='\t')
+        new_tsv_pd = pd.read_csv(div_qza.replace('.qza', '.tsv'), header=0, sep='\t', dtype=str)
         new_tsv_pd.rename(columns={new_tsv_pd.columns.tolist()[0]: 'Feature ID'}, inplace=True)
         new_tsv_pd.set_index('Feature ID', inplace=True)
         new_tsv_pd = new_tsv_pd.loc[new_meta_pd.index.tolist(), :]
