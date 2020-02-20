@@ -29,8 +29,10 @@ def get_main_cases_dict(p_perm_groups: str) -> dict:
     """
     main_cases_dict = {'ALL': [[]]}
     if p_perm_groups:
+        if not isfile(p_perm_groups):
+            print('yaml file containing groups does not exist:\n%s\nExiting...' % p_perm_groups)
+            sys.exit(1)
         with open(p_perm_groups) as handle:
-            # cases_dict = yaml.load(handle)
             main_cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
         return main_cases_dict
 
