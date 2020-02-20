@@ -47,7 +47,7 @@ def get_main_cases_dict(p_perm_groups: str) -> dict:
             sys.exit(1)
         with open(p_perm_groups) as handle:
             main_cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
-        return main_cases_dict
+    return main_cases_dict
 
 
 def get_formulas_dict(p_formulas: str) -> dict:
