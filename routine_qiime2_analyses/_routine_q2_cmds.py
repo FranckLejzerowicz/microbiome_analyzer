@@ -332,7 +332,7 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     :param new_qzv: VISUALIZATION.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime diversity filter-distance-matrix \\ \n'
+    cmd = 'qiime diversity filter-distance-matrix \\\n'
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--i-distance-matrix %s \\\n' % mat_qza
     cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
@@ -393,23 +393,23 @@ def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
     :param cur_sh: writing file handle.
     """
     cmd = 'qiime diversity filter-distance-matrix \\\n'
-    cmd += '--m-metadata-file %s \\ \n' % new_meta
-    cmd += '--i-distance-matrix %s \\ \n' % mat_qza
+    cmd += '--m-metadata-file %s \\\n' % new_meta
+    cmd += '--i-distance-matrix %s \\\n' % mat_qza
     cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
-    cmd = 'qiime feature-table filter-samples \\ \n'
-    cmd += '--i-table %s \\ \n' % qza
-    cmd += '--m-metadata-file %s \\ \n' % new_meta
+    cmd = 'qiime feature-table filter-samples \\\n'
+    cmd += '--i-table %s \\\n' % qza
+    cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--o-filtered-table %s\n' % new_qza
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
-    cmd = 'qiime diversity adonis \\ \n'
-    cmd += '--i-distance-matrix %s \\ \n' % new_mat_qza
-    cmd += '--m-metadata-file %s \\ \n' % new_meta
-    cmd += '--p-formula "%s" \\ \n' % formula
-    cmd += '--p-permutations 2999 \\ \n'
-    cmd += '--p-n-jobs 6 \\ \n'
+    cmd = 'qiime diversity adonis \\\n'
+    cmd += '--i-distance-matrix %s \\\n' % new_mat_qza
+    cmd += '--m-metadata-file %s \\\n' % new_meta
+    cmd += '--p-formula "%s" \\\n' % formula
+    cmd += '--p-permutations 2999 \\\n'
+    cmd += '--p-n-jobs 6 \\\n'
     cmd += '--o-visualization %s\n' % new_qzv
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
