@@ -44,6 +44,7 @@ def run_multi_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
 
     remove = True
     qza = '%s.qza' % splitext(tsv)[0]
+    print(cur_sh)
     with open(cur_sh, 'w') as cur_sh_o:
         for case_vals in case_vals_list:
             case = get_case(case_vals, '', case_var)
@@ -54,14 +55,11 @@ def run_multi_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
             ordi_qza = '%s_deicode_ordination.qza' % cur_rad
             ordi_qzv = '%s_deicode_ordination_biplot.qzv' % cur_rad
             if force or not isfile(ordi_qzv):
-                print(meta_pd.iloc[:4,:4])
                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-                print(new_meta_pd.iloc[:4,:4])
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
                 write_deicode_biplot(qza, new_meta, new_qza, ordi_qza,
                                      new_mat_qza, ordi_qzv, cur_sh_o)
                 remove = False
-    print('cur_sh', cur_sh)
     #if remove:
      #   print('[DEICODE] remove', cur_sh)
       #  os.remove(cur_sh)
