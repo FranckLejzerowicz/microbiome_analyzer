@@ -60,6 +60,9 @@ def run_multi_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
                 write_deicode_biplot(qza, new_meta, new_qza, ordi_qza,
                                      new_mat_qza, ordi_qzv, cur_sh_o)
                 remove = False
+    with open(cur_sh) as cur_sh_o:
+        for line in cur_sh_o:
+            print(line)
     #if remove:
      #   print('[DEICODE] remove', cur_sh)
       #  os.remove(cur_sh)
