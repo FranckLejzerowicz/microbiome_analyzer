@@ -74,7 +74,8 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_phylo: dict, tree
                     divs.append(out_fp)
                 diversities[dat][1][qza] = divs
             run_xpbs(out_sh, out_pbs, '%s.mg.lph.%s' % (prjct_nm, dat),
-                     qiime_env, '4', '1', '1', '1', 'gb', written, 'single', o)
+                     qiime_env, '4', '1', '1', '1', 'gb',
+                     chmod, written, 'single', o)
     if written:
         print('# Calculate alpha diversity indices')
         print('[TO RUN] sh', run_pbs)
@@ -111,7 +112,8 @@ def merge_meta_alpha(i_datasets_folder: str, diversities: dict,
                         write_metadata_tabulate(out_fp, divs, meta, cur_sh)
                         written += 1
             run_xpbs(out_sh, out_pbs, '%s.mrg.lph.%s' % (prjct_nm, dat),
-                     qiime_env, '2', '1', '1', '150', 'mb', chmod, written, 'single', o)
+                     qiime_env, '2', '1', '1', '150', 'mb',
+                     chmod, written, 'single', o)
     if written:
         print('# Merge alpha diversity indices to metadata')
         print('[TO RUN] sh', run_pbs)
