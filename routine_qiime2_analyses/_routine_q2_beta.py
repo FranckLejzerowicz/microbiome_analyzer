@@ -24,7 +24,7 @@ from routine_qiime2_analyses._routine_q2_cmds import run_export
 
 
 def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
-             trees: dict, force: bool, prjct_nm: str, qiime_env: str) -> dict:
+             trees: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> dict:
     """
     Run beta: Beta diversity.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta/
@@ -37,6 +37,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Nick name for your project.
     :param qiime_env: qiime2-xxxx.xx conda environment.
+    :param chmod: whether to change permission of output files (defalt: 775).
     :return: deta divesity matrices.
     """
 
@@ -69,7 +70,8 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                     divs.append(out_fp)
                 betas[dat][meta] = divs
             run_xpbs(out_sh, out_pbs, '%s.bt.%s' % (prjct_nm, dat),
-                     qiime_env, '24', '1', '1', '10', 'gb', written, 'single', o)
+                     qiime_env, '24', '1', '1', '10', 'gb',
+                     chmod, written, 'single', o)
     if written:
         print('# Calculate beta diversity indices')
         print('[TO RUN] sh', run_pbs)
@@ -77,7 +79,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
 
 def export_beta(i_datasets_folder: str, betas: dict,
-                force: bool, prjct_nm: str, qiime_env: str) -> None:
+                force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
     """
     Export beta diverity matrices.
 
@@ -86,6 +88,7 @@ def export_beta(i_datasets_folder: str, betas: dict,
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Nick name for your project.
     :param qiime_env: qiime2-xxxx.xx conda environment.
+    :param chmod: whether to change permission of output files (defalt: 775).
     """
 
     job_folder = get_job_folder(i_datasets_folder, 'beta')
@@ -103,12 +106,12 @@ def export_beta(i_datasets_folder: str, betas: dict,
                         sh.write('%s\n\n' % cmd)
                         written += 1
     run_xpbs(out_sh, out_pbs, '%s.xprt.bt' % prjct_nm,
-             qiime_env, '2', '1', '1', '1', 'gb', written,
-             '# Export beta diversity matrices')
+             qiime_env, '2', '1', '1', '1', 'gb',
+             chmod, written, '# Export beta diversity matrices')
 
 
 def run_pcoas(i_datasets_folder: str, betas: dict,
-              force: bool, prjct_nm: str, qiime_env: str) -> dict:
+              force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> dict:
     """
     Run pcoa: Principal Coordinate Analysis.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa/
@@ -118,6 +121,7 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Nick name for your project.
     :param qiime_env: qiime2-xxxx.xx conda environment.
+    :param chmod: whether to change permission of output files (defalt: 775).
     :return: principal coordinates ordinations.
     """
 
@@ -145,7 +149,8 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
                             write_diversity_pcoa(DM, out_pcoa, cur_sh)
                             written += 1
             run_xpbs(out_sh, out_pbs, '%s.pc.%s' % (prjct_nm, dat),
-                     qiime_env, '10', '1', '2', '2', 'gb', written, 'single', o)
+                     qiime_env, '10', '1', '2', '2', 'gb',
+                     chmod, written, 'single', o)
     if written:
         print('# Calculate principal coordinates')
         print('[TO RUN] sh', run_pbs)
@@ -153,7 +158,7 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
 
 
 def run_emperor(i_datasets_folder: str, pcoas_d: dict,
-                prjct_nm: str, qiime_env: str) -> None:
+                prjct_nm: str, qiime_env: str, chmod: str) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -162,6 +167,7 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict,
     :param pcoas_d: principal coordinates ordinations.
     :param prjct_nm: Nick name for your project.
     :param qiime_env: qiime2-xxxx.xx conda environment.
+    :param chmod: whether to change permission of output files (defalt: 775).
     """
 
     job_folder = get_job_folder(i_datasets_folder, 'emperor')
@@ -191,7 +197,8 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict,
                         write_emperor(meta, pcoa, out_plot, cur_sh)
                         written += 1
                     run_xpbs(out_sh, out_pbs, '%s.mprr.%s.%s' % (prjct_nm, dat, basename(pcoa.split('_DM_')[0])),
-                             qiime_env, '10', '1', '1', '2', 'gb', written, 'single', o)
+                             qiime_env, '10', '1', '1', '2', 'gb',
+                             chmod, written, 'single', o)
     if written:
         print('# Make EMPeror plots')
         print('[TO RUN] sh', run_pbs)

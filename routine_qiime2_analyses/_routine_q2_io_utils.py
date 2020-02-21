@@ -68,7 +68,7 @@ def get_formulas_dict(p_formulas: str) -> dict:
 
 def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
                   prjct_nm: str, time: str, n_nodes: str, n_procs: str,
-                  mem_num: str, mem_dim: str, qiime_env: str) -> str:
+                  mem_num: str, mem_dim: str, qiime_env: str, chmod: str) -> str:
     """
     Write the main launcher of pbs scripts, written during using multiprocessing.
 
@@ -82,6 +82,7 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
     :param mem_num: memory in number.
     :param mem_dim: memory dimension to the number.
     :param qiime_env: qiime2-xxxx.xx conda environment.
+    :param chmod: whether to change permission of output files (defalt: 775).
     :return: either the written launcher or nothing.
     """
     main_sh = '%s/%s.sh' % (job_folder, analysis)
@@ -97,7 +98,7 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
             if cur_written:
                 out_pbs = '%s.pbs' % splitext(out_sh)[0]
                 run_xpbs(out_sh, out_pbs, '%s.%s' % (prjct_nm, dat), qiime_env,
-                         time, n_nodes, n_procs, mem_num, mem_dim, 1, '', None)
+                         time, n_nodes, n_procs, mem_num, mem_dim, chmod, 1, '', None)
                 main_o.write('qsub %s\n' % out_pbs)
                 out_main_sh = main_sh
             else:

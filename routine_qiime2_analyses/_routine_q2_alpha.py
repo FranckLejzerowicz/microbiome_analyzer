@@ -27,7 +27,7 @@ from routine_qiime2_analyses._routine_q2_cmds import run_export
 
 
 def run_alpha(i_datasets_folder: str, datasets: dict, datasets_phylo: dict, trees: dict,
-              force: bool, prjct_nm: str, qiime_env: str) -> dict:
+              force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -38,6 +38,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_phylo: dict, tree
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Short nick name for your project.
     :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
+    :param chmod: whether to change permission of output files (defalt: 775).
     :return: {'dataset1': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }],
               'dataset2': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }], '...'}
     """
@@ -81,7 +82,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_phylo: dict, tree
 
 
 def merge_meta_alpha(i_datasets_folder: str, diversities: dict,
-                     force: bool, prjct_nm: str, qiime_env: str):
+                     force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> list:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -90,6 +91,7 @@ def merge_meta_alpha(i_datasets_folder: str, diversities: dict,
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Short nick name for your project.
     :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
+    :param chmod: whether to change permission of output files (defalt: 775).
     :return:
     """
     job_folder = get_job_folder(i_datasets_folder, 'alpha')
@@ -109,7 +111,7 @@ def merge_meta_alpha(i_datasets_folder: str, diversities: dict,
                         write_metadata_tabulate(out_fp, divs, meta, cur_sh)
                         written += 1
             run_xpbs(out_sh, out_pbs, '%s.mrg.lph.%s' % (prjct_nm, dat),
-                     qiime_env, '2', '1', '1', '150', 'mb', written, 'single', o)
+                     qiime_env, '2', '1', '1', '150', 'mb', chmod, written, 'single', o)
     if written:
         print('# Merge alpha diversity indices to metadata')
         print('[TO RUN] sh', run_pbs)
@@ -117,7 +119,7 @@ def merge_meta_alpha(i_datasets_folder: str, diversities: dict,
 
 
 def export_meta_alpha(i_datasets_folder: str, to_export: list,
-                      force: bool, prjct_nm: str, qiime_env: str):
+                      force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
     """
     Export the alpha diversity vectors.
 
@@ -126,7 +128,7 @@ def export_meta_alpha(i_datasets_folder: str, to_export: list,
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Nick name for your project.
     :param qiime_env: qiime2-xxxx.xx conda environment.
-    :return:
+    :param chmod: whether to change permission of output files (defalt: 775).
     """
 
     job_folder = get_job_folder(i_datasets_folder, 'alpha')
@@ -142,12 +144,12 @@ def export_meta_alpha(i_datasets_folder: str, to_export: list,
                 sh.write('%s\n\n' % cmd)
                 written += 1
     run_xpbs(out_sh, out_pbs, '%s.xprt.lph' % prjct_nm,
-             qiime_env, '2', '1', '1', '150', 'mb', written,
+             qiime_env, '2', '1', '1', '150', 'mb', chmod, written,
              '# Export alpha diversity indices to metadata')
 
 
 def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
-                     force: bool, prjct_nm: str, qiime_env: str):
+                     force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
     """
     Run alpha-correlation: Alpha diversity correlation
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-correlation/
@@ -158,7 +160,7 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Nick name for your project.
     :param qiime_env: qiime2-xxxx.xx conda environment.
-    :return:
+    :param chmod: whether to change permission of output files (defalt: 775).
     """
     job_folder = get_job_folder(i_datasets_folder, 'alpha_correlations')
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha_correlations/chunks')
@@ -178,14 +180,15 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                             write_diversity_alpha_correlation(out_fp, qza, method, meta, cur_sh)
                             written += 1
             run_xpbs(out_sh, out_pbs, '%s.lphcrr.%s' % (prjct_nm, dat),
-                     qiime_env, '10', '1', '1', '1', 'gb', written, 'single', o)
+                     qiime_env, '10', '1', '1', '1', 'gb',
+                     chmod, written, 'single', o)
     if written:
         print('# Correlate numeric metadata variables with alpha diversity indices')
         print('[TO RUN] sh', run_pbs)
 
 
 def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
-                   force: bool, prjct_nm: str, qiime_env: str) -> None:
+                   force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
     """
     Run volatility: Generate interactive volatility plot.
     https://docs.qiime2.org/2019.10/plugins/available/longitudinal/volatility/
@@ -196,7 +199,7 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Nick name for your project.
     :param qiime_env: qiime2-xxxx.xx conda environment.
-    :return:
+    :param chmod: whether to change permission of output files (defalt: 775).
     """
     job_folder = get_job_folder(i_datasets_folder, 'longitudinal')
     job_folder2 = get_job_folder(i_datasets_folder, 'longitudinal/chunks')
@@ -232,7 +235,8 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
                     write_longitudinal_volatility(out_fp, meta_alphas, time_point, cur_sh)
                     written += 1
             run_xpbs(out_sh, out_pbs, '%s.vltlt.%s' % (prjct_nm, dat),
-                     qiime_env, '2', '1', '1', '100', 'mb', written, 'single', o)
+                     qiime_env, '2', '1', '1', '100', 'mb',
+                     chmod, written, 'single', o)
     if written:
         print('# Longitudinal change in alpha diversity indices')
         print('[TO RUN] sh', run_pbs)
@@ -272,7 +276,7 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list:
 
 
 def run_alpha_group_significance(i_datasets_folder: str, diversities: dict, p_perm_groups: str,
-                                 force: bool, prjct_nm: str, qiime_env: str) -> None:
+                                 force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
     """
     Run alpha-group-significance: Alpha diversity comparisons.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-group-significance/
@@ -284,6 +288,7 @@ def run_alpha_group_significance(i_datasets_folder: str, diversities: dict, p_pe
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Nick name for your project.
     :param qiime_env: qiime2-xxxx.xx conda environment.
+    :param chmod: whether to change permission of output files (defalt: 775).
     """
 
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha_group_significance/chunks')
@@ -330,7 +335,8 @@ def run_alpha_group_significance(i_datasets_folder: str, diversities: dict, p_pe
 
     job_folder = get_job_folder(i_datasets_folder, 'alpha_group_significance')
     main_sh = write_main_sh(job_folder, '6_run_alpha_group_significance', all_sh_pbs,
-                            '%s.kv' % prjct_nm, '2', '1', '1', '1', 'gb', qiime_env)
+                            '%s.kv' % prjct_nm, '2', '1', '1', '1', 'gb',
+                            qiime_env, chmod)
     if main_sh:
         if p_perm_groups:
             print("# Kruskal-Wallis on alpha diversity (groups config in %s)" % p_perm_groups)

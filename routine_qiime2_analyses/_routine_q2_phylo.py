@@ -19,7 +19,7 @@ from routine_qiime2_analyses._routine_q2_cmds import run_import
 
 
 def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datasets_phylo: dict,
-             prjct_nm: str, i_sepp_tree: str, trees: dict, force: bool, qiime_env: str) -> None:
+             prjct_nm: str, i_sepp_tree: str, trees: dict, force: bool, qiime_env: str, chmod: str) -> None:
     """
     Run SEPP on the datasets composed or 16S deblur sequences (e.g. from redbiom/Qiita).
 
@@ -32,7 +32,7 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
     :param trees: to be update with tree to use for a dataset phylogenetic analyses.
     :param force: Force the re-writing of scripts for all commands.
     :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
-    :return:
+    :param chmod: whether to change permission of output files (defalt: 775).
     """
     # check whether there's dataset(s) that may use the reference tree (i.e. features are DNA sequences)
     sepp_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'amplicon']
@@ -80,14 +80,15 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                                                  qza, qza_in, qza_out, cur_sh)
                         written += 1
                 run_xpbs(out_sh, out_pbs, '%s.spp.%s' % (prjct_nm, dat),
-                         qiime_env, '100', '2', '12', '100', 'gb', written, 'single', main_o)
+                         qiime_env, '100', '2', '12', '100', 'gb',
+                         chmod, written, 'single', main_o)
         if written:
             print("# Fragment insertion using SEPP (%s)" % ', '.join(sepp_datasets))
             print('[TO RUN] sh', main_sh)
 
 
 def shear_tree(i_datasets_folder: str, datasets_phylo: dict, datasets_features: dict, prjct_nm: str,
-               i_wol_tree: str, trees: dict, force: bool, qiime_env: str) -> None:
+               i_wol_tree: str, trees: dict, force: bool, qiime_env: str, chmod: str) -> None:
     """
     Get the sub-tree from the Web of Life tree that corresponds to the gOTUs-labeled features.
 
@@ -99,7 +100,7 @@ def shear_tree(i_datasets_folder: str, datasets_phylo: dict, datasets_features: 
     :param trees: to be update with tree to use for a dataset phylogenetic analyses.
     :param force: Force the re-writing of scripts for all commands.
     :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
-    :return:
+    :param chmod: whether to change permission of output files (defalt: 775).
     """
     # check whether there's dataset(s) that may use the Web of Life tree (i.e. features contain gID)
     wol_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'wol']
@@ -138,7 +139,8 @@ def shear_tree(i_datasets_folder: str, datasets_phylo: dict, datasets_features: 
                         written += 1
 
                 run_xpbs(out_sh, out_pbs, '%s.shr.%s' % (prjct_nm, dat),
-                         qiime_env,  '1', '1', '1', '200', 'mb', written, 'single', main_o)
+                         qiime_env,  '1', '1', '1', '200', 'mb',
+                         chmod, written, 'single', main_o)
         if written:
             print("# Shear Web of Life tree to features' genome IDs (%s)" % ', '.join(wol_datasets))
             print('[TO RUN] sh', main_sh)

@@ -25,7 +25,8 @@ from routine_qiime2_analyses._routine_q2_adonis import run_adonis
 def routine_qiime2_analyses(i_datasets: tuple, i_datasets_folder: str, project_name: str,
                             p_longi_column: str, thresh: int, p_perm_tests: tuple,
                             p_perm_groups: str, p_formulas: str, force: bool,
-                            i_wol_tree: str, i_sepp_tree: str, qiime_env: str, p_skip: tuple) -> None:
+                            i_wol_tree: str, i_sepp_tree: str, qiime_env: str,
+                            chmod: str, p_skip: tuple) -> None:
     """
     Main qiime2 functions writer.
 
@@ -41,6 +42,7 @@ def routine_qiime2_analyses(i_datasets: tuple, i_datasets_folder: str, project_n
     :param force: Force the re-writing of scripts for all commands.
     :param i_wol_tree: default to ./routine_qiime2_analyses/resources/wol_tree.nwk.
     :param i_sepp_tree: path to the SEPP database artefact. Default to None.
+    :param chmod: whether to change permission of output files (defalt: 775).
     :param p_skip: steps to skip.
     """
 
@@ -72,64 +74,64 @@ def routine_qiime2_analyses(i_datasets: tuple, i_datasets_folder: str, project_n
     # INIT -------------------------------------------------------------------------------------
     datasets, datasets_read, datasets_features, datasets_phylo = get_datasets(i_datasets,
                                                                               i_datasets_folder)
-    import_datasets(i_datasets_folder, datasets, datasets_phylo, force, prjct_nm, qiime_env)
+    import_datasets(i_datasets_folder, datasets, datasets_phylo, force, prjct_nm, qiime_env, chmod)
     if thresh:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
-                            datasets_phylo, force, prjct_nm, qiime_env, thresh)
+                            datasets_phylo, prjct_nm, qiime_env, thresh, chmod)
     trees = {}
     shear_tree(i_datasets_folder, datasets_phylo, datasets_features, prjct_nm,
-               i_wol_tree, trees, force, qiime_env)
+               i_wol_tree, trees, force, qiime_env, chmod)
     run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo, prjct_nm,
-             i_sepp_tree, trees, force, qiime_env)
+             i_sepp_tree, trees, force, qiime_env, chmod)
     # ------------------------------------------------------------------------------------------
 
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
         diversities = run_alpha(i_datasets_folder, datasets, datasets_phylo,
-                                trees, force, prjct_nm, qiime_env)
+                                trees, force, prjct_nm, qiime_env, chmod)
         if 'merge_alpha' not in p_skip:
             to_export = merge_meta_alpha(i_datasets_folder, diversities,
-                                         force, prjct_nm, qiime_env)
+                                         force, prjct_nm, qiime_env, chmod)
             if 'export_alpha' not in p_skip:
                 export_meta_alpha(i_datasets_folder, to_export,
-                                  force, prjct_nm, qiime_env)
+                                  force, prjct_nm, qiime_env, chmod)
         if 'alpha_correlations' not in p_skip:
             run_correlations(i_datasets_folder, datasets, diversities,
-                             force, prjct_nm, qiime_env)
+                             force, prjct_nm, qiime_env, chmod)
         if p_longi_column:
             if 'volatility' not in p_skip:
                 run_volatility(i_datasets_folder, datasets, p_longi_column,
-                               force, prjct_nm, qiime_env)
+                               force, prjct_nm, qiime_env, chmod)
     # ------------------------------------------------------------------
 
     # BETA ----------------------------------------------------
     if 'beta' not in p_skip:
         betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
-                         trees, force, prjct_nm, qiime_env)
+                         trees, force, prjct_nm, qiime_env, chmod)
         if 'export_beta' not in p_skip:
             export_beta(i_datasets_folder, betas,
-                        force, prjct_nm, qiime_env)
+                        force, prjct_nm, qiime_env, chmod)
         if 'emperor' not in p_skip:
             pcoas = run_pcoas(i_datasets_folder, betas,
-                              force, prjct_nm, qiime_env)
-            run_emperor(i_datasets_folder, pcoas, prjct_nm, qiime_env)
+                              force, prjct_nm, qiime_env, chmod)
+            run_emperor(i_datasets_folder, pcoas, prjct_nm, qiime_env, chmod)
     # ---------------------------------------------------------
 
     # STATS -----------------------------------------------------------------------
     if 'beta' not in p_skip and 'deicode' not in p_skip:
         run_deicode(i_datasets_folder, datasets, p_perm_groups,
-                    force, prjct_nm, qiime_env)
+                    force, prjct_nm, qiime_env, chmod)
 
     if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
         run_alpha_group_significance(i_datasets_folder, diversities, p_perm_groups,
-                                     force, prjct_nm, qiime_env)
+                                     force, prjct_nm, qiime_env, chmod)
 
     if p_perm_tests:
         if 'beta' not in p_skip and 'permanova' not in p_skip:
             run_permanova(i_datasets_folder, datasets, betas,
-                          p_perm_tests, p_perm_groups,force, prjct_nm, qiime_env)
+                          p_perm_tests, p_perm_groups,force, prjct_nm, qiime_env, chmod)
     if p_formulas:
         if 'beta' not in p_skip and 'adonis' not in p_skip:
             run_adonis(p_formulas, i_datasets_folder, datasets, betas,
-                       p_perm_groups, force, prjct_nm, qiime_env)
+                       p_perm_groups, force, prjct_nm, qiime_env, chmod)
     # ------------------------------------------------------------------------------

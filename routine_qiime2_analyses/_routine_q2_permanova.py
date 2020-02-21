@@ -71,7 +71,7 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
 
 
 def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_testing_groups: tuple,
-                  p_perm_groups: str, force: bool, prjct_nm: str, qiime_env: str) -> None:
+                  p_perm_groups: str, force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
     """
     Run beta-group-significance: Beta diversity group significance.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
@@ -85,6 +85,7 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Nick name for your project.
     :param qiime_env: qiime2-xxxx.xx conda environment.
+    :param chmod: whether to change permission of output files (defalt: 775).
     """
     job_folder2 = get_job_folder(i_datasets_folder, 'permanova/chunks')
     beta_metrics = get_metrics('beta_metrics')
@@ -135,7 +136,8 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
 
     job_folder = get_job_folder(i_datasets_folder, 'permanova')
     main_sh = write_main_sh(job_folder, '3_run_beta_group_significance', all_sh_pbs,
-                            '%s.prm' % prjct_nm, '2', '1', '1', '1', 'gb', qiime_env)
+                            '%s.prm' % prjct_nm, '2', '1', '1', '1', 'gb',
+                            qiime_env, chmod)
     if main_sh:
         if p_perm_groups:
             print("# PERMANOVA (groups config in %s)" % p_perm_groups)

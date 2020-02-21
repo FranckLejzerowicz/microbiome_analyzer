@@ -66,6 +66,10 @@ from routine_qiime2_analyses import __version__
     help="Minimum number of reads per sample to be kept."
 )
 @click.option(
+    "-c", "--p-chmod", default='775', show_default=True,
+    help="Change permission on all the output files (default = 775)."
+)
+@click.option(
     "-skip", "--p-skip", default=None, show_default=True, multiple=True,
     type=click.Choice(['alpha', 'merge_alpha', 'export_alpha', 'alpha_correlations',
                        'volatility', 'beta', 'export_beta', 'emperor', 'deicode',
@@ -96,6 +100,7 @@ def standalone_routine(
         force, i_wol_tree,
         i_sepp_tree,
         p_qiime2_env,
+        p_chmod,
         p_skip
 ):
 
@@ -111,6 +116,7 @@ def standalone_routine(
         force, i_wol_tree,
         i_sepp_tree,
         p_qiime2_env,
+        p_chmod,
         p_skip
     )
 

@@ -13,7 +13,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder
 from routine_qiime2_analyses._routine_q2_cmds import run_import
 
 def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
-                    force: bool, prjct_nm: str, qiime_env: str) -> None:
+                    force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
     """
     Initial import of the .tsv datasets in to Qiime2 Artefact.
 
@@ -23,6 +23,7 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Short nick name for your project.
     :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
+    :param chmod: whether to change permission of output files (defalt: 775).
     """
     job_folder = get_job_folder(i_datasets_folder, 'import_tables')
 
@@ -44,13 +45,13 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
                 sh.write('%s\n' % cmd)
                 written += 1
     run_xpbs(out_sh, out_pbs, '%s.mprt' % prjct_nm,
-             qiime_env,'1', '1', '1', '100', 'mb', written,
+             qiime_env,'1', '1', '1', '100', 'mb', chmod, written,
              '# Import tables to qiime2')
 
 
 def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: dict,
-                        datasets_features: dict, datasets_phylo: dict, force: bool,
-                        prjct_nm: str, qiime_env: str, thresh: int) -> None:
+                        datasets_features: dict, datasets_phylo: dict,
+                        prjct_nm: str, qiime_env: str, thresh: int, chmod: str) -> None:
     """
     Filter the rare features, keep samples with enough reads/features and import to Qiime2.
 
@@ -59,10 +60,10 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
     :param datasets_read: dataset -> [tsv table, meta table]
     :param datasets_features: dataset -> list of features names in the dataset tsv / biom file.
     :param datasets_phylo: to be updated with ('tree_to_use', 'corrected_or_not') per dataset.
-    :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Short nick name for your project.
     :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
     :param thresh: min number of reads per sample to keep it.
+    :param chmod: whether to change permission of output files (defalt: 775).
     """
     written = 0
     datasets_update = {}
@@ -101,7 +102,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             written += 1
 
     run_xpbs(out_sh, out_pbs, '%s.fltr' % prjct_nm,
-             qiime_env, '4', '4', '1', '100', 'mb', written,
+             qiime_env, '4', '4', '1', '100', 'mb', chmod, written,
              '# Filter samples for a min number of %s reads' % thresh)
 
     datasets.update(datasets_update)

@@ -14,7 +14,7 @@ from typing import TextIO
 
 def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
              qiime_env: str, time: str, n_nodes: str,
-             n_procs: str, mem_num: str, mem_dim: str,
+             n_procs: str, mem_num: str, mem_dim: str, chmod: str,
              written: int, single: str, o: TextIO = None) -> None:
     """
     Run the Xpbs script assorted with print or writing in higher-level command.
@@ -28,6 +28,7 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
     :param n_procs: number of processors to use.
     :param mem_num: memory in number.
     :param mem_dim: memory dimension to the number.
+    :param chmod: whether to change permission of output files (defalt: 775).
     :param written: integer that if 0 mean no writing happened.
     :param single: sentence to print or nothing if in multiprocessing (e.g. adonis).
     :param o: writing file handle.
@@ -35,7 +36,7 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
     """
     if written:
         xpbs_call(out_sh, out_pbs, job_name, qiime_env,
-                  time, n_nodes, n_procs, mem_num, mem_dim)
+                  time, n_nodes, n_procs, mem_num, mem_dim, chmod)
         if single:
             if not o:
                 print(single)
@@ -50,7 +51,8 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
 
 def xpbs_call(out_sh: str, out_pbs: str, prjct_nm: str,
               qiime_env: str, time: str, n_nodes: str,
-              n_procs: str, mem_num: str, mem_dim: str) -> None:
+              n_procs: str, mem_num: str, mem_dim: str,
+              chmod: str) -> None:
     """
     Call the subprocess to run Xpbs on the current bash script.
 
@@ -63,6 +65,7 @@ def xpbs_call(out_sh: str, out_pbs: str, prjct_nm: str,
     :param n_procs: number of processors to use.
     :param mem_num: memory in number.
     :param mem_dim: memory dimension to the number.
+    :param chmod: whether to change permission of output files (defalt: 775).
     :return:
     """
     cmd = [
@@ -75,6 +78,7 @@ def xpbs_call(out_sh: str, out_pbs: str, prjct_nm: str,
         '-n', n_nodes,
         '-p', n_procs,
         '-M', mem_num, mem_dim,
+        '-c', chmod,
         '--noq'
     ]
     subprocess.call(cmd)
