@@ -112,6 +112,14 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
     for j in jobs:
         j.join()
 
+    for (dat, out_sh), cur_shs in all_sh_pbs.items():
+        print(dat, out_sh)
+        for cur_sh in cur_shs:
+            if isfile(cur_sh):
+                print(cur_sh, '+')
+            else:
+                print(cur_sh, '-')
+
     job_folder = get_job_folder(i_data_sets_folder, 'deicode')
     main_sh = write_main_sh(job_folder, '3_run_beta_deicode', all_sh_pbs,
                             '%s.dcd' % prjct_nm, '2', '1', '1', '200', 'mb',
