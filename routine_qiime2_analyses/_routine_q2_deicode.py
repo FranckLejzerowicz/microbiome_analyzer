@@ -92,6 +92,7 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
         meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str})
         meta_pd.set_index(meta_sam_col, inplace=True)
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'DEICODE')
+        print(dat, cases_dict)
         out_sh = '%s/run_adonis_%s.sh' % (job_folder2, dat)
         odir = get_analysis_folder(i_data_sets_folder, 'deicode/%s' % dat)
         for case_var, case_vals_list in cases_dict.items():
