@@ -63,7 +63,7 @@ def run_multi_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
     with open(cur_sh) as cur_sh_o:
         for line in cur_sh_o:
             print(line.strip())
-    print(cur_shvds)
+            break
     #if remove:
      #   print('[DEICODE] remove', cur_sh)
       #  os.remove(cur_sh)
