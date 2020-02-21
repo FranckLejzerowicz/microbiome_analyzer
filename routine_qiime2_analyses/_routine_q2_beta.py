@@ -142,8 +142,8 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
                 for meta, DMs in meta_DMs.items():
                     for DM in DMs:
                         out_pcoa = '%s_PCoA.qza' % splitext(DM)[0].replace('/beta/', '/pcoa/')
+                        pcoas_d[dat].setdefault(meta, []).append(out_pcoa)
                         if force or not isfile(out_pcoa):
-                            pcoas_d[dat].setdefault(meta, []).append(out_pcoa)
                             if not isdir(dirname(out_pcoa)):
                                 os.makedirs(dirname(out_pcoa))
                             write_diversity_pcoa(DM, out_pcoa, cur_sh)
