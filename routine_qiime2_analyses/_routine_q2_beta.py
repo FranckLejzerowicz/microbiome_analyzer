@@ -127,13 +127,13 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
 
     job_folder = get_job_folder(i_datasets_folder, 'pcoa')
     job_folder2 = get_job_folder(i_datasets_folder, 'pcoa/chunks')
-    odir = get_analysis_folder(i_datasets_folder, 'pcoa')
 
     pcoas_d = {}
     written = 0
     run_pbs = '%s/3_run_pcoa.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, meta_DMs in betas.items():
+            odir = get_analysis_folder(i_datasets_folder, 'pcoa/%s' % dat)
             if dat not in pcoas_d:
                 pcoas_d[dat] = {}
             out_sh = '%s/run_PCoA_%s.sh' % (job_folder2, dat)
@@ -144,8 +144,6 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
                         out_pcoa = '%s_PCoA.qza' % splitext(DM)[0].replace('/beta/', '/pcoa/')
                         pcoas_d[dat].setdefault(meta, []).append(out_pcoa)
                         if force or not isfile(out_pcoa):
-                            if not isdir(dirname(out_pcoa)):
-                                os.makedirs(dirname(out_pcoa))
                             write_diversity_pcoa(DM, out_pcoa, cur_sh)
                             written += 1
             run_xpbs(out_sh, out_pbs, '%s.pc.%s' % (prjct_nm, dat),
@@ -172,13 +170,13 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict,
 
     job_folder = get_job_folder(i_datasets_folder, 'emperor')
     job_folder2 = get_job_folder(i_datasets_folder, 'emperor/chunks')
-    odir = get_analysis_folder(i_datasets_folder, 'emperor')
 
     written = 0
     first_print = 0
     run_pbs = '%s/4_run_emperor.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, meta_pcoas in pcoas_d.items():
+            odir = get_analysis_folder(i_datasets_folder, 'emperor/%s' % dat)
             out_sh = '%s/run_emperor_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
