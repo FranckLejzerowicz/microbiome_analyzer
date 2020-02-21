@@ -103,22 +103,23 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
             cur_sh = '%s/run_beta_deicode_%s_%s.sh' % (job_folder2, dat, case_var)
             print(dat, case_var, cur_sh)
             cur_sh = cur_sh.replace(' ', '-')
-            all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-            p = multiprocessing.Process(
-                target=run_multi_deicode,
-                args=(odir, tsv, meta_pd, case_var, case_vals_list, out_sh, force))
-            p.start()
-            jobs.append(p)
-    for j in jobs:
-        j.join()
-
-    job_folder = get_job_folder(i_data_sets_folder, 'deicode')
-    main_sh = write_main_sh(job_folder, '3_run_beta_deicode', all_sh_pbs,
-                            '%s.dcd' % prjct_nm, '2', '1', '1', '200', 'mb',
-                            qiime_env, chmod)
-    if main_sh:
-        if p_perm_groups:
-            print('# DEICODE (groups config in %s)' % p_perm_groups)
-        else:
-            print('# DEICODE')
-        print('sh', main_sh)
+            print('cur_sh:' cur_sh)
+            # all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
+            # p = multiprocessing.Process(
+            #     target=run_multi_deicode,
+            #     args=(odir, tsv, meta_pd, case_var, case_vals_list, out_sh, force))
+            # p.start()
+            # jobs.append(p)
+    # for j in jobs:
+    #     j.join()
+    #
+    # job_folder = get_job_folder(i_data_sets_folder, 'deicode')
+    # main_sh = write_main_sh(job_folder, '3_run_beta_deicode', all_sh_pbs,
+    #                         '%s.dcd' % prjct_nm, '2', '1', '1', '200', 'mb',
+    #                         qiime_env, chmod)
+    # if main_sh:
+    #     if p_perm_groups:
+    #         print('# DEICODE (groups config in %s)' % p_perm_groups)
+    #     else:
+    #         print('# DEICODE')
+    #     print('sh', main_sh)
