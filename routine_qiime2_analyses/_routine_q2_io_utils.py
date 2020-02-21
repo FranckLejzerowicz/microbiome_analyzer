@@ -89,6 +89,7 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
     out_main_sh = ''
     with open(main_sh, 'w') as main_o:
         for (dat, out_sh), cur_shs in all_sh_pbs.items():
+            print(dat, out_sh)
             cur_written = False
             with open(out_sh, 'w') as sh:
                 for cur_sh in cur_shs:
@@ -101,8 +102,8 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
                          time, n_nodes, n_procs, mem_num, mem_dim, chmod, 1, '', None)
                 main_o.write('qsub %s\n' % out_pbs)
                 out_main_sh = main_sh
-            else:
-                os.remove(out_sh)
+            # else:
+            #     os.remove(out_sh)
     return out_main_sh
 
 
