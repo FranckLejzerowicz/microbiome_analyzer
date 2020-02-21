@@ -44,28 +44,24 @@ def run_multi_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
 
     remove = True
     qza = '%s.qza' % splitext(tsv)[0]
-    cur_sh_o = open(cur_sh, 'w')
-    for case_vals in case_vals_list:
-        case = get_case(case_vals, '', case_var)
-        cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
-        new_meta = '%s.meta' % cur_rad
-        new_mat_qza = '%s_DM.qza' % cur_rad
-        new_qza = '%s.qza' % cur_rad
-        ordi_qza = '%s_deicode_ordination.qza' % cur_rad
-        ordi_qzv = '%s_deicode_ordination_biplot.qzv' % cur_rad
-        if force or not isfile(ordi_qzv):
-            new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-            new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-            write_deicode_biplot(qza, new_meta, new_qza, ordi_qza,
-                                 new_mat_qza, ordi_qzv, cur_sh_o)
-            remove = False
-
-    cur_sh_o.close()
+    with open(cur_sh, 'w') as cur_sh_o:
+        for case_vals in case_vals_list:
+            case = get_case(case_vals, '', case_var)
+            cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
+            new_meta = '%s.meta' % cur_rad
+            new_mat_qza = '%s_DM.qza' % cur_rad
+            new_qza = '%s.qza' % cur_rad
+            ordi_qza = '%s_deicode_ordination.qza' % cur_rad
+            ordi_qzv = '%s_deicode_ordination_biplot.qzv' % cur_rad
+            if force or not isfile(ordi_qzv):
+                new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+                new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
+                write_deicode_biplot(qza, new_meta, new_qza, ordi_qza,
+                                     new_mat_qza, ordi_qzv, cur_sh_o)
+                remove = False
     if remove:
         print('[DEICODE] remove', cur_sh)
         os.remove(cur_sh)
-    else:
-        print(open(cur_sh).readlines())
 
 
 def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
@@ -104,27 +100,20 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
             p = multiprocessing.Process(
                 target=run_multi_deicode,
-                args=(odir, tsv, meta_pd, case_var, case_vals_list, out_sh, force))
+                args=(odir, tsv, meta_pd, case_var, case_vals_list, cur_sh, force))
             p.start()
             jobs.append(p)
 
     for j in jobs:
         j.join()
 
-    for (dat, out_sh), cur_shs in all_sh_pbs.items():
-        for cur_sh in cur_shs:
-            if isfile(cur_sh):
-                print(cur_sh, '+')
-            else:
-                print(cur_sh, '-')
-
-    # job_folder = get_job_folder(i_data_sets_folder, 'deicode')
-    # main_sh = write_main_sh(job_folder, '3_run_beta_deicode', all_sh_pbs,
-    #                         '%s.dcd' % prjct_nm, '2', '1', '1', '200', 'mb',
-    #                         qiime_env, chmod)
-    # if main_sh:
-    #     if p_perm_groups:
-    #         print('# DEICODE (groups config in %s)' % p_perm_groups)
-    #     else:
-    #         print('# DEICODE')
-    #     print('sh', main_sh)
+    job_folder = get_job_folder(i_data_sets_folder, 'deicode')
+    main_sh = write_main_sh(job_folder, '3_run_beta_deicode', all_sh_pbs,
+                            '%s.dcd' % prjct_nm, '2', '1', '1', '200', 'mb',
+                            qiime_env, chmod)
+    if main_sh:
+        if p_perm_groups:
+            print('# DEICODE (groups config in %s)' % p_perm_groups)
+        else:
+            print('# DEICODE')
+        print('sh', main_sh)
