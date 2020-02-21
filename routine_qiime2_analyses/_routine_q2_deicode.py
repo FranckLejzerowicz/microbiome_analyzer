@@ -61,10 +61,11 @@ def run_multi_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
             remove = False
 
     cur_sh_o.close()
-
     if remove:
         print('[DEICODE] remove', cur_sh)
         os.remove(cur_sh)
+    else:
+        print(open(cur_sh).readlines())
 
 
 def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
