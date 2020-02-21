@@ -60,7 +60,6 @@ def run_multi_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
                                      new_mat_qza, ordi_qzv, cur_sh_o)
                 remove = False
     if remove:
-        print('[DEICODE] remove', cur_sh)
         os.remove(cur_sh)
 
 
@@ -116,4 +115,4 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
             print('# DEICODE (groups config in %s)' % p_perm_groups)
         else:
             print('# DEICODE')
-        print('sh', main_sh)
+        print('[TO RUN] sh', main_sh)
