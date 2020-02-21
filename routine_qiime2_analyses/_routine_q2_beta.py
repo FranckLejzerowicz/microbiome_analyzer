@@ -179,26 +179,26 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict,
     run_pbs = '%s/4_run_emperor.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, meta_pcoas in pcoas_d.items():
-            for meta_, pcoas in meta_pcoas.items():
-                meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
-                if not isfile(meta_alphas):
-                    meta = meta_
-                    if not first_print:
-                        print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
-                              '\t(if you want alpha diversity as a variable in the PCoA)!')
-                        first_print += 1
-                else:
-                    meta = meta_alphas
-                for pcoa in pcoas:
-                    out_sh = '%s/run_emperor_%s_%s.sh' % (job_folder2, dat, basename(pcoa.split('_DM_')[0]))
-                    out_pbs = '%s.pbs' % splitext(out_sh)[0]
-                    with open(out_sh, 'w') as cur_sh:
+            out_sh = '%s/run_emperor_%s.sh' % (job_folder2, dat)
+            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            with open(out_sh, 'w') as cur_sh:
+                for meta_, pcoas in meta_pcoas.items():
+                    meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
+                    if isfile(meta_alphas):
+                        meta = meta_alphas
+                    else:
+                        meta = meta_
+                        if not first_print:
+                            print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
+                                  '\t(if you want alpha diversity as a variable in the PCoA)!')
+                            first_print += 1
+                    for pcoa in pcoas:
                         out_plot = '%s_emperor.qzv' % splitext(pcoa)[0].replace('/pcoa/', '/emperor/')
                         write_emperor(meta, pcoa, out_plot, cur_sh)
                         written += 1
-                    run_xpbs(out_sh, out_pbs, '%s.mprr.%s.%s' % (prjct_nm, dat, basename(pcoa.split('_DM_')[0])),
-                             qiime_env, '10', '1', '1', '2', 'gb',
-                             chmod, written, 'single', o)
+            run_xpbs(out_sh, out_pbs, '%s.mprr.%s' % (prjct_nm, dat),
+                     qiime_env, '10', '1', '1', '1', 'gb',
+                     chmod, written, 'single', o)
     if written:
         print('# Make EMPeror plots')
         print('[TO RUN] sh', run_pbs)
