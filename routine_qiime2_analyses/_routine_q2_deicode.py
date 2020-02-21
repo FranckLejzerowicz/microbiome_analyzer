@@ -47,21 +47,23 @@ def run_multi_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
     with open(cur_sh, 'w') as cur_sh_o:
         for case_vals in case_vals_list:
             case = get_case(case_vals, '', case_var)
-            cur_rad = '/'.join([odir, basename(tsv).replace('.tsv', '_%s' % case)])
+            cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
             new_meta = '%s.meta' % cur_rad
             new_mat_qza = '%s_DM.qza' % cur_rad
             new_qza = '%s.qza' % cur_rad
             ordi_qza = '%s_deicode_ordination.qza' % cur_rad
             ordi_qzv = '%s_deicode_ordination_biplot.qzv' % cur_rad
             if force or not isfile(ordi_qzv):
+                print(meta_pd.iloc[:4,:4])
                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+                print(new_meta_pd.iloc[:4,:4])
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
                 write_deicode_biplot(qza, new_meta, new_qza, ordi_qza,
                                      new_mat_qza, ordi_qzv, cur_sh_o)
                 remove = False
-    if remove:
-        print('[DEICODE] remove', cur_sh)
-        os.remove(cur_sh)
+    #if remove:
+     #   print('[DEICODE] remove', cur_sh)
+      #  os.remove(cur_sh)
 
 
 def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
@@ -92,7 +94,6 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
         meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str})
         meta_pd.set_index(meta_sam_col, inplace=True)
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'DEICODE')
-        print(dat, cases_dict)
         out_sh = '%s/run_adonis_%s.sh' % (job_folder2, dat)
         odir = get_analysis_folder(i_data_sets_folder, 'deicode/%s' % dat)
         for case_var, case_vals_list in cases_dict.items():
