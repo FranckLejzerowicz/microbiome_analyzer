@@ -96,7 +96,7 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
         meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str})
         meta_pd.set_index(meta_sam_col, inplace=True)
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'DEICODE')
-        out_sh = '%s/run_adonis_%s.sh' % (job_folder2, dat)
+        out_sh = '%s/run_deicode_%s.sh' % (job_folder2, dat)
         odir = get_analysis_folder(i_data_sets_folder, 'deicode/%s' % dat)
         for case_var, case_vals_list in cases_dict.items():
             cur_sh = '%s/run_beta_deicode_%s_%s.sh' % (job_folder2, dat, case_var)
@@ -120,13 +120,13 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
             else:
                 print(cur_sh, '-')
 
-    # job_folder = get_job_folder(i_data_sets_folder, 'deicode')
-    # main_sh = write_main_sh(job_folder, '3_run_beta_deicode', all_sh_pbs,
-    #                         '%s.dcd' % prjct_nm, '2', '1', '1', '200', 'mb',
-    #                         qiime_env, chmod)
-    # if main_sh:
-    #     if p_perm_groups:
-    #         print('# DEICODE (groups config in %s)' % p_perm_groups)
-    #     else:
-    #         print('# DEICODE')
-    #     print('sh', main_sh)
+    job_folder = get_job_folder(i_data_sets_folder, 'deicode')
+    main_sh = write_main_sh(job_folder, '3_run_beta_deicode', all_sh_pbs,
+                            '%s.dcd' % prjct_nm, '2', '1', '1', '200', 'mb',
+                            qiime_env, chmod)
+    if main_sh:
+        if p_perm_groups:
+            print('# DEICODE (groups config in %s)' % p_perm_groups)
+        else:
+            print('# DEICODE')
+        print('sh', main_sh)
