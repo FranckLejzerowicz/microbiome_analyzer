@@ -33,6 +33,82 @@ def get_sample_col(meta: str) -> str:
     return line.split()[0]
 
 
+def get_songbird_params(p_diff_models: str, diff_dict: dict) -> dict:
+    """
+    Get the parameters for songbird passed by the user.
+    :param p_diff_models: file containing the parameters.
+    :param diff_dict: parsed content of the file containing the parameters.
+    :return: parameters.
+    """
+    params = {
+        'batches': ['2'],
+        'learns': ['1e-4'],
+        'epochs': ['5000'],
+        'thresh_feats': ['0'],
+        'thresh_samples': ['0'],
+        'diff_priors': ['0.1', '1']
+    }
+    if 'params' not in diff_dict:
+        print('No parameters set in %s:\nUsing defaults: %s' % (
+            diff_dict, ', '.join(['%s: %s' % (k,v) for k,v in params.items()])))
+    else:
+        for param in diff_dict['params']:
+            cur_param = diff_dict['params'][param]
+            if not isinstance(cur_param, list):
+                print('Parameter %s should be a list (correct in %s)\n' % (param, p_diff_models))
+                sys.exit(1)
+            params[param] = cur_param
+    return params
+
+
+def get_songbird_cases_dict(p_diff_models: str, diff_dict: dict) -> dict:
+    """
+    Get the subset cases for songbird passed by the user.
+    :param p_diff_models: file containing the subsets.
+    :param diff_dict: parsed content of the file containing the subsets.
+    :return: subsets.
+    """
+    if 'subsets' not in diff_dict:
+        print('No subsets in %s' % p_diff_models)
+        return {}
+    else:
+        return diff_dict['subsets']
+
+
+def get_songbird_models(p_diff_models: str, diff_dict: dict) -> dict:
+    """
+    Get the models for songbird passed by the user.
+    :param p_diff_models: file containing the models.
+    :param diff_dict: parsed content of the file containing the models.
+    :return: models.
+    """
+    if 'models' not in diff_dict:
+        print('No models in %s' % p_diff_models)
+        sys.exit(1)
+    return diff_dict['models']
+
+
+def get_songbird_dict(p_diff_models: str) -> (dict, dict, dict):
+    """
+    Collect from on the passed yaml file:
+    - subsets to perform songbird on
+    - formulas for songbird
+    - paramters for the modelling.
+    :param p_perm_groups: path to the yaml file containing groups.
+    :return: subset groups.
+    """
+    if not isfile(p_diff_models):
+        print('yaml file containing groups does not exist:\n%s\nExiting...' % p_diff_models)
+        sys.exit(1)
+    with open(p_diff_models) as handle:
+        diff_dict = yaml.load(handle, Loader=yaml.FullLoader)
+    models = get_songbird_models(p_diff_models, diff_dict)
+    main_cases_dict = {'ALL': [[]]}
+    main_cases_dict.update(get_songbird_cases_dict(p_diff_models, diff_dict))
+    params = get_songbird_params(p_diff_models, diff_dict)
+    return models, main_cases_dict, params
+
+
 def get_main_cases_dict(p_perm_groups: str) -> dict:
     """
     Collect the subsets to perform based on the passed yaml file.
@@ -64,6 +140,18 @@ def get_formulas_dict(p_formulas: str) -> dict:
         formulas = yaml.load(handle, Loader=yaml.FullLoader)
     return formulas
 
+
+def read_meta_pd(meta: str) -> pd.DataFrame:
+    """
+    Read metadata wit first column as index.
+    :param meta: file path to the metadata file.
+    :return: metadata table.
+    """
+    meta_sam_col = get_sample_col(meta)
+    meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str})
+    meta_pd.rename(columns={meta_sam_col: 'sample_name'}, inplace=True)
+    meta_pd.set_index('sample_name', inplace=True)
+    return meta_pd
 
 
 def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,

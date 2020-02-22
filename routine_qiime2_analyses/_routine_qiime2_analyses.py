@@ -20,13 +20,26 @@ from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alp
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
 from routine_qiime2_analyses._routine_q2_permanova import run_permanova
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
+from routine_qiime2_analyses._routine_q2_songbird import run_songbird, run_mmvec
 
 
-def routine_qiime2_analyses(i_datasets: tuple, i_datasets_folder: str, project_name: str,
-                            p_longi_column: str, thresh: int, p_perm_tests: tuple,
-                            p_perm_groups: str, p_formulas: str, force: bool,
-                            i_wol_tree: str, i_sepp_tree: str, qiime_env: str,
-                            chmod: str, p_skip: tuple) -> None:
+def routine_qiime2_analyses(
+        i_datasets: tuple,
+        i_datasets_folder: str,
+        project_name: str,
+        p_longi_column: str,
+        thresh: int,
+        p_perm_tests: tuple,
+        p_perm_groups: str,
+        p_formulas: str,
+        force: bool,
+        i_wol_tree: str,
+        i_sepp_tree: str,
+        p_diff_models: str,
+        p_mmvec_pairs: str,
+        qiime_env: str,
+        chmod: str,
+        p_skip: tuple) -> None:
     """
     Main qiime2 functions writer.
 
@@ -42,6 +55,8 @@ def routine_qiime2_analyses(i_datasets: tuple, i_datasets_folder: str, project_n
     :param force: Force the re-writing of scripts for all commands.
     :param i_wol_tree: default to ./routine_qiime2_analyses/resources/wol_tree.nwk.
     :param i_sepp_tree: path to the SEPP database artefact. Default to None.
+    :param p_diff_models: Formulas for multinomial regression-based differential abundance ranking.
+    :param p_mmvec_pairs: Pairs of datasets for which to compute co-occurrences probabilities.
     :param chmod: whether to change permission of output files (defalt: 775).
     :param p_skip: steps to skip.
     """
@@ -134,4 +149,16 @@ def routine_qiime2_analyses(i_datasets: tuple, i_datasets_folder: str, project_n
         if 'beta' not in p_skip and 'adonis' not in p_skip:
             run_adonis(p_formulas, i_datasets_folder, datasets, betas,
                        p_perm_groups, force, prjct_nm, qiime_env, chmod)
+    # ------------------------------------------------------------------------------
+
+    # MMVEC AND SONGBIRD -----------------------------------------------------------
+    if p_diff_models:
+        if 'songbird' not in p_skip:
+            run_songbird(p_diff_models, i_datasets_folder, datasets,
+                         force, prjct_nm, qiime_env, chmod)
+
+    if p_mmvec_pairs:
+        if 'mmvec' not in p_skip:
+            run_mmvec(p_mmvec_pairs, p_diff_models, i_datasets_folder,
+                      datasets, force, prjct_nm, qiime_env, chmod)
     # ------------------------------------------------------------------------------

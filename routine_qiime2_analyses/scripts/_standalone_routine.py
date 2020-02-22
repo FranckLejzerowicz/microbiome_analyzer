@@ -49,12 +49,22 @@ from routine_qiime2_analyses import __version__
 @click.option(
     "-g", "--p-perm-groups", required=False, show_default=True, default=False,
     help="Subsets for PERMANOVA. Must be a yaml file, e.g.\n"
-         "(see example in 'examples/example_PERMANOVA_subsets.yml' and the README)."
+         "(see example in 'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
     "-a", "--p-adonis-formulas", required=False, default=False, show_default=True,
     help="Formula for Adonis tests for each PERMANOVA subset. Must be a yaml file, e.g.\n"
-         "(see example in 'examples/example_ADONIS_formulas.yml' and the README)."
+         "(see example in 'examples/adonis_formulas.yml' and README)."
+)
+@click.option(
+    "-s", "--p-diff-models", required=False, default=False, show_default=True,
+    help="Formulas for multinomial regression-based differential abundance ranking (songbird).\n"
+         "MUST BE YAML FILE, see 'examples/songbird_models.yml' and README."
+)
+@click.option(
+    "-m", "--p-mmvec-pairs", required=False, default=False, show_default=True,
+    help="Pairs of datasets for which to compute co-occurrences probabilities (mmvec).\n"
+         "MUST BE YAML FILE, see 'examples/mmvec_pairs.yml' and README."
 )
 @click.option(
     "-l", "--p-longi-column", required=False, default=False, show_default=True,
@@ -66,14 +76,14 @@ from routine_qiime2_analyses import __version__
     help="Minimum number of reads per sample to be kept."
 )
 @click.option(
-    "-c", "--p-chmod", default='775', show_default=True,
-    help="Change permission on all the output files (default = 775)."
+    "-c", "--p-chmod", default='664', show_default=True,
+    help="Change output files permission (default = 664 [= -rw-rw-r--])."
 )
 @click.option(
     "-skip", "--p-skip", default=None, show_default=True, multiple=True,
     type=click.Choice(['alpha', 'merge_alpha', 'export_alpha', 'alpha_correlations',
                        'volatility', 'beta', 'export_beta', 'emperor', 'deicode',
-                       'alpha_kw', 'permanova', 'adonis']),
+                       'alpha_kw', 'permanova', 'adonis', 'songbird', 'mmvec']),
     help="Steps to skip (e.g. if already done or not necessary)."
          "\nSkipping 'alpha' will also skip 'merge_alpha', 'export_alpha',"
          "'alpha_correlations', 'alpha_kw' and 'volatility'."
@@ -99,6 +109,8 @@ def standalone_routine(
         p_adonis_formulas,
         force, i_wol_tree,
         i_sepp_tree,
+        p_diff_models,
+        p_mmvec_pairs,
         p_qiime2_env,
         p_chmod,
         p_skip
@@ -115,6 +127,8 @@ def standalone_routine(
         p_adonis_formulas,
         force, i_wol_tree,
         i_sepp_tree,
+        p_diff_models,
+        p_mmvec_pairs,
         p_qiime2_env,
         p_chmod,
         p_skip

@@ -1,0 +1,21 @@
+models:
+  timeINTERsexPLUSincome: "sex+income*timepoint_months"
+  timePLUSincome: "income+timepoint_months"
+subsets:
+  sex:
+  - - Male
+  - - Female
+params:
+  batches:
+    - 2
+  learns:
+    - 1e-4
+  epochs:
+    - 5000
+  thresh_feats:
+    - 0
+  thresh_samples:
+    - 0
+  diff_priors:
+    - 0.1
+    - 1

@@ -11,6 +11,93 @@ from typing import TextIO
 from os.path import isfile, splitext
 
 
+def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
+                       epoch: str, batch: str, diff_prior: str, learn: str,
+                       thresh_sample: str, thresh_feat: str, n_random: str,
+                       diffs: str, diffs_qza: str, stats: str, plot: str,
+                       base_diff_qza: str, base_stats: str, base_plot: str,
+                       tensor: str, cur_sh: TextIO) -> str:
+    """
+    :param qza:
+    :param new_qza:
+    :param new_meta:
+    :param formula:
+    :param epoch:
+    :param batch:
+    :param diff_prior:
+    :param learn:
+    :param thresh_sample:
+    :param thresh_feat:
+    :param n_random:
+    :param diffs:
+    :param diffs_qza:
+    :param stats:
+    :param plot:
+    :param base_diff_qza:
+    :param base_stats:
+    :param base_plot:
+    :param cur_sh:
+    """
+
+    if not isfile(new_qza):
+        cmd = 'qiime feature-table filter-samples \\\n'
+        cmd += '--i-table %s \\\n' % qza
+        cmd += '--m-metadata-file %s \\\n' % new_meta
+        cmd += '--o-filtered-table %s\n' % new_qza
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
+
+    if not isfile(diffs_qza):
+        cmd = '\nqiime songbird multinomial \\\n'
+        cmd += ' --i-table %s \\\n' % new_qza
+        cmd += ' --m-metadata-file %s \\\n' % new_meta
+        cmd += ' --p-formula "%s" \\\n' % formula
+        cmd += ' --p-epochs %s \\\n' % epoch
+        cmd += ' --p-batch-size %s \\\n' % batch
+        cmd += ' --p-differential-prior %s \\\n' % diff_prior
+        cmd += ' --p-learning-rate %s \\\n' % learn
+        cmd += ' --p-min-sample-count %s \\\n' % thresh_sample
+        cmd += ' --p-min-feature-count %s \\\n' % thresh_feat
+        cmd += ' --p-num-random-test-examples %s \\\n' % n_random
+        cmd += ' --p-summary-interval 2 \\\n'
+        cmd += ' --o-differentials %s \\\n' % diffs_qza
+        cmd += ' --o-regression-stats %s \\\n' % stats
+        cmd += ' --o-regression-biplot %s\n' % plot
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
+
+    if not isfile(diffs):
+        cmd = run_export(diffs_qza, diffs, '')
+
+    if not isfile(base_diff_qza):
+        cmd = '\nqiime songbird multinomial \\\n'
+        cmd += ' --i-table %s \\\n' % new_qza
+        cmd += ' --m-metadata-file %s \\\n' % new_meta
+        cmd += ' --p-formula "%s" \\\n' % formula
+        cmd += ' --p-epochs %s \\\n' % epoch
+        cmd += ' --p-batch-size %s \\\n' % batch
+        cmd += ' --p-differential-prior %s \\\n' % diff_prior
+        cmd += ' --p-learning-rate %s \\\n' % learn
+        cmd += ' --p-min-sample-count %s \\\n' % thresh_sample
+        cmd += ' --p-min-feature-count %s \\\n' % thresh_feat
+        cmd += ' --p-num-random-test-examples %s \\\n' % n_random
+        cmd += ' --p-summary-interval 2 \\\n'
+        cmd += ' --o-differentials %s \\\n' % base_diff_qza
+        cmd += ' --o-regression-stats %s \\\n' % base_stats
+        cmd += ' --o-regression-biplot %s\n' % base_plot
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
+
+    if not isfile(tensor):
+        cmd = '\n\nqiime songbird summarize-paired \\\n'
+        cmd += ' --i-regression-stats %s \\\n' % stats
+        cmd += ' --i-baseline-stats %s \\\n' % base_stats
+        cmd += ' --o-visualization %s\n' % tensor
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
+
+
+
 def run_import(input_path: str, output_path: str, typ: str) -> str:
     """
     Return the import qiime2 command.
@@ -417,8 +504,7 @@ def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
 
 def get_metric(metrics: list, file_name: str) -> str:
     """
-    Get the currnt diversity from the file name.
-
+    Get the current diversity from the file name.
     :param metrics: all the diversity metrics.
     :param file_name: file name.
     :return: either diversity metric or nothing.
@@ -436,7 +522,6 @@ def get_case(case_vals: list, metric: str, case_var: str, form: str = None) -> s
      - metadata variable.
      - metadata variable's values.
      - formula.
-
     :param case_vals: variable's values
     :param metric: diversity metric.
     :param case_var: metadata variable.

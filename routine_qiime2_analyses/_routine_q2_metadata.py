@@ -69,6 +69,29 @@ def check_metadata_formulas(meta: str, meta_pd: pd.DataFrame,
     return formulas
 
 
+def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
+                          main_models: dict, analysis: str) -> dict:
+    """
+    :param meta: metadata file name.
+    :param meta_pd: metadata table.
+    :param main_models: groups to factor in the songbird model (need metadata presence).
+    :param analysis: current qiime2 analysis.
+    :return: checked songbird models.
+    """
+    meta_pd_vars = set(meta_pd.columns.tolist())
+    models = {}
+    for model, formula in main_models.items():
+        formula_split = re.split('[+/:*]', formula.strip('"').strip("'"))
+        common_with_md = set(meta_pd_vars) & set(formula_split)
+        if sorted(set(formula_split)) != sorted(common_with_md):
+            only_formula = sorted(set(formula_split) ^ common_with_md)
+            print('Songbird formula term(s) missing in metadata:\n  %s\n  [not used]: %s=%s' % (
+                ', '.join(sorted(only_formula)), model, formula))
+        else:
+            models[model] = formula
+    return models
+
+
 def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame,
                                   main_testing_groups: tuple, analysis: str) -> list:
     """
