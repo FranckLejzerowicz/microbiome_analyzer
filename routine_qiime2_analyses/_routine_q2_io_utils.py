@@ -20,7 +20,7 @@ from routine_qiime2_analyses._routine_q2_cmds import run_export
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
 
-def update_filtering_abundance(mmvec_dict: dict, p_mmvec_pairs: str, filtering: dict) -> dicz:
+def update_filtering_abundance(mmvec_dict: dict, p_mmvec_pairs: str, filtering: dict) -> dict:
     if 'abundance' in mmvec_dict['filtering']:
         if not isinstance(mmvec_dict['filtering']['abundance'], list):
             print('Filtering parameter "abundance" should be a list (see %s)\n' % p_mmvec_pairs)
