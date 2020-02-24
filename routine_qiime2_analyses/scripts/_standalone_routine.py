@@ -95,6 +95,10 @@ from routine_qiime2_analyses import __version__
     help="Force the re-writing of scripts for all commands"
          "(default is to not re-run if output file exists)."
 )
+@click.option(
+    "--gpu/--no-gpu", default=False, show_default=True,
+    help="Use GPUs instead of CPUs for MMVEC."
+)
 @click.version_option(__version__, prog_name="routine_qiime2_analyses")
 
 
@@ -113,7 +117,8 @@ def standalone_routine(
         p_mmvec_pairs,
         p_qiime2_env,
         p_chmod,
-        p_skip
+        p_skip,
+        gpu
 ):
 
     routine_qiime2_analyses(
@@ -131,7 +136,8 @@ def standalone_routine(
         p_mmvec_pairs,
         p_qiime2_env,
         p_chmod,
-        p_skip
+        p_skip,
+        gpu
     )
 
 

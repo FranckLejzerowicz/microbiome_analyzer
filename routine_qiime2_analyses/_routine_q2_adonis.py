@@ -17,7 +17,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_main_cases_dict,
     get_formulas_dict,
     write_main_sh,
-    get_sample_col
+    read_meta_pd
 )
 from routine_qiime2_analyses._routine_q2_metadata import (
     check_metadata_cases_dict,
@@ -106,9 +106,7 @@ def run_adonis(p_formulas: str, i_data_sets_folder: str, data_sets: dict, betas:
         if absence_mat:
             continue
 
-        meta_sam_col = get_sample_col(meta)
-        meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str})
-        meta_pd.set_index(meta_sam_col, inplace=True)
+        meta_pd = read_meta_pd(meta)
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'ADONIS')
         formulas = check_metadata_formulas(meta, meta_pd, dict(formulas), 'ADONIS')
 

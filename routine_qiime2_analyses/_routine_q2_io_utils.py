@@ -20,17 +20,134 @@ from routine_qiime2_analyses._routine_q2_cmds import run_export
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
 
-def get_sample_col(meta: str) -> str:
-    """
-    Get the first column of the metadata file.
+def update_filtering_abundance(mmvec_dict: dict, p_mmvec_pairs: str, filtering: dict) -> dicz:
+    if 'abundance' in mmvec_dict['filtering']:
+        if not isinstance(mmvec_dict['filtering']['abundance'], list):
+            print('Filtering parameter "abundance" should be a list (see %s)\n' % p_mmvec_pairs)
+            sys.exit(1)
+        not_int = []
+        for abundance_list in mmvec_dict['filtering']['abundance']:
+            if not isinstance(abundance_list, list):
+                print('Filtering parameter "abundance" should be a list of lists (see %s)\nExiting\n' % p_mmvec_pairs)
+                sys.exit(1)
+            for abundance in abundance_list:
+                try:
+                    int(abundance)
+                except ValueError:
+                    not_int.append(abundance_list)
+                    break
+        if not_int:
+            print('Filtering parameter "abundance" should contain two integers (see %s)\n' % p_mmvec_pairs)
+            print('  Not integer(s) in\n:%s\nExiting\n' % ', '.join(["['%s']" % "', '".join(x) for x in not_int]))
+            sys.exit(1)
+    else:
+        print('No "abundance" filter specified in %s:\nUsing defaults:' % p_mmvec_pairs)
+        for k, v in filtering['abundance'].items():
+            print(' -', k, ' ,'.join(v))
+        return {'filtering': {'abundance': filtering['abundance']}}
+    return {}
 
-    :param meta: metadata file name
-    :return: column name
+
+def update_filtering_prevalence(mmvec_dict: dict, p_mmvec_pairs: str, filtering: dict) -> dict:
+    if 'prevalence' in mmvec_dict['filtering']:
+        if not isinstance(mmvec_dict['filtering']['prevalence'], list):
+            print('Filtering parameter "prevalence" should be a list (see %s)\nExiting\n' % p_mmvec_pairs)
+            sys.exit(1)
+        not_int = []
+        for prevalence in mmvec_dict['filtering']['prevalence']:
+            try:
+                int(prevalence)
+            except ValueError:
+                not_int.append(prevalence)
+        if not_int:
+            print('Filtering parameter "prevalence" should contain integers (see %s)\n' % p_mmvec_pairs)
+            print('  Not integer(s)\n:%s\nExiting\n' % ', '.join(not_int))
+            sys.exit(1)
+    else:
+        print('No "prevalence" filter specified in %s:\nUsing defaults: %s' % (p_mmvec_pairs,
+                                                                               ','.join(filtering['prevalence'])))
+        return {'filtering': {'prevalence': filtering['prevalence']}}
+    return {}
+
+
+def get_mmvec_filtering(p_mmvec_pairs: str, mmvec_dict: dict) -> None:
     """
-    with open(meta) as f:
-        for line in f:
-            break
-    return line.split()[0]
+    Get the parameters for songbird passed by the user.
+    :param p_mmvec_pairs: file containing the parameters.
+    :param mmvec_dict: parsed content of the file containing the parameters.
+    :return: parameters.
+    """
+    filtering = {
+        'prevalence': [
+            '0',
+            '10'
+        ],
+        'abundance': [
+            ['0', '0']
+        ]
+    }
+    if 'filtering' not in mmvec_dict:
+        print('No filtering thresholds set in %s:\nUsing defaults:' % p_mmvec_pairs)
+        for k, v in filtering.items():
+            print(k, ' ,'.join(v))
+    else:
+        mmvec_dict.update(update_filtering_prevalence(mmvec_dict, p_mmvec_pairs, filtering))
+        mmvec_dict.update(update_filtering_abundance(mmvec_dict, p_mmvec_pairs, filtering))
+
+
+def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
+    """
+    Get the parameters for songbird passed by the user.
+    :param p_mmvec_pairs: file containing the parameters.
+    :param mmvec_dict: parsed content of the file containing the parameters.
+    :return: parameters.
+    """
+    params = {
+        'batches': ['2'],
+        'learns': ['1e-4'],
+        'epochs': ['5000'],
+        'thresh_feats': ['0'],
+        'thresh_samples': ['0'],
+        'diff_priors': ['0.1', '1'],
+        'latent_dims': ['3'],
+        'n_examples': ['10'],
+        'train_column': [None]
+    }
+    if 'params' not in mmvec_dict:
+        print('No parameters set in %s:\nUsing defaults: %s' % (
+            mmvec_dict, ', '.join(['%s: %s' % (k,v) for k,v in params.items()])))
+    else:
+        for param in mmvec_dict['params']:
+            cur_param = mmvec_dict['params'][param]
+            if not isinstance(cur_param, list):
+                print('Parameter %s should be a list (correct in %s)\n' % (param, p_mmvec_pairs))
+                sys.exit(1)
+            params[param] = cur_param
+    return params
+
+
+def get_mmvec_dict(p_mmvec_pairs: str) -> (dict, dict, dict):
+    """
+    Collect pairs of datasets from the passed yaml file:
+    :param p_mmvec_pairs: Pairs of datasets for which to compute co-occurrences probabilities.
+    :return: datasets pairs, filtering thresholds, mmvec run parameters.
+    """
+    if not isfile(p_mmvec_pairs):
+        print('yaml file for mmvec pairs does not exist:\n%s\nExiting...' % p_mmvec_pairs)
+        sys.exit(1)
+    with open(p_mmvec_pairs) as handle:
+        mmvec_dict = yaml.load(handle, Loader=yaml.FullLoader)
+
+    get_mmvec_filtering(p_mmvec_pairs, mmvec_dict)
+    mmvec_params = get_mmvec_params(p_mmvec_pairs, mmvec_dict)
+
+    return mmvec_dict['pairs'], mmvec_dict['filtering'], mmvec_params
+
+
+def get_mmvec_pairs(p_mmvec_pairs: str, mmvec_dict: dict) -> None:
+    if 'pairs' not in mmvec_dict:
+        print('No datasets pairs specified in %s:\nExiting\n' % p_mmvec_pairs)
+        sys.exit(1)
 
 
 def get_songbird_params(p_diff_models: str, diff_dict: dict) -> dict:
@@ -75,7 +192,7 @@ def get_songbird_cases_dict(p_diff_models: str, diff_dict: dict) -> dict:
         return diff_dict['subsets']
 
 
-def get_songbird_models(p_diff_models: str, diff_dict: dict) -> dict:
+def get_songbird_models(p_diff_models: str, diff_dict: dict) -> None:
     """
     Get the models for songbird passed by the user.
     :param p_diff_models: file containing the models.
@@ -85,7 +202,6 @@ def get_songbird_models(p_diff_models: str, diff_dict: dict) -> dict:
     if 'models' not in diff_dict:
         print('No models in %s' % p_diff_models)
         sys.exit(1)
-    return diff_dict['models']
 
 
 def get_songbird_dict(p_diff_models: str) -> (dict, dict, dict):
@@ -102,11 +218,11 @@ def get_songbird_dict(p_diff_models: str) -> (dict, dict, dict):
         sys.exit(1)
     with open(p_diff_models) as handle:
         diff_dict = yaml.load(handle, Loader=yaml.FullLoader)
-    models = get_songbird_models(p_diff_models, diff_dict)
     main_cases_dict = {'ALL': [[]]}
-    main_cases_dict.update(get_songbird_cases_dict(p_diff_models, diff_dict))
+    if 'subsets' in diff_dict:
+        main_cases_dict.update(get_songbird_cases_dict(p_diff_models, diff_dict))
     params = get_songbird_params(p_diff_models, diff_dict)
-    return models, main_cases_dict, params
+    return diff_dict['models'], main_cases_dict, params
 
 
 def get_main_cases_dict(p_perm_groups: str) -> dict:
@@ -139,6 +255,19 @@ def get_formulas_dict(p_formulas: str) -> dict:
     with open(p_formulas) as handle:
         formulas = yaml.load(handle, Loader=yaml.FullLoader)
     return formulas
+
+
+def get_sample_col(meta: str) -> str:
+    """
+    Get the first column of the metadata file.
+
+    :param meta: metadata file name
+    :return: column name
+    """
+    with open(meta) as f:
+        for line in f:
+            break
+    return line.split()[0]
 
 
 def read_meta_pd(meta: str) -> pd.DataFrame:

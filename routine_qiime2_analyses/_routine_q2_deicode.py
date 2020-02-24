@@ -16,7 +16,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_analysis_folder,
     get_main_cases_dict,
     write_main_sh,
-    get_sample_col
+    read_meta_pd
 )
 from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
 from routine_qiime2_analyses._routine_q2_cmds import (
@@ -87,9 +87,7 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
     for dat, tsv_meta_pds in data_sets.items():
 
         tsv, meta = tsv_meta_pds
-        meta_sam_col = get_sample_col(meta)
-        meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str})
-        meta_pd.set_index(meta_sam_col, inplace=True)
+        meta_pd = read_meta_pd(meta)
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'DEICODE')
         out_sh = '%s/run_deicode_%s.sh' % (job_folder2, dat)
         odir = get_analysis_folder(i_data_sets_folder, 'deicode/%s' % dat)

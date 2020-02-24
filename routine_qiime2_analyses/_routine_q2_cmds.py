@@ -11,6 +11,58 @@ from typing import TextIO
 from os.path import isfile, splitext
 
 
+
+
+
+
+def prep_mmvec(out_dir, A, B, len_common_samples,
+               common_A_biom, common_B_biom,
+               thresh = 5, gpu=1):
+
+    cmds = []
+    written = 0
+    for batch_learn_epoch in itertools.product(['500'], ['1e-4', '1e-5'], ['1000', '10000']):
+    # for batch_learn_epoch in itertools.product(['500'], ['1e-4'], ['25000']):
+        batch, learn, epoch = batch_learn_epoch
+        if gpu:
+            res_dir = '%s/filt_%s/gpu_%s_%s_%s' % (out_dir, thresh,
+                                               batch, learn, epoch)
+        else:
+            res_dir = '%s/filt_%s/cpu_%s_%s_%s' % (out_dir, thresh,
+                                               batch, learn, epoch)
+        ranks = '%s/ranks.csv' % res_dir
+        if not isfile(ranks):
+            cmd = '\nmmvec paired-omics \\ \n'
+            # sh.write('/usr/bin/time mmvec paired-omics \\ \n')
+            if gpu:
+                cmd += '--arm-the-gpu \\ \n'
+            cmd += '--microbe-file %s \\ \n' % common_A_biom
+            cmd += '--metabolite-file %s \\ \n' % common_B_biom
+            cmd += '--min-feature-count %s \\ \n' % thresh
+            cmd += '--epochs %s \\ \n' % epoch
+            cmd += '--batch-size %s \\ \n' % batch
+            cmd += '--latent-dim 3 \\ \n'
+            cmd += '--input-prior 1 \\ \n'
+            cmd += '--learning-rate %s \\ \n' % learn
+            cmd += '--beta1 0.85 \\ \n'
+            cmd += '--beta2 0.90 \\ \n'
+            cmd += '--checkpoint-interval 60 \\ \n'
+            cmd += '--summary-interval 60 \\ \n'
+            cmd += '--summary-dir %s \\ \n' % res_dir
+            cmd += '--ranks-file %s\n' % ranks
+            cmds.append(cmd)
+            written += 1
+    return cmds
+
+
+
+
+
+
+
+
+
+
 def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
                        epoch: str, batch: str, diff_prior: str, learn: str,
                        thresh_sample: str, thresh_feat: str, n_random: str,
@@ -68,6 +120,8 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
 
     if not isfile(diffs):
         cmd = run_export(diffs_qza, diffs, '')
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
 
     if not isfile(base_diff_qza):
         cmd = '\nqiime songbird multinomial \\\n'

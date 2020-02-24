@@ -19,6 +19,7 @@ for which another folder containing metadata for these samples is present, and r
 - **deicode**
 - **permanova**
 - **adonis**
+- **songbird**
 - ... _(more to come)_
 
 
@@ -207,53 +208,56 @@ Example:
 It is possible to run PERMANOVA for a series of user-defined subsets of the data and to test difference between 
 different groups of each subset automatically.
 
-- **permanova tests** (`-t`):
+#### **permanova tests** `-t`
 
-    This use of `-t` will result in one test for each factor to the column `sex`, as well as one subset for each
-    factor to the column `age_cat`. As in this example, note that `-t` can be used multiple time, once per group. 
+This use of `-t` will result in one test for each factor to the column `sex`, as well as one subset for each
+factor to the column `age_cat`. As in this example, note that `-t` can be used multiple time, once per group. 
     
-- **group subsets** (`-g`): a config file must be provided in the following .yml format:  
-    ```
-    sex:
-    - - Male
-    - - Female
-    timepoint_months:
-    - - '9'
-      - '24'
-    - - '24'
-      - '36'  
-    income:
-    - - '<15000'
-    - - '>15000'
-    ```
-    which is interpreted as a dictionary which for each metadata variable, lists one or more factor(s) 
-    defining a subset:
-    ```
-    {'sex': [['Male'], ['Female']],
-     'timepoint_months': [['9', '24'], ['24', '36']],
-     'income': [['<15000'], ['>15000']]}    
-    ```
-    In this example, there will be one subset for:
-     - samples having `Male` in column `sex`
-     - samples having `Female` in column `sex`
-     - samples having `9` or `24` in column `timepoint_months`
-     - samples having `24` or `36` in column `timepoint_months`
-     - samples having a value inferior to `15000` in column `income`
-     - samples having a value superior to `15000` in column `income`
-    For example:
-    ```
-    routine_qiime2_analyses \
-        -t sex \
-        -t age_cat \
-        -g ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml \
-        -i ./routine_qiime2_analyses/test/files \
-        -d dataset_number_1 \
-        -d test2 \
-        -n test \
-        -e qiime2-2019.10
-    ```
+#### **group subsets** `-g`
+ 
+A config file must be provided in the following .yml format:  
+```
+sex:
+- - Male
+- - Female
+timepoint_months:
+- - '9'
+  - '24'
+- - '24'
+  - '36'  
+income:
+- - '<15000'
+- - '>15000'
+```
+which is interpreted as a dictionary which for each metadata variable, lists one or more factor(s) 
+defining a subset:
+```
+{'sex': [['Male'], ['Female']],
+ 'timepoint_months': [['9', '24'], ['24', '36']],
+ 'income': [['<15000'], ['>15000']]}    
+```
+In this example, there will be one subset for:
+ - samples having `Male` in column `sex`
+ - samples having `Female` in column `sex`
+ - samples having `9` or `24` in column `timepoint_months`
+ - samples having `24` or `36` in column `timepoint_months`
+ - samples having a value inferior to `15000` in column `income`
+ - samples having a value superior to `15000` in column `income`
+ 
+For example:
+```
+routine_qiime2_analyses \
+    -t sex \
+    -t age_cat \
+    -g ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml \
+    -i ./routine_qiime2_analyses/test/files \
+    -d dataset_number_1 \
+    -d test2 \
+    -n test \
+    -e qiime2-2019.10
+```
         
-- The output is self contained, e.g.: `tab_dataset_number_2_braycurtis_sex_Female__timepoint_months_permanova.qzv`
+The output is self contained, e.g.: `tab_dataset_number_2_braycurtis_sex_Female__timepoint_months_permanova.qzv`
 is for the `Female` subset of metadata variable `sex` (it also does the result for `Male` etc), and using PERMANOVA to perform comparison between 
 the groups in columns `timepoint_months`. 
 
@@ -265,44 +269,90 @@ for multivariate data but with continuous and multiple metadata variables as reg
 (see [http://cc.oulu.fi/~jarioksa/softhelp/vegan/html/adonis.html](http://cc.oulu.fi/~jarioksa/softhelp/vegan/html/adonis.html)).
 The passed models will perform on each of the subsets defined in the file passed to option `-g`, as above.
 
-- **adonis formula** (`-a`): a config file must be provided in the following .yml format:
-    ```
-    sexPLUSincomeINTERtime: "sex+income*timepoint_months"
-    incomePLUStime: "income+timepoint_months"
-    ```
-    which is interpreted as a dictionary which for each metadata variable, lists one or more factor(s) 
-    defining a subset:
-    ```
-    {'sexPLUSincomeINTERtime': 'sex+income*timepoint_months',
-     'incomePLUStime': 'income+timepoint_months'}
-    ```
-    In this example, there will be one model for each formula (and for each distance matrix),
-    which in R, would correspond to these commands:
-     - `adonis(<bray_curtis_distance_matrix-file> ~ sex + income * timepoint_months, <metadata-file>)`
-     - `adonis(<bray_curtis_distance_matrix-file> ~ income * timepoint_months, <metadata-file>)`
-     
-    For example:
-    ```
-    routine_qiime2_analyses \
-        -a ./routine_qiime2_analyses/examples/example_ADONIS_formulas.yml \
-        -g ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml \
-        -i ./routine_qiime2_analyses/test/files \
-        -d dataset_number_1 \
-        -d dataset_number_2 \
-        -n jobs_name \
-        -e qiime2-2019.10
-    ```
-    This use of `-a` will result in one test for each formula placed as rows in the .yml file. 
+#### **adonis formula** `-a`
+
+A config file must be provided in the following .yml format:
+```
+sexPLUSincomeINTERtime: "sex+income*timepoint_months"
+incomePLUStime: "income+timepoint_months"
+```
+which is interpreted as a dictionary which for each metadata variable, lists one or more factor(s) 
+defining a subset:
+```
+{'sexPLUSincomeINTERtime': 'sex+income*timepoint_months',
+ 'incomePLUStime': 'income+timepoint_months'}
+```
+In this example, there will be one model for each formula (and for each distance matrix),
+which in R, would correspond to these commands:
+ - `adonis(<bray_curtis_distance_matrix-file> ~ sex + income * timepoint_months, <metadata-file>)`
+ - `adonis(<bray_curtis_distance_matrix-file> ~ income * timepoint_months, <metadata-file>)`
+ 
+For example:
+```
+routine_qiime2_analyses \
+    -a ./routine_qiime2_analyses/examples/example_ADONIS_formulas.yml \
+    -g ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml \
+    -i ./routine_qiime2_analyses/test/files \
+    -d dataset_number_1 \
+    -d dataset_number_2 \
+    -n jobs_name \
+    -e qiime2-2019.10
+```
+This use of `-a` will result in one test for each formula placed as rows in the .yml file. 
     
-- **group subsets** (`-g`): a config file must be provided in the following .yml format.
+#### **group subsets** `-g`
+ 
+A config file must be provided in the following .yml format.
 This is the exact same file (and thus format) as for the PERMANOVA above.   
     
-- The output is self contained, e.g.: `tab_dataset_number_1_braycurtis_sex_Female__sexPLUSincomeINTERtime_adonis.qzv` is for
+The output is self contained, e.g.: `tab_dataset_number_1_braycurtis_sex_Female__sexPLUSincomeINTERtime_adonis.qzv` is for
 the `Female` subset of metadata variable `sex` (it also does the result for `Male` etc), and using ADONIS to perform
 testing between the groups in columns `timepoint_months`. 
 
  
+## SONGBIRD
+
+It is possible to run Jamie Morton's Songbird in Qiime2 for a series of user-defined formulas to model for,
+and also apply this formula for different data subset (same 
+format as for PERMANOVA), and with given parameters (see [songbird help page](https://github.com/biocore/songbird)):
+
+#### **songbird formula + subsets + parameters** `-s`:
+
+A config file must be provided in the following .yml format:
+```
+models:
+  timeINTERsexPLUSincome: "sex+income*timepoint_months"
+  timePLUSincome: "income+timepoint_months"
+subsets:
+  sex:
+  - - Male
+  - - Female
+params:
+  batches:
+    - 2
+  learns:
+    - 1e-4
+  epochs:
+    - 5000
+  thresh_feats:
+    - 0
+  thresh_samples:
+    - 0
+  diff_priors:
+    - 0.1
+    - 1
+```
+which is interpreted as a dictionary with the folowing "sections": `models`, `subsets` and `params`
+
+- `models`: for each model name, one formula as for _ADONIS_.
+- `subsets`: for each variable name, subsets for one or more factors of this variable,
+    as for _PERMANOVA_.
+- `params`: parameters to songbird (see [doc](https://github.com/biocore/songbird))
+
+#### **MMVEC** `-m`:
+
  
+
 ## Usage
 
 ```

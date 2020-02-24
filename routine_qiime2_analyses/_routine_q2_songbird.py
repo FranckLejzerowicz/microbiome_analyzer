@@ -83,7 +83,7 @@ def run_multi_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
 
 
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
-                 force: str, prjct_nm: str, qiime_env: str, chmod: str) -> None:
+                 force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
