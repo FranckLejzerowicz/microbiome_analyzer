@@ -53,6 +53,7 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
     qza = '%s.qza' % splitext(tsv)[0]
     with open(cur_sh, 'w') as cur_sh_o:
         case = '%s__%s' % (case_, testing_group)
+        case = case.replace(' ', '_')
         cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
         new_meta = '%s.meta' % cur_rad
         new_qza = '%s.qza' % cur_rad
