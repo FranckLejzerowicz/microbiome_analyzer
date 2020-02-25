@@ -21,7 +21,7 @@ from routine_qiime2_analyses._routine_q2_deicode import run_deicode
 from routine_qiime2_analyses._routine_q2_permanova import run_permanova
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
 from routine_qiime2_analyses._routine_q2_songbird import run_songbird
-# from routine_qiime2_analyses._routine_q2_mmvec import run_mmvec
+from routine_qiime2_analyses._routine_q2_mmvec import run_mmvec
 
 
 def routine_qiime2_analyses(
@@ -41,7 +41,8 @@ def routine_qiime2_analyses(
         qiime_env: str,
         chmod: str,
         p_skip: tuple,
-        gpu: bool) -> None:
+        gpu: bool,
+        standalone: bool) -> None:
     """
     Main qiime2 functions writer.
 
@@ -62,6 +63,7 @@ def routine_qiime2_analyses(
     :param chmod: whether to change permission of output files (defalt: 775).
     :param p_skip: steps to skip.
     :param gpu: Use GPUs instead of CPUs for MMVEC.
+    :param standalone:
     """
 
     # check input
@@ -155,13 +157,17 @@ def routine_qiime2_analyses(
     # ------------------------------------------------------------------------------
 
     # MMVEC AND SONGBIRD -----------------------------------------------------------
+    songbird_outputs, mmvec_outputs = {}, {}
     if p_diff_models:
         if 'songbird' not in p_skip:
-            run_songbird(p_diff_models, i_datasets_folder, datasets,
-                         force, prjct_nm, qiime_env, chmod)
+            songbird_outputs = run_songbird(p_diff_models, i_datasets_folder, datasets,
+                                            force, prjct_nm, qiime_env, chmod)
 
-    # if p_mmvec_pairs:
-    #     if 'mmvec' not in p_skip:
-    #         run_mmvec(p_mmvec_pairs, p_diff_models, i_datasets_folder,
-    #                   datasets, force, gpu, prjct_nm, qiime_env, chmod)
+    if p_mmvec_pairs:
+        if 'mmvec' not in p_skip:
+            mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets_read,
+                                      force, gpu, standalone, prjct_nm, qiime_env, chmod)
+
+    # if p_diff_models and p_mmvec_pairs:
+    #     run_mmbird(i_datasets_folder, songbird_outputs, mmvec_outputs)
     # ------------------------------------------------------------------------------

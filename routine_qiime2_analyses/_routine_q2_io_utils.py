@@ -79,8 +79,7 @@ def get_mmvec_filtering(p_mmvec_pairs: str, mmvec_dict: dict) -> None:
     """
     filtering = {
         'prevalence': [
-            '0',
-            '10'
+            '0'
         ],
         'abundance': [
             ['0', '0']
@@ -103,15 +102,14 @@ def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
     :return: parameters.
     """
     params = {
+        'train_column': [None],
+        'n_examples': ['10'],
         'batches': ['2'],
         'learns': ['1e-4'],
         'epochs': ['5000'],
+        'priors': ['0.1', '1'],
         'thresh_feats': ['0'],
-        'thresh_samples': ['0'],
-        'diff_priors': ['0.1', '1'],
-        'latent_dims': ['3'],
-        'n_examples': ['10'],
-        'train_column': [None]
+        'latent_dims': ['3']
     }
     if 'params' not in mmvec_dict:
         print('No parameters set in %s:\nUsing defaults: %s' % (
@@ -126,7 +124,7 @@ def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
     return params
 
 
-def get_mmvec_dict(p_mmvec_pairs: str) -> (dict, dict, dict):
+def get_mmvec_dicts(p_mmvec_pairs: str) -> (dict, dict, dict):
     """
     Collect pairs of datasets from the passed yaml file:
     :param p_mmvec_pairs: Pairs of datasets for which to compute co-occurrences probabilities.
@@ -140,7 +138,6 @@ def get_mmvec_dict(p_mmvec_pairs: str) -> (dict, dict, dict):
 
     get_mmvec_filtering(p_mmvec_pairs, mmvec_dict)
     mmvec_params = get_mmvec_params(p_mmvec_pairs, mmvec_dict)
-
     return mmvec_dict['pairs'], mmvec_dict['filtering'], mmvec_params
 
 
@@ -304,6 +301,7 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
     """
     main_sh = '%s/%s.sh' % (job_folder, analysis)
     out_main_sh = ''
+    warning = 0
     with open(main_sh, 'w') as main_o:
         for (dat, out_sh), cur_shs in all_sh_pbs.items():
             cur_written = False
@@ -318,8 +316,11 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
                          time, n_nodes, n_procs, mem_num, mem_dim, chmod, 1, '', None)
                 main_o.write('qsub %s\n' % out_pbs)
                 out_main_sh = main_sh
+                warning += 1
             else:
                 os.remove(out_sh)
+    if warning > 40:
+        print(' -> [WARNING] >40 jobs here: please check before running!')
     return out_main_sh
 
 

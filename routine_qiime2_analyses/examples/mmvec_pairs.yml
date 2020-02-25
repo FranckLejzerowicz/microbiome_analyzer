@@ -30,7 +30,7 @@ params:
   priors:
     - 0.1
     - 1
-  latent_dims:
-    - 3
   thresh_feats:
     - 0
+  latent_dims:
+    - 3

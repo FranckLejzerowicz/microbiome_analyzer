@@ -11,56 +11,92 @@ from typing import TextIO
 from os.path import isfile, splitext
 
 
+def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
+                    conditionals_tsv: str, biplot_tsv: str,
+                    batch: str, learn: str, epoch: str,
+                    prior: str, thresh_feat: str, latent_dim: str,
+                    train_column: str, n_example: str, gpu: bool,
+                    standalone: bool, cur_sh: TextIO) -> None:
+    """
+    Performs bi-loglinear multinomial regression and calculates the
+    conditional probability ranks of metabolite co-occurence given the microbe
+    presence.
 
-
-
-
-def prep_mmvec(out_dir, A, B, len_common_samples,
-               common_A_biom, common_B_biom,
-               thresh = 5, gpu=1):
-
-    cmds = []
-    written = 0
-    for batch_learn_epoch in itertools.product(['500'], ['1e-4', '1e-5'], ['1000', '10000']):
-    # for batch_learn_epoch in itertools.product(['500'], ['1e-4'], ['25000']):
-        batch, learn, epoch = batch_learn_epoch
+    :param meta_fp:
+    :param qza1:
+    :param qza2:
+    :param res_dir:
+    :param conditionals_tsv:
+    :param biplot_tsv:
+    :param batch:
+    :param learn:
+    :param epoch:
+    :param prior:
+    :param thresh_feat:
+    :param latent_dim:
+    :param train_column:
+    :param n_example:
+    :param gpu:
+    :param standalone:
+    :param cur_sh:
+    :return:
+    """
+    if gpu or standalone:
+        biom1 = '%s.biom' % splitext(qza1)[0]
+        biom2 = '%s.biom' % splitext(qza2)[0]
+        cmd = '\nmmvec paired-omics \\\n'
         if gpu:
-            res_dir = '%s/filt_%s/gpu_%s_%s_%s' % (out_dir, thresh,
-                                               batch, learn, epoch)
-        else:
-            res_dir = '%s/filt_%s/cpu_%s_%s_%s' % (out_dir, thresh,
-                                               batch, learn, epoch)
-        ranks = '%s/ranks.csv' % res_dir
-        if not isfile(ranks):
-            cmd = '\nmmvec paired-omics \\ \n'
-            # sh.write('/usr/bin/time mmvec paired-omics \\ \n')
-            if gpu:
-                cmd += '--arm-the-gpu \\ \n'
-            cmd += '--microbe-file %s \\ \n' % common_A_biom
-            cmd += '--metabolite-file %s \\ \n' % common_B_biom
-            cmd += '--min-feature-count %s \\ \n' % thresh
-            cmd += '--epochs %s \\ \n' % epoch
-            cmd += '--batch-size %s \\ \n' % batch
-            cmd += '--latent-dim 3 \\ \n'
-            cmd += '--input-prior 1 \\ \n'
-            cmd += '--learning-rate %s \\ \n' % learn
-            cmd += '--beta1 0.85 \\ \n'
-            cmd += '--beta2 0.90 \\ \n'
-            cmd += '--checkpoint-interval 60 \\ \n'
-            cmd += '--summary-interval 60 \\ \n'
-            cmd += '--summary-dir %s \\ \n' % res_dir
-            cmd += '--ranks-file %s\n' % ranks
-            cmds.append(cmd)
-            written += 1
-    return cmds
+            cmd += '--arm-the-gpu \\\n'
+        cmd += '--microbe-file %s \\\n' % biom1
+        cmd += '--metabolite-file %s \\\n' % biom2
+        cmd += '--min-feature-count %s \\\n' % thresh_feat
+        cmd += '--epochs %s \\\n' % epoch
+        cmd += '--batch-size %s \\\n' % batch
+        cmd += '--latent-dim %s \\\n' % latent_dim
+        cmd += '--input-prior %s \\\n' % prior
+        cmd += '--learning-rate %s \\\n' % learn
+        cmd += '--beta1 0.85 \\\n'
+        cmd += '--beta2 0.90 \\\n'
+        cmd += '--checkpoint-interval 10 \\\n'
+        cmd += '--summary-interval 10 \\\n'
+        cmd += '--summary-dir %s \\\n' % res_dir
+        cmd += '--ranks-file %s\n' % conditionals_tsv
+    else:
+        conditionals_qza = '%s.qza' % splitext(conditionals_tsv)[0]
+        biplot_qza = '%s.qza' % splitext(biplot_tsv)[0]
+        cmd = '\nqiime mmvec paired-omics \\\n'
+        cmd += '--i-microbes %s \\\n' % qza1
+        cmd += '--i-metabolites %s \\\n' % qza2
+        cmd += '--m-metadata-file %s \\\n' % meta_fp
+        cmd += '--p-training-column %s \\\n' % train_column
+        cmd += '--p-num-testing-examples %s \\\n' % n_example
+        cmd += '--p-min-feature-count %s \\\n' % thresh_feat
+        cmd += '--p-epochs %s \\\n' % epoch
+        cmd += '--p-batch-size %s \\\n' % batch
+        cmd += '--p-latent-dim %s \\\n' % latent_dim
+        cmd += '--p-input-prior %s \\\n' % prior
+        cmd += '--p-learning-rate %s \\\n' % learn
+        cmd += '--p-summary-interval 10 \\\n'
+        cmd += '--o-conditionals %s \\\n' % conditionals_qza
+        cmd += '--o-conditional-biplot %s\n' % biplot_qza
+        if not isfile(conditionals_tsv):
+            cmd += run_export(conditionals_qza, conditionals_tsv, '')
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n' % cmd)
 
 
-
-
-
-
-
-
+def filter_feature_table(qza: str, new_qza: str, meta: str) -> str:
+    """
+    :param qza:
+    :param new_qza:
+    :param meta:
+    :return:
+    """
+    cmd = 'qiime feature-table filter-samples \\\n'
+    cmd += '--i-table %s \\\n' % qza
+    cmd += '--m-metadata-file %s \\\n' % meta
+    cmd += '--o-filtered-table %s\n' % new_qza
+    return cmd
 
 
 def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
@@ -68,7 +104,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
                        thresh_sample: str, thresh_feat: str, n_random: str,
                        diffs: str, diffs_qza: str, stats: str, plot: str,
                        base_diff_qza: str, base_stats: str, base_plot: str,
-                       tensor: str, cur_sh: TextIO) -> str:
+                       tensor: str, cur_sh: TextIO) -> None:
     """
     :param qza:
     :param new_qza:
@@ -88,14 +124,12 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
     :param base_diff_qza:
     :param base_stats:
     :param base_plot:
+    :param tensor:
     :param cur_sh:
     """
 
     if not isfile(new_qza):
-        cmd = 'qiime feature-table filter-samples \\\n'
-        cmd += '--i-table %s \\\n' % qza
-        cmd += '--m-metadata-file %s \\\n' % new_meta
-        cmd += '--o-filtered-table %s\n' % new_qza
+        cmd = filter_feature_table(qza, new_qza, new_meta)
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 
@@ -149,7 +183,6 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd += ' --o-visualization %s\n' % tensor
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
-
 
 
 def run_import(input_path: str, output_path: str, typ: str) -> str:

@@ -83,7 +83,7 @@ def run_multi_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
 
 
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
-                 force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
+                 force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> dict:
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
@@ -107,6 +107,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     thresh_samples = params['thresh_samples']
     diff_priors = params['diff_priors']
 
+    songbird_outputs = {}
+
     jobs = []
     all_sh_pbs = {}
     for dat, tsv_meta_pds in datasets.items():
@@ -120,12 +122,14 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
         for model, formula in models.items():
             out_sh = '%s/run_songbird_%s_%s.sh' % (job_folder2, dat, model)
-            for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors, thresh_feats, thresh_samples)):
+            for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
+                                                       thresh_feats, thresh_samples)):
                 batch, learn, epoch, diff_prior, thresh_feat, thresh_sample = it
                 res_dir = '%s/%s/filt_f%s_s%s/%s_%s_%s_%s' % (
                     dat, model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE'),
                     thresh_feat, thresh_sample, batch, learn, epoch, diff_prior.replace('.', '')
                 )
+                songbird_outputs.setdefault(dat, []).append([dat, meta, qza, model, res_dir])
                 odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % res_dir)
                 for case_var, case_vals_list in cases_dict.items():
                     for case_vals in case_vals_list:
@@ -151,3 +155,5 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     if main_sh:
         print("# Songbird (configs in %s)" % p_diff_models)
         print('[TO RUN] sh', main_sh)
+
+    return songbird_outputs

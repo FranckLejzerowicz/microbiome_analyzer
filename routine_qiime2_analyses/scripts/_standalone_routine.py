@@ -99,6 +99,10 @@ from routine_qiime2_analyses import __version__
     "--gpu/--no-gpu", default=False, show_default=True,
     help="Use GPUs instead of CPUs for MMVEC."
 )
+@click.option(
+    "--standalone/--no-standalone", default=False, show_default=True,
+    help="Whether to run MMVEC using the standalone version (to check tensorboard)."
+)
 @click.version_option(__version__, prog_name="routine_qiime2_analyses")
 
 
@@ -118,7 +122,8 @@ def standalone_routine(
         p_qiime2_env,
         p_chmod,
         p_skip,
-        gpu
+        gpu,
+        standalone
 ):
 
     routine_qiime2_analyses(
@@ -137,7 +142,8 @@ def standalone_routine(
         p_qiime2_env,
         p_chmod,
         p_skip,
-        gpu
+        gpu,
+        standalone
     )
 
 
