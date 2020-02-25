@@ -60,6 +60,8 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
         new_mat_qza = odir + '/' + basename(mat_qza).replace('.qza', '_%s.qza' % case)
         if force or not isfile(new_qzv):
             new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+            print("new_meta_pd[testing_group].unique()")
+            print(new_meta_pd[testing_group].unique())
             if new_meta_pd[testing_group].unique().size > 1:
                 add_q2_types_to_meta(new_meta_pd, new_meta)
                 write_diversity_beta_group_significance(new_meta, mat_qza, new_mat_qza,
@@ -114,14 +116,18 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
             out_sh = '%s/run_beta_group_significance_%s_%s.sh' % (job_folder2, dat, metric)
             for case_var, case_vals_list in cases_dict.items():
                 testing_groups_case_var = list(set(testing_groups + [case_var]))
+                print('testing_groups_case_var:', testing_groups_case_var)
                 for case_vals in case_vals_list:
                     case_ = get_case(case_vals, metric, case_var)
+                    print('case_:', case_)
+                    print('case_vals:', case_vals)
                     for testing_group in testing_groups_case_var:
                         if testing_group == 'ALL':
                             continue
                         cur_sh = '%s/run_beta_group_significance_%s_%s_%s.sh' % (
                             job_folder2, dat, case_, testing_group)
                         cur_sh = cur_sh.replace(' ', '-')
+                        print('cur_sh:', cur_sh)
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                         p = multiprocessing.Process(
                             target=run_multi_perm,
