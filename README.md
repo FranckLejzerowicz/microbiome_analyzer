@@ -349,7 +349,7 @@ which is interpreted as a dictionary with the folowing "sections": `models`, `su
     as for _PERMANOVA_.
 - `params`: parameters to songbird (see [doc](https://github.com/biocore/songbird))
 
-#### **MMVEC** `-m`:
+## **MMVEC** `-m`:
 
 It is possible to run Jamie Morton's MMVEC in Qiime2 for a series of user-defined thresholds to get filter multiple
 omics datasets to predict co-occurrences for (see [mmvec help page](https://github.com/biocore/mmvec)).
