@@ -316,7 +316,7 @@ It is possible to run Jamie Morton's Songbird in Qiime2 for a series of user-def
 and also apply this formula for different data subset (same 
 format as for PERMANOVA), and with given parameters (see [songbird help page](https://github.com/biocore/songbird)):
 
-#### **songbird formula + subsets + parameters** `-s`:
+#### **formula + subsets + parameters** `-s`:
 
 A config file must be provided in the following .yml format:
 ```
@@ -351,6 +351,56 @@ which is interpreted as a dictionary with the folowing "sections": `models`, `su
 
 #### **MMVEC** `-m`:
 
+It is possible to run Jamie Morton's MMVEC in Qiime2 for a series of user-defined thresholds to get filter multiple
+omics datasets to predict co-occurrences for (see [mmvec help page](https://github.com/biocore/mmvec)).
+It is also possible to map the previous, Songbird differential ranks onto)
+
+#### **datasets + filtering + parameters** `-m`:
+
+A config file must be provided in the following .yml format:
+```
+pairs:
+  2_3:
+    - dataset_number_2
+    - dataset_number_3*
+  2_4:
+   - dataset_number_2
+   - dataset_number_4
+  3_4:
+   - dataset_number_3*
+   - dataset_number_4
+filtering:
+  prevalence:
+    - 0
+    - 10
+  abundance:
+    - - 0
+      - 0
+    - - 1
+      - 3
+params:
+  train_column: None
+  n_examples:
+    - 10
+  batches:
+    - 2
+  learns:
+    - 1e-4
+  epochs:
+    - 5000
+  priors:
+    - 0.1
+    - 1
+  thresh_feats:
+    - 0
+  latent_dims:
+    - 3
+```
+which is interpreted as a dictionary with the folowing "sections": `pairs`, `filtering` and `params`
+
+- `pairs`: for each named pair of datasets, the list of two datasets.
+- `filtering`: for both a `prevalence` and `abundance` filter, the threshold values.
+- `params`: parameters to mmvec (see [doc](https://github.com/biocore/mmvec))
  
 
 ## Usage
@@ -362,49 +412,77 @@ routine_qiime2_analyses -i <input_folder_path> -d <dataset_name> -n <project_nam
 ### Optional arguments
 
 ``` 
-  -i, --i-datasets-folder TEXT  Path to the folder containing the sub-folders
-                                'data' and 'metadata'.  [required]
-  -d, --i-datasets TEXT         Identifier(s) of the dataset(s) (e.g. '-d
-                                dataset_number_1 -d dataset_number_2' for
-                                inputs'data/tab_dataset_number_1.tsv +
-                                metadata/meta_dataset_number_1.tsv' as well as
-                                'data/tab_dataset_number_2.tsv +
-                                metadata/meta_dataset_number_2.tsv')
-                                [required]
-  -t, --i-wol-tree TEXT         path to the tree containing the genome IDs
-                                alse present in the features names (On
-                                barnacle, it is there: /projects/wol/profiling
-                                /dbs/wol/phylogeny/tree.nwk).
-  -n, --p-project-name TEXT     Nick name for your project.  [required]
-  -e, --p-qiime2-env TEXT       name of your qiime2 conda environment (e.g.
-                                qiime2-2019.10)   [required]
-  -t, --p-perm-tests TEXT       Groups to tests between in each PERMANOVA
-                                subset (multiple values are possible, e.g. '-t
-                                sex -t age_cat').  [default: False]
-  -g, --p-perm-groups TEXT      Subsets for PERMANOVA. Must be a yaml file,
-                                e.g.
-                                (see example in 'examples/example_PERMANOVA_subsets.yml'
-                                and the README).  [default: False]
-  -a, --p-adonis-formulas TEXT  Formula for Adonis tests for each PERMANOVA
-                                subset. Must be a yaml file, e.g.
-                                (see example
-                                in 'examples/example_ADONIS_formulas.yml' and the README).
-                                [default: False]
-  -l, --p-longi-column TEXT     If data is longitudinal; provide the time
-                                metadata columnfor volatility analysis.
-                                [default: False]
-  -f, --p-reads-filter INTEGER  Minimum number of reads per sample to be kept.
-                                [default: 0]
-  --force / --no-force          Force the re-writing of scripts for all
-                                commands(default is to not re-run if output
-                                file exists).  [default: False]
-  --gid / --no-gid              If feature names have the genome ID (to use
-                                the Web of Life tree).  [default: False]
-  --biom / --no-biom            Use biom files in the input folder(automatic
-                                if there's no .tsv but only .biom file(s)).
-                                [default: False]
-  --version                     Show the version and exit.
-  --help                        Show this message and exit.
+  -i, --i-datasets-folder TEXT    Path to the folder containing the sub-
+                                  folders 'data' and 'metadata'.  [required]
+  -d, --i-datasets TEXT           Dataset(s) identifier(s). Multiple is
+                                  possible: e.g. -d dataset_number_1 and -d
+                                  dataset_number_2 for
+                                  'tab_dataset_number_1.tsv' and
+                                  tab_dataset_number_2.tsv'.  [required]
+  -w, --i-wol-tree TEXT           path to the tree containing the genome IDs
+                                  (will check if exist in features names)(On
+                                  barnacle, it is there: /projects/wol/profili
+                                  ng/dbs/wol/phylogeny/tree.nwk).  [default:
+                                  resources/wol_tree.nwk]
+  -x, --i-sepp-tree TEXT          Qiime2 SEPP reference database to use for
+                                  16S reads placement:
+                                  https://docs.qiime2.org/2019.10/data-
+                                  resources/#sepp-reference-databases (auto
+                                  detection of datasets' tables with sequences
+                                  as features).
+  -n, --p-project-name TEXT       Nick name for your project.  [required]
+  -e, --p-qiime2-env TEXT         name of your qiime2 conda environment (e.g.
+                                  qiime2-2019.10)   [required]
+  -t, --p-perm-tests TEXT         Groups to tests between in each PERMANOVA
+                                  subset (multiple values are possible, e.g.
+                                  '-d sex -d age_cat').  [default: False]
+  -g, --p-perm-groups TEXT        Subsets for PERMANOVA. Must be a yaml file,
+                                  e.g.
+                                  (see example in
+                                  'examples/permanova_subsets.yml' and
+                                  README).  [default: False]
+  -a, --p-adonis-formulas TEXT    Formula for Adonis tests for each PERMANOVA
+                                  subset. Must be a yaml file, e.g.
+                                  (see
+                                  example in 'examples/adonis_formulas.yml'
+                                  and README).  [default: False]
+  -s, --p-diff-models TEXT        Formulas for multinomial regression-based
+                                  differential abundance ranking (songbird).
+                                  MUST BE YAML FILE, see
+                                  'examples/songbird_models.yml' and README.
+                                  [default: False]
+  -m, --p-mmvec-pairs TEXT        Pairs of datasets for which to compute co-
+                                  occurrences probabilities (mmvec).
+                                  MUST BE
+                                  YAML FILE, see 'examples/mmvec_pairs.yml'
+                                  and README.  [default: False]
+  -l, --p-longi-column TEXT       If data is longitudinal; provide the time
+                                  metadata columnfor volatility analysis.
+                                  [default: False]
+  -f, --p-reads-filter INTEGER    Minimum number of reads per sample to be
+                                  kept.  [default: 0]
+  -c, --p-chmod TEXT              Change output files permission (default =
+                                  664 [= -rw-rw-r--]).  [default: 664]
+  -skip, --p-skip [alpha|merge_alpha|export_alpha|alpha_correlations|volatility|beta|export_beta|emperor|deicode|alpha_kw|permanova|adonis|songbird|mmvec]
+                                  Steps to skip (e.g. if already done or not
+                                  necessary).
+                                  Skipping 'alpha' will also skip
+                                  'merge_alpha',
+                                  'export_alpha','alpha_correlations',
+                                  'alpha_kw' and 'volatility'.
+                                  Skipping 'beta'
+                                  will also skip 'export_beta',
+                                  'emperor','deicode', 'permanova', 'adonis''.
+  --force / --no-force            Force the re-writing of scripts for all
+                                  commands(default is to not re-run if output
+                                  file exists).  [default: False]
+  --gpu / --no-gpu                Use GPUs instead of CPUs for MMVEC.
+                                  [default: False]
+  --standalone / --no-standalone  Whether to run MMVEC using the standalone
+                                  version (to check tensorboard).  [default:
+                                  False]
+  --version                       Show the version and exit.
+  --help                          Show this message and exit.
 ```
 
 ## Example
