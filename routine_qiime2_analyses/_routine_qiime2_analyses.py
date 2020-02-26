@@ -155,7 +155,6 @@ def routine_qiime2_analyses(
     if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
         run_alpha_group_significance(i_datasets_folder, diversities, p_perm_groups,
                                      force, prjct_nm, qiime_env, chmod)
-
     if p_perm_tests:
         if 'beta' not in p_skip and 'permanova' not in p_skip:
             run_permanova(i_datasets_folder, datasets, betas,
@@ -172,12 +171,10 @@ def routine_qiime2_analyses(
         if 'songbird' not in p_skip:
             songbird_outputs = run_songbird(p_diff_models, i_datasets_folder, datasets,
                                             force, prjct_nm, qiime_env, chmod)
-
     if p_mmvec_pairs:
         if 'mmvec' not in p_skip:
             mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets, datasets_read,
                                       force, gpu, standalone, prjct_nm, qiime_env, chmod)
-
     # if p_diff_models and p_mmvec_pairs:
     #     run_mmbird(i_datasets_folder, songbird_outputs, mmvec_outputs)
     # ------------------------------------------------------------------------------
