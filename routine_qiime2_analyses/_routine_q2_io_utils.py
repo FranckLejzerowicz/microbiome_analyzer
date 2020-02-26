@@ -550,7 +550,7 @@ def get_sepp_tree(i_sepp_tree: str) -> str:
     :param i_sepp_tree: database to use.
     :return: path of the reference database for SEPP.
     """
-    if not isfile(i_sepp_tree):
+    if not i_sepp_tree or not isfile(i_sepp_tree):
         print('%s does not exist\nExiting...' % i_sepp_tree)
         sys.exit(1)
     if not i_sepp_tree.endswith('qza'):

@@ -282,7 +282,7 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
     :return: whether the command is to be skipped or not.
     """
     if 'unifrac' in metric:
-        if not datasets_phylo[dat][0]:
+        if not datasets_phylo[dat][0] or dat not in trees:
             return True
         cmd = 'qiime diversity beta-phylogenetic \\\n'
         if datasets_phylo[dat][1]:
@@ -693,7 +693,7 @@ def write_diversity_alpha(out_fp: str, datasets_phylo: dict, trees: dict, dat: s
     :return: whether the command is to be skipped or not.
     """
     if metric in ['faith_pd']:
-        if not datasets_phylo[dat][0]:
+        if not datasets_phylo[dat][0] or dat not in trees:
             return True
         cmd = 'qiime diversity alpha-phylogenetic \\\n'
         if datasets_phylo[dat][1]:

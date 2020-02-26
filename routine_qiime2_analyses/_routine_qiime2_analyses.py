@@ -101,8 +101,9 @@ def routine_qiime2_analyses(
     trees = {}
     shear_tree(i_datasets_folder, datasets_phylo, datasets_features, prjct_nm,
                i_wol_tree, trees, force, qiime_env, chmod)
-    run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo, prjct_nm,
-             i_sepp_tree, trees, force, qiime_env, chmod)
+    if i_sepp_tree:
+        run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo, prjct_nm,
+                 i_sepp_tree, trees, force, qiime_env, chmod)
     # ------------------------------------------------------------------------------------------
 
     # ALPHA ------------------------------------------------------------
