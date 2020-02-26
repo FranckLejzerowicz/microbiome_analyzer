@@ -116,7 +116,7 @@ def check_rarefy_need(datasets_read: dict) -> dict:
         if abs(skw) > 1:
             print('[%s] Reads-per-sample distribution [skewness=%s] (>1!)' % (dat, skw))
             division_std = np.interp(count, (count.min(), count.max()), (0, 20))
-            print('readsbin\tnsamples\thist_representation')
+            print('\treadsbin\tnsamples\thist_representation')
             for ddx, div in enumerate(division_std):
                 if div > 1:
                     print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], '-' * int(div)))
