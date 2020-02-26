@@ -175,7 +175,8 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             odir = get_analysis_folder(i_datasets_folder, 'alpha_correlations/%s' % dat)
             with open(out_sh, 'w') as cur_sh:
-                for method in ['spearman', 'pearson']:
+                # for method in ['spearman', 'pearson']:
+                for method in ['spearman']:
                     for qza in diversities[dat][1]['%s.qza' % splitext(tsv)[0]]:
                         out_fp = qza.replace('.qza', '_%s.qzv' % method).replace('/alpha/', '/alpha_correlations/')
                         if force or not isfile(out_fp):
