@@ -130,7 +130,7 @@ def check_rarefy_need(datasets_read: dict) -> dict:
             print('[%s] Second quantile of the reads-per-sample distribution is <1000' % dat)
             print('- The sequencing might have failed! Analyze with caution')
             print('- reads-per-sample distribution described:')
-            for x,y in tsv_sam_sum.describe().to_dict():
+            for x,y in tsv_sam_sum.describe().to_dict().items():
                 print('\t%s: %s' % (x, round(y, 3)))
         else:
             nfigure = len(str(int(second_quantile)))
