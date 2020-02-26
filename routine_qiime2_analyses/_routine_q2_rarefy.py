@@ -127,5 +127,5 @@ def check_rarefy_need(datasets_read: dict) -> dict:
             second_quantile_to_round = second_quantile / ( 10 ** (nfigure - 2) )
             second_quantile_rounded = round(second_quantile_to_round) * ( 10 ** (nfigure - 2) )
             print('[%s] Proposed rarefaction depth: %s (second quantile)' % (dat, second_quantile_rounded))
-            datasets_raref_depths[dat] = str(second_quantile_rounded)
+            datasets_raref_depths[dat] = str(int(second_quantile_rounded))
     return datasets_raref_depths
