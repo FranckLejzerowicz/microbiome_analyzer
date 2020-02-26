@@ -326,7 +326,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets_read: dict,
         latent_dims = mmvec_params['latent_dims']
         for idx, it in enumerate(itertools.product(train_column, n_examples, batches, learns,
                                                    epochs, priors, thresh_feats, latent_dims)):
-            train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = it
+            train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = [str(x) for x in it]
             res_dir = '%s/b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_gpu-%s' % (
                 pair, batch, learn, epoch, prior.replace('.', ''),
                 thresh_feat, latent_dim, train_column, n_example, str(gpu)[0]

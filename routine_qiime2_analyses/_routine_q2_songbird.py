@@ -124,7 +124,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             out_sh = '%s/run_songbird_%s_%s.sh' % (job_folder2, dat, model)
             for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
                                                        thresh_feats, thresh_samples)):
-                batch, learn, epoch, diff_prior, thresh_feat, thresh_sample = it
+                batch, learn, epoch, diff_prior, thresh_feat, thresh_sample = [str(x) for x in it]
                 res_dir = '%s/%s/filt_f%s_s%s/%s_%s_%s_%s' % (
                     dat, model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE'),
                     thresh_feat, thresh_sample, batch, learn, epoch, diff_prior.replace('.', '')
