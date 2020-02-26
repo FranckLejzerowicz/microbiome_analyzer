@@ -106,6 +106,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     thresh_feats = params['thresh_feats']
     thresh_samples = params['thresh_samples']
     diff_priors = params['diff_priors']
+    n_randoms = params['n_randoms']
 
     songbird_outputs = {}
 
@@ -123,8 +124,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
         for model, formula in models.items():
             out_sh = '%s/run_songbird_%s_%s.sh' % (job_folder2, dat, model)
             for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
-                                                       thresh_feats, thresh_samples)):
-                batch, learn, epoch, diff_prior, thresh_feat, thresh_sample = [str(x) for x in it]
+                                                       thresh_feats, thresh_samples, n_randoms)):
+                batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random = [str(x) for x in it]
                 res_dir = '%s/%s/filt_f%s_s%s/%s_%s_%s_%s' % (
                     dat, model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE'),
                     thresh_feat, thresh_sample, batch, learn, epoch, diff_prior.replace('.', '')
@@ -140,9 +141,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                         p = multiprocessing.Process(
                             target=run_multi_songbird,
-                            args=(odir, qza, meta_pd, cur_sh, case, formula,
-                                  batch, learn, epoch, diff_prior, thresh_feat, thresh_sample,
-                                  case_var, case_vals, force))
+                            args=(odir, qza, meta_pd, cur_sh, case, formula, case_var, case_vals, force,
+                                  batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random
+                                  ))
                         p.start()
                         jobs.append(p)
     for j in jobs:
