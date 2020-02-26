@@ -22,6 +22,7 @@ from routine_qiime2_analyses._routine_q2_permanova import run_permanova
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
 from routine_qiime2_analyses._routine_q2_songbird import run_songbird
 from routine_qiime2_analyses._routine_q2_mmvec import run_mmvec
+from routine_qiime2_analyses._routine_q2_rarefy import check_rarefy_need, run_rarefy
 
 
 def routine_qiime2_analyses(
@@ -94,6 +95,12 @@ def routine_qiime2_analyses(
     # INIT -------------------------------------------------------------------------------------
     datasets, datasets_read, datasets_features, datasets_phylo = get_datasets(i_datasets,
                                                                               i_datasets_folder)
+
+    datasets_raref_depths = check_rarefy_need(datasets_read)
+    run_rarefy(i_datasets_folder, datasets, datasets_read,
+               datasets_features, datasets_phylo, datasets_raref_depths,
+               force, prjct_nm, qiime_env, chmod)
+
     import_datasets(i_datasets_folder, datasets, datasets_phylo, force, prjct_nm, qiime_env, chmod)
     if thresh:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,

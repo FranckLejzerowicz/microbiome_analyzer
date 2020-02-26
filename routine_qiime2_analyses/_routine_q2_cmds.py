@@ -11,6 +11,25 @@ from typing import TextIO
 from os.path import isfile, splitext
 
 
+def write_rarefy(qza: str, qza_out: str, depth: str, cur_sh: TextIO) -> None:
+    """
+    Subsample frequencies from all samples so that the sum of frequencies in
+    each sample is equal to sampling-depth.
+    https://docs.qiime2.org/2019.10/plugins/available/feature-table/rarefy/
+
+    :param qza: The feature table from which samples should be rarefied.
+    :param qza_out: The resulting rarefied feature table in qza format.
+    :param depth: The rarefaction depth.
+    :param cur_sh: writing file handle.
+    """
+    cmd = 'qiime feature-table rarefy \\\n'
+    cmd += '--i-table %s \\\n' % qza
+    cmd += '--p-sampling-depth %s \\\n' % depth
+    cmd += '--o-rarefied-table %s\n' % qza_out
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n\n' % cmd)
+
+
 def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
                     conditionals_tsv: str, biplot_tsv: str,
                     batch: str, learn: str, epoch: str,
