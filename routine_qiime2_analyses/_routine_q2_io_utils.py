@@ -267,6 +267,20 @@ def get_sample_col(meta: str) -> str:
     return line.split()[0]
 
 
+def get_raref_tab_meta_pds(meta: str, tsv: str) -> (pd.DataFrame, pd.DataFrame):
+    """
+
+    :param meta: metadata for non-rarefied data.
+    :param tsv: rarefied table.
+    :return:
+    """
+    tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t')
+    meta_pd = read_meta_pd(meta)
+    meta_pd = meta_pd.loc[meta_pd['sample_name'].isin(tsv_pd.columns.tolist())]
+    meta_pd.reset_index().to_csv(meta, )
+    return tsv_pd, meta_pd
+
+
 def read_meta_pd(meta: str) -> pd.DataFrame:
     """
     Read metadata wit first column as index.

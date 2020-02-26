@@ -46,11 +46,6 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     job_folder = get_job_folder(i_datasets_folder, 'rarefy')
     job_folder2 = get_job_folder(i_datasets_folder, 'rarefy/chunks')
 
-    datasets_update = {}
-    datasets_read_update = {}
-    datasets_features_update = {}
-    datasets_phylo_update = {}
-
     written = 0
     run_pbs = '%s/1_run_rarefy.sh' % job_folder
     with open(run_pbs, 'w') as o:
@@ -72,7 +67,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
             with open(out_sh, 'w') as cur_sh:
                 qza = tsv.replace('.tsv', '.qza')
                 qza_out = '%s/tab_%s.qza' % (odir, dat_raref)
-                tsv_out = splitext(qza_out)[0]
+                tsv_out = '%s.tsv' % splitext(qza_out)[0]
                 if force or not os.path.isfile(qza_out):
                     write_rarefy(qza, qza_out, depth, cur_sh)
                     written += 1
@@ -82,10 +77,10 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                     cur_sh.write('%s\n\n' % cmd)
                     written += 1
 
-                datasets_update[dat_raref] = [tsv_out, meta_out]
-                datasets_read_update[dat_raref] = [None, None]
-                datasets_phylo_update[dat_raref] = datasets_phylo[dat]
-                datasets_features_update[dat_raref] = None
+                datasets[dat] = [tsv_out, meta_out]
+                datasets_read[dat] = 'raref'
+                datasets_phylo[dat] = datasets_phylo[dat]
+                datasets_features[dat] = 'raref'
 
             run_xpbs(out_sh, out_pbs, '%s.bt.%s' % (prjct_nm, dat),
                      qiime_env, '24', '1', '1', '10', 'gb',
@@ -93,11 +88,6 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     if written:
         print('# Calculate beta diversity indices')
         print('[TO RUN] sh', run_pbs)
-
-    datasets.update(datasets_update)
-    datasets_read.update(datasets_read_update)
-    datasets_features.update(datasets_features_update)
-    datasets_phylo.update(datasets_phylo_update)
 
 
 def check_rarefy_need(datasets_read: dict) -> dict:

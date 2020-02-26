@@ -12,7 +12,12 @@ from os.path import isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_io_utils import (
-    get_job_folder, get_analysis_folder, get_wol_tree, get_sepp_tree)
+    get_job_folder,
+    get_analysis_folder,
+    get_wol_tree,
+    get_sepp_tree,
+    get_raref_tab_meta_pds
+)
 from routine_qiime2_analyses._routine_q2_cmds import (
     write_fragment_insertion, write_seqs_fasta)
 from routine_qiime2_analyses._routine_q2_cmds import run_import
@@ -47,7 +52,10 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
         main_sh = '%s/1_run_sepp.sh' % job_folder
         with open(main_sh, 'w') as main_o:
             for dat in sepp_datasets:
+                if dat.split('_')[-1].startswith('raref'):
+                    continue
                 tsv, meta = datasets[dat]
+
                 qza = '%s.qza' % splitext(tsv)[0]
                 if not isfile(qza):
                     print('Need to first import %s to .qza to do reads placement '
@@ -55,7 +63,16 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                     sys.exit(1)
                 qza_in = '%s_inTree.qza' % splitext(tsv)[0]
                 qza_out = '%s_notInTree.qza' % splitext(tsv)[0]
-                tsv_pd, meta_pd = datasets_read[dat]
+
+                if datasets_read[dat] == 'raref':
+                    tsv, meta = datasets[dat]
+                    if not isfile(tsv):
+                        print('Must have run rarefcation to use it further...\nExiting')
+                        sys.exit(1)
+                    tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
+                    datasets_read[dat] = [tsv_pd, meta_pd]
+                else:
+                    tsv_pd, meta_pd = datasets_read[dat]
 
                 odir_seqs = get_analysis_folder(i_datasets_folder, 'seqs/%s' % dat)
                 odir_sepp = get_analysis_folder(i_datasets_folder, 'sepp/%s' % dat)
@@ -87,12 +104,13 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
             print('[TO RUN] sh', main_sh)
 
 
-def shear_tree(i_datasets_folder: str, datasets_phylo: dict, datasets_features: dict, prjct_nm: str,
-               i_wol_tree: str, trees: dict, force: bool, qiime_env: str, chmod: str) -> None:
+def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict, datasets_features: dict,
+               prjct_nm: str, i_wol_tree: str, trees: dict, force: bool, qiime_env: str, chmod: str) -> None:
     """
     Get the sub-tree from the Web of Life tree that corresponds to the gOTUs-labeled features.
 
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param datasets_read: dataset -> [tsv table, meta table]
     :param datasets_phylo: to be updated with ('tree_to_use', 'corrected_or_not') per dataset.
     :param datasets_features: dataset -> list of features names in the dataset tsv / biom file.
     :param prjct_nm: Short nick name for your project.
@@ -116,6 +134,14 @@ def shear_tree(i_datasets_folder: str, datasets_phylo: dict, datasets_features: 
         main_sh = '%s/0_run_import_trees.sh' % job_folder
         with open(main_sh, 'w') as main_o:
             for dat in wol_datasets:
+
+                if datasets_features[dat] == 'raref':
+                    tab_pd = datasets_read[dat][0]
+                    dat_no_raref = '_raref'.join(dat.split('_raref')[:-1])
+                    datasets_features[dat] = dict(
+                        gid_feat for gid_feat in datasets_features[dat_no_raref].items() if gid_feat[1] in tab_pd.index
+                    )
+
                 cur_datasets_features = datasets_features[dat]
                 wol_features = wol.shear(list(cur_datasets_features.keys()))
                 # rename the tip per the features names associated with each gID

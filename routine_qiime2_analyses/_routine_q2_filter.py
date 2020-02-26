@@ -6,11 +6,14 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import sys
+import pandas as pd
 from os.path import isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
-from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder
+from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_raref_tab_meta_pds
 from routine_qiime2_analyses._routine_q2_cmds import run_import
+
 
 def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                     force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
@@ -75,7 +78,22 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
     out_pbs = '%s.pbs' % splitext(out_sh)[0]
     with open(out_sh, 'w') as sh:
         for dat, tab_meta_pds in datasets_read.items():
-            tab_pd, meta_pd = tab_meta_pds
+
+            if tab_meta_pds == 'raref':
+                tsv, meta = datasets[dat]
+                if not isfile(tsv):
+                    print('Must have run rarefcation to use it further...\nExiting')
+                    sys.exit(1)
+                tab_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
+                datasets_read[dat] = [tab_pd, meta_pd]
+            else:
+                tab_pd, meta_pd = tab_meta_pds
+
+            if datasets_features[dat] == 'raref':
+                dat_no_raref = '_raref'.join(dat.split('_raref')[:-1])
+                datasets_features[dat] = dict(
+                    gid_feat for gid_feat in datasets_features[dat_no_raref].items() if gid_feat[1] in tab_pd.index
+                )
 
             meta_pd = meta_pd.set_index(meta_pd.columns.tolist()[0])
             tab_filt_pd = tab_pd.loc[:, tab_pd.sum(0) >= thresh].copy()
@@ -92,6 +110,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             datasets_update[dat_filt] = [tab_filt_fp, meta_filt_fp]
             datasets_read_update[dat_filt] = [tab_filt_pd, meta_filt_pd.reset_index()]
             datasets_phylo_update[dat_filt] = datasets_phylo[dat]
+
             datasets_features_update[dat_filt] = dict(
                 gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_filt_pd.index
             )

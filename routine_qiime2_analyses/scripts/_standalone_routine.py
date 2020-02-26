@@ -103,6 +103,10 @@ from routine_qiime2_analyses import __version__
     "--standalone/--no-standalone", default=False, show_default=True,
     help="Whether to run MMVEC using the standalone version (to check tensorboard)."
 )
+@click.option(
+    "--raref/--no-raref", default=False, show_default=True,
+    help="Rarefy and only perform the routine analyses on the rarefied dataset(s)."
+)
 @click.version_option(__version__, prog_name="routine_qiime2_analyses")
 
 
@@ -123,7 +127,8 @@ def standalone_routine(
         p_chmod,
         p_skip,
         gpu,
-        standalone
+        standalone,
+        raref
 ):
 
     routine_qiime2_analyses(
@@ -143,7 +148,8 @@ def standalone_routine(
         p_chmod,
         p_skip,
         gpu,
-        standalone
+        standalone,
+        raref
     )
 
 

@@ -6,7 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os
+import os, sys
 import itertools
 import pandas as pd
 from os.path import isfile, splitext
@@ -18,6 +18,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_analysis_folder,
     get_mmvec_dicts,
     write_main_sh,
+    get_raref_tab_meta_pds
 )
 from routine_qiime2_analyses._routine_q2_cmds import (
     filter_feature_table,
@@ -86,12 +87,13 @@ def write_filtered_meta(rad_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFra
     return meta_filt_pd
 
 
-def get_datasets_filtered(i_datasets_folder: str, datasets_read: dict, unique_datasets: list,
+def get_datasets_filtered(i_datasets_folder: str, datasets: dict, datasets_read: dict, unique_datasets: list,
                           mmvec_filtering: dict, force: bool) -> (dict, list):
     """
     Filter the datasets for use in mmvec.
 
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param datasets: list of data_sets.
     :param datasets_read: dataset -> [tsv table, meta table] (here it updates tsv table after features correction)
     :param datasets: datasets names from the yaml pairs.
     :param mmvec_filtering: validated filtering thersholds.
@@ -103,7 +105,17 @@ def get_datasets_filtered(i_datasets_folder: str, datasets_read: dict, unique_da
     for dataset in unique_datasets:
         dat, mb = get_mb_flag(dataset)
         dat_dir = get_analysis_folder(i_datasets_folder, 'mmvec/datasets/%s' % dat)
-        tsv_pd_, meta_pd_ = datasets_read[dat]
+
+        if datasets_read[dat] == 'raref':
+            tsv, meta = datasets[dataset]
+            if not isfile(tsv):
+                print('Must have run rarefcation to use it further...\nExiting')
+                sys.exit(1)
+            tab_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
+            datasets_read[dat] = [tab_pd_, meta_pd_]
+        else:
+            tab_pd_, meta_pd_ = datasets_read[dat]
+
         dat_filts = {}
         for preval_filt in mmvec_filtering['prevalence']:
             for abund_filt in mmvec_filtering['abundance']:
@@ -247,11 +259,12 @@ def run_multi_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, re
         os.remove(cur_sh)
 
 
-def make_filtered_and_common_dataset(i_datasets_folder:str, datasets_read: dict, mmvec_pairs: dict,
-                                     mmvec_filtering: dict, job_folder: str, force: bool,
+def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, datasets_read: dict,
+                                     mmvec_pairs: dict, mmvec_filtering: dict, job_folder: str, force: bool,
                                      prjct_nm: str, qiime_env: str, chmod: str) -> (dict, dict):
     """
     :param i_datasets_folder:
+    :param datasets: list of data_sets.
     :param datasets_read:
     :param mmvec_pairs:
     :param mmvec_filtering:
@@ -263,7 +276,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets_read: dict,
     :return:
     """
     unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
-    filt_datasets, filt_jobs = get_datasets_filtered(i_datasets_folder, datasets_read,
+    filt_datasets, filt_jobs = get_datasets_filtered(i_datasets_folder, datasets, datasets_read,
                                                       unique_datasets, mmvec_filtering, force)
     common_datasets, common_jobs = get_common_datasets(i_datasets_folder, mmvec_pairs,
                                                        filt_datasets, force)
@@ -281,7 +294,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets_read: dict,
     return filt_datasets, common_datasets
 
 
-def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets_read: dict,
+def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict, datasets_read: dict,
               force: bool, gpu: bool, standalone: bool, prjct_nm: str,
               qiime_env: str, chmod: str) -> dict:
     """
@@ -291,6 +304,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets_read: dict,
 
     :param p_mmvec_pairs: Pairs of datasets for which to compute co-occurrences probabilities.
     :param p_diff_models: Formulas for multinomial regression-based differential abundance ranking.
+    :param datasets: list of data_sets.
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets_read: dataset -> [tsv table, meta table] (here it updates tsv table after features correction)
     :param force: Force the re-writing of scripts for all commands.
@@ -305,7 +319,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets_read: dict,
     job_folder = get_job_folder(i_datasets_folder, 'mmvec')
 
     filt_datasets, common_datasets = make_filtered_and_common_dataset(
-        i_datasets_folder, datasets_read, mmvec_pairs, mmvec_filtering,
+        i_datasets_folder, datasets, datasets_read, mmvec_pairs, mmvec_filtering,
         job_folder, force, prjct_nm, qiime_env, chmod)
 
     mmvec_outputs = {}

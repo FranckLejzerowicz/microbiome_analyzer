@@ -43,7 +43,8 @@ def routine_qiime2_analyses(
         chmod: str,
         p_skip: tuple,
         gpu: bool,
-        standalone: bool) -> None:
+        standalone: bool,
+        raref: bool) -> None:
     """
     Main qiime2 functions writer.
 
@@ -65,6 +66,7 @@ def routine_qiime2_analyses(
     :param p_skip: steps to skip.
     :param gpu: Use GPUs instead of CPUs for MMVEC.
     :param standalone:
+    :param raref: Whether to only perform the routine analyses on the rarefied datasets.
     """
 
     # check input
@@ -95,18 +97,18 @@ def routine_qiime2_analyses(
     # INIT -------------------------------------------------------------------------------------
     datasets, datasets_read, datasets_features, datasets_phylo = get_datasets(i_datasets,
                                                                               i_datasets_folder)
-
-    datasets_raref_depths = check_rarefy_need(datasets_read)
-    run_rarefy(i_datasets_folder, datasets, datasets_read,
-               datasets_features, datasets_phylo, datasets_raref_depths,
-               force, prjct_nm, qiime_env, chmod)
+    if raref:
+        datasets_raref_depths = check_rarefy_need(datasets_read)
+        run_rarefy(i_datasets_folder, datasets, datasets_read,
+                   datasets_features, datasets_phylo, datasets_raref_depths,
+                   force, prjct_nm, qiime_env, chmod)
 
     import_datasets(i_datasets_folder, datasets, datasets_phylo, force, prjct_nm, qiime_env, chmod)
     if thresh:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
                             datasets_phylo, prjct_nm, qiime_env, thresh, chmod)
     trees = {}
-    shear_tree(i_datasets_folder, datasets_phylo, datasets_features, prjct_nm,
+    shear_tree(i_datasets_folder, datasets_read, datasets_phylo, datasets_features, prjct_nm,
                i_wol_tree, trees, force, qiime_env, chmod)
     if i_sepp_tree:
         run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo, prjct_nm,
@@ -173,7 +175,7 @@ def routine_qiime2_analyses(
 
     if p_mmvec_pairs:
         if 'mmvec' not in p_skip:
-            mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets_read,
+            mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets, datasets_read,
                                       force, gpu, standalone, prjct_nm, qiime_env, chmod)
 
     # if p_diff_models and p_mmvec_pairs:
