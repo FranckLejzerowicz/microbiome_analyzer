@@ -319,6 +319,10 @@ def run_alpha_group_significance(i_datasets_folder: str, diversities: dict, p_pe
         for qza, divs in diversities[dat][1].items():
             for div_qza in divs:
                 metric = get_metric(alpha_metrics, div_qza)
+                div_tsv = '%s.tsv' % splitext(div_qza)[0]
+                if not isfile(div_tsv) or not isfile(div_tsv):
+                    print('  [KRUSKAL-WALLIS] metric %s not calculated\nSkipping it...' % metric)
+                    continue
                 out_sh = '%s/run_alpha_group_significance_%s_%s.sh' % (job_folder2, dat, metric)
                 for case_var, case_vals_list in cases_dict.items():
                     cur_sh = '%s/run_adonis_%s_%s_%s.sh' % (
