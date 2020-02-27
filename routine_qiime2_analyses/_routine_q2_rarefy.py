@@ -11,14 +11,10 @@ import subprocess
 import numpy as np
 
 from scipy.stats import skew
-from os.path import basename, dirname, isdir, isfile, splitext
+from os.path import splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
-from routine_qiime2_analyses._routine_q2_io_utils import (
-    get_metrics,
-    get_job_folder,
-    get_analysis_folder
-)
+from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder
 from routine_qiime2_analyses._routine_q2_cmds import write_rarefy, run_export
 np.set_printoptions(precision=2, suppress=True)
 
@@ -104,7 +100,7 @@ def check_rarefy_need(datasets_read: dict) -> dict:
         count, division = np.histogram(tsv_sam_sum)
         skw = skew(count)
         if abs(skw) > 1:
-            print('[%s] Reads-per-sample distribution [skewness=%s] (>1!)' % (dat, skw))
+            print('[%s] Reads-per-sample distribution [skewness=%s] (>1!)' % (dat, round(skw, 3)))
             division_std = np.interp(count, (count.min(), count.max()), (0, 20))
             print('\treadsbin\tnsamples\thist_representation')
             for ddx, div in enumerate(division_std):
