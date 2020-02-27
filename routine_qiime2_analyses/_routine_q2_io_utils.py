@@ -288,7 +288,7 @@ def read_meta_pd(meta: str) -> pd.DataFrame:
     :return: metadata table.
     """
     meta_sam_col = get_sample_col(meta)
-    meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str})
+    meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str}, low_memory=False)
     meta_pd.rename(columns={meta_sam_col: 'sample_name'}, inplace=True)
     meta_pd.set_index('sample_name', inplace=True)
     return meta_pd
