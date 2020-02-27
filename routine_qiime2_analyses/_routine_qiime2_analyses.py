@@ -99,9 +99,8 @@ def routine_qiime2_analyses(
                                                                               i_datasets_folder)
     import_datasets(i_datasets_folder, datasets, datasets_phylo, force, prjct_nm, qiime_env, chmod)
     if raref:
-        datasets_raref_depths = check_rarefy_need(datasets_read)
         run_rarefy(i_datasets_folder, datasets, datasets_read,
-                   datasets_features, datasets_phylo, datasets_raref_depths,
+                   datasets_features, datasets_phylo,
                    force, prjct_nm, qiime_env, chmod)
 
     if thresh:

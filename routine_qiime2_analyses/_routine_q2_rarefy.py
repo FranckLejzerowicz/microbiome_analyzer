@@ -6,7 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os
+import os, glob
 import subprocess
 import numpy as np
 
@@ -41,6 +41,8 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
     job_folder = get_job_folder(i_datasets_folder, 'rarefy')
     job_folder2 = get_job_folder(i_datasets_folder, 'rarefy/chunks')
+
+    datasets_raref_depths = check_rarefy_need(i_datasets_folder, datasets_read)
 
     written = 0
     run_pbs = '%s/1_run_rarefy.sh' % job_folder
@@ -86,42 +88,47 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
         print('[TO RUN] sh', run_pbs)
 
 
-def check_rarefy_need(datasets_read: dict) -> dict:
+def check_rarefy_need(i_datasets_folder: str, datasets_read: dict) -> dict:
     """
     Check the distribution of reads per sample and its skewness to
     warn user for the need for rarefaction of the feature tables.
 
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets_read: dataset -> [tsv table, meta table]
     :return datasets_raref_depths: Rarefaction depths for eac dataset.
     """
     datasets_raref_depths = {}
     for dat, (tsv_pd, meta_pd) in datasets_read.items():
-        tsv_sam_sum = tsv_pd.sum()
-        count, division = np.histogram(tsv_sam_sum)
-        skw = skew(count)
-        if abs(skw) > 1:
-            print('[%s] Reads-per-sample distribution [skewness=%s] (>1!)' % (dat, round(skw, 3)))
-            division_std = np.interp(count, (count.min(), count.max()), (0, 20))
-            print('\treadsbin\tnsamples\thist_representation')
-            for ddx, div in enumerate(division_std):
-                if div > 1:
-                    print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], '-' * int(div)))
-                elif div == 0:
-                    print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], ''))
-                else:
-                    print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], '-'))
-            print(' ==> Consider rarefying <==')
-        second_quantile = tsv_sam_sum.quantile(0.2)
-        if second_quantile < 1000:
-            print('[%s] Second quantile of the reads-per-sample distribution is <1000' % dat)
-            print('- The sequencing might have failed! Analyze with caution')
-            print('- reads-per-sample distribution described:')
-            for x,y in tsv_sam_sum.describe().to_dict().items():
-                print('\t%s: %s' % (x, round(y, 3)))
+        raref_files = glob.glob('%s/qiime/rarefy/%s/tab_raref*.qza' % (i_datasets_folder, dat))
+        if len(raref_files):
+            datasets_raref_depths[dat] = raref_files[0].split('_raref')[-1].split('.tsv')[0]
         else:
-            nfigure = len(str(int(second_quantile)))
-            second_quantile_to_round = second_quantile / ( 10 ** (nfigure - 2) )
-            second_quantile_rounded = round(second_quantile_to_round) * ( 10 ** (nfigure - 2) )
-            print('[%s] Proposed rarefaction depth: %s (second quantile)' % (dat, second_quantile_rounded))
-            datasets_raref_depths[dat] = str(int(second_quantile_rounded))
+            tsv_sam_sum = tsv_pd.sum()
+            count, division = np.histogram(tsv_sam_sum)
+            skw = skew(count)
+            if abs(skw) > 1:
+                print('[%s] Reads-per-sample distribution [skewness=%s] (>1!)' % (dat, round(abs(float(skw)), 3)))
+                division_std = np.interp(count, (min(count), max(count)), (0, 20))
+                print('\treadsbin\tsamples\thistogram')
+                for ddx, div in enumerate(division_std):
+                    if div > 1:
+                        print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], '-' * int(div)))
+                    elif div == 0:
+                        print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], ''))
+                    else:
+                        print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], '-'))
+                print(' ==> Consider rarefying <==')
+            second_quantile = tsv_sam_sum.quantile(0.2)
+            if second_quantile < 1000:
+                print('[%s] Second quantile of the reads-per-sample distribution is <1000' % dat)
+                print('- The sequencing might have failed! Analyze with caution')
+                print('- reads-per-sample distribution described:')
+                for x,y in tsv_sam_sum.describe().to_dict().items():
+                    print('\t%s: %s' % (x, round(y, 3)))
+            else:
+                nfigure = len(str(int(second_quantile)))
+                second_quantile_to_round = second_quantile / ( 10 ** (nfigure - 2) )
+                second_quantile_rounded = round(second_quantile_to_round) * ( 10 ** (nfigure - 2) )
+                print('[%s] Proposed rarefaction depth: %s (second quantile)' % (dat, second_quantile_rounded))
+                datasets_raref_depths[dat] = str(int(second_quantile_rounded))
     return datasets_raref_depths
