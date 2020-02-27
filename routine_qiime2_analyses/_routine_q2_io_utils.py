@@ -276,8 +276,6 @@ def get_raref_tab_meta_pds(meta: str, tsv: str) -> (pd.DataFrame, pd.DataFrame):
     """
     tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t')
     meta_pd = read_meta_pd(meta)
-    print(tsv_pd.iloc[:3,:3])
-    print(meta_pd.iloc[:3,:3])
     meta_pd = meta_pd.loc[tsv_pd.columns.tolist(),:]
     meta_pd.to_csv(meta, index=True, sep='\t')
     return tsv_pd, meta_pd
