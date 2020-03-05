@@ -20,8 +20,8 @@ np.set_printoptions(precision=2, suppress=True)
 
 
 def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
-               datasets_features: dict, datasets_phylo: dict, datasets_raref_depths: dict,
-               force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
+               datasets_features: dict, datasets_phylo: dict, force: bool,
+               prjct_nm: str, qiime_env: str, chmod: str) -> None:
     """
     Run rarefy: Rarefy table.
     https://docs.qiime2.org/2019.10/plugins/available/feature-table/rarefy/
@@ -31,7 +31,6 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     :param datasets_read: dataset -> [tsv table, meta table]
     :param datasets_features: dataset -> list of features names in the dataset tsv / biom file.
     :param datasets_phylo: to be updated with ('tree_to_use', 'corrected_or_not') per dataset.
-    :param datasets_raref_depths: The rarefaction depths.
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Nick name for your project.
     :param qiime_env: qiime2-xxxx.xx conda environment.

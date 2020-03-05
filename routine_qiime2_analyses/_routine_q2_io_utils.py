@@ -608,3 +608,15 @@ def get_taxonomy_classifier(i_classifier: str) -> str:
               '#taxonomy-classifiers-for-use-with-q2-feature-classifier)\n'
               'Exiting...' % (i_classifier, '\n - %s' % '\n - '.join(allowed_classifiers)))
         sys.exit(1)
+
+
+def parse_g2lineage() -> dict:
+    """
+    :return: gOTU ID-to-gOTU dict.
+    """
+    g2lineage_fp = '%s/g2lineage.txt' % RESOURCES
+    g2lineage = {}
+    for line in open(g2lineage_fp).readlines()[1:]:
+        line_split = line.strip().split('\t')
+        g2lineage[line_split[0]] = line_split[1]
+    return g2lineage

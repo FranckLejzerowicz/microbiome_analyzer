@@ -11,7 +11,7 @@ from typing import TextIO
 from os.path import isfile, splitext
 
 
-def write_barplots(out_qza: str, qza: str, meta: str,
+def write_barplots(out_qzv: str, qza: str, meta: str,
                    tax_qza: str, cur_sh: TextIO) -> None:
     """
     barplot: Visualize taxonomy with an interactive bar plot¶
@@ -25,13 +25,13 @@ def write_barplots(out_qza: str, qza: str, meta: str,
     cmd += '--i-table %s \\\n' % qza
     cmd += '--i-taxonomy %s \\\n' % tax_qza
     cmd += '--m-metadata-file %s \\\n' % meta
-    cmd += '--o-visualization %s \\\n' % out_qza
+    cmd += '--o-visualization %s \\\n' % out_qzv
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 
 
 def write_taxonomy_sklearn(out_qza: str, out_fp_seqs_qza: str,
-                           ref_classifier_qza: str, cur_sh: TextIO) -> None:
+                           ref_classifier_qza: str) -> str:
     """
     Classify reads by taxon using a fitted classifier.
     https://docs.qiime2.org/2020.2/plugins/available/feature-classifier/classify-sklearn
@@ -39,15 +39,13 @@ def write_taxonomy_sklearn(out_qza: str, out_fp_seqs_qza: str,
     :param out_qza: Taxonomic classifications.
     :param out_fp_seqs_qza: The features sequences that should be classified.
     :param ref_classifier_qza: Taxonomic classifier.
-    :param cur_sh: writing file handle.
     """
     cmd = 'qiime feature-classifier classify-sklearn \\\n'
     cmd += '--i-reads %s \\\n' % out_fp_seqs_qza
     cmd += '--i-classifier %s \\\n' % ref_classifier_qza
     cmd += '--p-n-jobs %s \\\n' % '4'
     cmd += '--o-classification %s \\\n' % out_qza
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n\n' % cmd)
+    return cmd
 
 
 def write_rarefy(qza: str, qza_out: str, depth: str, cur_sh: TextIO) -> None:
@@ -395,7 +393,7 @@ def write_emperor(meta: str, pcoa: str, out_plot: str, cur_sh: TextIO) -> None:
 
 
 def write_seqs_fasta(out_fp_seqs_fasta: str, out_fp_seqs_qza: str,
-                     tsv_pd: pd.DataFrame, cur_sh: TextIO) -> None:
+                     tsv_pd: pd.DataFrame) -> str:
     """
     Write the fasta sequences.
 
@@ -408,8 +406,7 @@ def write_seqs_fasta(out_fp_seqs_fasta: str, out_fp_seqs_qza: str,
         for seq in tsv_pd.index:
             fas_o.write('>%s\n%s\n' % (seq.strip(), seq.strip()))
     cmd = run_import(out_fp_seqs_fasta, out_fp_seqs_qza, 'FeatureData[Sequence]')
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n\n' % cmd)
+    return cmd
 
 
 def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,

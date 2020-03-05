@@ -88,7 +88,9 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                 out_pbs = '%s.pbs' % splitext(out_sh)[0]
                 with open(out_sh, 'w') as cur_sh:
                     if force or not isfile(out_fp_seqs_qza):
-                        write_seqs_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, tsv_pd, cur_sh)
+                        cmd = write_seqs_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, tsv_pd)
+                        cur_sh.write('echo "%s"\n' % cmd)
+                        cur_sh.write('%s\n\n' % cmd)
                         written += 1
                     if force or not isfile(out_fp_sepp_tree):
                         write_fragment_insertion(out_fp_seqs_qza, ref_tree_qza,
