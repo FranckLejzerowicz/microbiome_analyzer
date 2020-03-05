@@ -12,6 +12,7 @@ from os.path import abspath, isfile, exists
 
 from routine_qiime2_analyses._routine_q2_io_utils import get_prjct_nm, get_datasets
 from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp
+from routine_qiime2_analyses._routine_q2_taxonomy import run_taxonomy, run_barplot
 from routine_qiime2_analyses._routine_q2_filter import import_datasets, filter_rare_samples
 from routine_qiime2_analyses._routine_q2_beta import run_beta, export_beta, run_pcoas, run_emperor
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
@@ -22,7 +23,7 @@ from routine_qiime2_analyses._routine_q2_permanova import run_permanova
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
 from routine_qiime2_analyses._routine_q2_songbird import run_songbird
 from routine_qiime2_analyses._routine_q2_mmvec import run_mmvec
-from routine_qiime2_analyses._routine_q2_rarefy import check_rarefy_need, run_rarefy
+from routine_qiime2_analyses._routine_q2_rarefy import run_rarefy
 
 
 def routine_qiime2_analyses(
@@ -35,6 +36,7 @@ def routine_qiime2_analyses(
         p_perm_groups: str,
         p_formulas: str,
         force: bool,
+        i_classifier: str,
         i_wol_tree: str,
         i_sepp_tree: str,
         p_diff_models: str,
@@ -112,6 +114,11 @@ def routine_qiime2_analyses(
     if i_sepp_tree:
         run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo, prjct_nm,
                  i_sepp_tree, trees, force, qiime_env, chmod)
+
+    taxonomy = run_taxonomy(i_datasets_folder, datasets, datasets_read, i_classifier,
+                            force, prjct_nm, qiime_env, chmod)
+    run_barplot(i_datasets_folder, datasets, taxonomy,
+                force, prjct_nm, qiime_env, chmod)
     # ------------------------------------------------------------------------------------------
 
     # ALPHA ------------------------------------------------------------

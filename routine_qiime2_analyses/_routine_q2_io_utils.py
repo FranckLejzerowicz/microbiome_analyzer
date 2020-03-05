@@ -578,3 +578,33 @@ def get_sepp_tree(i_sepp_tree: str) -> str:
               'Download: https://docs.qiime2.org/2019.10/data-resources/#sepp-reference-databases)\n'
               'Exiting...' % i_sepp_tree)
         sys.exit(1)
+
+
+def get_taxonomy_classifier(i_classifier: str) -> str:
+    """
+    Get the full path of the reference taxonomic classifier.
+
+    :param i_classifier: database to use.
+    :return: path of the reference taxonomy classifier.
+    """
+    if not i_classifier or not isfile(i_classifier):
+        print('%s does not exist\nExiting...' % i_classifier)
+        sys.exit(1)
+    if not i_classifier.endswith('qza'):
+        print('%s is not a qiime2 artefact\nExiting...' % i_classifier)
+        sys.exit(1)
+
+    allowed_classifiers = [
+        'silva-132-99-nb-classifier.qza',
+        'silva-132-99-515-806-nb-classifier.qza',
+        'gg-13-8-99-nb-classifier.qza',
+        'gg-13-8-99-515-806-nb-classifier.qza'
+    ]
+    if basename(i_classifier) in allowed_classifiers:
+        return i_classifier
+    else:
+        print('%s is not:\n%s'
+              'Download: https://docs.qiime2.org/2020.2/data-resources/'
+              '#taxonomy-classifiers-for-use-with-q2-feature-classifier)\n'
+              'Exiting...' % (i_classifier, '\n - %s' % '\n - '.join(allowed_classifiers)))
+        sys.exit(1)

@@ -44,7 +44,6 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
     if len(sepp_datasets):
 
         ref_tree_qza = get_sepp_tree(i_sepp_tree)
-
         job_folder = get_job_folder(i_datasets_folder, 'sepp')
         job_folder2 = get_job_folder(i_datasets_folder, 'sepp/chunks')
 
@@ -67,7 +66,7 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                 if datasets_read[dat] == 'raref':
                     tsv, meta = datasets[dat]
                     if not isfile(tsv):
-                        print('Must have run rarefcation to use it further...\nExiting')
+                        print('Must have run rarefaction to use it further...\nExiting')
                         sys.exit(1)
                     tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
                     datasets_read[dat] = [tsv_pd, meta_pd]

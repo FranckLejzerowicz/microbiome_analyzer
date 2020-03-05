@@ -34,6 +34,11 @@ from routine_qiime2_analyses import __version__
          "(auto detection of datasets' tables with sequences as features)."
 )
 @click.option(
+    "-z", "--i-classifier", required=False, show_default=True, default = None,
+    help="Qiime2 reference taxonomic classifier database to use for 16S reads assignment: "
+         "https://docs.qiime2.org/2020.2/data-resources/#taxonomy-classifiers-for-use-with-q2-feature-classifier"
+)
+@click.option(
     "-n", "--p-project-name", required=True, show_default=True,
     help="Nick name for your project."
 )
@@ -119,7 +124,8 @@ def standalone_routine(
         p_perm_tests,
         p_perm_groups,
         p_adonis_formulas,
-        force, i_wol_tree,
+        force, i_classifier,
+        i_wol_tree,
         i_sepp_tree,
         p_diff_models,
         p_mmvec_pairs,
@@ -140,7 +146,8 @@ def standalone_routine(
         p_perm_tests,
         p_perm_groups,
         p_adonis_formulas,
-        force, i_wol_tree,
+        force, i_classifier,
+        i_wol_tree,
         i_sepp_tree,
         p_diff_models,
         p_mmvec_pairs,
