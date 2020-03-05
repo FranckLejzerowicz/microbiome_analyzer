@@ -6,11 +6,14 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os
-import itertools
-import pandas as pd
-from os.path import basename, isfile, splitext
-import multiprocessing
+# import os
+# import itertools
+# import pandas as pd
+# from os.path import basename, isfile, splitext
+# import multiprocessing
 
-# def run_mmbird(i_datasets_folder: str, songbird_outputs: dict, mmvec_outputs: dict) -> None:
-#     pass
+
+def run_mmbird(i_datasets_folder: str, songbird_outputs: dict, mmvec_outputs: dict) -> None:
+    print(i_datasets_folder)
+    print(songbird_outputs)
+    print(mmvec_outputs)
