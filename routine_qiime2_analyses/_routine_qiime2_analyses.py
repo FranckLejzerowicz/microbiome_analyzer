@@ -110,9 +110,10 @@ def routine_qiime2_analyses(
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
                             datasets_phylo, prjct_nm, qiime_env, thresh, chmod)
     trees = {}
-    shear_tree(i_datasets_folder, datasets_read, datasets_phylo, datasets_features, prjct_nm,
-               i_wol_tree, trees, force, qiime_env, chmod)
-    if i_sepp_tree:
+    if 'wol' not in p_skip:
+        shear_tree(i_datasets_folder, datasets_read, datasets_phylo, datasets_features, prjct_nm,
+                   i_wol_tree, trees, force, qiime_env, chmod)
+    if i_sepp_tree and 'sepp' not in p_skip:
         run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo, prjct_nm,
                  i_sepp_tree, trees, force, qiime_env, chmod)
 
