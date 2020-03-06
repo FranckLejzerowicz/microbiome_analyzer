@@ -146,6 +146,8 @@ def run_taxonomy(i_datasets_folder: str, datasets_read: dict, datasets_phylo: di
                         cmd = run_taxonomy_wol(force, tsv_pd, out_qza, out_tsv,
                                                cur_datasets_features)
                     else:
+                        if len(tsv_pd.index.unique()) == tsv_pd.shape[0]:
+                            continue
                         taxonomies[dat] = ['feat', out_qza]
                         cmd = run_taxonomy_others(force, tsv_pd, out_qza, out_tsv)
                 if cmd:
