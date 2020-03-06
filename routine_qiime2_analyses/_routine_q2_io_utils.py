@@ -464,8 +464,6 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
         if not isfile(meta):
             print(meta)
         path_pd = pd.read_csv(path, header=0, index_col=0, sep='\t')
-        print(path_pd[:10])
-        print([x for x in path_pd.index if 'K00984' in x])
         meta_pd = pd.read_csv(meta, header=0, sep='\t')
         datasets[dat] = [path, meta]
         datasets_read[dat] = [path_pd, meta_pd]

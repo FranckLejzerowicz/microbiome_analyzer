@@ -37,8 +37,6 @@ def run_taxonomy_others(force: bool, tsv_pd: pd.DataFrame,
         with open(out_tsv, 'w') as o:
             o.write('Feature ID\tTaxon\n')
             for feat in tsv_pd.index:
-                if 'K00984' in feat:
-                    print(feat)
                 o.write('%s\t%s\n' % (feat, feat))
         cmd = run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
     return cmd
