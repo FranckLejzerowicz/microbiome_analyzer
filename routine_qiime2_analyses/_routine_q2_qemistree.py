@@ -34,16 +34,13 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str, i_qemis
     job_folder2 = get_job_folder(i_datasets_folder, 'qemistree/chunks')
 
     written = 0
-    run_pbs = '%s/1_run_barplot.sh' % job_folder
-    for dat, tsv_meta_pds in datasets.items():
+    run_pbs = '%s/1_run_qemistree.sh' % job_folder
+    with open(run_pbs, 'w') as o:
+        for dat, tsv_meta_pds in datasets.items():
             feature_data = '%s/feature-data_%s.qza' % (i_qemistree, dat)
             qemistree = '%s/qemistree_%s.qza' % (i_qemistree, dat)
             if not isfile(feature_data) or not isfile(qemistree):
                 continue
-            print("feature_data")
-            print(feature_data)
-            print("qemistree")
-            print(qemistree)
             out_sh = '%s/run_qemistree_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             odir = get_analysis_folder(i_datasets_folder, 'qemistree/%s' % dat)
@@ -70,11 +67,10 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str, i_qemis
                 run_export(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
                 taxonomies[dat] = ['subclass', tax_qza]
             else:
-                print('Maybe run qemistree first and then re-run pipeline to '
+                print('[Warning] Maybe run qemistree first and then re-run pipeline to '
                       'have the classyfire taxonomy include in the barplots!')
-            run_xpbs(out_sh, out_pbs, '%s.qmstr.%s' % (prjct_nm, dat),
-                     qiime_env, '4', '1', '1', '200', 'mb',
-                     chmod, written, 'single', )
+            run_xpbs(out_sh, out_pbs, '%s.qmstr.%s' % (prjct_nm, dat), qiime_env,
+                     '4', '1', '1', '200', 'mb', chmod, written, 'single', o)
     if written:
         print('# Make qemistree classyfire classifications')
         print('[TO RUN] sh', run_pbs)

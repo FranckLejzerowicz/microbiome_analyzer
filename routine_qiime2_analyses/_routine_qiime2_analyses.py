@@ -121,12 +121,12 @@ def routine_qiime2_analyses(
                  i_sepp_tree, trees, force, qiime_env, chmod)
 
     taxonomies = {}
-    if i_qemistree and isdir(i_qemistree) and 'qemistree' not in p_skip:
-        print(i_qemistree)
-        print(i_qemistree)
-        print(i_qemistree)
-        run_qemistree(i_datasets_folder, datasets, prjct_nm,
-                      i_qemistree, taxonomies, force, qiime_env, chmod)
+    if i_qemistree and 'qemistree' not in p_skip:
+        if isdir(i_qemistree):
+            run_qemistree(i_datasets_folder, datasets, prjct_nm,
+                          i_qemistree, taxonomies, force, qiime_env, chmod)
+        else:
+            print('[Warning] The Qemistree path %s is not a folder.')
 
     # run_taxonomy(i_datasets_folder, datasets_read, datasets_phylo, datasets_features,
     #              i_classifier, taxonomies, force, prjct_nm, qiime_env, chmod)
