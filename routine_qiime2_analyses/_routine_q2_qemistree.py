@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import pandas as pd
-from os.path import basename, isdir, isfile, splitext
+from os.path import isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_cmds import write_qemistree, run_export
@@ -65,7 +65,9 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str, i_qemis
                         o.write('%s\t%s\n' % (row[0], '; '.join(row[1:])))
                 run_export(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
                 taxonomies[dat] = ['subclass', tax_qza]
-
+            else:
+                print('Maybe run qemistree first and then re-run pipeline to '
+                      'have the classyfire taxonomy include in the barplots!')
             run_xpbs(out_sh, out_pbs, '%s.qmstr.%s' % (prjct_nm, dat),
                      qiime_env, '4', '1', '1', '200', 'mb',
                      chmod, written, 'single', )

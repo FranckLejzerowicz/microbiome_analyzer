@@ -93,7 +93,7 @@ def run_taxonomy_amplicon(dat: str, i_datasets_folder: str, force: bool, tsv_pd:
 
 def run_taxonomy(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict,
                  datasets_features: dict, i_classifier: str, taxonomies: dict, force: bool,
-                 prjct_nm: str, qiime_env: str, chmod: str) -> dict:
+                 prjct_nm: str, qiime_env: str, chmod: str) -> None:
     """
     classify-sklearn: Pre-fitted sklearn-based taxonomy classifier
 
