@@ -34,6 +34,13 @@ from routine_qiime2_analyses import __version__
          "(auto detection of datasets' tables with sequences as features)."
 )
 @click.option(
+    "-q", "--i-qemistree", required=False, show_default=True, default = None,
+    help="Path to a folder containing Qemistree's feature data "
+         "(named 'feature-data_<dataset_identifier>.qza'), "
+         "and tree for each metabolomics dataset "
+         "(named 'qemistree_<dataset_identifier>.qza')."
+)
+@click.option(
     "-z", "--i-classifier", required=False, show_default=True, default = None,
     help="Qiime2 reference taxonomic classifier database to use for 16S reads assignment: "
          "https://docs.qiime2.org/2020.2/data-resources/#taxonomy-classifiers-for-use-with-q2-feature-classifier"
@@ -127,6 +134,7 @@ def standalone_routine(
         force, i_classifier,
         i_wol_tree,
         i_sepp_tree,
+        i_qemistree,
         p_diff_models,
         p_mmvec_pairs,
         p_qiime2_env,
@@ -149,6 +157,7 @@ def standalone_routine(
         force, i_classifier,
         i_wol_tree,
         i_sepp_tree,
+        i_qemistree,
         p_diff_models,
         p_mmvec_pairs,
         p_qiime2_env,

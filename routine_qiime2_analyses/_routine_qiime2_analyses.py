@@ -8,12 +8,13 @@
 
 import sys
 import subprocess
-from os.path import abspath, isfile, exists
+from os.path import abspath, exists, isdir, isfile
 
 from routine_qiime2_analyses._routine_q2_io_utils import get_prjct_nm, get_datasets
 from routine_qiime2_analyses._routine_q2_filter import import_datasets, filter_rare_samples
 from routine_qiime2_analyses._routine_q2_rarefy import run_rarefy
 from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp
+from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
 from routine_qiime2_analyses._routine_q2_taxonomy import run_taxonomy, run_barplot
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
                                                        run_correlations, run_volatility,
@@ -40,6 +41,7 @@ def routine_qiime2_analyses(
         i_classifier: str,
         i_wol_tree: str,
         i_sepp_tree: str,
+        i_qemistree: str,
         p_diff_models: str,
         p_mmvec_pairs: str,
         qiime_env: str,
@@ -63,6 +65,7 @@ def routine_qiime2_analyses(
     :param force: Force the re-writing of scripts for all commands.
     :param i_wol_tree: default to ./routine_qiime2_analyses/resources/wol_tree.nwk.
     :param i_sepp_tree: path to the SEPP database artefact. Default to None.
+    :param i_qemistree: path to the tree generated using Qemistree (for metabolomics datasets).
     :param p_diff_models: Formulas for multinomial regression-based differential abundance ranking.
     :param p_mmvec_pairs: Pairs of datasets for which to compute co-occurrences probabilities.
     :param chmod: whether to change permission of output files (defalt: 775).
@@ -117,9 +120,14 @@ def routine_qiime2_analyses(
         run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo, prjct_nm,
                  i_sepp_tree, trees, force, qiime_env, chmod)
 
-    taxonomy = run_taxonomy(i_datasets_folder, datasets, datasets_read, datasets_phylo,
-                            datasets_features, i_classifier, force, prjct_nm, qiime_env, chmod)
-    run_barplot(i_datasets_folder, datasets, taxonomy, force, prjct_nm, qiime_env, chmod)
+    taxonomies = {}
+    if i_qemistree and isdir(i_qemistree) and 'qemistree' not in p_skip:
+        run_qemistree(i_datasets_folder, datasets, prjct_nm,
+                      i_qemistree, taxonomies, force, qiime_env, chmod)
+
+    run_taxonomy(i_datasets_folder, datasets_read, datasets_phylo, datasets_features,
+                 i_classifier, taxonomies, force, prjct_nm, qiime_env, chmod)
+    run_barplot(i_datasets_folder, datasets, taxonomies, force, prjct_nm, qiime_env, chmod)
     # ------------------------------------------------------------------------------------------
 
     # ALPHA ------------------------------------------------------------

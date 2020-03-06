@@ -11,6 +11,29 @@ from typing import TextIO
 from os.path import isfile, splitext
 
 
+def write_qemistree(feature_data: str, classyfire_qza: str, classyfire_tsv: str,
+                    qemistree: str, cur_sh: TextIO) -> None:
+    cmd = ''
+    if not isfile(classyfire_qza):
+        cmd += 'qiime qemistree get-classyfire-taxonomy \\\n'
+        cmd += '--i-feature-data %s \\\n' % feature_data
+        cmd += '--o-classified-feature-data %s\n' % classyfire_qza
+    classyfire_tsv = '%s.tsv' % splitext(classyfire_qza)[0]
+
+    if not isfile(classyfire_tsv):
+        cmd += run_export(classyfire_qza, classyfire_tsv, '')
+
+    classyfire_level_qza = '%s-subclass.qza' % (splitext(classyfire_qza)[0])
+    if not isfile(classyfire_level_qza):
+        cmd += '\nqiime qemistree prune-hierarchy \\\n'
+        cmd += '--i-feature-data %s \\\n' % classyfire_qza
+        cmd += '--p-column subclass \\\n'
+        cmd += '--i-tree %s \\\n' % qemistree
+        cmd += '--o-pruned-tree %s\n' % classyfire_level_qza
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n\n' % cmd)
+
+
 def write_barplots(out_qzv: str, qza: str, meta: str,
                    tax_qza: str, cur_sh: TextIO) -> None:
     """

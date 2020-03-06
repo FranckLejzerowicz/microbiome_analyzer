@@ -7,8 +7,6 @@
 # ----------------------------------------------------------------------------
 
 import pandas as pd
-import pkg_resources
-from typing import TextIO
 from os.path import isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
@@ -57,18 +55,13 @@ def run_taxonomy_wol(force: bool, tsv_pd: pd.DataFrame, out_qza: str,
     if force or not isfile(out_qza):
         g2lineage = parse_g2lineage()
         rev_cur_datasets_features = dict((y, x) for x, y in cur_datasets_features.items())
-        print("rev_cur_datasets_features")
-        print(rev_cur_datasets_features)
-        print("g2lineage")
-        print(list(g2lineage.keys())[:10])
-        print(list(g2lineage.values())[:10])
         with open(out_tsv, 'w') as o:
             o.write('Feature ID\tTaxon\n')
             for feat in tsv_pd.index:
                 if feat in g2lineage:
-                    o.write('%s\t%s\n' % (feat, g2lineage[feat]))
+                    o.write('%s\t%s\n' % (feat, g2lineage[rev_cur_datasets_features[feat]]))
                 else:
-                    o.write('%s\t%s\n' % (feat, rev_cur_datasets_features[feat]))
+                    o.write('%s\t%s\n' % (feat, feat.replace('|', '; ')))
         cmd = run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
     return cmd
 
@@ -97,9 +90,10 @@ def run_taxonomy_amplicon(dat: str, i_datasets_folder: str, force: bool, tsv_pd:
         cmd = run_export(out_qza, out_tsv, '')
     return cmd
 
-def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
-                 datasets_phylo: dict, datasets_features: dict, i_classifier: str,
-                 force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> dict:
+
+def run_taxonomy(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict,
+                 datasets_features: dict, i_classifier: str, taxonomies: dict, force: bool,
+                 prjct_nm: str, qiime_env: str, chmod: str) -> dict:
     """
     classify-sklearn: Pre-fitted sklearn-based taxonomy classifier
 
@@ -109,6 +103,7 @@ def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     :param datasets_phylo: to be updated with ('tree_to_use', 'corrected_or_not') per dataset.
     :param datasets_features: dataset -> list of features names in the dataset tsv / biom file.
     :param i_classifier: Path to the taxonomic classifier.
+    :param taxonomies: dataset -> [method, assignment qza]
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Short nick name for your project.
     :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
@@ -125,13 +120,12 @@ def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     # method = 'consensus-blast'
     # method = 'consensus-vsearch'
     written = 0
-    taxonomies = {}
     run_pbs = '%s/1_run_taxonomy.sh' % job_folder
     with open(run_pbs, 'w') as o:
-        for dat, tsv_meta_pds in datasets.items():
-            print(dat)
-            tsv, meta = tsv_meta_pds
-            tsv_pd, meta_pd = datasets_read[dat]
+        for dat, tsv_meta_pds in datasets_read.items():
+            if dat in taxonomies:
+                continue
+            tsv_pd, meta_pd = tsv_meta_pds
             out_sh = '%s/run_taxonomy_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
@@ -164,7 +158,6 @@ def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     if written:
         print('# Classify features using classify-sklearn')
         print('[TO RUN] sh', run_pbs)
-    return taxonomies
 
 
 def run_barplot(i_datasets_folder: str, datasets: dict, taxonomy: dict,
