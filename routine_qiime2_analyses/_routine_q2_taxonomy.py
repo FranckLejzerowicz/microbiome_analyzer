@@ -58,7 +58,7 @@ def run_taxonomy_wol(force: bool, tsv_pd: pd.DataFrame, out_qza: str,
         with open(out_tsv, 'w') as o:
             o.write('Feature ID\tTaxon\n')
             for feat in tsv_pd.index:
-                if feat in g2lineage:
+                if rev_cur_datasets_features[feat] in g2lineage:
                     o.write('%s\t%s\n' % (feat, g2lineage[rev_cur_datasets_features[feat]]))
                 else:
                     o.write('%s\t%s\n' % (feat, feat.replace('|', '; ')))
