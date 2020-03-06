@@ -57,6 +57,11 @@ def run_taxonomy_wol(force: bool, tsv_pd: pd.DataFrame, out_qza: str,
     if force or not isfile(out_qza):
         g2lineage = parse_g2lineage()
         rev_cur_datasets_features = dict((y, x) for x, y in cur_datasets_features.items())
+        print("rev_cur_datasets_features")
+        print(rev_cur_datasets_features)
+        print("g2lineage")
+        print(list(g2lineage.keys())[:10])
+        print(list(g2lineage.values())[:10])
         with open(out_tsv, 'w') as o:
             o.write('Feature ID\tTaxon\n')
             for feat in tsv_pd.index:
