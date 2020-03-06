@@ -65,7 +65,8 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str, i_qemis
                     for row in classyfire_pd[cols].values:
                         o.write('%s\t%s\n' % (row[0], '; '.join(row[1:])))
                 run_export(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
-                taxonomies[dat] = ['subclass', tax_qza]
+                taxonomies[dat] = ['direct_parent', tax_qza]
+                written += 1
             else:
                 print('[Warning] Maybe run qemistree first and then re-run pipeline to '
                       'have the classyfire taxonomy include in the barplots!')
