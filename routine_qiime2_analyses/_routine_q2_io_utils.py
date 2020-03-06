@@ -462,7 +462,8 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
     for dat, path in paths.items():
         meta = get_corresponding_meta(path)
         if not isfile(meta):
-            print(meta)
+            print(meta, 'does not exist\n Skipping', dat)
+            continue
         path_pd = pd.read_csv(path, header=0, index_col=0, sep='\t')
         meta_pd = pd.read_csv(meta, header=0, sep='\t')
         datasets[dat] = [path, meta]
