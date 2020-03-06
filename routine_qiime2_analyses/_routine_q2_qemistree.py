@@ -40,6 +40,10 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str, i_qemis
             qemistree = '%s/qemistree_%s.qza' % (i_qemistree, dat)
             if not isfile(feature_data) or not isfile(qemistree):
                 continue
+            print("feature_data")
+            print(feature_data)
+            print("qemistree")
+            print(qemistree)
             out_sh = '%s/run_qemistree_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             odir = get_analysis_folder(i_datasets_folder, 'qemistree/%s' % dat)
