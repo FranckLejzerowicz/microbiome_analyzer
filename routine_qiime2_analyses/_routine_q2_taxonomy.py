@@ -162,14 +162,14 @@ def run_taxonomy(i_datasets_folder: str, datasets_read: dict, datasets_phylo: di
         print('[TO RUN] sh', run_pbs)
 
 
-def run_barplot(i_datasets_folder: str, datasets: dict, taxonomy: dict,
+def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
                 force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
     """
     barplot: Visualize taxonomy with an interactive bar plot
 
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets: dataset -> [tsv, meta]
-    :param taxonomy: dataset -> [classification_method, tax_qza]
+    :param taxonomies: dataset -> [classification_method, tax_qza]
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Short nick name for your project.
     :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
@@ -183,7 +183,9 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomy: dict,
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
             tsv, meta = tsv_meta_pds
-            method, tax_qza = taxonomy[dat]
+            if dat not in taxonomies:
+                continue
+            method, tax_qza = taxonomies[dat]
             qza = '%s.qza' % splitext(tsv)[0]
             out_sh = '%s/run_barplot_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
