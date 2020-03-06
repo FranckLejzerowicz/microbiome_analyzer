@@ -128,72 +128,72 @@ def routine_qiime2_analyses(
         else:
             print('[Warning] The Qemistree path %s is not a folder.')
 
-    # run_taxonomy(i_datasets_folder, datasets_read, datasets_phylo, datasets_features,
-    #              i_classifier, taxonomies, force, prjct_nm, qiime_env, chmod)
-    # run_barplot(i_datasets_folder, datasets, taxonomies, force, prjct_nm, qiime_env, chmod)
-    # # ------------------------------------------------------------------------------------------
-    #
-    # # ALPHA ------------------------------------------------------------
-    # if 'alpha' not in p_skip:
-    #     diversities = run_alpha(i_datasets_folder, datasets, datasets_phylo,
-    #                             trees, force, prjct_nm, qiime_env, chmod)
-    #     if 'merge_alpha' not in p_skip:
-    #         to_export = merge_meta_alpha(i_datasets_folder, diversities,
-    #                                      force, prjct_nm, qiime_env, chmod)
-    #         if 'export_alpha' not in p_skip:
-    #             export_meta_alpha(i_datasets_folder, to_export,
-    #                               force, prjct_nm, qiime_env, chmod)
-    #     if 'alpha_correlations' not in p_skip:
-    #         run_correlations(i_datasets_folder, datasets, diversities,
-    #                          force, prjct_nm, qiime_env, chmod)
-    #     if p_longi_column:
-    #         if 'volatility' not in p_skip:
-    #             run_volatility(i_datasets_folder, datasets, p_longi_column,
-    #                            force, prjct_nm, qiime_env, chmod)
-    # # ------------------------------------------------------------------
-    #
-    # # BETA ----------------------------------------------------
-    # if 'beta' not in p_skip:
-    #     betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
-    #                      trees, force, prjct_nm, qiime_env, chmod)
-    #     if 'export_beta' not in p_skip:
-    #         export_beta(i_datasets_folder, betas,
-    #                     force, prjct_nm, qiime_env, chmod)
-    #     if 'emperor' not in p_skip:
-    #         pcoas = run_pcoas(i_datasets_folder, betas,
-    #                           force, prjct_nm, qiime_env, chmod)
-    #         run_emperor(i_datasets_folder, pcoas, prjct_nm, qiime_env, chmod)
-    # # ---------------------------------------------------------
-    #
-    # # STATS -----------------------------------------------------------------------
-    # if 'beta' not in p_skip and 'deicode' not in p_skip:
-    #     run_deicode(i_datasets_folder, datasets, p_perm_groups,
-    #                 force, prjct_nm, qiime_env, chmod)
-    #
-    # if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
-    #     run_alpha_group_significance(i_datasets_folder, diversities, p_perm_groups,
-    #                                  force, prjct_nm, qiime_env, chmod)
-    # if p_perm_tests:
-    #     if 'beta' not in p_skip and 'permanova' not in p_skip:
-    #         run_permanova(i_datasets_folder, datasets, betas,
-    #                       p_perm_tests, p_perm_groups,force, prjct_nm, qiime_env, chmod)
-    # if p_formulas:
-    #     if 'beta' not in p_skip and 'adonis' not in p_skip:
-    #         run_adonis(p_formulas, i_datasets_folder, datasets, betas,
-    #                    p_perm_groups, force, prjct_nm, qiime_env, chmod)
-    # # ------------------------------------------------------------------------------
-    #
-    # # MMVEC AND SONGBIRD -----------------------------------------------------------
-    # songbird_outputs, mmvec_outputs = {}, {}
-    # if p_diff_models:
-    #     if 'songbird' not in p_skip:
-    #         songbird_outputs = run_songbird(p_diff_models, i_datasets_folder, datasets,
-    #                                         force, prjct_nm, qiime_env, chmod)
-    # if p_mmvec_pairs:
-    #     if 'mmvec' not in p_skip:
-    #         mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
-    #                                   datasets_read, force, gpu, standalone,
-    #                                   prjct_nm, qiime_env, chmod)
-    # if p_diff_models and p_mmvec_pairs:
-    #     run_mmbird(i_datasets_folder, songbird_outputs, mmvec_outputs)
-    # # ------------------------------------------------------------------------------
+    run_taxonomy(i_datasets_folder, datasets_read, datasets_phylo, datasets_features,
+                 i_classifier, taxonomies, force, prjct_nm, qiime_env, chmod)
+    run_barplot(i_datasets_folder, datasets, taxonomies, force, prjct_nm, qiime_env, chmod)
+    # ------------------------------------------------------------------------------------------
+
+    # ALPHA ------------------------------------------------------------
+    if 'alpha' not in p_skip:
+        diversities = run_alpha(i_datasets_folder, datasets, datasets_phylo,
+                                trees, force, prjct_nm, qiime_env, chmod)
+        if 'merge_alpha' not in p_skip:
+            to_export = merge_meta_alpha(i_datasets_folder, diversities,
+                                         force, prjct_nm, qiime_env, chmod)
+            if 'export_alpha' not in p_skip:
+                export_meta_alpha(i_datasets_folder, to_export,
+                                  force, prjct_nm, qiime_env, chmod)
+        if 'alpha_correlations' not in p_skip:
+            run_correlations(i_datasets_folder, datasets, diversities,
+                             force, prjct_nm, qiime_env, chmod)
+        if p_longi_column:
+            if 'volatility' not in p_skip:
+                run_volatility(i_datasets_folder, datasets, p_longi_column,
+                               force, prjct_nm, qiime_env, chmod)
+    # ------------------------------------------------------------------
+
+    # BETA ----------------------------------------------------
+    if 'beta' not in p_skip:
+        betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
+                         trees, force, prjct_nm, qiime_env, chmod)
+        if 'export_beta' not in p_skip:
+            export_beta(i_datasets_folder, betas,
+                        force, prjct_nm, qiime_env, chmod)
+        if 'emperor' not in p_skip:
+            pcoas = run_pcoas(i_datasets_folder, betas,
+                              force, prjct_nm, qiime_env, chmod)
+            run_emperor(i_datasets_folder, pcoas, prjct_nm, qiime_env, chmod)
+    # ---------------------------------------------------------
+
+    # STATS -----------------------------------------------------------------------
+    if 'beta' not in p_skip and 'deicode' not in p_skip:
+        run_deicode(i_datasets_folder, datasets, p_perm_groups,
+                    force, prjct_nm, qiime_env, chmod)
+
+    if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
+        run_alpha_group_significance(i_datasets_folder, diversities, p_perm_groups,
+                                     force, prjct_nm, qiime_env, chmod)
+    if p_perm_tests:
+        if 'beta' not in p_skip and 'permanova' not in p_skip:
+            run_permanova(i_datasets_folder, datasets, betas,
+                          p_perm_tests, p_perm_groups,force, prjct_nm, qiime_env, chmod)
+    if p_formulas:
+        if 'beta' not in p_skip and 'adonis' not in p_skip:
+            run_adonis(p_formulas, i_datasets_folder, datasets, betas,
+                       p_perm_groups, force, prjct_nm, qiime_env, chmod)
+    # ------------------------------------------------------------------------------
+
+    # MMVEC AND SONGBIRD -----------------------------------------------------------
+    songbird_outputs, mmvec_outputs = {}, {}
+    if p_diff_models:
+        if 'songbird' not in p_skip:
+            songbird_outputs = run_songbird(p_diff_models, i_datasets_folder, datasets,
+                                            force, prjct_nm, qiime_env, chmod)
+    if p_mmvec_pairs:
+        if 'mmvec' not in p_skip:
+            mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
+                                      datasets_read, force, gpu, standalone,
+                                      prjct_nm, qiime_env, chmod)
+    if p_diff_models and p_mmvec_pairs:
+        run_mmbird(i_datasets_folder, songbird_outputs, mmvec_outputs)
+    # ------------------------------------------------------------------------------
