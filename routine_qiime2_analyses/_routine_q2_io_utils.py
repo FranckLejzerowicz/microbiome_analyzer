@@ -465,7 +465,8 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
             print(meta, 'does not exist\n Skipping', dat)
             continue
         path_pd = pd.read_csv(path, header=0, index_col=0, sep='\t')
-        meta_pd = pd.read_csv(meta, header=0, sep='\t')
+        meta_sam_col = get_sample_col(meta)
+        meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str}, low_memory=False)
         datasets[dat] = [path, meta]
         datasets_read[dat] = [path_pd, meta_pd]
         datasets_features[dat] = {}
