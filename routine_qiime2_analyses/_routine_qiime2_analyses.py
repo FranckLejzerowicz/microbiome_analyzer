@@ -15,7 +15,7 @@ from routine_qiime2_analyses._routine_q2_filter import import_datasets, filter_r
 from routine_qiime2_analyses._routine_q2_rarefy import run_rarefy
 from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp, get_precomputed_trees
 from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
-from routine_qiime2_analyses._routine_q2_taxonomy import run_taxonomy, run_barplot
+from routine_qiime2_analyses._routine_q2_taxonomy import run_taxonomy, run_barplot, get_precomputed_taxonomies
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
                                                        run_correlations, run_volatility,
                                                        run_alpha_group_significance)
@@ -121,6 +121,7 @@ def routine_qiime2_analyses(
                  i_sepp_tree, trees, force, qiime_env, chmod)
 
     taxonomies = {}
+    get_precomputed_taxonomies(i_datasets_folder, datasets, taxonomies)
     if i_qemistree and 'qemistree' not in p_skip:
         if isdir(i_qemistree):
             run_qemistree(i_datasets_folder, datasets, prjct_nm,

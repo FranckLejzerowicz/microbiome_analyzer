@@ -201,3 +201,17 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
     if written:
         print('# Make sample compositions barplots')
         print('[TO RUN] sh', run_pbs)
+
+
+def get_precomputed_taxonomies(i_datasets_folder: str, datasets: dict, taxonomies: dict) -> None:
+    """
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param datasets: dataset -> [tsv/biom path, meta path]
+    :param taxonomies: dataset -> [classification_method, tax_qza]
+    """
+    for dat in datasets:
+        analysis_folder = get_analysis_folder(i_datasets_folder, 'taxonomy/%s' % dat)
+        tax_qza = '%s/tax_%s.qza' % (analysis_folder, dat)
+        if isfile(tax_qza):
+            taxonomies[dat] = ('', tax_qza)
+
