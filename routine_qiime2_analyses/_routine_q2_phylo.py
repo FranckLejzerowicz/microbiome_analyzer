@@ -52,7 +52,17 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
         with open(main_sh, 'w') as main_o:
             for dat in sepp_datasets:
                 if dat.split('_')[-1].startswith('raref'):
+                    if datasets_read[dat] == 'raref':
+                        tsv, meta = datasets[dat]
+                        if not isfile(tsv):
+                            print('Must have run rarefaction to use it further...\nExiting')
+                            sys.exit(1)
+                        tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
+                        datasets_read[dat] = [tsv_pd, meta_pd]
+                    else:
+                        tsv_pd, meta_pd = datasets_read[dat]
                     continue
+
                 tsv, meta = datasets[dat]
 
                 qza = '%s.qza' % splitext(tsv)[0]
@@ -63,18 +73,8 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                 qza_in = '%s_inTree.qza' % splitext(tsv)[0]
                 qza_out = '%s_notInTree.qza' % splitext(tsv)[0]
 
-                if datasets_read[dat] == 'raref':
-                    tsv, meta = datasets[dat]
-                    if not isfile(tsv):
-                        print('Must have run rarefaction to use it further...\nExiting')
-                        sys.exit(1)
-                    tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
-                    datasets_read[dat] = [tsv_pd, meta_pd]
-                else:
-                    tsv_pd, meta_pd = datasets_read[dat]
-
-                odir_seqs = get_analysis_folder(i_datasets_folder, 'seqs/%s' % dat)
-                odir_sepp = get_analysis_folder(i_datasets_folder, 'sepp/%s' % dat)
+                odir_seqs = get_analysis_folder(i_datasets_folder, 'fasta_phylo/%s' % dat)
+                odir_sepp = get_analysis_folder(i_datasets_folder, 'fasta_phylo/%s' % dat)
 
                 out_fp_seqs_rad = '%s/seq_%s' % (odir_seqs, dat)
                 out_fp_seqs_fasta = '%s.fasta' % out_fp_seqs_rad
@@ -125,8 +125,8 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
     wol_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'wol']
     if len(wol_datasets):
 
-        job_folder = get_job_folder(i_datasets_folder, 'import_trees')
-        job_folder2 = get_job_folder(i_datasets_folder, 'import_trees/chunks')
+        job_folder = get_job_folder(i_datasets_folder, 'shear_tree')
+        job_folder2 = get_job_folder(i_datasets_folder, 'shear_tree/chunks')
 
         i_wol_tree = get_wol_tree(i_wol_tree)
         wol = TreeNode.read(i_wol_tree)
@@ -143,31 +143,47 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
                         gid_feat for gid_feat in datasets_features[dat_no_raref].items() if gid_feat[1] in tab_pd.index
                     )
 
-                cur_datasets_features = datasets_features[dat]
-                wol_features = wol.shear(list(cur_datasets_features.keys()))
-                # rename the tip per the features names associated with each gID
-                for tip in wol_features.tips():
-                    tip.name = cur_datasets_features[tip.name]
-
                 analysis_folder = get_analysis_folder(i_datasets_folder, 'fasta_phylo/%s' % dat)
                 wol_features_fpo = '%s/tree_%s.nwk' % (analysis_folder, dat)
                 wol_features_qza = wol_features_fpo.replace('.nwk', '.qza')
                 trees[dat] = ('', wol_features_qza)
 
-                out_sh = '%s/run_import_tree_%s.sh' % (job_folder2, dat)
-                out_pbs = out_sh.replace('.sh', '.pbs')
-                wol_features.write(wol_features_fpo)
+                if force or not isfile(wol_features_qza):
 
-                with open(out_sh, 'w') as o:
-                    if force or not isfile(wol_features_qza):
+                    cur_datasets_features = datasets_features[dat]
+                    wol_features = wol.shear(list(cur_datasets_features.keys()))
+                    # rename the tip per the features names associated with each gID
+                    for tip in wol_features.tips():
+                        tip.name = cur_datasets_features[tip.name]
+
+                    out_sh = '%s/run_import_tree_%s.sh' % (job_folder2, dat)
+                    out_pbs = out_sh.replace('.sh', '.pbs')
+                    wol_features.write(wol_features_fpo)
+
+                    with open(out_sh, 'w') as o:
                         cmd = run_import(wol_features_fpo, wol_features_qza, "Phylogeny[Rooted]")
                         o.write("echo '%s'\n" % cmd)
                         o.write('%s\n\n' % cmd)
                         written += 1
 
-                run_xpbs(out_sh, out_pbs, '%s.shr.%s' % (prjct_nm, dat),
-                         qiime_env,  '1', '1', '1', '200', 'mb',
-                         chmod, written, 'single', main_o)
+                    run_xpbs(out_sh, out_pbs, '%s.shr.%s' % (prjct_nm, dat),
+                             qiime_env,  '1', '1', '1', '200', 'mb',
+                             chmod, written, 'single', main_o)
         if written:
             print("# Shear Web of Life tree to features' genome IDs (%s)" % ', '.join(wol_datasets))
             print('[TO RUN] sh', main_sh)
+
+
+def get_precomputed_trees(i_datasets_folder: str, datasets: dict, trees: dict) -> None:
+    """
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param datasets: dataset -> [tsv/biom path, meta path]
+    :param trees: to be update with tree to use for a dataset phylogenetic analyses.
+    """
+    for dat in datasets:
+        analysis_folder = get_analysis_folder(i_datasets_folder, 'fasta_phylo/%s' % dat)
+        tree_qza = '%s/tree_%s.qza' % (analysis_folder, dat)
+        if isfile(tree_qza):
+            trees[dat] = ('', tree_qza)
+
+
