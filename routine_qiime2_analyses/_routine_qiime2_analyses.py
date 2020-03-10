@@ -115,7 +115,7 @@ def routine_qiime2_analyses(
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
                             datasets_phylo, prjct_nm, qiime_env, thresh, chmod)
     trees = {}
-    get_precomputed_trees(i_datasets_folder, datasets, trees)
+    get_precomputed_trees(i_datasets_folder, datasets, datasets_phylo, trees)
     if 'wol' not in p_skip:
         shear_tree(i_datasets_folder, datasets_read, datasets_phylo, datasets_features, prjct_nm,
                    i_wol_tree, trees, force, qiime_env, chmod)
