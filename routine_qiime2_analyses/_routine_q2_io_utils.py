@@ -469,7 +469,7 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :return datasets infomration.
     """
-    print('# Fetching data and metadata (in %s)' % ', '.join(i_datasets))
+    print('# Fetching data and metadata, for:\n - %s' % '\n - '.join(i_datasets))
     paths = get_paths(i_datasets, i_datasets_folder)
 
     datasets = {}
