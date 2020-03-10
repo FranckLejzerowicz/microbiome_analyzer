@@ -33,7 +33,7 @@ def get_alpha_subsets(p_alpha_subsets: str) -> dict:
             if 'subset_regex' not in alpha_subsets or not alpha_subsets['subset_regex']:
                 print('[Warning] key "subset_regex" must be present and filled in %s\n' % p_alpha_subsets)
             else:
-                return alpha_subsets
+                return alpha_subsets['subset_regex']
     return {}
 
 

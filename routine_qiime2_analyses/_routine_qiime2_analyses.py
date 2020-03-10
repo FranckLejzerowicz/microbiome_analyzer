@@ -142,10 +142,10 @@ def routine_qiime2_analyses(
                                 datasets_phylo, p_alpha_subsets, trees,
                                 force, prjct_nm, qiime_env, chmod)
         if 'merge_alpha' not in p_skip:
-            to_export = merge_meta_alpha(i_datasets_folder, diversities,
+            to_export = merge_meta_alpha(i_datasets_folder, datasets, diversities,
                                          force, prjct_nm, qiime_env, chmod)
             if 'export_alpha' not in p_skip:
-                export_meta_alpha(i_datasets_folder, to_export,
+                export_meta_alpha(i_datasets_folder, datasets, to_export,
                                   force, prjct_nm, qiime_env, chmod)
         if 'alpha_correlations' not in p_skip:
             run_correlations(i_datasets_folder, datasets, diversities,
@@ -175,8 +175,8 @@ def routine_qiime2_analyses(
                     force, prjct_nm, qiime_env, chmod)
 
     if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
-        run_alpha_group_significance(i_datasets_folder, diversities, p_perm_groups,
-                                     force, prjct_nm, qiime_env, chmod)
+        run_alpha_group_significance(i_datasets_folder, datasets, diversities,
+                                     p_perm_groups, force, prjct_nm, qiime_env, chmod)
     if p_perm_tests:
         if 'beta' not in p_skip and 'permanova' not in p_skip:
             run_permanova(i_datasets_folder, datasets, betas,
