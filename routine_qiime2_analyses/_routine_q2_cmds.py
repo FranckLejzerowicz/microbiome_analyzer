@@ -11,8 +11,58 @@ from typing import TextIO
 from os.path import isfile, splitext
 
 
+def get_subset(tsv_pd: pd.DataFrame, meta_subset: str, subset_regex: list) -> None:
+    """
+    Make a feature metadata from the regex
+    to get the names of the features to keep.
+
+    :param tsv_pd: Table containing the features to subset.
+    :param meta_subset: Feature metadata to create.
+    :param subset_regex: subsetting regex.
+    """
+    to_keep_feats = {}
+    for regex in subset_regex:
+        to_keep_feats[regex] = tsv_pd.index.str.contains(regex)
+
+    to_keep_feats_pd = pd.DataFrame(to_keep_feats)
+    print(to_keep_feats_pd[:10])
+    print(to_keep_feats_pd)
+
+    o = open(meta_subset, 'w')
+    o.close()
+
+
+def write_filter_features(qza: str, qza_subset: str, meta_subset: str, cur_sh: TextIO) -> None:
+    """
+    filter-features: Filter features from table¶
+    https://docs.qiime2.org/2020.2/plugins/available/feature-table/filter-features/
+
+    Filter features from table based on frequency and/or metadata. Any samples
+    with a frequency of zero after feature filtering will also be removed. See
+    the filtering tutorial on https://docs.qiime2.org for additional details.
+
+    :param qza: The features table to be filtered.
+    :param qza_subset: The .
+    :param meta_subset: Feature metadata to write.
+    :param cur_sh: writing file handle.
+    """
+    cmd = 'qiime feature-table filter-features \\\n'
+    cmd += '--i-table %s \\\n' % qza
+    cmd += '--m-metadata-file %s \\\n' % meta_subset
+    cmd += '--o-filtered-table %s\n' % qza_subset
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n\n' % cmd)
+
+
 def write_qemistree(feature_data: str, classyfire_qza: str, classyfire_tsv: str,
                     qemistree: str, cur_sh: TextIO) -> None:
+    """
+    :param feature_data:
+    :param classyfire_qza:
+    :param classyfire_tsv:
+    :param qemistree:
+    :param cur_sh: writing file handle.
+    """
     cmd = ''
     if not isfile(classyfire_qza):
         cmd += 'qiime qemistree get-classyfire-taxonomy \\\n'
@@ -43,6 +93,8 @@ def write_barplots(out_qzv: str, qza: str, meta: str,
     This visualizer produces an interactive barplot visualization of
     taxonomies. Interactive features include multi-level sorting, plot
     recoloring, sample relabeling, and SVG figure export.
+
+    :param cur_sh: writing file handle.
     """
     cmd = 'qiime taxa barplot \\\n'
     cmd += '--i-table %s \\\n' % qza

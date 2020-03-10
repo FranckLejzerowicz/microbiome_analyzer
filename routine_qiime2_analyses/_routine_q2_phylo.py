@@ -174,10 +174,12 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
             print('[TO RUN] sh', main_sh)
 
 
-def get_precomputed_trees(i_datasets_folder: str, datasets: dict, trees: dict) -> None:
+def get_precomputed_trees(i_datasets_folder: str, datasets: dict,
+                          datasets_phylo: dict, trees: dict) -> None:
     """
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets: dataset -> [tsv/biom path, meta path]
+    :param datasets_phylo: to be updated with ('tree_to_use', 'corrected_or_not') per dataset.
     :param trees: to be update with tree to use for a dataset phylogenetic analyses.
     """
     for dat in datasets:
@@ -185,5 +187,4 @@ def get_precomputed_trees(i_datasets_folder: str, datasets: dict, trees: dict) -
         tree_qza = '%s/tree_%s.qza' % (analysis_folder, dat)
         if isfile(tree_qza):
             trees[dat] = ('', tree_qza)
-
-
+            datasets_phylo[dat] = ('precpu', 1)

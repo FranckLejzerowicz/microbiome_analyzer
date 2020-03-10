@@ -14,26 +14,31 @@ from os.path import basename, isfile, splitext
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics, get_job_folder, get_analysis_folder,
-    write_main_sh, get_main_cases_dict, read_meta_pd
+    write_main_sh, get_main_cases_dict, read_meta_pd,
+    get_alpha_subsets
 )
 from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
 from routine_qiime2_analyses._routine_q2_cmds import (
     get_case, write_alpha_group_significance_cmd,
     get_new_meta_pd, get_new_alpha_div, write_metadata_tabulate,
     write_diversity_alpha, write_diversity_alpha_correlation,
-    write_longitudinal_volatility, get_metric
+    write_longitudinal_volatility, get_metric, get_subset,
+    write_filter_features
 )
 from routine_qiime2_analyses._routine_q2_cmds import run_export
 
 
-def run_alpha(i_datasets_folder: str, datasets: dict, datasets_phylo: dict, trees: dict,
+def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
+              datasets_phylo: dict, p_alpha_subsets: str, trees: dict,
               force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets: dataset -> [tsv, meta]
+    :param datasets_read: dataset -> [tsv table, meta table]
     :param datasets_phylo: to be updated with ('tree_to_use', 'corrected_or_not') per dataset.
+    :param p_alpha_subsets: Subsets for alpha diversity.
     :param trees: to be update with tree to use for a dataset phylogenetic analyses.
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Short nick name for your project.
@@ -42,7 +47,9 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_phylo: dict, tree
     :return: {'dataset1': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }],
               'dataset2': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }], '...'}
     """
+    alpha_subsets_deletions = []
     alpha_metrics = get_metrics('alpha_metrics')
+    alpha_subsets = get_alpha_subsets(p_alpha_subsets)
     job_folder = get_job_folder(i_datasets_folder, 'alpha')
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha/chunks')
     written = 0
@@ -50,6 +57,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_phylo: dict, tree
     run_pbs = '%s/1_run_alpha.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
+            tsv_pd, meta_pd = datasets_read[dat]
             tsv, meta = tsv_meta_pds
             if dat not in diversities:
                 diversities[dat] = [meta, {}]
@@ -72,6 +80,31 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_phylo: dict, tree
                         cur_sh.write('%s\n\n' % cmd)
                         written += 1
                     divs.append(out_fp)
+
+                    if alpha_subsets and dat in alpha_subsets:
+                        for subset, subset_regex in alpha_subsets[dat].items():
+                            out_fp = '%s/%s_%s_%s.qza' % (odir, basename(splitext(qza)[0]), metric, subset)
+                            out_tsv = '%s.tsv' % splitext(out_fp)[0]
+
+                            qza_subset = '%s_%s.qza' % (splitext(qza)[0], subset)
+                            meta_subset = '%s_%s.meta' % (splitext(qza)[0], subset)
+
+                            alpha_subsets_deletions.extend([out_fp, out_tsv, meta_subset])
+
+                            get_subset(tsv_pd, meta_subset, subset_regex)
+                            write_filter_features(qza, qza_subset, meta_subset, cur_sh)
+
+                            if force or not isfile(out_fp):
+                                ret_continue = write_diversity_alpha(out_fp, datasets_phylo, trees,
+                                                                     dat, qza, metric, cur_sh)
+                                if ret_continue:
+                                    continue
+                                cmd = run_export(out_fp, out_tsv, '')
+                                cur_sh.write('echo "%s"\n' % cmd)
+                                cur_sh.write('%s\n\n' % cmd)
+                                written += 1
+                            divs.append(out_fp)
+
                 diversities[dat][1][qza] = divs
             run_xpbs(out_sh, out_pbs, '%s.mg.lph.%s' % (prjct_nm, dat),
                      qiime_env, '4', '1', '1', '1', 'gb',

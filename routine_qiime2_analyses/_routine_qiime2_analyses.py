@@ -34,6 +34,7 @@ def routine_qiime2_analyses(
         project_name: str,
         p_longi_column: str,
         thresh: int,
+        p_alpha_subsets: str,
         p_perm_tests: tuple,
         p_perm_groups: str,
         p_formulas: str,
@@ -57,12 +58,14 @@ def routine_qiime2_analyses(
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param project_name: Nick name for your project.
     :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
+    :param p_alpha_subsets: Subsets for alpha diversity.
     :param p_perm_tests: Subsets for PERMANOVA.
     :param p_perm_groups: Groups to test between in each PERMANOVA subset (yml file path).
     :param p_formulas: Formula for Adonis tests for each PERMANOVA subset (yml file path).
     :param p_longi_column: If data is longitudinal; provide the time metadata column for volatility analysis.
     :param thresh: Minimum number of reads per sample to be kept.
     :param force: Force the re-writing of scripts for all commands.
+    :param i_classifier: Path to the taxonomic classifier.
     :param i_wol_tree: default to ./routine_qiime2_analyses/resources/wol_tree.nwk.
     :param i_sepp_tree: path to the SEPP database artefact. Default to None.
     :param i_qemistree: path to the tree generated using Qemistree (for metabolomics datasets).
@@ -137,7 +140,8 @@ def routine_qiime2_analyses(
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
         diversities = run_alpha(i_datasets_folder, datasets, datasets_phylo,
-                                trees, force, prjct_nm, qiime_env, chmod)
+                                p_alpha_subsets, trees, force, prjct_nm,
+                                qiime_env, chmod)
         if 'merge_alpha' not in p_skip:
             to_export = merge_meta_alpha(i_datasets_folder, diversities,
                                          force, prjct_nm, qiime_env, chmod)

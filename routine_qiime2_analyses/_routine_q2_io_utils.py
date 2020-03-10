@@ -20,6 +20,23 @@ from routine_qiime2_analyses._routine_q2_cmds import run_export
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
 
+def get_alpha_subsets(p_alpha_subsets: str) -> dict:
+    """
+    :param p_alpha_subsets: Subsets for alpha diversity.
+    """
+    if p_alpha_subsets:
+        if not isfile(p_alpha_subsets):
+            print('[Warning] yaml file for alpha subsets does not exist: %s\n' % p_alpha_subsets)
+        else:
+            with open(p_alpha_subsets) as handle:
+                alpha_subsets = yaml.load(handle, Loader=yaml.FullLoader)
+            if 'subset_regex' not in alpha_subsets or not alpha_subsets['subset_regex']:
+                print('[Warning] key "subset_regex" must be present and filled in %s\n' % p_alpha_subsets)
+            else:
+                return alpha_subsets
+    return {}
+
+
 def update_filtering_abundance(mmvec_dict: dict, p_mmvec_pairs: str, filtering: dict) -> dict:
     if 'abundance' in mmvec_dict['filtering']:
         if not isinstance(mmvec_dict['filtering']['abundance'], list):
