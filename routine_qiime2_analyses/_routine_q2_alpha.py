@@ -57,8 +57,8 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     run_pbs = '%s/1_run_alpha.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
-            tsv_pd, meta_pd = datasets_read[dat]
             tsv, meta = tsv_meta_pds
+            tsv_pd, meta_pd = datasets_read[dat]
             if dat not in diversities:
                 diversities[dat] = [meta, {}]
             out_sh = '%s/run_alpha_%s.sh' % (job_folder2, dat)

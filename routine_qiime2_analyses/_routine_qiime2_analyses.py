@@ -110,7 +110,6 @@ def routine_qiime2_analyses(
         run_rarefy(i_datasets_folder, datasets, datasets_read,
                    datasets_features, datasets_phylo,
                    force, prjct_nm, qiime_env, chmod)
-
     if thresh:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
                             datasets_phylo, prjct_nm, qiime_env, thresh, chmod)
