@@ -139,9 +139,9 @@ def routine_qiime2_analyses(
 
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
-        diversities = run_alpha(i_datasets_folder, datasets, datasets_phylo,
-                                p_alpha_subsets, trees, force, prjct_nm,
-                                qiime_env, chmod)
+        diversities = run_alpha(i_datasets_folder, datasets, datasets_read,
+                                datasets_phylo, p_alpha_subsets, trees,
+                                force, prjct_nm, qiime_env, chmod)
         if 'merge_alpha' not in p_skip:
             to_export = merge_meta_alpha(i_datasets_folder, diversities,
                                          force, prjct_nm, qiime_env, chmod)
