@@ -1,0 +1,8 @@
+subset_regex:
+  milk:
+    - milk
+    - cow
+  plants:
+    - vegetable
+    - fruits
+    - seeds
