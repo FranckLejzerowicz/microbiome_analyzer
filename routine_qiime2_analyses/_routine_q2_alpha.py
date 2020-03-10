@@ -157,18 +157,12 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
     return to_export
 
 
-def export_meta_alpha(i_datasets_folder: str, datasets: dict, to_export: dict, force: bool,
-                      prjct_nm: str, qiime_env: str, chmod: str) -> None:
+def export_meta_alpha(datasets: dict, to_export: dict) -> None:
     """
     Export the alpha diversity vectors.
 
-    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets: list of datasets.
     :param to_export: files to export per dataset.
-    :param force: Force the re-writing of scripts for all commands.
-    :param prjct_nm: Nick name for your project.
-    :param qiime_env: qiime2-xxxx.xx conda environment.
-    :param chmod: whether to change permission of output files (defalt: 775).
     """
     first_print = True
     for dat, meta_alphas_fps in to_export.items():

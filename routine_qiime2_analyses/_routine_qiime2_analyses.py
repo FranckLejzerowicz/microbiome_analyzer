@@ -145,8 +145,7 @@ def routine_qiime2_analyses(
             to_export = merge_meta_alpha(i_datasets_folder, datasets, diversities,
                                          force, prjct_nm, qiime_env, chmod)
             if 'export_alpha' not in p_skip:
-                export_meta_alpha(i_datasets_folder, datasets, to_export,
-                                  force, prjct_nm, qiime_env, chmod)
+                export_meta_alpha(datasets, to_export)
         if 'alpha_correlations' not in p_skip:
             run_correlations(i_datasets_folder, datasets, diversities,
                              force, prjct_nm, qiime_env, chmod)
