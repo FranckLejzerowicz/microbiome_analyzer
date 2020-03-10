@@ -186,6 +186,8 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
             if dat not in taxonomies:
                 continue
             method, tax_qza = taxonomies[dat]
+            if not method:
+                method = 'taxofromfile'
             qza = '%s.qza' % splitext(tsv)[0]
             out_sh = '%s/run_barplot_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
