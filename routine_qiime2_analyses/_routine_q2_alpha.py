@@ -216,6 +216,8 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
     run_pbs = '%s/4_run_alpha_correlation.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
+            if dat not in diversities:
+                continue
             tsv, meta = tsv_meta_pds
             out_sh = '%s/run_alpha_correlation_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
@@ -223,7 +225,7 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
             with open(out_sh, 'w') as cur_sh:
                 # for method in ['spearman', 'pearson']:
                 for method in ['spearman']:
-                    for qza in diversities[dat][1]['%s.qza' % splitext(tsv)[0]]:
+                    for qza in diversities[dat]['']:
                         out_fp = qza.replace('.qza', '_%s.qzv' % method).replace('/alpha/', '/alpha_correlations/')
                         if force or not isfile(out_fp):
                             write_diversity_alpha_correlation(out_fp, qza, method, meta, cur_sh)
@@ -324,8 +326,9 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list:
         os.remove(cur_sh)
 
 
-def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversities: dict, p_perm_groups: str,
-                                 force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
+def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversities: dict,
+                                 p_perm_groups: str, force: bool, prjct_nm: str,
+                                 qiime_env: str, chmod: str) -> None:
     """
     Run alpha-group-significance: Alpha diversity comparisons.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-group-significance/
@@ -349,7 +352,7 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
     all_sh_pbs = {}
     first_print = 0
     for dat in diversities:
-        presence_mat = [1 for qza, divs in diversities[dat][1].items() for div in divs if isfile(div)]
+        presence_mat = [1 for qza in diversities[dat][''] if isfile(qza)]
         if not presence_mat:
             if not first_print:
                 print('Alpha diversity must be measured already to automatise Kruskal-Wallis tests\n'
@@ -357,31 +360,29 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
                 first_print += 1
             continue
 
-        tsv, meta = datasets[dat]
-        meta = diversities[dat][0]
+        meta = datasets[dat][1]
         meta_pd = read_meta_pd(meta)
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'alpha Kruskal-Wallis')
 
         odir = get_analysis_folder(i_datasets_folder, 'alpha_group_significance/%s' % dat)
-        for qza, divs in diversities[dat][1].items():
-            for div_qza in divs:
-                metric = get_metric(alpha_metrics, div_qza)
-                div_tsv = '%s.tsv' % splitext(div_qza)[0]
-                if not isfile(div_tsv) or not isfile(div_tsv):
-                    print('  [KRUSKAL-WALLIS] metric %s not calculated\nSkipping it...' % metric)
-                    continue
-                out_sh = '%s/run_alpha_group_significance_%s_%s.sh' % (job_folder2, dat, metric)
-                for case_var, case_vals_list in cases_dict.items():
-                    cur_sh = '%s/run_adonis_%s_%s_%s.sh' % (
-                        job_folder2, dat, metric, case_var)
-                    cur_sh = cur_sh.replace(' ', '-')
-                    all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                    p = multiprocessing.Process(
-                        target=run_multi_kw,
-                        args=(odir, meta_pd, div_qza, case_vals_list,
-                              metric, case_var, cur_sh, force))
-                    p.start()
-                    jobs.append(p)
+        for qza in diversities[dat]['']:
+            metric = get_metric(alpha_metrics, qza)
+            div_tsv = '%s.tsv' % splitext(qza)[0]
+            if not isfile(div_tsv) or not isfile(div_tsv):
+                print('  [KRUSKAL-WALLIS] metric %s not calculated\nSkipping it...' % metric)
+                continue
+            out_sh = '%s/run_alpha_group_significance_%s_%s.sh' % (job_folder2, dat, metric)
+            for case_var, case_vals_list in cases_dict.items():
+                cur_sh = '%s/run_adonis_%s_%s_%s.sh' % (
+                    job_folder2, dat, metric, case_var)
+                cur_sh = cur_sh.replace(' ', '-')
+                all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
+                p = multiprocessing.Process(
+                    target=run_multi_kw,
+                    args=(odir, meta_pd, qza, case_vals_list,
+                          metric, case_var, cur_sh, force))
+                p.start()
+                jobs.append(p)
     for j in jobs:
         j.join()
 
