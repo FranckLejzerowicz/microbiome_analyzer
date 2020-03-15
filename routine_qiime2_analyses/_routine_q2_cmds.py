@@ -119,7 +119,7 @@ def write_taxonomy_sklearn(out_qza: str, out_fp_seqs_qza: str,
     cmd += '--i-reads %s \\\n' % out_fp_seqs_qza
     cmd += '--i-classifier %s \\\n' % ref_classifier_qza
     cmd += '--p-n-jobs %s \\\n' % '4'
-    cmd += '--o-classification %s \\\n' % out_qza
+    cmd += '--o-classification %s\n' % out_qza
     return cmd
 
 
