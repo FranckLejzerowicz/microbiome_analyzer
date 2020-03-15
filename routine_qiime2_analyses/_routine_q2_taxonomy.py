@@ -132,7 +132,7 @@ def run_taxonomy(i_datasets_folder: str, datasets_read: dict, datasets_phylo: di
                 odir = get_analysis_folder(i_datasets_folder, 'taxonomy/%s' % dat)
                 out_rad = '%s/tax_%s' % (odir, dat)
                 if dat in amplicon_datasets:
-                    out_qza = '%s/tax_%s.qza' % (out_rad, method)
+                    out_qza = '%s_%s.qza' % (out_rad, method)
                     out_tsv = '%s.tsv' % splitext(out_qza)[0]
                     taxonomies[dat] = [method, out_qza]
                     cmd = run_taxonomy_amplicon(dat, i_datasets_folder, force, tsv_pd,
