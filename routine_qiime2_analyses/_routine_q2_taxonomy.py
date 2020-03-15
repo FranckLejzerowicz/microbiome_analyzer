@@ -86,8 +86,8 @@ def run_taxonomy_amplicon(dat: str, i_datasets_folder: str, force: bool, tsv_pd:
     if force or not isfile(out_fp_seqs_qza):
         cmd = write_seqs_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, tsv_pd)
     if force or not isfile(out_qza):
-        write_taxonomy_sklearn(out_qza, out_fp_seqs_qza, ref_classifier_qza)
-        cmd = run_export(out_qza, out_tsv, '')
+        cmd = write_taxonomy_sklearn(out_qza, out_fp_seqs_qza, ref_classifier_qza)
+        cmd += run_export(out_qza, out_tsv, '')
     return cmd
 
 
@@ -113,8 +113,6 @@ def run_taxonomy(i_datasets_folder: str, datasets_read: dict, datasets_phylo: di
     job_folder2 = get_job_folder(i_datasets_folder, 'taxonomy/chunks')
 
     amplicon_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'amplicon']
-    print(amplicon_datasets)
-    print(amplicon_datasetsfds)
     wol_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'wol']
 
     method = 'sklearn'
