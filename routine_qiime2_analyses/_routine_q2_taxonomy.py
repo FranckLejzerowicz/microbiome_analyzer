@@ -113,6 +113,8 @@ def run_taxonomy(i_datasets_folder: str, datasets_read: dict, datasets_phylo: di
     job_folder2 = get_job_folder(i_datasets_folder, 'taxonomy/chunks')
 
     amplicon_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'amplicon']
+    print(amplicon_datasets)
+    print(amplicon_datasetsfds)
     wol_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'wol']
 
     method = 'sklearn'
