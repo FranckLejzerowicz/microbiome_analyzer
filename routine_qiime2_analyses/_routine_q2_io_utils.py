@@ -132,8 +132,7 @@ def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
         print('No parameters set in %s:\nUsing defaults: %s' % (
             mmvec_dict, ', '.join(['%s: %s' % (k,v) for k,v in params.items()])))
     else:
-        for param in mmvec_dict['params']:
-            cur_param = mmvec_dict['params'][param]
+        for param, cur_param in mmvec_dict['params'].items():
             if not isinstance(cur_param, list):
                 print('Parameter %s should be a list (correct in %s)\n' % (param, p_mmvec_pairs))
                 sys.exit(1)
