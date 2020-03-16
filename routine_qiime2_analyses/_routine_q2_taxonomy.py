@@ -84,9 +84,9 @@ def run_taxonomy_amplicon(dat: str, i_datasets_folder: str, force: bool, tsv_pd:
     out_fp_seqs_fasta = '%s.fasta' % out_fp_seqs_rad
     out_fp_seqs_qza = '%s.qza' % out_fp_seqs_rad
     if force or not isfile(out_fp_seqs_qza):
-        cmd = write_seqs_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, tsv_pd)
+        cmd += write_seqs_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, tsv_pd)
     if force or not isfile(out_qza):
-        cmd = write_taxonomy_sklearn(out_qza, out_fp_seqs_qza, ref_classifier_qza)
+        cmd += write_taxonomy_sklearn(out_qza, out_fp_seqs_qza, ref_classifier_qza)
         cmd += run_export(out_qza, out_tsv, '')
     return cmd
 

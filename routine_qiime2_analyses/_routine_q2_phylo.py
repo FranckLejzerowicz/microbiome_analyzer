@@ -71,8 +71,8 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                 qza_in = '%s_inTree.qza' % splitext(tsv)[0]
                 qza_out = '%s_notInTree.qza' % splitext(tsv)[0]
 
-                odir_seqs = get_analysis_folder(i_datasets_folder, 'fasta_phylo/%s' % dat)
-                odir_sepp = get_analysis_folder(i_datasets_folder, 'fasta_phylo/%s' % dat)
+                odir_seqs = get_analysis_folder(i_datasets_folder, 'seqs/%s' % dat)
+                odir_sepp = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
 
                 out_fp_seqs_rad = '%s/seq_%s' % (odir_seqs, dat)
                 out_fp_seqs_fasta = '%s.fasta' % out_fp_seqs_rad
@@ -141,7 +141,7 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
                         gid_feat for gid_feat in datasets_features[dat_no_raref].items() if gid_feat[1] in tab_pd.index
                     )
 
-                analysis_folder = get_analysis_folder(i_datasets_folder, 'fasta_phylo/%s' % dat)
+                analysis_folder = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
                 wol_features_fpo = '%s/tree_%s.nwk' % (analysis_folder, dat)
                 wol_features_qza = wol_features_fpo.replace('.nwk', '.qza')
                 trees[dat] = ('', wol_features_qza)
@@ -181,7 +181,7 @@ def get_precomputed_trees(i_datasets_folder: str, datasets: dict,
     :param trees: to be update with tree to use for a dataset phylogenetic analyses.
     """
     for dat in datasets:
-        analysis_folder = get_analysis_folder(i_datasets_folder, 'fasta_phylo/%s' % dat)
+        analysis_folder = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
         tree_qza = '%s/tree_%s.qza' % (analysis_folder, dat)
         if isfile(tree_qza):
             trees[dat] = ('', tree_qza)
