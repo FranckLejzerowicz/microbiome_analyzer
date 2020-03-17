@@ -342,12 +342,13 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
             for idx, it in enumerate(itertools.product(train_column, n_examples, batches, learns,
                                                        epochs, priors, thresh_feats, latent_dims)):
                 train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = [str(x) for x in it]
-                res_dir = '%s/b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_gpu-%s' % (
-                    pair, batch, learn, epoch, prior.replace('.', ''),
-                    thresh_feat, latent_dim, train_column, n_example, str(gpu)[0]
+                res_dir = 'b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_gpu-%s' % (
+                    batch, learn, epoch, prior.replace('.', ''),
+                    thresh_feat, latent_dim, train_column,
+                    n_example, str(gpu)[0]
                 )
                 mmvec_outputs.setdefault(pair, []).append([meta_fp, qza1, qza2, train_column, res_dir])
-                odir = get_analysis_folder(i_datasets_folder, 'mmvec/paired/%s' % res_dir)
+                odir = get_analysis_folder(i_datasets_folder, 'mmvec/paired/%s/%s' % (pair, res_dir))
                 cur_sh = '%s/run_mmvec_%s.sh' % (job_folder2, res_dir)
                 all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
                 p = multiprocessing.Process(
