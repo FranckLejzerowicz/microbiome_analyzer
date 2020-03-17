@@ -284,7 +284,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
     if len(pre_jobs):
         import_sh = '%s/2_run_mmvec_imports.sh' % job_folder
         import_pbs = '%s.pbs' % splitext(import_sh)[0]
-        with open(import_sh) as import_o:
+        with open(import_sh, 'w') as import_o:
             for cmd in pre_jobs:
                 import_o.write('\necho "%s"\n' % cmd)
                 import_o.write('%s\n' % cmd)
