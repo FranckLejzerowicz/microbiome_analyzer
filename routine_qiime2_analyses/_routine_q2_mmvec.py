@@ -363,7 +363,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         j.join()
 
     main_sh = write_main_sh(job_folder, '3_mmvec', all_sh_pbs,
-                            '%s.mmvc' % prjct_nm, '1', '1', '150', '2', 'gb',
+                            '%s.mmvc' % prjct_nm, '150', '1', '1', '2', 'gb',
                             qiime_env, chmod)
     if main_sh:
         print("# MMVEC (datasets pairs in %s)" % p_mmvec_pairs)
