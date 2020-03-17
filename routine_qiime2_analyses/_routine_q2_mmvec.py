@@ -111,10 +111,10 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict, datasets_read:
             if not isfile(tsv):
                 print('Must have run rarefcation to use it further...\nExiting')
                 sys.exit(1)
-            tab_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
-            datasets_read[dat] = [tab_pd_, meta_pd_]
+            tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
+            datasets_read[dat] = [tsv_pd_, meta_pd_]
         else:
-            tab_pd_, meta_pd_ = datasets_read[dat]
+            tsv_pd_, meta_pd_ = datasets_read[dat]
 
         dat_filts = {}
         for preval_filt in mmvec_filtering['prevalence']:
@@ -294,9 +294,9 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
     return filt_datasets, common_datasets
 
 
-def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict, datasets_read: dict,
-              force: bool, gpu: bool, standalone: bool, prjct_nm: str,
-              qiime_env: str, chmod: str) -> dict:
+def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
+              datasets_read: dict, force: bool, gpu: bool, standalone: bool,
+              prjct_nm: str, qiime_env: str, chmod: str) -> dict:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
     https://github.com/biocore/mmvec
