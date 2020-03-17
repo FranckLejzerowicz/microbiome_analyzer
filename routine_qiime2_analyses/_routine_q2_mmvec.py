@@ -138,9 +138,9 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict, datasets_read:
                 if force or not isfile(tsv_qza):
                     cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
                     filt_jobs.append(cmd)
-                dat_filts.setdefault((preval_filt, abund_filter), []).append([
+                dat_filts[(preval_filt, abund_filter)] = [
                     tsv_qza, meta_out, meta_pd, tsv_pd.index.tolist()
-                ])
+                ]
         filt_datasets[dat] = dat_filts
     return filt_datasets, filt_jobs
 
