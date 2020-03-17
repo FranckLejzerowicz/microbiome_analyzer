@@ -97,9 +97,10 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "-skip", "--p-skip", default=None, show_default=True, multiple=True,
-    type=click.Choice(['alpha', 'merge_alpha', 'export_alpha', 'alpha_correlations', 'wol',
-                       'volatility', 'beta', 'export_beta', 'emperor', 'deicode', 'sepp',
-                       'alpha_kw', 'permanova', 'adonis', 'songbird', 'mmvec', 'mmbird']),
+    type=click.Choice(['alpha', 'merge_alpha', 'export_alpha', 'alpha_correlations',
+                       'wol', 'taxonomy', 'barplot', 'volatility', 'beta',
+                       'export_beta', 'emperor', 'deicode', 'sepp', 'alpha_kw',
+                       'permanova', 'adonis', 'songbird', 'mmvec', 'mmbird']),
     help="Steps to skip (e.g. if already done or not necessary)."
          "\nSkipping 'alpha' will also skip 'merge_alpha', 'export_alpha',"
          "'alpha_correlations', 'alpha_kw' and 'volatility'."
