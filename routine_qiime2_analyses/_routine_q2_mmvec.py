@@ -326,37 +326,38 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
 
     jobs = []
     all_sh_pbs = {}
-    for pair, (meta_fp, qza1, qza2) in common_datasets.items():
-        job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
-        out_sh = '%s/chunks/run_mmvec_%s.sh' % (job_folder, pair)
+    for pair, meta_qzas in common_datasets.items():
+        for (meta_fp, qza1, qza2) in meta_qzas:
+            job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
+            out_sh = '%s/chunks/run_mmvec_%s.sh' % (job_folder, pair)
 
-        train_column = mmvec_params['train_column']
-        n_examples = mmvec_params['n_examples']
-        batches = mmvec_params['batches']
-        learns = mmvec_params['learns']
-        epochs = mmvec_params['epochs']
-        priors = mmvec_params['priors']
-        thresh_feats = mmvec_params['thresh_feats']
-        latent_dims = mmvec_params['latent_dims']
-        for idx, it in enumerate(itertools.product(train_column, n_examples, batches, learns,
-                                                   epochs, priors, thresh_feats, latent_dims)):
-            train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = [str(x) for x in it]
-            res_dir = '%s/b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_gpu-%s' % (
-                pair, batch, learn, epoch, prior.replace('.', ''),
-                thresh_feat, latent_dim, train_column, n_example, str(gpu)[0]
-            )
-            mmvec_outputs.setdefault(pair, []).append([meta_fp, qza1, qza2, train_column, res_dir])
-            odir = get_analysis_folder(i_datasets_folder, 'mmvec/paired/%s' % res_dir)
-            cur_sh = '%s/run_mmvec_%s.sh' % (job_folder2, res_dir)
-            all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
-            p = multiprocessing.Process(
-                target=run_multi_mmvec,
-                args=(odir, pair, meta_fp, qza1, qza2, res_dir, cur_sh,
-                      batch, learn, epoch, prior, thresh_feat,
-                      latent_dim, train_column, n_example,
-                      gpu, force, standalone))
-            p.start()
-            jobs.append(p)
+            train_column = mmvec_params['train_column']
+            n_examples = mmvec_params['n_examples']
+            batches = mmvec_params['batches']
+            learns = mmvec_params['learns']
+            epochs = mmvec_params['epochs']
+            priors = mmvec_params['priors']
+            thresh_feats = mmvec_params['thresh_feats']
+            latent_dims = mmvec_params['latent_dims']
+            for idx, it in enumerate(itertools.product(train_column, n_examples, batches, learns,
+                                                       epochs, priors, thresh_feats, latent_dims)):
+                train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = [str(x) for x in it]
+                res_dir = '%s/b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_gpu-%s' % (
+                    pair, batch, learn, epoch, prior.replace('.', ''),
+                    thresh_feat, latent_dim, train_column, n_example, str(gpu)[0]
+                )
+                mmvec_outputs.setdefault(pair, []).append([meta_fp, qza1, qza2, train_column, res_dir])
+                odir = get_analysis_folder(i_datasets_folder, 'mmvec/paired/%s' % res_dir)
+                cur_sh = '%s/run_mmvec_%s.sh' % (job_folder2, res_dir)
+                all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
+                p = multiprocessing.Process(
+                    target=run_multi_mmvec,
+                    args=(odir, pair, meta_fp, qza1, qza2, res_dir, cur_sh,
+                          batch, learn, epoch, prior, thresh_feat,
+                          latent_dim, train_column, n_example,
+                          gpu, force, standalone))
+                p.start()
+                jobs.append(p)
     for j in jobs:
         j.join()
 
