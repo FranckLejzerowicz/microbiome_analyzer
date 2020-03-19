@@ -199,7 +199,8 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
         cmd += '--i-microbes %s \\\n' % qza1
         cmd += '--i-metabolites %s \\\n' % qza2
         cmd += '--m-metadata-file %s \\\n' % meta_fp
-        cmd += '--p-training-column %s \\\n' % train_column
+        if str(train_column) != 'None':
+            cmd += '--p-training-column %s \\\n' % train_column
         cmd += '--p-num-testing-examples %s \\\n' % n_example
         cmd += '--p-min-feature-count %s \\\n' % thresh_feat
         cmd += '--p-epochs %s \\\n' % epoch

@@ -135,6 +135,9 @@ def run_taxonomy(i_datasets_folder: str, datasets_read: dict, datasets_phylo: di
                     out_qza = '%s_%s.qza' % (out_rad, method)
                     out_tsv = '%s.tsv' % splitext(out_qza)[0]
                     taxonomies[dat] = [method, out_qza]
+                    if not i_classifier:
+                        print('No classifier passed for 16S data\nExiting...')
+                        continue
                     cmd = run_taxonomy_amplicon(dat, i_datasets_folder, force, tsv_pd,
                                                 out_qza, out_tsv, i_classifier)
                 else:

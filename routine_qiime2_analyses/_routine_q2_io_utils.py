@@ -87,7 +87,7 @@ def update_filtering_prevalence(mmvec_dict: dict, p_mmvec_pairs: str, filtering:
     return {}
 
 
-def get_mmvec_filtering(p_mmvec_pairs: str, mmvec_dict: dict) -> None:
+def get_mmvec_filtering(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
     """
     Get the parameters for songbird passed by the user.
     :param p_mmvec_pairs: file containing the parameters.
@@ -109,6 +109,7 @@ def get_mmvec_filtering(p_mmvec_pairs: str, mmvec_dict: dict) -> None:
     else:
         mmvec_dict.update(update_filtering_prevalence(mmvec_dict, p_mmvec_pairs, filtering))
         mmvec_dict.update(update_filtering_abundance(mmvec_dict, p_mmvec_pairs, filtering))
+    return mmvec_dict['filtering']
 
 
 def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
@@ -119,7 +120,7 @@ def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
     :return: parameters.
     """
     params = {
-        'train_column': [None],
+        'train_column': ['None'],
         'n_examples': ['10'],
         'batches': ['2'],
         'learns': ['1e-4'],
@@ -140,6 +141,27 @@ def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
     return params
 
 
+def get_mmvec_pairs(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
+    """
+    Get the parameters for mmvec pairs to process.
+    :param p_mmvec_pairs: file containing the parameters.
+    :param mmvec_dict: parsed content of the file containing the parameters.
+    :return: parameters.
+    """
+    if 'pairs' not in mmvec_dict:
+        print('No datasets pairs specified in %s:\nExiting\n' % p_mmvec_pairs)
+        sys.exit(1)
+    mmvec_pairs = {}
+    for pair, paired_datasets in mmvec_dict['pairs'].items():
+        n_dats = len(paired_datasets)
+        if n_dats != 2:
+            print('Must be two datasets per mmvec pair (found %s in %s)\n'
+                  'Exiting\n' % (n_dats, p_mmvec_pairs))
+            sys.exit(1)
+        mmvec_pairs[pair] = [(dat[:-1], 1) if dat[-1] == '*' else (dat, 0) for dat in paired_datasets]
+    return mmvec_pairs
+
+
 def get_mmvec_dicts(p_mmvec_pairs: str) -> (dict, dict, dict):
     """
     Collect pairs of datasets from the passed yaml file:
@@ -152,15 +174,10 @@ def get_mmvec_dicts(p_mmvec_pairs: str) -> (dict, dict, dict):
     with open(p_mmvec_pairs) as handle:
         mmvec_dict = yaml.load(handle, Loader=yaml.FullLoader)
 
-    get_mmvec_filtering(p_mmvec_pairs, mmvec_dict)
+    mmvec_pairs = get_mmvec_pairs(p_mmvec_pairs, mmvec_dict)
+    mmvec_filtering = get_mmvec_filtering(p_mmvec_pairs, mmvec_dict)
     mmvec_params = get_mmvec_params(p_mmvec_pairs, mmvec_dict)
-    return mmvec_dict['pairs'], mmvec_dict['filtering'], mmvec_params
-
-
-def get_mmvec_pairs(p_mmvec_pairs: str, mmvec_dict: dict) -> None:
-    if 'pairs' not in mmvec_dict:
-        print('No datasets pairs specified in %s:\nExiting\n' % p_mmvec_pairs)
-        sys.exit(1)
+    return mmvec_pairs, mmvec_filtering, mmvec_params
 
 
 def get_songbird_params(p_diff_models: str, diff_dict: dict) -> dict:
@@ -605,7 +622,7 @@ def get_taxonomy_classifier(i_classifier: str) -> str:
     :param i_classifier: database to use.
     :return: path of the reference taxonomy classifier.
     """
-    if not i_classifier or not isfile(i_classifier):
+    if not isfile(i_classifier):
         print('%s does not exist\nExiting...' % i_classifier)
         sys.exit(1)
     if not i_classifier.endswith('qza'):

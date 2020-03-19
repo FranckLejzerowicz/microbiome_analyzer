@@ -27,13 +27,6 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 )
 
 
-def get_mb_flag(dataset: str) -> (str, bool):
-    if dataset.endswith('*'):
-        return dataset[:1], True
-    else:
-        return dataset, False
-
-
 def filter_mb_table(preval_filt: int, abund_filt: int, tsv_pd: pd.DataFrame) -> pd.DataFrame:
     if preval_filt or abund_filt:
         new_cols = []
@@ -87,7 +80,8 @@ def write_filtered_meta(rad_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFra
     return meta_filt_pd
 
 
-def get_datasets_filtered(i_datasets_folder: str, datasets: dict, datasets_read: dict, unique_datasets: list,
+def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
+                          datasets_read: dict, unique_datasets: list,
                           mmvec_filtering: dict, force: bool) -> (dict, list):
     """
     Filter the datasets for use in mmvec.
@@ -102,12 +96,10 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict, datasets_read:
     """
     filt_jobs = []
     filt_datasets = {}
-    for dataset in unique_datasets:
-        dat, mb = get_mb_flag(dataset)
+    for (dat, mb) in unique_datasets:
         dat_dir = get_analysis_folder(i_datasets_folder, 'mmvec/datasets/%s' % dat)
-
         if datasets_read[dat] == 'raref':
-            tsv, meta = datasets[dataset]
+            tsv, meta = datasets[dat]
             if not isfile(tsv):
                 print('Must have run rarefcation to use it further...\nExiting')
                 sys.exit(1)
@@ -185,10 +177,17 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
     for pair, pair_datasets in mmvec_pairs.items():
         data_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s' % pair)
         meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
-        omic1, omic2 = pair_datasets
+        (omic1, bool1), (omic2, bool2) = pair_datasets
+        print(omic1)
+        print(omic2)
+        print(bool1)
+        print(bool2)
+        print(filt_datasets.keys())
+        for filt in filt_datasets[omic2]:
+            qza2, meta2, meta_pd2, sams2 = filt_datasets[omic2][filt]
+
         for filt in filt_datasets[omic1]:
             qza1, meta1, meta_pd1, sams1 = filt_datasets[omic1][filt]
-            qza2, meta2, meta_pd2, sams2 = filt_datasets[omic2][filt]
             common_sams = sorted(set(sams1) & set(sams2))
             sub1 = get_meta_common_sorted(meta_pd1, common_sams)
             sub2 = get_meta_common_sorted(meta_pd2, common_sams)
@@ -275,6 +274,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
     :param chmod:
     :return:
     """
+
     unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
     filt_datasets, filt_jobs = get_datasets_filtered(i_datasets_folder, datasets, datasets_read,
                                                       unique_datasets, mmvec_filtering, force)
@@ -322,6 +322,8 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         i_datasets_folder, datasets, datasets_read, mmvec_pairs, mmvec_filtering,
         job_folder, force, prjct_nm, qiime_env, chmod)
 
+    print(filt_datasets)
+    print(filt_datasetsdsa)
     mmvec_outputs = {}
 
     jobs = []
@@ -331,7 +333,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
             job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
             out_sh = '%s/chunks/run_mmvec_%s.sh' % (job_folder, pair)
 
-            train_column = mmvec_params['train_column']
+            train_columns = mmvec_params['train_column']
             n_examples = mmvec_params['n_examples']
             batches = mmvec_params['batches']
             learns = mmvec_params['learns']
@@ -339,7 +341,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
             priors = mmvec_params['priors']
             thresh_feats = mmvec_params['thresh_feats']
             latent_dims = mmvec_params['latent_dims']
-            for idx, it in enumerate(itertools.product(train_column, n_examples, batches, learns,
+            for idx, it in enumerate(itertools.product(train_columns, n_examples, batches, learns,
                                                        epochs, priors, thresh_feats, latent_dims)):
                 train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = [str(x) for x in it]
                 res_dir = 'b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_gpu-%s' % (

@@ -379,7 +379,8 @@ filtering:
     - - 1
       - 3
 params:
-  train_column: None
+  train_column:
+    - 'None'
   n_examples:
     - 10
   batches:
@@ -402,6 +403,7 @@ which is interpreted as a dictionary with the folowing "sections": `pairs`, `fil
 - `filtering`: for both a `prevalence` and `abundance` filter, the threshold values.
 - `params`: parameters to mmvec (see [doc](https://github.com/biocore/mmvec))
  
+Use a `*` character after the dataset name to indicate if it is a metabolomics dataset. 
 
 ## Usage
 
