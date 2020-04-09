@@ -258,9 +258,11 @@ def run_multi_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, re
         os.remove(cur_sh)
 
 
-def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, datasets_read: dict,
-                                     mmvec_pairs: dict, mmvec_filtering: dict, job_folder: str, force: bool,
-                                     prjct_nm: str, qiime_env: str, chmod: str) -> (dict, dict):
+def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
+                                     datasets_read: dict, mmvec_pairs: dict,
+                                     mmvec_filtering: dict, job_folder: str,
+                                     force: bool, prjct_nm: str, qiime_env: str,
+                                     chmod: str) -> (dict, dict):
     """
     :param i_datasets_folder:
     :param datasets: list of data_sets.
@@ -274,10 +276,9 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
     :param chmod:
     :return:
     """
-
     unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
     filt_datasets, filt_jobs = get_datasets_filtered(i_datasets_folder, datasets, datasets_read,
-                                                      unique_datasets, mmvec_filtering, force)
+                                                     unique_datasets, mmvec_filtering, force)
     common_datasets, common_jobs = get_common_datasets(i_datasets_folder, mmvec_pairs,
                                                        filt_datasets, force)
     pre_jobs = filt_jobs + common_jobs
@@ -315,6 +316,8 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     :param chmod: whether to change permission of output files (default: 644).
     """
     mmvec_pairs, mmvec_filtering, mmvec_params = get_mmvec_dicts(p_mmvec_pairs)
+    print(mmvec_filtering)
+    print(mmvec_filteringds)
 
     job_folder = get_job_folder(i_datasets_folder, 'mmvec')
 
