@@ -37,9 +37,9 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
     if written:
         if os.getcwd().startswith('/panfs'):
             out_sh_lines = open(out_sh).readlines()
-            with open(out_sh, 'w') as o:
+            with open(out_sh, 'w') as sh:
                 for out_sh_line in out_sh_lines:
-                    o.write(out_sh_line.replace(os.getcwd(), '').strip())
+                    sh.write(out_sh_line.replace(os.getcwd(), '').strip())
         xpbs_call(out_sh, out_pbs, job_name, qiime_env,
                   time, n_nodes, n_procs, mem_num, mem_dim, chmod)
         if single:
