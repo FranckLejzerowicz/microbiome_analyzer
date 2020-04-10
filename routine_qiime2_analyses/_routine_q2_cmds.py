@@ -859,7 +859,6 @@ def write_metadata_tabulate(out_fp: str, divs: list, meta: str, cur_sh: TextIO) 
     cmd += '--o-visualization %s \\\n' % out_fp
     for div in divs:
         cmd += '--m-input-file %s \\\n' % div
-    cmd += '--m-input-file %s\n' % meta
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 
