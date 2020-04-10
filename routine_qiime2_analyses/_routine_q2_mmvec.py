@@ -101,7 +101,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
         if datasets_read[dat] == 'raref':
             tsv, meta = datasets[dat]
             if not isfile(tsv):
-                print('Must have run rarefcation to use it further...\nExiting')
+                print('Must have run rarefaction to use it further...\nExiting')
                 sys.exit(1)
             tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
             datasets_read[dat] = [tsv_pd_, meta_pd_]
@@ -178,11 +178,6 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
         data_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s' % pair)
         meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
         (omic1, bool1), (omic2, bool2) = pair_datasets
-        print(omic1)
-        print(omic2)
-        print(bool1)
-        print(bool2)
-        print(filt_datasets.keys())
         for filt in filt_datasets[omic2]:
             qza2, meta2, meta_pd2, sams2 = filt_datasets[omic2][filt]
 
@@ -193,7 +188,7 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
             sub2 = get_meta_common_sorted(meta_pd2, common_sams)
             meta_fp = '%s/meta_%s__%ss.qza' % (meta_dir, pair, len(common_sams))
             new_qza1 = '%s/tab_%s__%s__%ss.qza' % (data_dir, omic1, pair, len(common_sams))
-            new_tsv1 = '%s.tav' % splitext(new_qza1)[0]
+            new_tsv1 = '%s.tsv' % splitext(new_qza1)[0]
             new_qza2 = '%s/tab_%s__%s__%ss.qza' % (data_dir, omic2, pair, len(common_sams))
             new_tsv2 = '%s.tsv' % splitext(new_qza2)[0]
             merge_and_write_metas(sub1, sub2, meta_fp)
@@ -277,10 +272,15 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
     :return:
     """
     unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
+
+    print('\t-> Get datasets filtered...', end = ' ')
     filt_datasets, filt_jobs = get_datasets_filtered(i_datasets_folder, datasets, datasets_read,
                                                      unique_datasets, mmvec_filtering, force)
+    print('Done.')
+    print('\t-> Get common datasets...', end = ' ')
     common_datasets, common_jobs = get_common_datasets(i_datasets_folder, mmvec_pairs,
                                                        filt_datasets, force)
+    print('Done.')
     pre_jobs = filt_jobs + common_jobs
     if len(pre_jobs):
         import_sh = '%s/2_run_mmvec_imports.sh' % job_folder
@@ -316,17 +316,11 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     :param chmod: whether to change permission of output files (default: 644).
     """
     mmvec_pairs, mmvec_filtering, mmvec_params = get_mmvec_dicts(p_mmvec_pairs)
-    print(mmvec_filtering)
-    print(mmvec_filteringds)
-
     job_folder = get_job_folder(i_datasets_folder, 'mmvec')
-
+    print(' [mmvec] Make filtered and_common datasets:')
     filt_datasets, common_datasets = make_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_read, mmvec_pairs, mmvec_filtering,
         job_folder, force, prjct_nm, qiime_env, chmod)
-
-    print(filt_datasets)
-    print(filt_datasetsdsa)
     mmvec_outputs = {}
 
     jobs = []

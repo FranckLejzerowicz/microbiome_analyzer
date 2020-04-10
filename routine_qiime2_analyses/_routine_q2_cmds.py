@@ -558,7 +558,7 @@ def write_deicode_biplot(qza: str, new_meta: str, new_qza: str, ordi_qza: str,
     cmd = 'qiime feature-table filter-samples \\\n'
     cmd += '--i-table %s \\\n' % qza
     cmd += '--m-metadata-file %s \\\n' % new_meta
-    cmd += '--o-filtered-table %s \\\n' % new_qza
+    cmd += '--o-filtered-table %s\n' % new_qza
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
     cmd = 'qiime deicode rpca \\\n'
