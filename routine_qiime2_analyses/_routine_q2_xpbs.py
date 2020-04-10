@@ -43,6 +43,8 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
         xpbs_call(out_sh, out_pbs, job_name, qiime_env,
                   time, n_nodes, n_procs, mem_num, mem_dim, chmod)
         if single:
+            if os.getcwd().startswith('/panfs'):
+                out_pbs = out_pbs.replace(os.getcwd(), '')
             if not o:
                 print(single)
                 print('[TO RUN] qsub', out_pbs)
