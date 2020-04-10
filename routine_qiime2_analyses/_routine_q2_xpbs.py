@@ -39,7 +39,7 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
             out_sh_lines = open(out_sh).readlines()
             with open(out_sh, 'w') as sh:
                 for out_sh_line in out_sh_lines:
-                    sh.write(out_sh_line.replace(os.getcwd(), '').strip())
+                    sh.write(out_sh_line.replace(os.getcwd(), ''))
         xpbs_call(out_sh, out_pbs, job_name, qiime_env,
                   time, n_nodes, n_procs, mem_num, mem_dim, chmod)
         if single:
