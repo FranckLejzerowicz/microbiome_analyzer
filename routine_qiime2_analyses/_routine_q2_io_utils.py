@@ -531,7 +531,7 @@ def get_job_folder(i_datasets_folder: str, analysis: str):
     :return: job folder name.
     """
 
-    if i_datasets_folder.starts('/panfs'):
+    if i_datasets_folder.startswith('/panfs'):
         i_datasets_folder = i_datasets_folder.lstrip(os.getcwd())
 
     job_folder = '%s/jobs/%s' % (i_datasets_folder, analysis)
