@@ -531,9 +531,6 @@ def get_job_folder(i_datasets_folder: str, analysis: str):
     :return: job folder name.
     """
 
-    if i_datasets_folder.startswith('/panfs'):
-        i_datasets_folder = i_datasets_folder.replace(os.getcwd(), '')
-
     job_folder = '%s/jobs/%s' % (i_datasets_folder, analysis)
     if not isdir(job_folder):
         os.makedirs(job_folder)
