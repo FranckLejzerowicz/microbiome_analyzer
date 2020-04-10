@@ -530,6 +530,10 @@ def get_job_folder(i_datasets_folder: str, analysis: str):
     :param analysis: name of the qiime2 analysis (e.g. beta).
     :return: job folder name.
     """
+
+    if i_datasets_folder.starts('/panfs'):
+        i_datasets_folder = i_datasets_folder.lstrip(os.getcwd())
+
     job_folder = '%s/jobs/%s' % (i_datasets_folder, analysis)
     if not isdir(job_folder):
         os.makedirs(job_folder)
