@@ -131,7 +131,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                     cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
                     filt_jobs.append(cmd)
                 dat_filts[(preval_filt, abund_filter)] = [
-                    tsv_qza, meta_out, meta_pd, tsv_pd.index.tolist()
+                    tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()
                 ]
         filt_datasets[dat] = dat_filts
     return filt_datasets, filt_jobs
@@ -139,28 +139,33 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
 
 def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFrame:
     meta_sam_col = meta.columns[0]
-    meta_sbst = meta.loc[meta[meta_sam_col].isin(common_sams)].copy()
-    meta_sbst.rename(columns={meta_sam_col: 'sample_name'}, inplace=True)
-    meta_sbst.sort_values('sample_name', inplace=True)
-    return meta_sbst
+    meta_subset = meta.loc[meta[meta_sam_col].isin(common_sams)].copy()
+    meta_subset.rename(columns={meta_sam_col: 'sample_name'}, inplace=True)
+    meta_subset.sort_values('sample_name', inplace=True)
+    return meta_subset
 
 
-def merge_and_write_metas(meta1: pd.DataFrame, meta2: pd.DataFrame, meta_fp: str) -> pd.DataFrame:
+def merge_and_write_metas(meta_subset1: pd.DataFrame, meta_subset2: pd.DataFrame, meta_fp: str) -> pd.DataFrame:
     """
-    :param meta1:
-    :param meta2:
+    :param meta_subset1:
+    :param meta_subset2:
     :param meta_fp:
     :return:
     """
-    common_cols = list(set(meta1.columns.tolist()) &
-                       set(meta2.columns.tolist()))
-    diff_cols = [c for c in common_cols if meta1[c].tolist() != meta2[c].tolist()]
-    meta1.rename(columns = dict((c, '%s.1' % c) for c in diff_cols), inplace=True)
-    meta2.rename(columns = dict((c, '%s.2' % c) for c in diff_cols), inplace=True)
-    meta = meta1.merge(meta2, on=[c for c in common_cols if c not in diff_cols])
-    sorting_col =['sample_name'] + [x for x in meta.columns.tolist() if x != 'sample_name']
-    meta[sorting_col].to_csv(meta_fp, index=False, sep='\t')
-    return meta
+    # get the columns present in both metadata
+    common_cols = [x for x in list(set(meta_subset1.columns.tolist()) &
+                                   set(meta_subset2.columns.tolist())) if x!='sample_name']
+    # get these columns that also have different contents
+    diff_cols = [c for c in common_cols if meta_subset1[c].tolist() != meta_subset2[c].tolist()]
+    # edit these different columns' names
+    if len(diff_cols):
+        meta_subset1.rename(columns=dict((c, '%s.1' % c) for c in diff_cols), inplace=True)
+        meta_subset2.rename(columns=dict((c, '%s.2' % c) for c in diff_cols), inplace=True)
+    meta_subset = meta_subset1.merge(meta_subset2,
+        on=(['sample_name'] + [c for c in common_cols if c not in diff_cols]))
+    sorting_col =['sample_name'] + [x for x in meta_subset.columns.tolist() if x != 'sample_name']
+    meta_subset[sorting_col].to_csv(meta_fp, index=False, sep='\t')
+    return meta_subset
 
 
 def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
@@ -178,20 +183,23 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
         data_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s' % pair)
         meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
         (omic1, bool1), (omic2, bool2) = pair_datasets
-        for filt in filt_datasets[omic2]:
-            qza2, meta2, meta_pd2, sams2 = filt_datasets[omic2][filt]
-
-        for filt in filt_datasets[omic1]:
-            qza1, meta1, meta_pd1, sams1 = filt_datasets[omic1][filt]
+        # pair_datasets
+        # e.g. [('dataset_number_3', 1), ('dataset_number_4', 0)]
+        # ('dataset_number_3' --> dataset , 1 --> metabolomics == special filtering)
+        for fdx, filt in enumerate(filt_datasets[omic1]):
+            filts_1 = list(filt_datasets[omic1].keys())
+            filts_2 = list(filt_datasets[omic2].keys())
+            qza1, meta1, meta_pd1, sams1 = filt_datasets[omic1][filts_1[fdx]]
+            qza2, meta2, meta_pd2, sams2 = filt_datasets[omic2][filts_2[fdx]]
             common_sams = sorted(set(sams1) & set(sams2))
-            sub1 = get_meta_common_sorted(meta_pd1, common_sams)
-            sub2 = get_meta_common_sorted(meta_pd2, common_sams)
-            meta_fp = '%s/meta_%s__%ss.qza' % (meta_dir, pair, len(common_sams))
+            meta_subset1 = get_meta_common_sorted(meta_pd1, common_sams)
+            meta_subset2 = get_meta_common_sorted(meta_pd2, common_sams)
+            meta_fp = '%s/meta_%s__%ss.tsv' % (meta_dir, pair, len(common_sams))
             new_qza1 = '%s/tab_%s__%s__%ss.qza' % (data_dir, omic1, pair, len(common_sams))
-            new_tsv1 = '%s.tsv' % splitext(new_qza1)[0]
             new_qza2 = '%s/tab_%s__%s__%ss.qza' % (data_dir, omic2, pair, len(common_sams))
+            new_tsv1 = '%s.tsv' % splitext(new_qza1)[0]
             new_tsv2 = '%s.tsv' % splitext(new_qza2)[0]
-            merge_and_write_metas(sub1, sub2, meta_fp)
+            merge_and_write_metas(meta_subset1, meta_subset2, meta_fp)
             if force or not isfile(new_qza1):
                 cmd = filter_feature_table(qza1, new_qza1, meta_fp)
                 common_jobs.append(cmd)

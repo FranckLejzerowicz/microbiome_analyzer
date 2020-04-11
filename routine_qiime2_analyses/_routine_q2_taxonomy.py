@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import sys
 import pandas as pd
 from os.path import isfile, splitext
 
@@ -14,7 +15,8 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_taxonomy_classifier,
     get_job_folder,
     get_analysis_folder,
-    parse_g2lineage
+    parse_g2lineage,
+    get_raref_tab_meta_pds
 )
 from routine_qiime2_analyses._routine_q2_cmds import (
     write_barplots,
@@ -91,7 +93,7 @@ def run_taxonomy_amplicon(dat: str, i_datasets_folder: str, force: bool, tsv_pd:
     return cmd
 
 
-def run_taxonomy(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict,
+def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict, datasets_phylo: dict,
                  datasets_features: dict, i_classifier: str, taxonomies: dict, force: bool,
                  prjct_nm: str, qiime_env: str, chmod: str) -> None:
     """
@@ -125,7 +127,16 @@ def run_taxonomy(i_datasets_folder: str, datasets_read: dict, datasets_phylo: di
         for dat, tsv_meta_pds in datasets_read.items():
             if dat in taxonomies:
                 continue
-            tsv_pd, meta_pd = tsv_meta_pds
+            tsv, meta = datasets[dat]
+            if tsv_meta_pds == 'raref':
+                if not isfile(tsv):
+                    print('Must have run rarefcation to use it further...\nExiting')
+                    sys.exit(1)
+                tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
+                datasets_read[dat] = [tsv_pd, meta_pd]
+            else:
+                tsv_pd, meta_pd = tsv_meta_pds
+
             out_sh = '%s/run_taxonomy_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:

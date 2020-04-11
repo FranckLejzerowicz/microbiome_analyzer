@@ -227,7 +227,7 @@ def filter_feature_table(qza: str, new_qza: str, meta: str) -> str:
     :param meta:
     :return:
     """
-    cmd = 'qiime feature-table filter-samples \\\n'
+    cmd = '\nqiime feature-table filter-samples \\\n'
     cmd += '--i-table %s \\\n' % qza
     cmd += '--m-metadata-file %s \\\n' % meta
     cmd += '--o-filtered-table %s\n' % new_qza
@@ -558,7 +558,7 @@ def write_deicode_biplot(qza: str, new_meta: str, new_qza: str, ordi_qza: str,
     :param ordi_qzv: VISUALIZATION
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime feature-table filter-samples \\\n'
+    cmd = '\nqiime feature-table filter-samples \\\n'
     cmd += '--i-table %s \\\n' % qza
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--o-filtered-table %s\n' % new_qza
@@ -636,7 +636,7 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     :param new_qzv: VISUALIZATION.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime diversity filter-distance-matrix \\\n'
+    cmd = '\nqiime diversity filter-distance-matrix \\\n'
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--i-distance-matrix %s \\\n' % mat_qza
     cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
@@ -692,7 +692,7 @@ def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
     :param new_qzv: VISUALIZATION.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime diversity filter-distance-matrix \\\n'
+    cmd = '\nqiime diversity filter-distance-matrix \\\n'
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--i-distance-matrix %s \\\n' % mat_qza
     cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza

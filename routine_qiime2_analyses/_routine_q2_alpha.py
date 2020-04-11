@@ -6,7 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os
+import os, sys
 import pandas as pd
 import multiprocessing
 from os.path import basename, isfile, splitext
@@ -15,7 +15,7 @@ from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics, get_job_folder, get_analysis_folder,
     write_main_sh, get_main_cases_dict, read_meta_pd,
-    get_alpha_subsets
+    get_alpha_subsets, get_raref_tab_meta_pds
 )
 from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
 from routine_qiime2_analyses._routine_q2_cmds import (
@@ -57,7 +57,16 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
             tsv, meta = tsv_meta_pds
-            tsv_pd, meta_pd = datasets_read[dat]
+
+            if datasets_read[dat] == 'raref':
+                if not isfile(tsv):
+                    print('Must have run rarefcation to use it further...\nExiting')
+                    sys.exit(1)
+                tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
+                datasets_read[dat] = [tsv_pd, meta_pd]
+            else:
+                tsv_pd, meta_pd = tsv_meta_pds
+
             out_sh = '%s/run_alpha_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
