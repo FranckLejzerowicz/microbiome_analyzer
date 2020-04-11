@@ -90,6 +90,12 @@ def xpbs_call(out_sh: str, out_pbs: str, prjct_nm: str,
     ]
     subprocess.call(cmd)
 
+    if os.getcwd().startswith('/panfs'):
+        out_pbs_lines = open(out_pbs).readlines()
+        with open(out_pbs, 'w') as pbs:
+            for out_pbs_line in out_pbs_lines:
+                pbs.write(out_pbs_line.replace(os.getcwd(), ''))
+
 
 def print_message(message: str, sh_pbs: str, to_run: str) -> None:
     if message:
