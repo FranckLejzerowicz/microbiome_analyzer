@@ -82,7 +82,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                 tsv, meta = datasets[dat]
                 if not isfile(tsv):
                     print('Must have run rarefcation to use it further...\nExiting')
-                    sys.exit(1)
+                    sys.exit(0)
                 tab_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
                 datasets_read[dat] = [tab_pd, meta_pd]
             else:

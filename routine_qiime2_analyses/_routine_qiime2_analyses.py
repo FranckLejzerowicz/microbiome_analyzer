@@ -144,19 +144,18 @@ def routine_qiime2_analyses(
         diversities = run_alpha(i_datasets_folder, datasets, datasets_read,
                                 datasets_phylo, p_alpha_subsets, trees,
                                 force, prjct_nm, qiime_env, chmod)
-        if diversities:
-            if 'merge_alpha' not in p_skip:
-                to_export = merge_meta_alpha(i_datasets_folder, datasets, diversities,
-                                             force, prjct_nm, qiime_env, chmod)
-                if 'export_alpha' not in p_skip:
-                    export_meta_alpha(datasets, to_export)
-            if 'alpha_correlations' not in p_skip:
-                run_correlations(i_datasets_folder, datasets, diversities,
-                                 force, prjct_nm, qiime_env, chmod)
-            if p_longi_column:
-                if 'volatility' not in p_skip:
-                    run_volatility(i_datasets_folder, datasets, p_longi_column,
-                                   force, prjct_nm, qiime_env, chmod)
+        if 'merge_alpha' not in p_skip:
+            to_export = merge_meta_alpha(i_datasets_folder, datasets, diversities,
+                                         force, prjct_nm, qiime_env, chmod)
+            if 'export_alpha' not in p_skip:
+                export_meta_alpha(datasets, to_export)
+        if 'alpha_correlations' not in p_skip:
+            run_correlations(i_datasets_folder, datasets, diversities,
+                             force, prjct_nm, qiime_env, chmod)
+        if p_longi_column:
+            if 'volatility' not in p_skip:
+                run_volatility(i_datasets_folder, datasets, p_longi_column,
+                               force, prjct_nm, qiime_env, chmod)
     # ------------------------------------------------------------------
 
     # BETA ----------------------------------------------------
@@ -177,7 +176,7 @@ def routine_qiime2_analyses(
         run_deicode(i_datasets_folder, datasets, p_perm_groups,
                     force, prjct_nm, qiime_env, chmod)
 
-    if 'alpha' not in p_skip and 'alpha_kw' not in p_skip and diversities:
+    if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
         run_alpha_group_significance(i_datasets_folder, datasets, diversities,
                                      p_perm_groups, force, prjct_nm, qiime_env, chmod)
     if p_perm_tests:

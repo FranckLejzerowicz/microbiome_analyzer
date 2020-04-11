@@ -41,12 +41,12 @@ def update_filtering_abundance(mmvec_dict: dict, p_mmvec_pairs: str, filtering: 
     if 'abundance' in mmvec_dict['filtering']:
         if not isinstance(mmvec_dict['filtering']['abundance'], list):
             print('Filtering parameter "abundance" should be a list (see %s)\n' % p_mmvec_pairs)
-            sys.exit(1)
+            sys.exit(0)
         not_int = []
         for abundance_list in mmvec_dict['filtering']['abundance']:
             if not isinstance(abundance_list, list):
                 print('Filtering parameter "abundance" should be a list of lists (see %s)\nExiting\n' % p_mmvec_pairs)
-                sys.exit(1)
+                sys.exit(0)
             for abundance in abundance_list:
                 try:
                     int(abundance)
@@ -56,7 +56,7 @@ def update_filtering_abundance(mmvec_dict: dict, p_mmvec_pairs: str, filtering: 
         if not_int:
             print('Filtering parameter "abundance" should contain two integers (see %s)\n' % p_mmvec_pairs)
             print('  Not integer(s) in\n:%s\nExiting\n' % ', '.join(["['%s']" % "', '".join(x) for x in not_int]))
-            sys.exit(1)
+            sys.exit(0)
     else:
         print('No "abundance" filter specified in %s:\nUsing defaults:' % p_mmvec_pairs)
         for k, v in filtering['abundance'].items():
@@ -69,7 +69,7 @@ def update_filtering_prevalence(mmvec_dict: dict, p_mmvec_pairs: str, filtering:
     if 'prevalence' in mmvec_dict['filtering']:
         if not isinstance(mmvec_dict['filtering']['prevalence'], list):
             print('Filtering parameter "prevalence" should be a list (see %s)\nExiting\n' % p_mmvec_pairs)
-            sys.exit(1)
+            sys.exit(0)
         not_int = []
         for prevalence in mmvec_dict['filtering']['prevalence']:
             try:
@@ -79,7 +79,7 @@ def update_filtering_prevalence(mmvec_dict: dict, p_mmvec_pairs: str, filtering:
         if not_int:
             print('Filtering parameter "prevalence" should contain integers (see %s)\n' % p_mmvec_pairs)
             print('  Not integer(s)\n:%s\nExiting\n' % ', '.join(not_int))
-            sys.exit(1)
+            sys.exit(0)
     else:
         print('No "prevalence" filter specified in %s:\nUsing defaults: %s' % (p_mmvec_pairs,
                                                                                ','.join(filtering['prevalence'])))
@@ -136,7 +136,7 @@ def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
         for param, cur_param in mmvec_dict['params'].items():
             if not isinstance(cur_param, list):
                 print('Parameter %s should be a list (correct in %s)\n' % (param, p_mmvec_pairs))
-                sys.exit(1)
+                sys.exit(0)
             params[param] = cur_param
     return params
 
@@ -150,14 +150,14 @@ def get_mmvec_pairs(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
     """
     if 'pairs' not in mmvec_dict:
         print('No datasets pairs specified in %s:\nExiting\n' % p_mmvec_pairs)
-        sys.exit(1)
+        sys.exit(0)
     mmvec_pairs = {}
     for pair, paired_datasets in mmvec_dict['pairs'].items():
         n_dats = len(paired_datasets)
         if n_dats != 2:
             print('Must be two datasets per mmvec pair (found %s in %s)\n'
                   'Exiting\n' % (n_dats, p_mmvec_pairs))
-            sys.exit(1)
+            sys.exit(0)
         mmvec_pairs[pair] = [(dat[:-1], 1) if dat[-1] == '*' else (dat, 0) for dat in paired_datasets]
     return mmvec_pairs
 
@@ -170,7 +170,7 @@ def get_mmvec_dicts(p_mmvec_pairs: str) -> (dict, dict, dict):
     """
     if not isfile(p_mmvec_pairs):
         print('yaml file for mmvec pairs does not exist:\n%s\nExiting...' % p_mmvec_pairs)
-        sys.exit(1)
+        sys.exit(0)
     with open(p_mmvec_pairs) as handle:
         mmvec_dict = yaml.load(handle, Loader=yaml.FullLoader)
 
@@ -203,7 +203,7 @@ def get_songbird_params(p_diff_models: str, diff_dict: dict) -> dict:
             cur_param = diff_dict['params'][param]
             if not isinstance(cur_param, list):
                 print('Parameter %s should be a list (correct in %s)\n' % (param, p_diff_models))
-                sys.exit(1)
+                sys.exit(0)
             params[param] = cur_param
     return params
 
@@ -231,7 +231,7 @@ def get_songbird_models(p_diff_models: str, diff_dict: dict) -> None:
     """
     if 'models' not in diff_dict:
         print('No models in %s' % p_diff_models)
-        sys.exit(1)
+        sys.exit(0)
 
 
 def get_songbird_dict(p_diff_models: str) -> (dict, dict, dict):
@@ -245,7 +245,7 @@ def get_songbird_dict(p_diff_models: str) -> (dict, dict, dict):
     """
     if not isfile(p_diff_models):
         print('yaml file containing groups does not exist:\n%s\nExiting...' % p_diff_models)
-        sys.exit(1)
+        sys.exit(0)
     with open(p_diff_models) as handle:
         diff_dict = yaml.load(handle, Loader=yaml.FullLoader)
     main_cases_dict = {'ALL': [[]]}
@@ -266,7 +266,7 @@ def get_main_cases_dict(p_perm_groups: str) -> dict:
     if p_perm_groups:
         if not isfile(p_perm_groups):
             print('yaml file containing groups does not exist:\n%s\nExiting...' % p_perm_groups)
-            sys.exit(1)
+            sys.exit(0)
         with open(p_perm_groups) as handle:
             main_cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
     return main_cases_dict
@@ -281,7 +281,7 @@ def get_formulas_dict(p_formulas: str) -> dict:
     """
     if not isfile(p_formulas):
         print('yaml file containing formulas does not exist:\n%s\nExiting...' % p_formulas)
-        sys.exit(1)
+        sys.exit(0)
     with open(p_formulas) as handle:
         formulas = yaml.load(handle, Loader=yaml.FullLoader)
     return formulas
@@ -393,7 +393,7 @@ def get_corresponding_meta(path: str) -> str:
         return meta_txt
     else:
         print('No metadata found for %s\n(was looking for:\n- %s\n- %s)' % (path, meta_tsv, meta_txt))
-        sys.exit(1)
+        sys.exit(0)
 
 
 def get_paths(i_datasets: tuple, i_datasets_folder: str) -> dict:
@@ -419,7 +419,7 @@ def get_paths(i_datasets: tuple, i_datasets_folder: str) -> dict:
         for tsv in tsvs:
             print(' - %s (or .biom)' % tsv)
         print('Exiting...')
-        sys.exit(1)
+        sys.exit(0)
     return paths
 
 
@@ -580,19 +580,19 @@ def get_wol_tree(i_wol_tree: str) -> str:
         return '%s/wol_tree.nwk' % RESOURCES
     if not isfile(i_wol_tree):
         print('%s does not exist\nExiting...' % i_wol_tree)
-        sys.exit(1)
+        sys.exit(0)
     if not i_wol_tree.endswith('.nwk'):
         if i_wol_tree.endswith('qza'):
             i_wol_tree_nwk = '%s.nwk' % splitext(i_wol_tree)[0]
             if isfile(i_wol_tree_nwk):
                 print('Warning: about to overwrite %s\nExiting' % i_wol_tree_nwk)
-                sys.exit(1)
+                sys.exit(0)
             run_export(i_wol_tree, i_wol_tree_nwk, 'Phylogeny')
             return i_wol_tree_nwk
         else:
             # need more formal checks (sniff in skbio / stdout in "qiime tools peek")
             print('%s is not a .nwk (tree) file or not a qiime2 Phylogeny artefact\nExiting...' % i_wol_tree)
-            sys.exit(1)
+            sys.exit(0)
     else:
         return i_wol_tree
 
@@ -606,10 +606,10 @@ def get_sepp_tree(i_sepp_tree: str) -> str:
     """
     if not i_sepp_tree or not isfile(i_sepp_tree):
         print('%s does not exist\nExiting...' % i_sepp_tree)
-        sys.exit(1)
+        sys.exit(0)
     if not i_sepp_tree.endswith('qza'):
         print('%s is not a qiime2 Phylogeny artefact\nExiting...' % i_sepp_tree)
-        sys.exit(1)
+        sys.exit(0)
     if basename(i_sepp_tree) in ['sepp-refs-silva-128.qza',
                                  'sepp-refs-gg-13-8.qza']:
         return i_sepp_tree
@@ -617,7 +617,7 @@ def get_sepp_tree(i_sepp_tree: str) -> str:
         print('%s is not:\n- "sepp-refs-silva-128.qza"\n- "sepp-refs-gg-13-8.qza"\n'
               'Download: https://docs.qiime2.org/2019.10/data-resources/#sepp-reference-databases)\n'
               'Exiting...' % i_sepp_tree)
-        sys.exit(1)
+        sys.exit(0)
 
 
 def get_taxonomy_classifier(i_classifier: str) -> str:
@@ -629,10 +629,10 @@ def get_taxonomy_classifier(i_classifier: str) -> str:
     """
     if not isfile(i_classifier):
         print('%s does not exist\nExiting...' % i_classifier)
-        sys.exit(1)
+        sys.exit(0)
     if not i_classifier.endswith('qza'):
         print('%s is not a qiime2 artefact\nExiting...' % i_classifier)
-        sys.exit(1)
+        sys.exit(0)
 
     allowed_classifiers = [
         'silva-132-99-nb-classifier.qza',
@@ -647,7 +647,7 @@ def get_taxonomy_classifier(i_classifier: str) -> str:
               'Download: https://docs.qiime2.org/2020.2/data-resources/'
               '#taxonomy-classifiers-for-use-with-q2-feature-classifier)\n'
               'Exiting...' % (i_classifier, '\n - %s' % '\n - '.join(allowed_classifiers)))
-        sys.exit(1)
+        sys.exit(0)
 
 
 def parse_g2lineage() -> dict:

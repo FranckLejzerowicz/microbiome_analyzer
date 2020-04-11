@@ -131,7 +131,7 @@ def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict, da
             if tsv_meta_pds == 'raref':
                 if not isfile(tsv):
                     print('Must have run rarefcation to use it further...\nExiting')
-                    sys.exit(1)
+                    sys.exit(0)
                 tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
                 datasets_read[dat] = [tsv_pd, meta_pd]
             else:

@@ -102,7 +102,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
             tsv, meta = datasets[dat]
             if not isfile(tsv):
                 print('Must have run rarefaction to use it further...\nExiting')
-                sys.exit(1)
+                sys.exit(0)
             tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
             datasets_read[dat] = [tsv_pd_, meta_pd_]
         else:

@@ -58,7 +58,7 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                         tsv, meta = datasets[dat]
                         if not isfile(tsv):
                             print('Must have run rarefaction to use it further...\nExiting')
-                            sys.exit(1)
+                            sys.exit(0)
                         tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
                         datasets_read[dat] = [tsv_pd, meta_pd]
                     continue
@@ -67,7 +67,7 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                 if not isfile(qza):
                     print('Need to first import %s to .qza to do reads placement '
                           '(see "# Import tables to qiime2")\nExiting...' % tsv)
-                    sys.exit(1)
+                    sys.exit(0)
                 qza_in = '%s_inTree.qza' % splitext(tsv)[0]
                 qza_out = '%s_notInTree.qza' % splitext(tsv)[0]
 
