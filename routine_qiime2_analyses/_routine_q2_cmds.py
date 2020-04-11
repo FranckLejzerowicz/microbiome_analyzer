@@ -172,10 +172,12 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
     :param cur_sh:
     :return:
     """
+
+    cmd = ''
     if gpu or standalone:
         biom1 = '%s.biom' % splitext(qza1)[0]
         biom2 = '%s.biom' % splitext(qza2)[0]
-        cmd = '\nmmvec paired-omics \\\n'
+        cmd += '\nmmvec paired-omics \\\n'
         if gpu:
             cmd += '--arm-the-gpu \\\n'
         cmd += '--microbe-file %s \\\n' % biom1
@@ -195,7 +197,7 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
     else:
         conditionals_qza = '%s.qza' % splitext(conditionals_tsv)[0]
         biplot_qza = '%s.qza' % splitext(biplot_tsv)[0]
-        cmd = '\nqiime mmvec paired-omics \\\n'
+        cmd += '\nqiime mmvec paired-omics \\\n'
         cmd += '--i-microbes %s \\\n' % qza1
         cmd += '--i-metabolites %s \\\n' % qza2
         cmd += '--m-metadata-file %s \\\n' % meta_fp
@@ -213,6 +215,7 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
         cmd += '--o-conditional-biplot %s\n' % biplot_qza
         if not isfile(conditionals_tsv):
             cmd += run_export(conditionals_qza, conditionals_tsv, '')
+
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 
@@ -559,17 +562,13 @@ def write_deicode_biplot(qza: str, new_meta: str, new_qza: str, ordi_qza: str,
     cmd += '--i-table %s \\\n' % qza
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--o-filtered-table %s\n' % new_qza
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n' % cmd)
-    cmd = 'qiime deicode rpca \\\n'
+    cmd += 'qiime deicode rpca \\\n'
     cmd += '--i-table %s \\\n' % new_qza
     cmd += '--p-min-feature-count 10 \\\n'
     cmd += '--p-min-sample-count 500 \\\n'
     cmd += '--o-biplot %s \\\n' % ordi_qza
     cmd += '--o-distance-matrix %s\n' % new_mat_qza
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n' % cmd)
-    cmd = 'qiime emperor biplot \\\n'
+    cmd += 'qiime emperor biplot \\\n'
     cmd += '--i-biplot %s \\\n' % ordi_qza
     cmd += '--m-sample-metadata-file %s \\\n' % new_meta
     cmd += '--o-visualization %s \\\n' % ordi_qzv
@@ -641,15 +640,11 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--i-distance-matrix %s \\\n' % mat_qza
     cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n' % cmd)
-    cmd = 'qiime feature-table filter-samples \\\n'
+    cmd += 'qiime feature-table filter-samples \\\n'
     cmd += '--i-table %s \\\n' % qza
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--o-filtered-table %s\n' % new_qza
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n' % cmd)
-    cmd = 'qiime diversity beta-group-significance \\\n'
+    cmd += 'qiime diversity beta-group-significance \\\n'
     cmd += '--i-distance-matrix %s \\\n' % new_mat_qza
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--m-metadata-column "%s" \\\n' % testing_group
@@ -701,15 +696,11 @@ def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--i-distance-matrix %s \\\n' % mat_qza
     cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n' % cmd)
-    cmd = 'qiime feature-table filter-samples \\\n'
+    cmd += 'qiime feature-table filter-samples \\\n'
     cmd += '--i-table %s \\\n' % qza
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--o-filtered-table %s\n' % new_qza
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n' % cmd)
-    cmd = 'qiime diversity adonis \\\n'
+    cmd += 'qiime diversity adonis \\\n'
     cmd += '--i-distance-matrix %s \\\n' % new_mat_qza
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--p-formula "%s" \\\n' % formula
