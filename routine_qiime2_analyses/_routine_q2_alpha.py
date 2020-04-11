@@ -179,7 +179,7 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
             meta_alpha_pd = pd.read_csv(meta_alpha_fp, header=0, dtype=str, sep='\t')
             meta_alpha_pd.rename(columns={meta_alpha_pd.columns[0]: 'sample_name'}, inplace=True)
             meta_alpha_pd.set_index('sample_name', inplace=True)
-            group = meta_alpha_fp.split('_alphas__')[-1].split('.qzv')[0]
+            group = meta_alpha_fp.split('_alphas__')[-1].split('.tsv')[0]
             if group != '':
                 replace_cols = dict((x, '%s_%s' % (group, x)) for x in meta_alpha_pd.columns)
                 meta_alpha_pd.rename(columns=replace_cols, inplace=True)
