@@ -7,9 +7,9 @@
 # ----------------------------------------------------------------------------
 
 import os
-from os.path import basename, dirname, isdir, isfile, splitext
+from os.path import basename, isfile, splitext
 
-from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
+from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics,
     get_job_folder,
@@ -73,8 +73,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                      qiime_env, '24', '1', '1', '10', 'gb',
                      chmod, written, 'single', o)
     if written:
-        print('# Calculate beta diversity indices')
-        print('[TO RUN] sh', run_pbs)
+        print_message('# Calculate beta diversity indices', 'sh', run_pbs)
     return betas
 
 
@@ -150,8 +149,7 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
                      qiime_env, '10', '1', '2', '2', 'gb',
                      chmod, written, 'single', o)
     if written:
-        print('# Calculate principal coordinates')
-        print('[TO RUN] sh', run_pbs)
+        print_message('# Calculate principal coordinates', 'sh', run_pbs)
     return pcoas_d
 
 
@@ -198,5 +196,4 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict,
                      qiime_env, '10', '1', '1', '1', 'gb',
                      chmod, written, 'single', o)
     if written:
-        print('# Make EMPeror plots')
-        print('[TO RUN] sh', run_pbs)
+        print_message('# Make EMPeror plots', 'sh', run_pbs)

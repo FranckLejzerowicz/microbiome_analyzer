@@ -11,7 +11,7 @@ import pandas as pd
 import multiprocessing
 from os.path import basename, isfile, splitext
 
-from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
+from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics, get_job_folder, get_analysis_folder,
     write_main_sh, get_main_cases_dict, read_meta_pd,
@@ -107,8 +107,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                      qiime_env, '4', '1', '1', '1', 'gb',
                      chmod, written, 'single', o)
     if written:
-        print('# Calculate alpha diversity indices')
-        print('[TO RUN] sh', run_pbs)
+        print_message('# Calculate alpha diversity indices', 'sh', run_pbs)
     return diversities
 
 
@@ -152,8 +151,7 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
                      qiime_env, '2', '1', '1', '150', 'mb',
                      chmod, written, 'single', o)
     if written:
-        print('# Merge and export alpha diversity indices')
-        print('[TO RUN] sh', run_pbs)
+        print_message('# Merge and export alpha diversity indices', 'sh', run_pbs)
     return to_export
 
 
@@ -234,8 +232,7 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                      qiime_env, '10', '1', '1', '1', 'gb',
                      chmod, written, 'single', o)
     if written:
-        print('# Correlate numeric metadata variables with alpha diversity indices')
-        print('[TO RUN] sh', run_pbs)
+        print_message('# Correlate numeric metadata variables with alpha diversity indices', 'sh', run_pbs)
 
 
 def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
@@ -289,8 +286,7 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
                      qiime_env, '2', '1', '1', '100', 'mb',
                      chmod, written, 'single', o)
     if written:
-        print('# Longitudinal change in alpha diversity indices')
-        print('[TO RUN] sh', run_pbs)
+        print_message('# Longitudinal change in alpha diversity indices', 'sh', run_pbs)
 
 
 def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list: list,
@@ -395,4 +391,4 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
             print("# Kruskal-Wallis on alpha diversity (groups config in %s)" % p_perm_groups)
         else:
             print("# Kruskal-Wallis on alpha diversity")
-        print('[TO RUN] sh', main_sh)
+        print_message('', 'sh', main_sh)

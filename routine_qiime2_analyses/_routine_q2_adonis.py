@@ -11,6 +11,7 @@ import pandas as pd
 from os.path import basename, isfile, splitext
 import multiprocessing
 
+from routine_qiime2_analyses._routine_q2_xpbs import print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics, get_job_folder,
     get_analysis_folder,
@@ -138,4 +139,4 @@ def run_adonis(p_formulas: str, i_data_sets_folder: str, data_sets: dict, betas:
             print("# Run Adonis (groups config in %s)" % p_perm_groups)
         else:
             print("# Run Adonis")
-        print('[TO RUN] sh', main_sh)
+        print_message('', 'sh', main_sh)

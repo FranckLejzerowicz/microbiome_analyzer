@@ -13,7 +13,7 @@ import numpy as np
 from scipy.stats import skew
 from os.path import splitext
 
-from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
+from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder
 from routine_qiime2_analyses._routine_q2_cmds import write_rarefy, run_export
 np.set_printoptions(precision=2, suppress=True)
@@ -83,8 +83,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                      qiime_env, '24', '1', '1', '10', 'gb',
                      chmod, written, 'single', o)
     if written:
-        print('# Calculate beta diversity indices')
-        print('[TO RUN] sh', run_pbs)
+        print_message('# Calculate beta diversity indices', 'sh', run_pbs)
 
 
 def check_rarefy_need(i_datasets_folder: str, datasets_read: dict) -> dict:

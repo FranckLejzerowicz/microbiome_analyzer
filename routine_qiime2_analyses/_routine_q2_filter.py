@@ -7,7 +7,6 @@
 # ----------------------------------------------------------------------------
 
 import sys
-import pandas as pd
 from os.path import isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs

@@ -9,7 +9,7 @@
 import pandas as pd
 from os.path import isfile, splitext
 
-from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
+from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_taxonomy_classifier,
     get_job_folder,
@@ -161,8 +161,7 @@ def run_taxonomy(i_datasets_folder: str, datasets_read: dict, datasets_phylo: di
                      qiime_env, '4', '1', '4', '200', 'mb',
                      chmod, written, 'single', o)
     if written:
-        print('# Classify features using classify-sklearn')
-        print('[TO RUN] sh', run_pbs)
+        print_message('# Classify features using classify-sklearn', 'sh', run_pbs)
 
 
 def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
@@ -204,8 +203,7 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
                      qiime_env, '4', '1', '1', '200', 'mb',
                      chmod, written, 'single', o)
     if written:
-        print('# Make sample compositions barplots')
-        print('[TO RUN] sh', run_pbs)
+        print_message('# Make sample compositions barplots', 'sh', run_pbs)
 
 
 def get_precomputed_taxonomies(i_datasets_folder: str, datasets: dict, taxonomies: dict) -> None:

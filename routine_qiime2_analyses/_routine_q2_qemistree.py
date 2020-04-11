@@ -9,7 +9,7 @@
 import pandas as pd
 from os.path import isfile, splitext
 
-from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
+from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_cmds import write_qemistree, run_export
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_job_folder,
@@ -73,5 +73,4 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str, i_qemis
             run_xpbs(out_sh, out_pbs, '%s.qmstr.%s' % (prjct_nm, dat), qiime_env,
                      '4', '1', '1', '200', 'mb', chmod, written, 'single', o)
     if written:
-        print('# Make qemistree classyfire classifications')
-        print('[TO RUN] sh', run_pbs)
+        print_message('# Make qemistree classyfire classifications', 'sh', run_pbs)

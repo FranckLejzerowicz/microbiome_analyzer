@@ -12,6 +12,7 @@ import pandas as pd
 from os.path import basename, isfile, splitext
 import multiprocessing
 
+from routine_qiime2_analyses._routine_q2_xpbs import print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_job_folder,
     get_analysis_folder,
@@ -154,7 +155,5 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             '%s.sngbrd' % prjct_nm, '2', '1', '24', '2', 'gb',
                             qiime_env, chmod)
     if main_sh:
-        print("# Songbird (configs in %s)" % p_diff_models)
-        print('[TO RUN] sh', main_sh)
-
+        print_message("# Songbird (configs in %s)" % p_diff_models, 'sh', main_sh)
     return songbird_outputs

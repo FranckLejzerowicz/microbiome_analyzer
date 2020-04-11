@@ -89,3 +89,11 @@ def xpbs_call(out_sh: str, out_pbs: str, prjct_nm: str,
         '--noq'
     ]
     subprocess.call(cmd)
+
+
+def print_message(message: str, sh_pbs: str, to_run: str) -> None:
+    if message:
+        print(message)
+    if os.getcwd().startswith('/panfs'):
+        to_run = to_run.replace(os.getcwd(), '')
+    print('[TO RUN]', sh_pbs, to_run)

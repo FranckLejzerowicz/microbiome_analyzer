@@ -12,7 +12,7 @@ import pandas as pd
 from os.path import isfile, splitext
 import multiprocessing
 
-from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
+from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_job_folder,
     get_analysis_folder,
@@ -365,7 +365,5 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                             '%s.mmvc' % prjct_nm, '150', '1', '1', '2', 'gb',
                             qiime_env, chmod)
     if main_sh:
-        print("# MMVEC (datasets pairs in %s)" % p_mmvec_pairs)
-        print('[TO RUN] sh', main_sh)
-
+        print_message("# MMVEC (datasets pairs in %s)" % p_mmvec_pairs, 'sh', main_sh)
     return mmvec_outputs
