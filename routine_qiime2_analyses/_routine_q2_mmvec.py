@@ -75,6 +75,10 @@ def write_filtered_tsv(tsv_out: str, tsv_pd: pd.DataFrame) -> None:
 
 def write_filtered_meta(rad_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFrame) -> pd.DataFrame:
     meta_out = '%s.tsv' % rad_out
+    print("tsv_pd.iloc[:3,:3]")
+    print(tsv_pd.iloc[:3,:3])
+    print("meta_pd_.iloc[:4,:4]")
+    print(meta_pd_.iloc[:4,:4])
     meta_filt_pd = meta_pd_.loc[meta_pd_.iloc[:,0].isin(tsv_pd.columns)].copy()
     meta_filt_pd.to_csv(meta_out, index=False, sep='\t')
     return meta_filt_pd
@@ -107,6 +111,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
             datasets_read[dat] = [tsv_pd_, meta_pd_]
         else:
             tsv_pd_, meta_pd_ = datasets_read[dat]
+            meta_pd_.set_index('sample_name', inplace=True)
 
         dat_filts = {}
         for preval_filt in mmvec_filtering['prevalence']:
@@ -206,6 +211,11 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
             print(meta_pd2.shape)
             print(meta_pd2.columns)
             common_sams = sorted(set(sams1) & set(sams2))
+            print("sams1")
+            print(sams1)
+            print("sams2")
+            print(sams2)
+
             meta_subset1 = get_meta_common_sorted(meta_pd1, common_sams)
             meta_subset2 = get_meta_common_sorted(meta_pd2, common_sams)
             meta_fp = '%s/meta_%s__%ss.tsv' % (meta_dir, pair, len(common_sams))
