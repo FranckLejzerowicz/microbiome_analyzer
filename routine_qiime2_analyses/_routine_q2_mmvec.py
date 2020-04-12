@@ -139,6 +139,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
 
 
 def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFrame:
+    print(meta.iloc[:3,:3])
     meta.reset_index(inplace=True)
     meta_sam_col = meta.columns[0]
     meta_subset = meta.loc[meta[meta_sam_col].isin(common_sams)].copy()
