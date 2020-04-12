@@ -139,8 +139,6 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
 
 
 def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFrame:
-    print(meta)
-    print(metafds)
     meta.reset_index(inplace=True)
     meta_sam_col = meta.columns[0]
     meta_subset = meta.loc[meta[meta_sam_col].isin(common_sams)].copy()
@@ -195,23 +193,7 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
             filts_2 = list(filt_datasets[omic2].keys())
             qza1, meta1, meta_pd1, sams1 = filt_datasets[omic1][filts_1[fdx]]
             qza2, meta2, meta_pd2, sams2 = filt_datasets[omic2][filts_2[fdx]]
-            print()
-            print()
-            print('meta_pd1')
-            print(meta_pd1.shape)
-            print(meta_pd1.columns)
-            print()
-            print()
-            print()
-            print('meta_pd2')
-            print(meta_pd2.shape)
-            print(meta_pd2.columns)
             common_sams = sorted(set(sams1) & set(sams2))
-            print("sams1")
-            print(sams1)
-            print("sams2")
-            print(sams2)
-
             meta_subset1 = get_meta_common_sorted(meta_pd1, common_sams)
             meta_subset2 = get_meta_common_sorted(meta_pd2, common_sams)
             meta_fp = '%s/meta_%s__%ss.tsv' % (meta_dir, pair, len(common_sams))
