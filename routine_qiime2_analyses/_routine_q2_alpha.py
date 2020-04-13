@@ -197,11 +197,9 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
         meta_alphas_pd = pd.concat(meta_alphas_pds, axis=1)
 
         meta_pd = read_meta_pd(meta)
-        print("meta_pd")
-        print(meta_pd.iloc[:3,:3])
-        print("meta_alphas_pd")
-        print(meta_alphas_pd.iloc[:3,:3])
-        print(jfkjb)
+        if meta_alphas_pd.index.tolist()[0] == '#q2:types':
+            meta_alphas_pd = meta_alphas_pd.iloc[1:,:]
+        meta_alphas_pd = meta_alphas_pd.reset_index()
         meta_alphas_pd = meta_pd.merge(meta_alphas_pd, on='sample_name', how='left')
         meta_alpha_fpo = '%s_alphas.tsv' % splitext(meta)[0]
         meta_alphas_pd.reset_index().to_csv(meta_alpha_fpo, index=False, sep='\t')
