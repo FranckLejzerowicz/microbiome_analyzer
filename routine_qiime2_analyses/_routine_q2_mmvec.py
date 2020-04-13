@@ -70,12 +70,14 @@ def filter_non_mb_table(preval_filt: int, abund_filt: int, tsv_pd: pd.DataFrame)
 def write_filtered_tsv(tsv_out: str, tsv_pd: pd.DataFrame) -> None:
     tsv_sams_col = tsv_pd.reset_index().columns[0]
     tsv_pd = tsv_pd.reset_index().rename(columns={tsv_sams_col: 'Feature ID'}).set_index('Feature ID')
+    print('write_filtered_tsv:', tsv_out)
     tsv_pd.reset_index().to_csv(tsv_out, index=False, sep='\t')
 
 
 def write_filtered_meta(rad_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFrame) -> pd.DataFrame:
     meta_out = '%s.tsv' % rad_out
     meta_filt_pd = meta_pd_.loc[meta_pd_.sample_name.isin(tsv_pd.columns),:].copy()
+    print('write_filtered_meta:', meta_out)
     meta_filt_pd.to_csv(meta_out, index=False, sep='\t')
     return meta_filt_pd
 
@@ -163,6 +165,7 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame, meta_subset2: pd.DataFrame
         on=(['sample_name'] + [c for c in common_cols if c not in diff_cols]))
     sorting_col =['sample_name'] + [x for x in meta_subset.columns.tolist() if x != 'sample_name']
     meta_subset[sorting_col].to_csv(meta_fp, index=False, sep='\t')
+    print('merge_and_write_metas:', meta_fp)
     return meta_subset
 
 
