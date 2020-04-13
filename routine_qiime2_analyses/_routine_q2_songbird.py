@@ -118,6 +118,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
         tsv, meta = tsv_meta_pds
         qza = '%s.qza' % splitext(tsv)[0]
         meta_pd = read_meta_pd(meta)
+        meta_pd = meta_pd.set_index('sample_name')
 
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
         models = check_metadata_models(meta, meta_pd, main_models, 'songbird')

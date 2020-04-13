@@ -105,6 +105,10 @@ def routine_qiime2_analyses(
     # INIT -------------------------------------------------------------------------------------
     datasets, datasets_read, datasets_features, datasets_phylo = get_datasets(i_datasets,
                                                                               i_datasets_folder)
+
+    # --> datasets_read <--
+    # path_pd : indexed with feature name
+    # meta_pd : not indexed -> "sample_name" as first column
     import_datasets(i_datasets_folder, datasets, datasets_phylo, force, prjct_nm, qiime_env, chmod)
     if raref:
         run_rarefy(i_datasets_folder, datasets, datasets_read,

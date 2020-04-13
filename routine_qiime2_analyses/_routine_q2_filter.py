@@ -81,9 +81,12 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             if tab_meta_pds == 'raref':
                 tsv, meta = datasets[dat]
                 if not isfile(tsv):
-                    print('Must have run rarefcation to use it further...\nExiting')
+                    print('Must have run rarefaction to use it further...\nExiting')
                     sys.exit(0)
                 tab_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
+                # --> datasets_read <--
+                # path_pd : indexed with feature name
+                # meta_pd : not indexed -> "sample_name" as first column
                 datasets_read[dat] = [tab_pd, meta_pd]
             else:
                 tab_pd, meta_pd = tab_meta_pds
@@ -94,7 +97,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                     gid_feat for gid_feat in datasets_features[dat_no_raref].items() if gid_feat[1] in tab_pd.index
                 )
 
-            meta_pd = meta_pd.set_index(meta_pd.columns.tolist()[0])
+            meta_pd = meta_pd.set_index('sample_name')
             tab_filt_pd = tab_pd.loc[:, tab_pd.sum(0) >= thresh].copy()
             tab_filt_pd = tab_filt_pd.loc[tab_filt_pd.sum(1) > 0, :]
             tab_filt_pd = tab_filt_pd.loc[:, tab_filt_pd.sum(0) > 0]

@@ -46,7 +46,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     :return: {'dataset1': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }],
               'dataset2': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }], '...'}
     """
-    alpha_subsets_deletions = []
+    # alpha_subsets_deletions = []
     alpha_metrics = get_metrics('alpha_metrics')
     alpha_subsets = get_alpha_subsets(p_alpha_subsets)
     job_folder = get_job_folder(i_datasets_folder, 'alpha')
@@ -65,7 +65,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
                 datasets_read[dat] = [tsv_pd, meta_pd]
             else:
-                tsv_pd, meta_pd = tsv_meta_pds
+                tsv_pd, meta_pd = datasets_read[dat]
 
             out_sh = '%s/run_alpha_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
@@ -87,22 +87,23 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                         written += 1
                     divs.setdefault('', []).append(out_fp)
 
-                    if alpha_subsets and dat in alpha_subsets:
-                        for subset, subset_regex in alpha_subsets[dat].items():
-                            out_fp = '%s/%s_%s_%s.qza' % (odir, basename(splitext(qza)[0]), metric, subset)
+                if alpha_subsets and dat in alpha_subsets:
+                    for subset, subset_regex in alpha_subsets[dat].items():
+                        odir = get_analysis_folder(i_datasets_folder, 'alpha/%s/%s' % (dat, subset))
+                        qza_subset = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]),  subset)
+                        meta_subset = '%s.meta' % splitext(qza_subset)[0]
+                        nfeats = get_subset(tsv_pd, subset, meta_subset, subset_regex)
+                        if not nfeats:
+                            continue
+                        write_filter_features(qza, qza_subset, meta_subset, cur_sh)
+
+                        for metric in alpha_metrics:
+                            out_fp = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]), metric)
                             out_tsv = '%s.tsv' % splitext(out_fp)[0]
-
-                            qza_subset = '%s_%s.qza' % (splitext(qza)[0], subset)
-                            meta_subset = '%s_%s.meta' % (splitext(qza)[0], subset)
-
-                            alpha_subsets_deletions.extend([out_fp, out_tsv, meta_subset])
-
-                            get_subset(tsv_pd, meta_subset, subset_regex)
-                            write_filter_features(qza, qza_subset, meta_subset, cur_sh)
-
+                            # alpha_subsets_deletions.extend([out_fp, out_tsv, meta_subset])
                             if force or not isfile(out_fp):
                                 ret_continue = write_diversity_alpha(out_fp, datasets_phylo, trees,
-                                                                     dat, qza, metric, cur_sh)
+                                                                     dat, qza_subset, metric, cur_sh)
                                 if ret_continue:
                                     continue
                                 cmd = run_export(out_fp, out_tsv, '')
@@ -369,6 +370,7 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
 
         meta = datasets[dat][1]
         meta_pd = read_meta_pd(meta)
+        meta_pd = meta_pd.set_index('sample_name')
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'alpha Kruskal-Wallis')
 
         odir = get_analysis_folder(i_datasets_folder, 'alpha_group_significance/%s' % dat)

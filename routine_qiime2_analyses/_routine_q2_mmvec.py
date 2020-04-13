@@ -75,7 +75,7 @@ def write_filtered_tsv(tsv_out: str, tsv_pd: pd.DataFrame) -> None:
 
 def write_filtered_meta(rad_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFrame) -> pd.DataFrame:
     meta_out = '%s.tsv' % rad_out
-    meta_filt_pd = meta_pd_.loc[tsv_pd.columns,:].copy()
+    meta_filt_pd = meta_pd_.loc[meta_pd_.sample_name.isin(tsv_pd.columns),:].copy()
     meta_filt_pd.to_csv(meta_out, index=False, sep='\t')
     return meta_filt_pd
 
@@ -107,7 +107,6 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
             datasets_read[dat] = [tsv_pd_, meta_pd_]
         else:
             tsv_pd_, meta_pd_ = datasets_read[dat]
-            meta_pd_.set_index('sample_name', inplace=True)
 
         dat_filts = {}
         for preval_filt in mmvec_filtering['prevalence']:
@@ -139,11 +138,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
 
 
 def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFrame:
-    print(meta.iloc[:3,:3])
-    meta.reset_index(inplace=True)
-    meta_sam_col = meta.columns[0]
-    meta_subset = meta.loc[meta[meta_sam_col].isin(common_sams)].copy()
-    meta_subset.rename(columns={meta_sam_col: 'sample_name'}, inplace=True)
+    meta_subset = meta.loc[meta.sample_name.isin(common_sams),:].copy()
     meta_subset.sort_values('sample_name', inplace=True)
     return meta_subset
 

@@ -89,6 +89,7 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
 
         tsv, meta = tsv_meta_pds
         meta_pd = read_meta_pd(meta)
+        meta_pd = meta_pd.set_index('sample_name')
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'DEICODE')
         out_sh = '%s/run_deicode_%s.sh' % (job_folder2, dat)
         odir = get_analysis_folder(i_data_sets_folder, 'deicode/%s' % dat)

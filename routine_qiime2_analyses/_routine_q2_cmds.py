@@ -11,7 +11,7 @@ from typing import TextIO
 from os.path import isfile, splitext
 
 
-def get_subset(tsv_pd: pd.DataFrame, meta_subset: str, subset_regex: list) -> None:
+def get_subset(tsv_pd: pd.DataFrame, subset: str, meta_subset: str, subset_regex: list) -> int:
     """
     Make a feature metadata from the regex
     to get the names of the features to keep.
@@ -22,14 +22,16 @@ def get_subset(tsv_pd: pd.DataFrame, meta_subset: str, subset_regex: list) -> No
     """
     to_keep_feats = {}
     for regex in subset_regex:
-        to_keep_feats[regex] = tsv_pd.index.str.contains(regex)
+        to_keep_feats[regex] = tsv_pd.index.str.lower().str.contains(regex)
 
     to_keep_feats_pd = pd.DataFrame(to_keep_feats)
-    print(to_keep_feats_pd[:10])
-    print(to_keep_feats_pd)
+    to_keep_feats = to_keep_feats_pd.any(axis=1)
 
-    o = open(meta_subset, 'w')
-    o.close()
+    feats_subset = tsv_pd.index[to_keep_feats].tolist()
+    subset_pd = pd.DataFrame({'Feature ID': feats_subset, 'Subset': [subset]*len(feats_subset)})
+    subset_pd.to_csv(meta_subset, index=False, sep='\t')
+
+    return len(feats_subset)
 
 
 def write_filter_features(qza: str, qza_subset: str, meta_subset: str, cur_sh: TextIO) -> None:

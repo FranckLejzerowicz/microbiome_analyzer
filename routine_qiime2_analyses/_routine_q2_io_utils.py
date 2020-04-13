@@ -30,10 +30,10 @@ def get_alpha_subsets(p_alpha_subsets: str) -> dict:
         else:
             with open(p_alpha_subsets) as handle:
                 alpha_subsets = yaml.load(handle, Loader=yaml.FullLoader)
-            if 'subset_regex' not in alpha_subsets or not alpha_subsets['subset_regex']:
-                print('[Warning] key "subset_regex" must be present and filled in %s\n' % p_alpha_subsets)
+            if not isinstance(alpha_subsets, dict):
+                print('[Warning] %s must be a dictionary\n' % p_alpha_subsets)
             else:
-                return alpha_subsets['subset_regex']
+                return alpha_subsets
     return {}
 
 
@@ -302,6 +302,9 @@ def get_sample_col(meta: str) -> str:
 
 def get_raref_tab_meta_pds(meta: str, tsv: str) -> (pd.DataFrame, pd.DataFrame):
     """
+                # --> datasets_read <--
+                # path_pd : indexed with feature name
+                # meta_pd : not indexed -> "sample_name" as first column
 
     :param meta: metadata for non-rarefied data.
     :param tsv: rarefied table.
@@ -309,8 +312,8 @@ def get_raref_tab_meta_pds(meta: str, tsv: str) -> (pd.DataFrame, pd.DataFrame):
     """
     tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t', low_memory=False)
     meta_pd = read_meta_pd(meta)
-    meta_raref_pd = meta_pd.loc[tsv_pd.columns.tolist(),:].copy()
-    meta_raref_pd.to_csv(meta, index=True, sep='\t')
+    meta_raref_pd = meta_pd.loc[meta_pd.sample_name.isin(tsv_pd.columns.tolist()),:].copy()
+    meta_raref_pd.to_csv(meta, index=False, sep='\t')
     return tsv_pd, meta_raref_pd
 
 
@@ -323,7 +326,7 @@ def read_meta_pd(meta: str) -> pd.DataFrame:
     meta_sam_col = get_sample_col(meta)
     meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str}, low_memory=False)
     meta_pd.rename(columns={meta_sam_col: 'sample_name'}, inplace=True)
-    meta_pd.set_index('sample_name', inplace=True)
+    # meta_pd.set_index('sample_name', inplace=True)
     return meta_pd
 
 
@@ -504,7 +507,10 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
         path_pd = pd.read_csv(path, header=0, index_col=0, sep='\t')
         meta_sam_col = get_sample_col(meta)
         meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str}, low_memory=False)
+        meta_pd.rename(columns={meta_sam_col: 'sample_name'}, inplace=True)
         datasets[dat] = [path, meta]
+        # path_pd : indexed with feature name
+        # meta_pd : not indexed -> "sample_name" as first column
         datasets_read[dat] = [path_pd, meta_pd]
         datasets_features[dat] = {}
         datasets_phylo[dat] = ('', 0)

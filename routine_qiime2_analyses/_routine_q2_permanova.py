@@ -101,6 +101,7 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
 
         tsv, meta = tsv_meta_pds
         meta_pd = read_meta_pd(meta)
+        meta_pd = meta_pd.set_index('sample_name')
         mat_qzas = betas[dat][meta]
 
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'PERMANOVA')
