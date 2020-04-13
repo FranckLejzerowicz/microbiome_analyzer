@@ -82,7 +82,8 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
     """
     job_folder2 = get_job_folder(i_data_sets_folder, 'deicode/chunks')
     main_cases_dict = get_main_cases_dict(p_perm_groups)
-
+    print(main_cases_dict)
+    print(main_cases_dictdd)
     jobs = []
     all_sh_pbs = {}
     for dat, tsv_meta_pds in data_sets.items():
