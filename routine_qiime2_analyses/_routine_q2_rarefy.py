@@ -123,6 +123,7 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict) -> dict:
                 print('- reads-per-sample distribution described:')
                 for x,y in tsv_sam_sum.describe().to_dict().items():
                     print('\t%s: %s' % (x, round(y, 3)))
+                print('!!! NOT RAREFYING %s !!!' % dat)
             else:
                 nfigure = len(str(int(second_quantile)))
                 second_quantile_to_round = second_quantile / ( 10 ** (nfigure - 2) )
