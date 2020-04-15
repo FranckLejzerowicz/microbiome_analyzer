@@ -195,19 +195,17 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
                 meta_alpha_pd.rename(columns=replace_cols, inplace=True)
             meta_alphas_pds.append(meta_alpha_pd)
         meta_alphas_pd = pd.concat(meta_alphas_pds, axis=1)
-
-        meta_pd = read_meta_pd(meta)
         if meta_alphas_pd.index.tolist()[0] == '#q2:types':
             meta_alphas_pd = meta_alphas_pd.iloc[1:,:]
-        meta_alphas_pd.columns = ['sample_name'] + [x for x in meta_alphas_pd.columns[1:]]
         meta_alphas_pd = meta_alphas_pd.reset_index()
+        meta_alphas_pd.rename(columns={meta_alphas_pd.columns[0]: 'sample_name'}, inplace=True)
+        meta_pd = read_meta_pd(meta)
         meta_alphas_pd = meta_pd.merge(meta_alphas_pd, on='sample_name', how='left')
         meta_alpha_fpo = '%s_alphas.tsv' % splitext(meta)[0]
         meta_alphas_pd.to_csv(meta_alpha_fpo, index=False, sep='\t')
         if os.getcwd().startswith('/panfs'):
             meta_alpha_fpo = meta_alpha_fpo.replace(os.getcwd(), '')
         print(' -> Written:', meta_alpha_fpo)
-
 
 
 def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
