@@ -52,7 +52,6 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
         with open(main_sh, 'w') as main_o:
             for dat in sepp_datasets:
                 tsv, meta = datasets[dat]
-                tsv_pd, meta_pd = datasets_read[dat]
                 if dat.split('_')[-1].startswith('raref'):
                     if datasets_read[dat] == 'raref':
                         tsv, meta = datasets[dat]
@@ -61,7 +60,8 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                             sys.exit(0)
                         tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
                         datasets_read[dat] = [tsv_pd, meta_pd]
-                    continue
+                    # continue
+                tsv_pd, meta_pd = datasets_read[dat]
 
                 qza = '%s.qza' % splitext(tsv)[0]
                 if not isfile(qza):
