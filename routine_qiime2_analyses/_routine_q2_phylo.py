@@ -52,23 +52,29 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
         with open(main_sh, 'w') as main_o:
             for dat in sepp_datasets:
                 tsv, meta = datasets[dat]
-                if dat.split('_')[-1].startswith('raref'):
-                    if datasets_read[dat] == 'raref':
-                        tsv, meta = datasets[dat]
-                        if not isfile(tsv):
-                            print('Must have run rarefaction to use it further...\nExiting')
-                            sys.exit(0)
-                        tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
-                        datasets_read[dat] = [tsv_pd, meta_pd]
-                    # continue
+                if datasets_read[dat] == 'raref':
+                    qza_raw_in = '%s/data/tab_%s_inTree.qza' % (i_datasets_folder, dat)
+                    if isfile(qza_raw_in) and not force:
+                        odir_sepp = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
+                        out_fp_sepp_tree = '%s/tree_%s.qza' % (odir_sepp, dat)
+                        trees[dat] = (qza_raw_in, out_fp_sepp_tree)
+                        print('Using the non rarefied tree (no need to recompute)...\nExiting')
+                        continue
+                    elif not isfile(tsv):
+                        print('Must have run rarefaction to use it further...\nExiting')
+                        sys.exit(0)
+                    tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
+                    datasets_read[dat] = [tsv_pd, meta_pd]
+                else:
+                    tsv_pd, meta_pd = datasets_read[dat]
                 print(datasets_read[dat])
-                tsv_pd, meta_pd = datasets_read[dat]
 
                 qza = '%s.qza' % splitext(tsv)[0]
                 if not isfile(qza):
                     print('Need to first import %s to .qza to do reads placement '
                           '(see "# Import tables to qiime2")\nExiting...' % tsv)
                     sys.exit(0)
+
                 qza_in = '%s_inTree.qza' % splitext(tsv)[0]
                 qza_out = '%s_notInTree.qza' % splitext(tsv)[0]
 
