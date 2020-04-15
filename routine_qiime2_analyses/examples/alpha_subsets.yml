@@ -1,9 +1,8 @@
-subset_regex:
-  dataset_number_5:
-    milk:
-      - milk
-      - cow
-    plants:
-      - vegetable
-      - fruits
-      - seeds
+dataset_number_5:
+  milk:
+    - milk
+    - cow
+  plants:
+    - vegetable
+    - fruits
+    - seeds
