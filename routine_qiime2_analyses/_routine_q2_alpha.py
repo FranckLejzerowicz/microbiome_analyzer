@@ -204,6 +204,13 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
         meta_alphas_pd = meta_alphas_pd.reset_index()
         meta_alphas_pd.rename(columns={meta_alphas_pd.columns[0]: 'sample_name'}, inplace=True)
         meta_pd = read_meta_pd(meta)
+
+        print("meta_pd.iloc[:3,:3]")
+        print(meta_pd.iloc[:3,:3])
+        print("meta_alphas_pd.iloc[:3,:3]")
+        print(meta_alphas_pd.iloc[:3,:3])
+        print(jfkjb)
+
         meta_alphas_pd = meta_pd.merge(meta_alphas_pd, on='sample_name', how='left')
         meta_alpha_fpo = '%s_alphas.tsv' % splitext(meta)[0]
         meta_alphas_pd.to_csv(meta_alpha_fpo, index=False, sep='\t')
