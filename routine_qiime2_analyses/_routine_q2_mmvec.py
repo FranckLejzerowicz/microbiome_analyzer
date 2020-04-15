@@ -186,7 +186,7 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
         # pair_datasets
         # e.g. [('dataset_number_3', 1), ('dataset_number_4', 0)]
         # ('dataset_number_3' --> dataset , 1 --> metabolomics == special filtering)
-        for fdx, filt in enumerate(filt_datasets[omic1]):
+        for fdx, (preval_filt, abund_filter) in enumerate(filt_datasets[omic1]):
             filts_1 = list(filt_datasets[omic1].keys())
             filts_2 = list(filt_datasets[omic2].keys())
             qza1, meta1, meta_pd1, sams1 = filt_datasets[omic1][filts_1[fdx]]
@@ -194,9 +194,9 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
             common_sams = sorted(set(sams1) & set(sams2))
             meta_subset1 = get_meta_common_sorted(meta_pd1, common_sams)
             meta_subset2 = get_meta_common_sorted(meta_pd2, common_sams)
-            meta_fp = '%s/meta_%s__%ss.tsv' % (meta_dir, pair, len(common_sams))
-            new_qza1 = '%s/tab_%s__%s__%ss.qza' % (data_dir, omic1, pair, len(common_sams))
-            new_qza2 = '%s/tab_%s__%s__%ss.qza' % (data_dir, omic2, pair, len(common_sams))
+            meta_fp = '%s/meta_%s__%s_%s_%ss.tsv' % (meta_dir, pair, preval_filt, abund_filter, len(common_sams))
+            new_qza1 = '%s/tab_%s__%s__%s_%s_%ss.qza' % (data_dir, omic1, pair, preval_filt, abund_filter, len(common_sams))
+            new_qza2 = '%s/tab_%s__%s__%s_%s_%ss.qza' % (data_dir, omic2, pair, preval_filt, abund_filter, len(common_sams))
             new_tsv1 = '%s.tsv' % splitext(new_qza1)[0]
             new_tsv2 = '%s.tsv' % splitext(new_qza2)[0]
             merge_and_write_metas(meta_subset1, meta_subset2, meta_fp)
