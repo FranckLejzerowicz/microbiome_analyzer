@@ -74,8 +74,7 @@ def write_filtered_tsv(tsv_out: str, tsv_pd: pd.DataFrame) -> None:
     tsv_pd.reset_index().to_csv(tsv_out, index=False, sep='\t')
 
 
-def write_filtered_meta(rad_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFrame) -> pd.DataFrame:
-    meta_out = '%s.tsv' % rad_out
+def write_filtered_meta(meta_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFrame) -> pd.DataFrame:
     meta_filt_pd = meta_pd_.loc[meta_pd_.sample_name.isin(tsv_pd.columns),:].copy()
     print('write_filtered_meta:', meta_out)
     meta_filt_pd.to_csv(meta_out, index=False, sep='\t')
