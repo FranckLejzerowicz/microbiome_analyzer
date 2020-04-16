@@ -98,7 +98,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                         write_filter_features(qza, qza_subset, meta_subset, cur_sh)
 
                         for metric in alpha_metrics:
-                            out_fp = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]), metric)
+                            out_fp = '%s/%s_%s__%s.qza' % (odir, basename(splitext(qza)[0]), metric, subset)
                             out_tsv = '%s.tsv' % splitext(out_fp)[0]
                             # alpha_subsets_deletions.extend([out_fp, out_tsv, meta_subset])
                             if force or not isfile(out_fp):
@@ -189,8 +189,11 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
             meta_alpha_pd = pd.read_csv(meta_alpha_fp, header=0, dtype=str, sep='\t')
             meta_alpha_pd.rename(columns={meta_alpha_pd.columns[0]: 'sample_name'}, inplace=True)
             meta_alpha_pd.set_index('sample_name', inplace=True)
+
             group = meta_alpha_fp.split('_alphas__')[-1].split('.tsv')[0]
             print()
+            print('meta_alpha_fp')
+            print(meta_alpha_fp)
             print("group")
             print(group)
             if group != '':
