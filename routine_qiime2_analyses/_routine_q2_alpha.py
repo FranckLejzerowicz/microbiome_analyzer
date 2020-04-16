@@ -194,9 +194,15 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
             meta_alpha_pd.rename(columns={meta_alpha_pd.columns[0]: 'sample_name'}, inplace=True)
             meta_alpha_pd.set_index('sample_name', inplace=True)
             group = meta_alpha_fp.split('_alphas__')[-1].split('.tsv')[0]
+            print()
+            print("group")
+            print(group)
             if group != '':
                 replace_cols = dict((x, '%s_%s' % (group, x)) for x in meta_alpha_pd.columns)
                 meta_alpha_pd.rename(columns=replace_cols, inplace=True)
+                print("replace_cols")
+                print(replace_cols)
+                print(meta_alpha_pd[:3])
             meta_alphas_pds.append(meta_alpha_pd)
         meta_alphas_pd = pd.concat(meta_alphas_pds, axis=1)
         if meta_alphas_pd.index.tolist()[0] == '#q2:types':
@@ -208,7 +214,7 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
         print("meta_pd.iloc[:3,:3]")
         print(meta_pd.iloc[:3,:3])
         print("meta_alphas_pd.iloc[:3,:3]")
-        print(meta_alphas_pd.iloc[:3,:3])
+        print(meta_alphas_pd.iloc[:3,:])
         print(jfkjb)
 
         meta_alphas_pd = meta_pd.merge(meta_alphas_pd, on='sample_name', how='left')
