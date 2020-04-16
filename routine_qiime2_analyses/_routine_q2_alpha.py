@@ -211,7 +211,6 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
         print(meta_pd.iloc[:3,:3])
         print("meta_alphas_pd.iloc[:3,:3]")
         print(meta_alphas_pd.iloc[:3,:])
-        print(jfkjb)
 
         meta_alphas_pd = meta_pd.merge(meta_alphas_pd, on='sample_name', how='left')
         meta_alpha_fpo = '%s_alphas.tsv' % splitext(meta)[0]
