@@ -89,10 +89,6 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
                 if alpha_subsets and dat in alpha_subsets:
                     for subset, subset_regex in alpha_subsets[dat].items():
-                        print()
-                        print()
-                        print()
-                        print("subset", subset)
                         odir = get_analysis_folder(i_datasets_folder, 'alpha/%s/%s' % (dat, subset))
                         qza_subset = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]),  subset)
                         meta_subset = '%s.meta' % splitext(qza_subset)[0]
