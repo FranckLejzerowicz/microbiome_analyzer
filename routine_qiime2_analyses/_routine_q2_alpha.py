@@ -95,6 +95,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                         qza_subset = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]),  subset)
                         meta_subset = '%s.meta' % splitext(qza_subset)[0]
                         nfeats = get_subset(tsv_pd, subset, meta_subset, subset_regex)
+                        print('nfeats', nfeats)
                         if not nfeats:
                             continue
                         write_filter_features(qza, qza_subset, meta_subset, cur_sh)
