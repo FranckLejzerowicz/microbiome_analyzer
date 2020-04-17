@@ -88,22 +88,17 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                     divs.setdefault('', []).append(out_fp)
 
                 if alpha_subsets and dat in alpha_subsets:
-                    print(dat, 'in alpha_subsets')
                     for subset, subset_regex in alpha_subsets[dat].items():
-                        print('subset', subset)
                         odir = get_analysis_folder(i_datasets_folder, 'alpha/%s/%s' % (dat, subset))
                         qza_subset = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]),  subset)
                         meta_subset = '%s.meta' % splitext(qza_subset)[0]
                         nfeats = get_subset(tsv_pd, subset, meta_subset, subset_regex)
-                        print('nfeats', nfeats)
                         if not nfeats:
                             continue
                         write_filter_features(qza, qza_subset, meta_subset, cur_sh)
 
                         for metric in alpha_metrics:
-                            print('metric', metric)
                             out_fp = '%s/%s_%s__%s.qza' % (odir, basename(splitext(qza)[0]), metric, subset)
-                            print('out_fp', out_fp)
                             out_tsv = '%s.tsv' % splitext(out_fp)[0]
                             # alpha_subsets_deletions.extend([out_fp, out_tsv, meta_subset])
                             if force or not isfile(out_fp):
