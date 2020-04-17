@@ -21,16 +21,8 @@ def get_subset(tsv_pd: pd.DataFrame, subset: str, meta_subset: str, subset_regex
     :param subset_regex: subsetting regex.
     """
     to_keep_feats = {}
-    # print()
-    # print("subset_regex")
-    # print(subset_regex)
     for regex in subset_regex:
         to_keep_feats[regex.lower()] = tsv_pd.index.str.lower().str.contains(regex.lower())
-
-    # print()
-    # print('to_keep_feats')
-    # print(to_keep_feats)
-
     to_keep_feats_pd = pd.DataFrame(to_keep_feats)
     to_keep_feats = to_keep_feats_pd.any(axis=1)
 
