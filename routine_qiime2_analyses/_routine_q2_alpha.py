@@ -149,8 +149,6 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
             with open(out_sh, 'w') as cur_sh:
                 for group, divs in group_divs.items():
                     out_fp = '%s/%s_alphas__%s.qzv' % (output_folder, dat, group)
-                    print('merge_meta_alpha:', dat, group)
-                    print(out_fp)
                     out_fp_tsv = '%s.tsv' % splitext(out_fp)[0]
                     to_export.setdefault(dat, []).append(out_fp_tsv)
                     if force or not isfile(out_fp):
@@ -193,7 +191,6 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
             meta_alpha_pd.set_index('sample_name', inplace=True)
 
             group = meta_alpha_fp.split('_alphas__')[-1].split('.tsv')[0]
-            print()
             print('meta_alpha_fp')
             print(meta_alpha_fp)
             print("group")
