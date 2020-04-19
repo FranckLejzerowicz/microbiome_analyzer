@@ -67,7 +67,6 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                     datasets_read[dat] = [tsv_pd, meta_pd]
                 else:
                     tsv_pd, meta_pd = datasets_read[dat]
-                print(datasets_read[dat])
 
                 qza = '%s.qza' % splitext(tsv)[0]
                 if not isfile(qza):
