@@ -174,7 +174,10 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
     """
     first_print = True
     for dat, meta_alphas_fps in to_export.items():
-
+        print("dat")
+        print(dat)
+        print("meta_alphas_fps")
+        print(meta_alphas_fps)
         tsv, meta = datasets[dat]
         meta_alphas_fps_exist = [x for x in meta_alphas_fps if isfile(x)]
         if len(meta_alphas_fps_exist) != len(meta_alphas_fps):
