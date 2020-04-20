@@ -144,6 +144,10 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
     with open(run_pbs, 'w') as o:
         for dat, group_divs in diversities.items():
             tsv, meta = datasets[dat]
+            print("merge_meta_alpha")
+            print(merge_meta_alpha)
+            print("tsv, meta")
+            print(tsv, meta)
             out_sh = '%s/run_merge_alpha_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:

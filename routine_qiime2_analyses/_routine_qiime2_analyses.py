@@ -159,7 +159,6 @@ def routine_qiime2_analyses(
             print('--------------------')
             print()
             print()
-            print()
             if 'export_alpha' not in p_skip:
                 export_meta_alpha(datasets, to_export)
         if 'alpha_correlations' not in p_skip:
