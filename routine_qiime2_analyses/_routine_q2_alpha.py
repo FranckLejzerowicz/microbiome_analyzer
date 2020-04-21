@@ -207,10 +207,6 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
 
         meta_alphas_pd = meta_pd.merge(meta_alphas_pd, on='sample_name', how='left')
         meta_alpha_fpo = '%s_alphas.tsv' % splitext(meta)[0]
-        print("meta_alpha_fpo")
-        print(meta_alpha_fpo)
-        print(meta_alphas_pd.iloc[:3,:])
-        print(fkkj)
         meta_alphas_pd.to_csv(meta_alpha_fpo, index=False, sep='\t')
         if os.getcwd().startswith('/panfs'):
             meta_alpha_fpo = meta_alpha_fpo.replace(os.getcwd(), '')
