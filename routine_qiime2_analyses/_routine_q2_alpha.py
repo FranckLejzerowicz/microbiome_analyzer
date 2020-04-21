@@ -137,20 +137,21 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
     """
     job_folder = get_job_folder(i_datasets_folder, 'tabulate')
     job_folder2 = get_job_folder(i_datasets_folder, 'tabulate/chunks')
-    output_folder = get_analysis_folder(i_datasets_folder, 'tabulate')
     written = 0
     to_export = {}
     run_pbs = '%s/2_run_merge_alphas.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, group_divs in diversities.items():
             tsv, meta = datasets[dat]
-            print("dat, tsv, meta")
             base = basename(splitext(tsv)[0]).lstrip('tab_')
-            print(dat, base, tsv, meta)
             out_sh = '%s/run_merge_alpha_%s.sh' % (job_folder2, base)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for group, divs in group_divs.items():
+                    if group:
+                        output_folder = get_analysis_folder(i_datasets_folder, 'tabulate/%s' % group)
+                    else:
+                        output_folder = get_analysis_folder(i_datasets_folder, 'tabulate')
                     out_fp = '%s/%s_alphas__%s.qzv' % (output_folder, base, group)
                     out_fp_tsv = '%s.tsv' % splitext(out_fp)[0]
                     to_export.setdefault(dat, []).append(out_fp_tsv)
