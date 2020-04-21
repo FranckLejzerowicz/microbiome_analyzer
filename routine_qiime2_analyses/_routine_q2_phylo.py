@@ -44,8 +44,8 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
     if len(sepp_datasets):
 
         ref_tree_qza = get_sepp_tree(i_sepp_tree)
-        job_folder = get_job_folder(i_datasets_folder, 'sepp')
-        job_folder2 = get_job_folder(i_datasets_folder, 'sepp/chunks')
+        job_folder = get_job_folder(i_datasets_folder, 'phylo')
+        job_folder2 = get_job_folder(i_datasets_folder, 'phylo/chunks')
 
         written = 0
         main_sh = '%s/1_run_sepp.sh' % job_folder
