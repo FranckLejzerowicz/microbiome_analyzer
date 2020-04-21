@@ -149,9 +149,9 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
             with open(out_sh, 'w') as cur_sh:
                 for group, divs in group_divs.items():
                     if group:
-                        output_folder = get_analysis_folder(i_datasets_folder, 'tabulate/%s' % group)
+                        output_folder = get_analysis_folder(i_datasets_folder, 'tabulate/%s/%s' % (dat, group))
                     else:
-                        output_folder = get_analysis_folder(i_datasets_folder, 'tabulate')
+                        output_folder = get_analysis_folder(i_datasets_folder, 'tabulate/%s' % dat)
                     out_fp = '%s/%s_alphas__%s.qzv' % (output_folder, base, group)
                     out_fp_tsv = '%s.tsv' % splitext(out_fp)[0]
                     to_export.setdefault(dat, []).append(out_fp_tsv)
@@ -178,10 +178,6 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
     """
     first_print = True
     for dat, meta_alphas_fps in to_export.items():
-        print("dat")
-        print(dat)
-        print("meta_alphas_fps")
-        print(meta_alphas_fps)
         tsv, meta = datasets[dat]
         meta_alphas_fps_exist = [x for x in meta_alphas_fps if isfile(x)]
         if len(meta_alphas_fps_exist) != len(meta_alphas_fps):
@@ -198,16 +194,9 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
             meta_alpha_pd.set_index('sample_name', inplace=True)
 
             group = meta_alpha_fp.split('_alphas__')[-1].split('.tsv')[0]
-            print('meta_alpha_fp')
-            print(meta_alpha_fp)
-            print("group")
-            print(group)
             if group != '':
                 replace_cols = dict((x, '%s_%s' % (group, x)) for x in meta_alpha_pd.columns)
                 meta_alpha_pd.rename(columns=replace_cols, inplace=True)
-                print("replace_cols")
-                print(replace_cols)
-                print(meta_alpha_pd[:3])
             meta_alphas_pds.append(meta_alpha_pd)
         meta_alphas_pd = pd.concat(meta_alphas_pds, axis=1)
         if meta_alphas_pd.index.tolist()[0] == '#q2:types':
@@ -216,13 +205,12 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
         meta_alphas_pd.rename(columns={meta_alphas_pd.columns[0]: 'sample_name'}, inplace=True)
         meta_pd = read_meta_pd(meta)
 
-        print("meta_pd.iloc[:3,:3]")
-        print(meta_pd.iloc[:3,:3])
-        print("meta_alphas_pd.iloc[:3,:3]")
-        print(meta_alphas_pd.iloc[:3,:])
-
         meta_alphas_pd = meta_pd.merge(meta_alphas_pd, on='sample_name', how='left')
         meta_alpha_fpo = '%s_alphas.tsv' % splitext(meta)[0]
+        print("meta_alpha_fpo")
+        print(meta_alpha_fpo)
+        print(meta_alphas_pd.iloc[:3,:])
+        print(fkkj)
         meta_alphas_pd.to_csv(meta_alpha_fpo, index=False, sep='\t')
         if os.getcwd().startswith('/panfs'):
             meta_alpha_fpo = meta_alpha_fpo.replace(os.getcwd(), '')
