@@ -264,6 +264,9 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
     :param cur_sh:
     """
 
+    # could evolve
+    base_formula = '1'
+
     if not isfile(new_qza):
         cmd = filter_feature_table(qza, new_qza, new_meta)
         cur_sh.write('echo "%s"\n' % cmd)
@@ -297,7 +300,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd = '\nqiime songbird multinomial \\\n'
         cmd += ' --i-table %s \\\n' % new_qza
         cmd += ' --m-metadata-file %s \\\n' % new_meta
-        cmd += ' --p-formula "%s" \\\n' % formula
+        cmd += ' --p-formula "%s" \\\n' % base_formula
         cmd += ' --p-epochs %s \\\n' % epoch
         cmd += ' --p-batch-size %s \\\n' % batch
         cmd += ' --p-differential-prior %s \\\n' % diff_prior
