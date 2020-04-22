@@ -198,7 +198,7 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
                 replace_cols = dict((x, '%s_%s' % (group, x)) for x in meta_alpha_pd.columns)
                 meta_alpha_pd.rename(columns=replace_cols, inplace=True)
             meta_alphas_pds.append(meta_alpha_pd)
-        meta_alphas_pd = pd.concat(meta_alphas_pds, axis=1)
+        meta_alphas_pd = pd.concat(meta_alphas_pds, axis=1, sort=False)
         if meta_alphas_pd.index.tolist()[0] == '#q2:types':
             meta_alphas_pd = meta_alphas_pd.iloc[1:,:]
         meta_alphas_pd = meta_alphas_pd.reset_index()
