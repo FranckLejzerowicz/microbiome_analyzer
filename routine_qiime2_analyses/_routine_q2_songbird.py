@@ -121,7 +121,10 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
         meta_pd = meta_pd.set_index('sample_name')
 
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
-        models = check_metadata_models(meta, meta_pd, main_models, 'songbird')
+        if dat in main_models:
+            models = check_metadata_models(meta, meta_pd, main_models[dat], 'songbird')
+        else:
+            continue
 
         for model, formula in models.items():
             out_sh = '%s/run_songbird_%s_%s.sh' % (job_folder2, dat, model)
