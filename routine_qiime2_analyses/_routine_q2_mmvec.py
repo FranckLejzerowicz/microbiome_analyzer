@@ -212,7 +212,7 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
             if force or not isfile(new_tsv2):
                 cmd = run_export(new_qza2, new_tsv2, 'FeatureTable')
                 common_jobs.append(cmd)
-            common_datasets.setdefault(pair, []).append([meta_fp, new_qza1, new_qza2])
+            common_datasets.setdefault((pair, preval_filt, abund_filter), []).append([meta_fp, new_qza1, new_qza2])
     return common_datasets, common_jobs
 
 
@@ -333,15 +333,11 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
 
     jobs = []
     all_sh_pbs = {}
-    for pair, meta_qzas in common_datasets.items():
-
-        print()
-        print()
-        print(pair)
-        print('------------------')
+    for (pair, preval, abund), meta_qzas in common_datasets.items():
 
         job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
         out_sh = '%s/chunks/run_mmvec_%s.sh' % (job_folder, pair)
+        pair_filt = '_'.join([str(x) for x in [pair, preval, abund]])
 
         for (meta_fp, qza1, qza2) in meta_qzas:
 
@@ -364,8 +360,8 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
             for idx, it in enumerate(itertools.product(train_columns, n_examples, batches, learns,
                                                        epochs, priors, thresh_feats, latent_dims)):
                 train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = [str(x) for x in it]
-                res_dir = 'b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_gpu-%s' % (
-                    batch, learn, epoch, prior.replace('.', ''),
+                res_dir = '%s/b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_gpu-%s' % (
+                    pair_filt, batch, learn, epoch, prior.replace('.', ''),
                     thresh_feat, latent_dim, train_column,
                     n_example, str(gpu)[0]
                 )
