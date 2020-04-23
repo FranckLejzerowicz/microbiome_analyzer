@@ -340,6 +340,9 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         print(pair)
         print('------------------')
 
+        job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
+        out_sh = '%s/chunks/run_mmvec_%s.sh' % (job_folder, pair)
+
         for (meta_fp, qza1, qza2) in meta_qzas:
 
             print('"""""""')
@@ -349,9 +352,6 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
             print('qza1', qza1)
             print('qza2', qza2)
             print('""""""""""""""""""""""""""""""')
-
-            job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
-            out_sh = '%s/chunks/run_mmvec_%s.sh' % (job_folder, pair)
 
             train_columns = mmvec_params['train_column']
             n_examples = mmvec_params['n_examples']
