@@ -367,7 +367,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                 )
                 mmvec_outputs.setdefault(pair, []).append([meta_fp, qza1, qza2, train_column, res_dir])
                 odir = get_analysis_folder(i_datasets_folder, 'mmvec/paired/%s/%s' % (pair, res_dir))
-                cur_sh = '%s/run_mmvec_%s.sh' % (job_folder2, res_dir)
+                cur_sh = '%s/run_mmvec_%s_%s_%s.sh' % (job_folder2, preval, abund, res_dir)
                 all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
                 print('[', idx, ']', it)
                 p = multiprocessing.Process(

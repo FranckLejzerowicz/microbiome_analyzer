@@ -742,10 +742,10 @@ def get_case(case_vals: list, metric: str, case_var: str, form: str = None) -> s
     :return: current case.
     """
     if len(case_vals):
-        case = '%s_%s_%s' % (metric, case_var, '-'.join(
+        case = '%s_%s' % (case_var, '-'.join(
             [x.replace('<', 'below').replace('>', 'above') for x in case_vals]))
     else:
-        case = '%s_%s' % (metric, case_var)
+        case = case_var
     if form:
         case = '%s_%s' % (case, form)
     case = case.replace('__', '_').replace(' ', '-')
