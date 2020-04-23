@@ -334,7 +334,22 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     jobs = []
     all_sh_pbs = {}
     for pair, meta_qzas in common_datasets.items():
+
+        print()
+        print()
+        print(pair)
+        print('------------------')
+
         for (meta_fp, qza1, qza2) in meta_qzas:
+
+            print('"""""""')
+            print('COMMON:')
+            print('""""""""""""""""""""""""""""""')
+            print('meta_fp', meta_fp)
+            print('qza1', qza1)
+            print('qza2', qza2)
+            print('""""""""""""""""""""""""""""""')
+
             job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
             out_sh = '%s/chunks/run_mmvec_%s.sh' % (job_folder, pair)
 
@@ -358,6 +373,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                 odir = get_analysis_folder(i_datasets_folder, 'mmvec/paired/%s/%s' % (pair, res_dir))
                 cur_sh = '%s/run_mmvec_%s.sh' % (job_folder2, res_dir)
                 all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
+                print('[', idx, ']', it)
                 p = multiprocessing.Process(
                     target=run_multi_mmvec,
                     args=(odir, pair, meta_fp, qza1, qza2, res_dir, cur_sh,
