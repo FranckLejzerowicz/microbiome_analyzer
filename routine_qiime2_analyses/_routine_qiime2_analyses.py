@@ -103,8 +103,8 @@ def routine_qiime2_analyses(
     prjct_nm = get_prjct_nm(project_name)
 
     # INIT -------------------------------------------------------------------------------------
-    datasets, datasets_read, datasets_features, datasets_phylo = get_datasets(i_datasets,
-                                                                              i_datasets_folder)
+    datasets, datasets_read, datasets_features, datasets_phylo, datasets_rarefs = get_datasets(
+        i_datasets, i_datasets_folder)
 
     # --> datasets_read <--
     # path_pd : indexed with feature name
@@ -112,7 +112,7 @@ def routine_qiime2_analyses(
     import_datasets(i_datasets_folder, datasets, datasets_phylo, force, prjct_nm, qiime_env, chmod)
     if raref:
         run_rarefy(i_datasets_folder, datasets, datasets_read,
-                   datasets_features, datasets_phylo,
+                   datasets_features, datasets_phylo, datasets_rarefs,
                    force, prjct_nm, qiime_env, chmod)
     if thresh:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
@@ -152,7 +152,7 @@ def routine_qiime2_analyses(
             to_export = merge_meta_alpha(i_datasets_folder, datasets, diversities,
                                          force, prjct_nm, qiime_env, chmod)
             if 'export_alpha' not in p_skip:
-                export_meta_alpha(datasets, to_export)
+                export_meta_alpha(datasets, datasets_rarefs, to_export)
         if 'alpha_correlations' not in p_skip:
             run_correlations(i_datasets_folder, datasets, diversities,
                              force, prjct_nm, qiime_env, chmod)

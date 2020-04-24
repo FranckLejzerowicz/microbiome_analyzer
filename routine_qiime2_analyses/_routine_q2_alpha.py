@@ -128,6 +128,7 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
 
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets: list of datasets.
+    :param datasets_rarefs: list of rarefied datasets.
     :param diversities: paths to [alpha_divs]
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Short nick name for your project.
@@ -169,7 +170,7 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
     return to_export
 
 
-def export_meta_alpha(datasets: dict, to_export: dict) -> None:
+def export_meta_alpha(datasets: dict, datasets_rarefs: dict, to_export: dict) -> None:
     """
     Export the alpha diversity vectors.
 
@@ -179,7 +180,10 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
     first_print = True
     for dat, meta_alphas_fps in to_export.items():
         tsv, meta = datasets[dat]
+
         meta_alphas_fps_exist = [x for x in meta_alphas_fps if isfile(x)]
+        print("meta_alphas_fps_exist")
+        print(meta_alphas_fps_exist)
         if len(meta_alphas_fps_exist) != len(meta_alphas_fps):
             if not first_print:
                 print('\nWarning: First make sure you run alpha -> alpha merge/export (2_run_merge_alphas.sh) '
@@ -193,9 +197,14 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
             meta_alpha_pd.rename(columns={meta_alpha_pd.columns[0]: 'sample_name'}, inplace=True)
             meta_alpha_pd.set_index('sample_name', inplace=True)
 
+            if datasets_rarefs[dat]:
+                replace_cols = dict(
+                    (x, '__'.join([x, datasets_rarefs[dat]])) for x in meta_alpha_pd.columns)
+                meta_alpha_pd.rename(columns=replace_cols, inplace=True)
+
             group = meta_alpha_fp.split('_alphas__')[-1].split('.tsv')[0]
             if group != '':
-                replace_cols = dict((x, '%s_%s' % (group, x)) for x in meta_alpha_pd.columns)
+                replace_cols = dict((x, '__'.join([group, x])) for x in meta_alpha_pd.columns)
                 meta_alpha_pd.rename(columns=replace_cols, inplace=True)
             meta_alphas_pds.append(meta_alpha_pd)
         meta_alphas_pd = pd.concat(meta_alphas_pds, axis=1, sort=False)
@@ -203,10 +212,19 @@ def export_meta_alpha(datasets: dict, to_export: dict) -> None:
             meta_alphas_pd = meta_alphas_pd.iloc[1:,:]
         meta_alphas_pd = meta_alphas_pd.reset_index()
         meta_alphas_pd.rename(columns={meta_alphas_pd.columns[0]: 'sample_name'}, inplace=True)
-        meta_pd = read_meta_pd(meta)
 
-        meta_alphas_pd = meta_pd.merge(meta_alphas_pd, on='sample_name', how='left')
         meta_alpha_fpo = '%s_alphas.tsv' % splitext(meta)[0]
+        if isfile(meta_alpha_fpo):
+            meta_pd = read_meta_pd(meta_alpha_fpo)
+        else:
+            meta_pd = read_meta_pd(meta)
+        print(meta_pd[:2])
+        col_to_remove = meta_alphas_pd.columns.tolist()[1:]
+        if len(set(col_to_remove) & set(meta_pd.columns.tolist())):
+            meta_pd.drop(columns=[col for col in col_to_remove if col in meta_pd.columns], inplace=True)
+        print(meta_pd[:2])
+        meta_alphas_pd = meta_pd.merge(meta_alphas_pd, on='sample_name', how='left')
+        print(meta_alphas_pd[:2])
         meta_alphas_pd.to_csv(meta_alpha_fpo, index=False, sep='\t')
         if os.getcwd().startswith('/panfs'):
             meta_alpha_fpo = meta_alpha_fpo.replace(os.getcwd(), '')

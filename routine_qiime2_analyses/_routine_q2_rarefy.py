@@ -20,8 +20,9 @@ np.set_printoptions(precision=2, suppress=True)
 
 
 def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
-               datasets_features: dict, datasets_phylo: dict, force: bool,
-               prjct_nm: str, qiime_env: str, chmod: str) -> None:
+               datasets_features: dict, datasets_phylo: dict,
+               datasets_rarefs: dict, force: bool, prjct_nm: str,
+               qiime_env: str, chmod: str) -> None:
     """
     Run rarefy: Rarefy table.
     https://docs.qiime2.org/2019.10/plugins/available/feature-table/rarefy/
@@ -49,11 +50,13 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
         for dat, tsv_meta_pds in datasets.items():
 
             if dat not in datasets_raref_depths:
+                datasets_rarefs[dat] = 0
                 continue
 
             odir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat)
             depth = datasets_raref_depths[dat]
             dat_raref = '%s_raref%s' % (dat, depth)
+            datasets_rarefs[dat] = 'raref%s' % depth
 
             tsv, meta = tsv_meta_pds
             meta_out = '%s/meta_%s.tsv' % (odir, dat_raref)

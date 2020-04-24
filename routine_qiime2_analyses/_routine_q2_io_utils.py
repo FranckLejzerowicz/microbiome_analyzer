@@ -472,7 +472,7 @@ def gID_or_DNA(dat: str, path: str, path_pd: pd.DataFrame, datasets_read: dict,
             datasets_phylo[dat] = ('amplicon', 0)
 
 
-def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict, dict):
+def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict, dict, dict):
     """
     Collect the pairs of features tables / metadata tables, formatted as in qiime2. e.g:
 
@@ -499,6 +499,7 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
     datasets_read = {}
     datasets_phylo = {}
     datasets_features = {}
+    datasets_rarefs = {}
     for dat, path in paths.items():
         meta = get_corresponding_meta(path)
         if not isfile(meta):
@@ -514,8 +515,9 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
         datasets_read[dat] = [path_pd, meta_pd]
         datasets_features[dat] = {}
         datasets_phylo[dat] = ('', 0)
+        datasets_rarefs[dat] = ''
         gID_or_DNA(dat, path, path_pd, datasets_read, datasets_features, datasets_phylo)
-    return datasets, datasets_read, datasets_features, datasets_phylo
+    return datasets, datasets_read, datasets_features, datasets_phylo, datasets_rarefs
 
 
 def get_prjct_nm(project_name: str) -> str:
