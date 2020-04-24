@@ -137,8 +137,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
         else:
             continue
 
+        out_sh = '%s/run_songbird_%s.sh' % (job_folder2, dat)
         for model, formula in models.items():
-            out_sh = '%s/run_songbird_%s_%s.sh' % (job_folder2, dat, model)
             for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
                                                        thresh_feats, thresh_samples, n_randoms)):
                 batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random = [str(x) for x in it]
