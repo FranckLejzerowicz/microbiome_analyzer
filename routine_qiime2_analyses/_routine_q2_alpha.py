@@ -249,17 +249,23 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
             if dat not in diversities:
                 continue
             tsv, meta = tsv_meta_pds
-            out_sh = '%s/run_alpha_correlation_%s.sh' % (job_folder2, dat)
+            base = basename(splitext(tsv)[0]).lstrip('tab_')
+
+            out_sh = '%s/run_alpha_correlation_%s.sh' % (job_folder2, base)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
-            odir = get_analysis_folder(i_datasets_folder, 'alpha_correlations/%s' % dat)
             with open(out_sh, 'w') as cur_sh:
-                # for method in ['spearman', 'pearson']:
-                for method in ['spearman']:
-                    for qza in diversities[dat]['']:
-                        out_fp = qza.replace('.qza', '_%s.qzv' % method).replace('/alpha/', '/alpha_correlations/')
-                        if force or not isfile(out_fp):
-                            write_diversity_alpha_correlation(out_fp, qza, method, meta, cur_sh)
-                            written += 1
+                for method in ['spearman', 'pearson']:
+                # for method in ['spearman']:
+                    for group, divs in diversities[dat].items():
+                        if group:
+                            odir = get_analysis_folder(i_datasets_folder, 'alpha_correlations/%s/%s' % (dat, group))
+                        else:
+                            odir = get_analysis_folder(i_datasets_folder, 'alpha_correlations/%s' % dat)
+                        for qza in divs:
+                            out_fp = '%s/alpha_corr_%s.qzv' % (odir, basename(qza).replace('.qza', '_%s.qzv' % method))
+                            if force or not isfile(out_fp):
+                                write_diversity_alpha_correlation(out_fp, qza, method, meta, cur_sh)
+                                written += 1
             run_xpbs(out_sh, out_pbs, '%s.lphcrr.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '1', '1', 'gb',
                      chmod, written, 'single', o)
