@@ -182,8 +182,6 @@ def export_meta_alpha(datasets: dict, datasets_rarefs: dict, to_export: dict) ->
         tsv, meta = datasets[dat]
 
         meta_alphas_fps_exist = [x for x in meta_alphas_fps if isfile(x)]
-        print("meta_alphas_fps_exist")
-        print(meta_alphas_fps_exist)
         if len(meta_alphas_fps_exist) != len(meta_alphas_fps):
             if not first_print:
                 print('\nWarning: First make sure you run alpha -> alpha merge/export (2_run_merge_alphas.sh) '
