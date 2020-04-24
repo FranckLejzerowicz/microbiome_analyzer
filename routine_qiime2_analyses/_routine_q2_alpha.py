@@ -218,13 +218,10 @@ def export_meta_alpha(datasets: dict, datasets_rarefs: dict, to_export: dict) ->
             meta_pd = read_meta_pd(meta_alpha_fpo)
         else:
             meta_pd = read_meta_pd(meta)
-        print(meta_pd[:2])
         col_to_remove = meta_alphas_pd.columns.tolist()[1:]
         if len(set(col_to_remove) & set(meta_pd.columns.tolist())):
             meta_pd.drop(columns=[col for col in col_to_remove if col in meta_pd.columns], inplace=True)
-        print(meta_pd[:2])
         meta_alphas_pd = meta_pd.merge(meta_alphas_pd, on='sample_name', how='left')
-        print(meta_alphas_pd[:2])
         meta_alphas_pd.to_csv(meta_alpha_fpo, index=False, sep='\t')
         if os.getcwd().startswith('/panfs'):
             meta_alpha_fpo = meta_alpha_fpo.replace(os.getcwd(), '')
