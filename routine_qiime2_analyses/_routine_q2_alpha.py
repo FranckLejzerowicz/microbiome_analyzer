@@ -197,7 +197,7 @@ def export_meta_alpha(datasets: dict, datasets_rarefs: dict, to_export: dict) ->
 
             if datasets_rarefs[dat]:
                 replace_cols = dict(
-                    (x, '__'.join([x, datasets_rarefs[dat]])) for x in meta_alpha_pd.columns)
+                    (x, '%s__raref' % x) for x in meta_alpha_pd.columns)
                 meta_alpha_pd.rename(columns=replace_cols, inplace=True)
 
             group = meta_alpha_fp.split('_alphas__')[-1].split('.tsv')[0]
