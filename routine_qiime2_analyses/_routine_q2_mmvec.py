@@ -385,5 +385,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                             '%s.mmvc' % prjct_nm, '150', '1', '1', '2', 'gb',
                             qiime_env, chmod)
     if main_sh:
+        if p_mmvec_pairs.startswith('/panfs'):
+            p_mmvec_pairs = p_mmvec_pairs.replace(os.getcwd(), '')
         print_message("# MMVEC (datasets pairs in %s)" % p_mmvec_pairs, 'sh', main_sh)
     return mmvec_outputs

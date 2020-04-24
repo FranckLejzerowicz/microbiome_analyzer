@@ -113,9 +113,20 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
     jobs = []
     all_sh_pbs = {}
+    first_print = 0
     for dat, tsv_meta_pds in datasets.items():
 
-        tsv, meta = tsv_meta_pds
+        tsv, meta_ = tsv_meta_pds
+        meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
+        if isfile(meta_alphas):
+            meta = meta_alphas
+        else:
+            meta = meta_
+            if not first_print:
+                print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
+                      '\t(if you have alpha diversity as a factors in the models)!')
+                first_print += 1
+
         qza = '%s.qza' % splitext(tsv)[0]
         meta_pd = read_meta_pd(meta)
         meta_pd = meta_pd.set_index('sample_name')
@@ -159,5 +170,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             '%s.sngbrd' % prjct_nm, '2', '1', '24', '2', 'gb',
                             qiime_env, chmod)
     if main_sh:
+        if p_diff_models.startswith('/panfs'):
+            p_diff_models = p_diff_models.replace(os.getcwd(), '')
         print_message("# Songbird (configs in %s)" % p_diff_models, 'sh', main_sh)
     return songbird_outputs

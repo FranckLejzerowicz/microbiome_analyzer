@@ -111,6 +111,8 @@ def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
                             qiime_env, chmod)
     if main_sh:
         if p_perm_groups:
+            if p_perm_groups.startswith('/panfs'):
+                p_perm_groups = p_perm_groups.replace(os.getcwd(), '')
             print('# DEICODE (groups config in %s)' % p_perm_groups)
         else:
             print('# DEICODE')
