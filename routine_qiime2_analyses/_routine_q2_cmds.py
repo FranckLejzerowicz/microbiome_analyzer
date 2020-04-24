@@ -654,7 +654,7 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     cmd += '--m-metadata-column "%s" \\\n' % testing_group
     cmd += '--p-permutations 2999 \\\n'
     cmd += '--o-visualization %s\n' % new_qzv
-    cur_sh.write('echo "%s"\n' % cmd)
+    # cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 
 
