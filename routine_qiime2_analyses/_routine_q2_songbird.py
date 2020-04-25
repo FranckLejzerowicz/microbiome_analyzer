@@ -150,10 +150,13 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                 odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % res_dir)
                 for case_var, case_vals_list in cases_dict.items():
                     for case_vals in case_vals_list:
+                        
                         case = get_case(case_vals, model, case_var, str(idx))
-                        cur_sh = '%s/run_songbird_%s_%s.sh' % (
-                            job_folder2, dat, case)
+                        cur_sh = '%s/run_songbird_%s_%s_%s.sh' % (
+                            job_folder2, dat, model, case)
                         cur_sh = cur_sh.replace(' ', '-')
+                        print(dat, model, idx, case_var, case_vals, case)
+                        print('    ', cur_sh)
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                         p = multiprocessing.Process(
                             target=run_multi_songbird,
