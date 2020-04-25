@@ -202,7 +202,7 @@ def export_meta_alpha(datasets: dict, datasets_rarefs: dict, to_export: dict) ->
 
             group = meta_alpha_fp.split('_alphas__')[-1].split('.tsv')[0]
             if group != '':
-                replace_cols = dict((x, '__'.join([group, x])) for x in meta_alpha_pd.columns)
+                replace_cols = dict((x, '__'.join([x, group])) for x in meta_alpha_pd.columns)
                 meta_alpha_pd.rename(columns=replace_cols, inplace=True)
             meta_alphas_pds.append(meta_alpha_pd)
         meta_alphas_pd = pd.concat(meta_alphas_pds, axis=1, sort=False)
