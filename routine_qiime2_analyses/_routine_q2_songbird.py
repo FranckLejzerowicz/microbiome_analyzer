@@ -168,7 +168,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
     main_sh = write_main_sh(job_folder, '2_songbird', all_sh_pbs,
-                            '%s.sngbrd' % prjct_nm, '100', '1', '1', '5', 'gb',
+                            '%s.sngbrd' % prjct_nm, '150', '1', '1', '25', 'gb',
                             qiime_env, chmod)
     if main_sh:
         if p_diff_models.startswith('/panfs'):
