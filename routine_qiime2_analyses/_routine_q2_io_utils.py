@@ -362,6 +362,7 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
                             for line in f:
                                 sh.write(line)
                                 cur_written = True
+                        os.remove(cur_sh)
             if cur_written:
                 out_pbs = '%s.pbs' % splitext(out_sh)[0]
                 run_xpbs(out_sh, out_pbs, '%s.%s' % (prjct_nm, dat), qiime_env,
