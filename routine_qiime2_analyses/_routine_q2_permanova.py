@@ -60,6 +60,9 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
         new_qza = '%s.qza' % cur_rad
         new_qzv = '%s_permanova.qzv' % cur_rad
         new_mat_qza = odir + '/' + basename(mat_qza).replace('.qza', '_%s.qza' % case)
+        print('>', case)
+        print('  -', new_qzv)
+        print('  -', new_mat_qza)
         if force or not isfile(new_qzv):
             new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
             if new_meta_pd[testing_group].unique().size > 1:
@@ -125,6 +128,11 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
                         cur_sh = '%s/run_beta_group_significance_%s_%s_%s.sh' % (
                             job_folder2, dat, case_, testing_group)
                         cur_sh = cur_sh.replace(' ', '-')
+                        print()
+                        print()
+                        print(dat, mat_qza, metric)
+                        print(case_var, case_vals, case_)
+                        print(testing_group)
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                         p = multiprocessing.Process(
                             target=run_multi_perm,

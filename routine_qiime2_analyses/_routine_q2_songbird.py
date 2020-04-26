@@ -155,8 +155,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                         cur_sh = '%s/run_songbird_%s_%s_%s.sh' % (
                             job_folder2, dat, model, case)
                         cur_sh = cur_sh.replace(' ', '-')
-                        print(dat, model, idx, case_var, case_vals, case)
-                        print('    ', cur_sh)
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                         p = multiprocessing.Process(
                             target=run_multi_songbird,
