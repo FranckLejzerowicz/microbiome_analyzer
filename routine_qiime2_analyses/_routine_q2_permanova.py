@@ -73,7 +73,7 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
                 remove = False
     with open(cur_sh) as f:
         for line in f:
-            print('>', line.strip())
+            print('*****', line.strip())
 
     if remove:
         os.remove(cur_sh)
