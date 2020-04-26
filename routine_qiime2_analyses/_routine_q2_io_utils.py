@@ -355,11 +355,9 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
     with open(main_sh, 'w') as main_o:
         for (dat, out_sh), cur_shs in all_sh_pbs.items():
             cur_written = False
-            print('****', out_sh)
             with open(out_sh, 'w') as sh:
                 for cur_sh in cur_shs:
                     if isfile(cur_sh):
-                        print('        ', cur_sh)
                         with open(cur_sh) as f:
                             for line in f:
                                 sh.write(line)
