@@ -626,9 +626,9 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
 
     Includes calls to:
-    * filter-distance-matrix: Filter samples from a distance matrix
+    filter-distance-matrix: Filter samples from a distance matrix
     https://docs.qiime2.org/2019.10/plugins/available/diversity/filter-distance-matrix/
-    * filter-samples: Filter samples from table
+    filter-samples: Filter samples from table
     https://docs.qiime2.org/2019.10/plugins/available/feature-table/filter-samples/
 
     :param new_meta: Sample metadata containing formula terms.
@@ -640,7 +640,7 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     :param new_qzv: VISUALIZATION.
     :param cur_sh: writing file handle.
     """
-    cmd = '\nqiime diversity filter-distance-matrix \\\n'
+    cmd = 'qiime diversity filter-distance-matrix \\\n'
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--i-distance-matrix %s \\\n' % mat_qza
     cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
@@ -653,11 +653,9 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--m-metadata-column "%s" \\\n' % testing_group
     cmd += '--p-permutations 2999 \\\n'
-    cmd += '--o-visualization %s' % new_qzv
-    print("cmd")
-    print(cmd)
+    cmd += '--o-visualization %s\n' % new_qzv
     cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n' % cmd)
+    cur_sh.write(cmd)
 
 
 def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
