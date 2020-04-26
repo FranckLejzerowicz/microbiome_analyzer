@@ -153,9 +153,9 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
             continue
 
         odir = get_analysis_folder(i_datasets_folder, 'permanova/%s' % dat)
+        out_sh = '%s/run_beta_group_significance_%s.sh' % (job_folder2, dat)
         for mat_qza in mat_qzas:
             metric = get_metric(beta_metrics, mat_qza)
-            out_sh = '%s/run_beta_group_significance_%s_%s.sh' % (job_folder2, dat, metric)
             for case_var, case_vals_list in cases_dict.items():
                 testing_groups_case_var = list(set(testing_groups + [case_var]))
                 for case_vals in case_vals_list:
@@ -169,7 +169,6 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                         run_single_perm(odir, tsv, meta_pd, cur_sh, case_, testing_group,
                                         mat_qza, case_var, case_vals, force)
-
                         # p = multiprocessing.Process(
                         #     target=run_multi_perm,
                         #     args=(odir, tsv, meta_pd, cur_sh, case_, testing_group,
