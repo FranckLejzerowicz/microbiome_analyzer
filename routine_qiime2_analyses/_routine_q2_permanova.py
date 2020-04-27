@@ -98,7 +98,7 @@ def run_single_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
         case = case.replace(' ', '_')
         cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
         new_meta = '%s.meta' % cur_rad
-        new_qza = '%s.qza' % cur_rad
+        new_qza = '%s_DM.qza' % cur_rad
         new_qzv = '%s_permanova.qzv' % cur_rad
         new_mat_qza = odir + '/' + basename(mat_qza).replace('.qza', '_%s.qza' % case)
         if force or not isfile(new_qzv):
