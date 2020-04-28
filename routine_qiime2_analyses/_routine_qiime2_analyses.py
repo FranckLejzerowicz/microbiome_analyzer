@@ -172,8 +172,10 @@ def routine_qiime2_analyses(
         if 'emperor' not in p_skip:
             pcoas, biplots = run_pcoas_biplots(i_datasets_folder, datasets, betas,
                                                force, prjct_nm, qiime_env, chmod)
-            run_emperor(i_datasets_folder, pcoas, prjct_nm, qiime_env, chmod, 0)
-            run_emperor(i_datasets_folder, biplots, prjct_nm, qiime_env, chmod, 1)
+            run_emperor(i_datasets_folder, pcoas, taxonomies,
+                        prjct_nm, qiime_env, chmod, False)
+            run_emperor(i_datasets_folder, biplots, taxonomies,
+                        prjct_nm, qiime_env, chmod, True)
     # ---------------------------------------------------------
 
     # STATS -----------------------------------------------------------------------

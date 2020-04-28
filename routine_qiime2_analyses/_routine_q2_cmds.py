@@ -478,7 +478,7 @@ def write_diversity_biplot(in_tab: str, out_pcoa: str, out_biplot: str, cur_sh: 
     cur_sh.write('%s\n\n' % cmd)
 
 
-def write_emperor(meta: str, pcoa: str, out_plot: str, cur_sh: TextIO) -> None:
+def write_emperor(meta: str, pcoa_biplot: str, out_plot: str, cur_sh: TextIO, taxonomy: str) -> None:
     """
     Generates an interactive ordination plot where the user can visually
     integrate sample metadata.
@@ -489,10 +489,18 @@ def write_emperor(meta: str, pcoa: str, out_plot: str, cur_sh: TextIO) -> None:
     :param out_plot: VISUALIZATION.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime emperor plot \\\n'
-    cmd += '--m-metadata-file %s \\\n' % meta
-    cmd += '--i-pcoa %s \\\n' % pcoa
-    cmd += '--o-visualization %s\n' % out_plot
+    if taxonomy:
+        cmd = 'qiime emperor biplot \\\n'
+        cmd += '--i-biplot %s \\\n' % pcoa_biplot
+        cmd += '--m-sample-metadata-file %s \\\n' % meta
+        cmd += '--m-feature-metadata-file %s \\\n' % taxonomy
+        cmd += '--p-number-of-features 20 \\\n'
+        cmd += '--o-visualization %s\n' % out_plot
+    else:
+        cmd = 'qiime emperor plot \\\n'
+        cmd += '--i-pcoa %s \\\n' % pcoa_biplot
+        cmd += '--m-metadata-file %s \\\n' % meta
+        cmd += '--o-visualization %s\n' % out_plot
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 

@@ -177,32 +177,35 @@ def run_pcoas_biplots(i_datasets_folder: str, datasets: dict, betas: dict,
     return pcoas_d, biplots_d
 
 
-def run_emperor(i_datasets_folder: str, pcoas_d: dict,
-                prjct_nm: str, qiime_env: str, chmod: str) -> None:
+def run_emperor(i_datasets_folder: str, pcoas_biplots_d: dict, taxonomies: dict,
+                prjct_nm: str, qiime_env: str, chmod: str, biplot: bool) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
 
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :param pcoas_d: principal coordinates ordinations.
+    :param pcoas_biplot_d: principal coordinates ordinations.
     :param prjct_nm: Nick name for your project.
     :param qiime_env: qiime2-xxxx.xx conda environment.
     :param chmod: whether to change permission of output files (defalt: 775).
     """
-
-    job_folder = get_job_folder(i_datasets_folder, 'emperor')
-    job_folder2 = get_job_folder(i_datasets_folder, 'emperor/chunks')
+    if biplot:
+        suffix = '_biplot'
+    job_folder = get_job_folder(i_datasets_folder, 'emperor%s' % suffix)
+    job_folder2 = get_job_folder(i_datasets_folder, 'emperor%s/chunks' % suffix)
 
     written = 0
     first_print = 0
     run_pbs = '%s/4_run_emperor.sh' % job_folder
     with open(run_pbs, 'w') as o:
-        for dat, meta_pcoas in pcoas_d.items():
-            odir = get_analysis_folder(i_datasets_folder, 'emperor/%s' % dat)
+        for dat, meta_pcoas_biplots in pcoas_biplots_d.items():
+            if dat in taxonomies:
+                method, tax_qza = taxonomies[dat]
+            odir = get_analysis_folder(i_datasets_folder, 'emperor%s/%s' % (dat, suffix))
             out_sh = '%s/run_emperor_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
-                for meta_, pcoas in meta_pcoas.items():
+                for meta_, pcoas_biplots in meta_pcoas_biplots.items():
                     meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
                     if isfile(meta_alphas):
                         meta = meta_alphas
@@ -212,12 +215,12 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict,
                             print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
                                   '\t(if you want alpha diversity as a variable in the PCoA)!')
                             first_print += 1
-                    for pcoa in pcoas:
-                        out_plot = '%s_emperor.qzv' % splitext(pcoa)[0].replace('/pcoa/', '/emperor/')
-                        write_emperor(meta, pcoa, out_plot, cur_sh)
+                    for pcoa_biplot in pcoas_biplots:
+                        out_plot = '%s_emperor.qzv' % splitext(pcoa_biplot)[0].replace('/pcoa/', '/emperor%s/' % suffix)
+                        write_emperor(meta, pcoa_biplot, out_plot, cur_sh, tax_qza)
                         written += 1
-            run_xpbs(out_sh, out_pbs, '%s.mprr.%s' % (prjct_nm, dat),
+            run_xpbs(out_sh, out_pbs, '%s.mprr.%s.%s' % (prjct_nm, suffix, dat),
                      qiime_env, '10', '1', '1', '1', 'gb',
                      chmod, written, 'single', o)
     if written:
-        print_message('# Make EMPeror plots', 'sh', run_pbs)
+        print_message('# Make EMPeror plots%s' % suffix.replace('_', ' '), 'sh', run_pbs)
