@@ -465,7 +465,7 @@ def write_diversity_biplot(in_tab: str, out_pcoa: str, out_biplot: str, cur_sh: 
     :param out_pcoa: The resulting PCoA matrix.
     :param cur_sh: writing file handle.
     """
-    rel = '%s_rel.qza\n' % splitext(in_tab)[0]
+    rel = '%s_rel.qza' % splitext(in_tab)[0]
     cmd = 'qiime feature-table relative-frequency \\\n'
     cmd += '--i-table %s \\\n' % in_tab
     cmd += '--o-relative-frequency-table %s\n' % rel
