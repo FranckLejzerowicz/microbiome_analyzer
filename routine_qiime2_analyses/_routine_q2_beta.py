@@ -18,6 +18,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
 from routine_qiime2_analyses._routine_q2_cmds import (
     write_diversity_beta,
     write_diversity_pcoa,
+    write_diversity_biplot,
     write_emperor
 )
 from routine_qiime2_analyses._routine_q2_cmds import run_export
@@ -109,11 +110,13 @@ def export_beta(i_datasets_folder: str, betas: dict,
              chmod, written, '# Export beta diversity matrices')
 
 
-def run_pcoas(i_datasets_folder: str, betas: dict,
-              force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> dict:
+def run_pcoas_biplots(i_datasets_folder: str, datasets: dict, betas: dict,
+              force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> tuple:
     """
     Run pcoa: Principal Coordinate Analysis.
+    Run pcoa-biplot: Principal Coordinate Analysis Biplot¶
     https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa/
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa-biplot/
 
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param betas: beta diversity matrices.
@@ -124,33 +127,54 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
     :return: principal coordinates ordinations.
     """
 
-    job_folder = get_job_folder(i_datasets_folder, 'pcoa')
-    job_folder2 = get_job_folder(i_datasets_folder, 'pcoa/chunks')
+    job_folder_pcoa = get_job_folder(i_datasets_folder, 'pcoa')
+    job_folder2_pcoa = get_job_folder(i_datasets_folder, 'pcoa/chunks')
+    job_folder_biplot = get_job_folder(i_datasets_folder, 'biplot')
+    job_folder2_biplot = get_job_folder(i_datasets_folder, 'biplot/chunks')
 
     pcoas_d = {}
-    written = 0
-    run_pbs = '%s/3_run_pcoa.sh' % job_folder
-    with open(run_pbs, 'w') as o:
+    biplots_d = {}
+    written_pcoa = 0
+    written_biplot = 0
+    run_pcoa_pbs = '%s/3_run_pcoa.sh' % job_folder_pcoa
+    run_biplot_pbs = '%s/3_run_biplot.sh' % job_folder_biplot
+    with open(run_pcoa_pbs, 'w') as o, open(run_biplot_pbs, 'w') as o:
         for dat, meta_DMs in betas.items():
-            odir = get_analysis_folder(i_datasets_folder, 'pcoa/%s' % dat)
+            tsv, meta = datasets[dat]
+            qza = '%s.qza' % splitext(tsv)[0]
+            odir_pcoa = get_analysis_folder(i_datasets_folder, 'pcoa/%s' % dat)
+            odir_biplot = get_analysis_folder(i_datasets_folder, 'biplot/%s' % dat)
             if dat not in pcoas_d:
                 pcoas_d[dat] = {}
-            out_sh = '%s/run_PCoA_%s.sh' % (job_folder2, dat)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
-            with open(out_sh, 'w') as cur_sh:
+                biplots_d[dat] = {}
+            out_pcoa_sh = '%s/run_PCoA_%s.sh' % (job_folder2_pcoa, dat)
+            out_pcoa_pbs = '%s.pbs' % splitext(out_pcoa_sh)[0]
+            out_biplot_sh = '%s/run_biplot_%s.sh' % (job_folder2_biplot, dat)
+            out_biplot_pbs = '%s.pbs' % splitext(out_biplot_sh)[0]
+            with open(out_pcoa_sh, 'w') as cur_pcoa_sh, open(out_biplot_sh, 'w') as cur_biplot_sh:
                 for meta, DMs in meta_DMs.items():
                     for DM in DMs:
                         out_pcoa = '%s_PCoA.qza' % splitext(DM)[0].replace('/beta/', '/pcoa/')
+                        out_biplot = '%s_biplot.qza' % splitext(DM)[0].replace('/beta/', '/biplot/')
                         pcoas_d[dat].setdefault(meta, []).append(out_pcoa)
+                        biplots_d[dat].setdefault(meta, []).append(out_biplot)
                         if force or not isfile(out_pcoa):
-                            write_diversity_pcoa(DM, out_pcoa, cur_sh)
-                            written += 1
-            run_xpbs(out_sh, out_pbs, '%s.pc.%s' % (prjct_nm, dat),
+                            write_diversity_pcoa(DM, out_pcoa, cur_pcoa_sh)
+                            written_pcoa += 1
+                        if force or not isfile(out_biplot):
+                            write_diversity_biplot(qza, out_pcoa, out_biplot, cur_biplot_sh)
+                            written_biplot += 1
+            run_xpbs(out_pcoa_sh, out_pcoa_pbs, '%s.pc.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '2', '2', 'gb',
-                     chmod, written, 'single', o)
-    if written:
-        print_message('# Calculate principal coordinates', 'sh', run_pbs)
-    return pcoas_d
+                     chmod, written_pcoa, 'single', o)
+            run_xpbs(out_biplot_sh, out_biplot_pbs, '%s.bplt.%s' % (prjct_nm, dat),
+                     qiime_env, '10', '1', '2', '2', 'gb',
+                     chmod, written_biplot, 'single', o)
+    if written_pcoa:
+        print_message('# Calculate principal coordinates', 'sh', run_pcoa_pbs)
+    if written_biplot:
+        print_message('# Calculate principal coordinates (biplot)', 'sh', run_biplot_pbs)
+    return pcoas_d, biplots_d
 
 
 def run_emperor(i_datasets_folder: str, pcoas_d: dict,

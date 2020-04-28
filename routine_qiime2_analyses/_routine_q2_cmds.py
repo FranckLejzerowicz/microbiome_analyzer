@@ -456,6 +456,28 @@ def write_diversity_pcoa(DM: str, out_pcoa: str, cur_sh: TextIO) -> None:
     cur_sh.write('%s\n\n' % cmd)
 
 
+def write_diversity_biplot(in_tab: str, out_pcoa: str, out_biplot: str, cur_sh: TextIO) -> None:
+    """
+    pcoa-biplot: Principal Coordinate Analysis Biplot.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa-biplot/
+
+    :param DM: The distance matrix on which PCoA should be computed.
+    :param out_pcoa: The resulting PCoA matrix.
+    :param cur_sh: writing file handle.
+    """
+    rel = '%s_rel.qza\n' % splitext(in_tab)[0]
+    cmd = 'qiime feature-table relative-frequency \\\n'
+    cmd += '--i-table %s \\\n' % in_tab
+    cmd += '--o-relative-frequency-table %s\n' % rel
+    cmd += 'qiime diversity pcoa-biplot \\\n'
+    cmd += '--i-pcoa %s \\\n' % out_pcoa
+    cmd += '--i-features %s \\\n' % rel
+    cmd += '--o-biplot %s\n' % out_biplot
+    cmd += 'rm %s\n' % rel
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n\n' % cmd)
+
+
 def write_emperor(meta: str, pcoa: str, out_plot: str, cur_sh: TextIO) -> None:
     """
     Generates an interactive ordination plot where the user can visually
