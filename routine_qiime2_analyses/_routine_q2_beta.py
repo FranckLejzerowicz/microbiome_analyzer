@@ -189,6 +189,7 @@ def run_emperor(i_datasets_folder: str, pcoas_biplots_d: dict, taxonomies: dict,
     :param qiime_env: qiime2-xxxx.xx conda environment.
     :param chmod: whether to change permission of output files (defalt: 775).
     """
+    suffix = ''
     if biplot:
         suffix = '_biplot'
     job_folder = get_job_folder(i_datasets_folder, 'emperor%s' % suffix)
