@@ -202,7 +202,7 @@ def run_emperor(i_datasets_folder: str, pcoas_biplots_d: dict, taxonomies: dict,
         for dat, meta_pcoas_biplots in pcoas_biplots_d.items():
             if dat in taxonomies:
                 method, tax_qza = taxonomies[dat]
-            odir = get_analysis_folder(i_datasets_folder, 'emperor%s/%s' % (dat, suffix))
+            odir = get_analysis_folder(i_datasets_folder, 'emperor%s/%s' % (suffix, dat))
             out_sh = '%s/run_emperor_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
