@@ -396,6 +396,8 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
         cmd += '  --output-path %s\n' % splitext(output_path)[0]
         if 'Phylogeny' in typ:
             cmd += 'mv %s/*.nwk %s\n' % (splitext(output_path)[0], output_path)
+        elif 'biplot' in typ:
+            cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
         else:
             cmd += 'mv %s/*.tsv %s\n' % (splitext(output_path)[0], output_path)
         cmd += 'rm -rf %s\n' % splitext(output_path)[0]
@@ -480,7 +482,7 @@ def write_diversity_biplot(in_tab: str, out_pcoa: str, out_biplot: str, cur_sh: 
     cur_sh.write('%s\n\n' % cmd)
 
     out_biplot_txt = '%s.txt' % splitext(out_biplot)[0]
-    cmd = run_export(out_biplot, out_biplot_txt, '')
+    cmd = run_export(out_biplot, out_biplot_txt, 'biplot')
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 
