@@ -217,7 +217,10 @@ def run_emperor(i_datasets_folder: str, pcoas_biplots_d: dict, taxonomies: dict,
                                   '\t(if you want alpha diversity as a variable in the PCoA)!')
                             first_print += 1
                     for pcoa_biplot in pcoas_biplots:
-                        out_plot = '%s_emperor.qzv' % splitext(pcoa_biplot)[0].replace('/pcoa/', '/emperor%s/' % suffix)
+                        if biplot:
+                            out_plot = '%s_emperor.qzv' % splitext(pcoa_biplot)[0].replace('/biplot/', '/emperor%s/' % suffix)
+                        else:
+                            out_plot = '%s_emperor.qzv' % splitext(pcoa_biplot)[0].replace('/pcoa/', '/emperor%s/' % suffix)
                         write_emperor(meta, pcoa_biplot, out_plot, cur_sh, tax_qza)
                         written += 1
             run_xpbs(out_sh, out_pbs, '%s.mprr.%s.%s' % (prjct_nm, suffix, dat),
