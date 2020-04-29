@@ -10,6 +10,8 @@ import pandas as pd
 from typing import TextIO
 from os.path import isfile, splitext
 
+from skbio.stats.ordination import OrdinationResults
+
 
 def get_subset(tsv_pd: pd.DataFrame, subset: str, meta_subset: str, subset_regex: list) -> int:
     """
@@ -477,6 +479,11 @@ def write_diversity_biplot(in_tab: str, out_pcoa: str, out_biplot: str, cur_sh: 
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 
+    out_biplot_txt = '%s.txt' % splitext(out_biplot)[0]
+    cmd = run_export(out_biplot, out_biplot_txt, '')
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n\n' % cmd)
+
 
 def write_emperor(meta: str, pcoa_biplot: str, out_plot: str, cur_sh: TextIO, taxonomy: str) -> None:
     """
@@ -490,6 +497,18 @@ def write_emperor(meta: str, pcoa_biplot: str, out_plot: str, cur_sh: TextIO, ta
     :param cur_sh: writing file handle.
     """
     if taxonomy:
+        pcoa_biplot_txt = '%s.txt' % splitext(pcoa_biplot)[0]
+        if isfile(pcoa_biplot_txt):
+            ordi = OrdinationResults.read(pcoa_biplot_txt)
+            ordi.features = ordi.features.iloc[:,:3]
+            ordi.samples= ordi.samples.iloc[:,:3]
+            ordi.eigvals = ordi.eigvals[:3]
+            ordi.proportion_explained = ordi.proportion_explained[:3]
+            ordi.write(pcoa_biplot_txt)
+        cmd = run_import(pcoa_biplot_txt, pcoa_biplot, "PCoAResults % Properties('biplot')")
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n\n' % cmd)
+
         cmd = 'qiime emperor biplot \\\n'
         cmd += '--i-biplot %s \\\n' % pcoa_biplot
         cmd += '--m-sample-metadata-file %s \\\n' % meta
