@@ -208,5 +208,7 @@ def routine_qiime2_analyses(
                                       datasets_read, force, gpu, standalone,
                                       prjct_nm, qiime_env, chmod)
     if p_diff_models and p_mmvec_pairs:
-        run_mmbird(i_datasets_folder, songbird_outputs, mmvec_outputs)
+        run_mmbird(i_datasets_folder, datasets, taxonomies,
+                   songbird_outputs, mmvec_outputs,
+                   prjct_nm, qiime_env, chmod)
     # ------------------------------------------------------------------------------

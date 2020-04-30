@@ -13,7 +13,10 @@
 # import multiprocessing
 
 
-def run_mmbird(i_datasets_folder: str, songbird_outputs: dict, mmvec_outputs: dict) -> None:
+def run_mmbird(i_datasets_folder: str, datasets: dict, taxonomies: dict,
+               songbird_outputs: dict, mmvec_outputs: dict,
+               prjct_nm: str, qiime_env: str, chmod: str) -> None:
     print(i_datasets_folder)
     print(songbird_outputs)
     print(mmvec_outputs)
+
