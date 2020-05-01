@@ -88,7 +88,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
             print('Songbird formula term(s) missing in metadata:\n  %s\n  [not used]: %s=%s' % (
                 ', '.join(sorted(only_formula)), model, formula))
         else:
-            models[model] = formula
+            models[model] = formula.lower()
     return models
 
 
