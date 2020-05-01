@@ -126,6 +126,7 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor):
             new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+            new_meta_pd.columns = [x.lower() for x in new_meta_pd.columns]
             new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
             write_songbird_cmd(qza, new_qza, new_meta,
                                formula, epoch, batch, diff_prior, learn, thresh_sample,
