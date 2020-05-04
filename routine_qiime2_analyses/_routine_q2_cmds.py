@@ -326,7 +326,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cur_sh.write('%s\n' % cmd)
 
     if not isdir(tensor_dir):
-        cmd = run_export(tensor, tensor_dir, '')
+        cmd = run_export(tensor, tensor_dir, 'songbird')
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 
