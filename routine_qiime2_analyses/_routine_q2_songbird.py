@@ -122,6 +122,7 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
     base_stats = '%s/differentials-baseline-stats.qza' % cur_rad
     base_plot = '%s/differentials-baseline-biplot.qza' % cur_rad
     tensor = '%s/differentials-tensorboard.qzv' % cur_rad
+    tensor_dir = '%s/differentials-tensorboard.Q2' % cur_rad
 
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor):
@@ -131,7 +132,8 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
             write_songbird_cmd(qza, new_qza, new_meta,
                                formula, epoch, batch, diff_prior, learn, thresh_sample,
                                thresh_feat, n_random, diffs, diffs_qza, stats, plot,
-                               base_diff_qza, base_stats, base_plot, tensor, cur_sh_o)
+                               base_diff_qza, base_stats, base_plot, tensor, tensor_dir,
+                               cur_sh_o)
             remove = False
     if remove:
         os.remove(cur_sh)

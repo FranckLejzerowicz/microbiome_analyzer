@@ -8,7 +8,7 @@
 
 import pandas as pd
 from typing import TextIO
-from os.path import isfile, splitext
+from os.path import isdir, isfile, splitext
 
 from skbio.stats.ordination import OrdinationResults
 
@@ -242,7 +242,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
                        thresh_sample: str, thresh_feat: str, n_random: str,
                        diffs: str, diffs_qza: str, stats: str, plot: str,
                        base_diff_qza: str, base_stats: str, base_plot: str,
-                       tensor: str, cur_sh: TextIO) -> None:
+                       tensor: str, tensor_dir: str, cur_sh: TextIO) -> None:
     """
     :param qza:
     :param new_qza:
@@ -325,6 +325,11 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 
+    if not isdir(tensor_dir):
+        cmd = run_export(tensor, tensor_dir, '')
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
+
 
 def run_import(input_path: str, output_path: str, typ: str) -> str:
     """
@@ -398,6 +403,8 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
             cmd += 'mv %s/*.nwk %s\n' % (splitext(output_path)[0], output_path)
         elif 'biplot' in typ:
             cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
+        elif 'songbird' in typ:
+            cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
         else:
             cmd += 'mv %s/*.tsv %s\n' % (splitext(output_path)[0], output_path)
         cmd += 'rm -rf %s\n' % splitext(output_path)[0]
