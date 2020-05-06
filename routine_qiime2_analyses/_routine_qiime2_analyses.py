@@ -112,7 +112,7 @@ def routine_qiime2_analyses(
     import_datasets(i_datasets_folder, datasets, datasets_phylo, force, prjct_nm, qiime_env, chmod)
     if raref:
         run_rarefy(i_datasets_folder, datasets, datasets_read,
-                   datasets_features, datasets_phylo, datasets_rarefs,
+                   datasets_phylo, datasets_rarefs,
                    force, prjct_nm, qiime_env, chmod)
     if thresh:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,

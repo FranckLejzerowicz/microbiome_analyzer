@@ -19,8 +19,8 @@ from routine_qiime2_analyses._routine_q2_cmds import write_rarefy, run_export
 np.set_printoptions(precision=2, suppress=True)
 
 
-def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
-               datasets_features: dict, datasets_phylo: dict,
+def run_rarefy(i_datasets_folder: str, datasets: dict,
+               datasets_read: dict, datasets_phylo: dict,
                datasets_rarefs: dict, force: bool, prjct_nm: str,
                qiime_env: str, chmod: str) -> None:
     """
@@ -80,7 +80,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 datasets[dat] = [tsv_out, meta_out]
                 datasets_read[dat] = 'raref'
                 datasets_phylo[dat] = datasets_phylo[dat]
-                datasets_features[dat] = 'raref'
+                # datasets_features[dat] = 'raref'
 
             run_xpbs(out_sh, out_pbs, '%s.bt.%s' % (prjct_nm, dat),
                      qiime_env, '24', '1', '1', '10', 'gb',

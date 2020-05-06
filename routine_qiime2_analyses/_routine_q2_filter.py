@@ -92,9 +92,8 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                 tab_pd, meta_pd = tab_meta_pds
 
             if datasets_features[dat] == 'raref':
-                dat_no_raref = '_raref'.join(dat.split('_raref')[:-1])
                 datasets_features[dat] = dict(
-                    gid_feat for gid_feat in datasets_features[dat_no_raref].items() if gid_feat[1] in tab_pd.index
+                    gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_pd.index
                 )
 
             meta_pd = meta_pd.set_index('sample_name')
