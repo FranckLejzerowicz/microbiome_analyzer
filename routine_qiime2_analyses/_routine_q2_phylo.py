@@ -141,9 +141,8 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
 
                 if datasets_features[dat] == 'raref':
                     tab_pd = datasets_read[dat][0]
-                    dat_no_raref = '_raref'.join(dat.split('_raref')[:-1])
                     datasets_features[dat] = dict(
-                        gid_feat for gid_feat in datasets_features[dat_no_raref].items() if gid_feat[1] in tab_pd.index
+                        gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_pd.index
                     )
 
                 analysis_folder = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
