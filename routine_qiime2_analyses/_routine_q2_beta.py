@@ -138,7 +138,7 @@ def run_pcoas_biplots(i_datasets_folder: str, datasets: dict, betas: dict,
     written_biplot = 0
     run_pcoa_pbs = '%s/3_run_pcoa.sh' % job_folder_pcoa
     run_biplot_pbs = '%s/3_run_biplot.sh' % job_folder_biplot
-    with open(run_pcoa_pbs, 'w') as o, open(run_biplot_pbs, 'w') as o:
+    with open(run_pcoa_pbs, 'w') as o_pcoa, open(run_biplot_pbs, 'w') as o_biplot:
         for dat, meta_DMs in betas.items():
             tsv, meta = datasets[dat]
             qza = '%s.qza' % splitext(tsv)[0]
@@ -166,10 +166,10 @@ def run_pcoas_biplots(i_datasets_folder: str, datasets: dict, betas: dict,
                             written_biplot += 1
             run_xpbs(out_pcoa_sh, out_pcoa_pbs, '%s.pc.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '2', '2', 'gb',
-                     chmod, written_pcoa, 'single', o)
+                     chmod, written_pcoa, 'single', o_pcoa)
             run_xpbs(out_biplot_sh, out_biplot_pbs, '%s.bplt.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '2', '2', 'gb',
-                     chmod, written_biplot, 'single', o)
+                     chmod, written_biplot, 'single', o_biplot)
     if written_pcoa:
         print_message('# Calculate principal coordinates', 'sh', run_pcoa_pbs)
     if written_biplot:
