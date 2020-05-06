@@ -128,8 +128,8 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
     wol_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'wol']
     if len(wol_datasets):
 
-        job_folder = get_job_folder(i_datasets_folder, 'shear_tree')
-        job_folder2 = get_job_folder(i_datasets_folder, 'shear_tree/chunks')
+        job_folder = get_job_folder(i_datasets_folder, 'phylo')
+        job_folder2 = get_job_folder(i_datasets_folder, 'phylo/chunks')
 
         i_wol_tree = get_wol_tree(i_wol_tree)
         wol = TreeNode.read(i_wol_tree)
