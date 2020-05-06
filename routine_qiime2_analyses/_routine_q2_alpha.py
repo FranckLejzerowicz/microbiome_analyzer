@@ -262,7 +262,7 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                         else:
                             odir = get_analysis_folder(i_datasets_folder, 'alpha_correlations/%s' % dat)
                         for qza in divs:
-                            out_fp = '%s/alpha_corr_%s.qzv' % (odir, basename(qza).replace('.qza', '_%s.qzv' % method))
+                            out_fp = '%s/alpha_corr_%s' % (odir, basename(qza).replace('.qza', '_%s.qzv' % method))
                             if force or not isfile(out_fp):
                                 write_diversity_alpha_correlation(out_fp, qza, method, meta, cur_sh)
                                 written += 1
