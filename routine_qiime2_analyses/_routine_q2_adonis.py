@@ -55,7 +55,7 @@ def run_multi_adonis(odir: str, case_vals_list: list, metric: str, case_var: str
     qza = '%s.qza' % splitext(tsv)[0]
     with open(cur_sh, 'w') as cur_sh_o:
         for case_vals in case_vals_list:
-            case = get_case(case_vals, metric, case_var, form)
+            case = '%s__%s' % (metric, get_case(case_vals, case_var, form))
             cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s_%s' % (metric, case))
             new_meta = '%s.meta' % cur_rad
             new_qza = '%s.qza' % cur_rad

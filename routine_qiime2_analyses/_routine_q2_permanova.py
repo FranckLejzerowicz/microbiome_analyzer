@@ -31,7 +31,7 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 )
 
 
-def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
+def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str, metric: str,
                    case_: str, testing_group: str, mat_qza: str, case_var: str,
                    case_vals: list, force: bool) -> None:
     """
@@ -53,7 +53,7 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
     remove = True
     qza = '%s.qza' % splitext(tsv)[0]
     with open(cur_sh, 'w') as cur_sh_o:
-        case = '%s__%s' % (case_, testing_group)
+        case = '%s__%s__%s' % (metric, case_, testing_group)
         case = case.replace(' ', '_')
         cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
         new_meta = '%s.meta' % cur_rad
@@ -72,7 +72,7 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
         os.remove(cur_sh)
 
 
-def run_single_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
+def run_single_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str, metric: str,
                     case_: str, testing_group: str, mat_qza: str, case_var: str,
                     case_vals: list, force: bool) -> None:
     """
@@ -94,7 +94,7 @@ def run_single_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str,
     remove = True
     qza = '%s.qza' % splitext(tsv)[0]
     with open(cur_sh, 'w') as cur_sh_o:
-        case = '%s__%s' % (case_, testing_group)
+        case = '%s__%s__%s' % (metric, case_, testing_group)
         case = case.replace(' ', '_')
         cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
         new_meta = '%s.meta' % cur_rad
@@ -159,19 +159,19 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
             for case_var, case_vals_list in cases_dict.items():
                 testing_groups_case_var = list(set(testing_groups + [case_var]))
                 for case_vals in case_vals_list:
-                    case_ = get_case(case_vals, metric, case_var).replace(' ', '_')
+                    case_ = get_case(case_vals, case_var).replace(' ', '_')
                     for testing_group in testing_groups_case_var:
                         if testing_group == 'ALL':
                             continue
-                        cur_sh = '%s/run_beta_group_significance_%s_%s_%s.sh' % (
-                            job_folder2, dat, case_, testing_group)
+                        cur_sh = '%s/run_beta_group_significance_%s_%s_%s_%s.sh' % (
+                            job_folder2, dat, metric, case_, testing_group)
                         cur_sh = cur_sh.replace(' ', '-')
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                        run_single_perm(odir, tsv, meta_pd, cur_sh, case_, testing_group,
+                        run_single_perm(odir, tsv, meta_pd, cur_sh, metric, case_, testing_group,
                                         mat_qza, case_var, case_vals, force)
                         # p = multiprocessing.Process(
                         #     target=run_multi_perm,
-                        #     args=(odir, tsv, meta_pd, cur_sh, case_, testing_group,
+                        #     args=(odir, tsv, meta_pd, cur_sh, metric, case_, testing_group,
                         #           mat_qza, case_var, case_vals, force))
                         # p.start()
                         # jobs.append(p)

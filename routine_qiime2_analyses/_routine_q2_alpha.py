@@ -346,7 +346,7 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list:
     remove = True
     with open(cur_sh, 'w') as cur_sh_o:
         for case_vals in case_vals_list:
-            case = get_case(case_vals, metric, case_var)
+            case = '%s__%s' % (metric, get_case(case_vals, case_var))
             cur_rad = odir + '/' + basename(div_qza).replace('.qza', '_%s' % case)
             new_qzv = '%s_kruskal-wallis.qzv' % cur_rad
             if force or not isfile(new_qzv):

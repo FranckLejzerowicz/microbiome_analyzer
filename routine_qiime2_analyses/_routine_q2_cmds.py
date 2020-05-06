@@ -786,7 +786,7 @@ def get_metric(metrics: list, file_name: str) -> str:
     return ''
 
 
-def get_case(case_vals: list, metric: str, case_var: str, form: str = None) -> str:
+def get_case(case_vals: list, case_var: str, form: str = None) -> str:
     """
     Get the current case, which is the concatenation of:
      - diversity metric.
@@ -794,7 +794,6 @@ def get_case(case_vals: list, metric: str, case_var: str, form: str = None) -> s
      - metadata variable's values.
      - formula.
     :param case_vals: variable's values
-    :param metric: diversity metric.
     :param case_var: metadata variable.
     :param form: formula.
     :return: current case.
