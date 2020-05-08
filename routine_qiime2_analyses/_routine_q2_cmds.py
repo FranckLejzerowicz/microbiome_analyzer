@@ -800,7 +800,7 @@ def get_case(case_vals: list, case_var: str, form: str = None) -> str:
     """
     if len(case_vals):
         case = '%s_%s' % (case_var, '-'.join(
-            [x.replace('<', 'below').replace('>', 'above') for x in case_vals]))
+            [x.replace('<', 'below').replace('>', 'above').replace('/', '').replace('(', '').replace(')', '') for x in case_vals]))
     else:
         case = case_var
     if form:
