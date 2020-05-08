@@ -207,7 +207,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                 for case_var, case_vals_list in cases_dict.items():
                     for case_vals in case_vals_list:
                         
-                        case = get_case(case_vals, model, case_var, str(idx))
+                        case = get_case(case_vals, case_var, str(idx))
                         cur_sh = '%s/run_songbird_%s_%s_%s.sh' % (
                             job_folder2, dat, model, case)
                         cur_sh = cur_sh.replace(' ', '-')
