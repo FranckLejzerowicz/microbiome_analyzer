@@ -261,6 +261,52 @@ def run_multi_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, re
         os.remove(cur_sh)
 
 
+def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, res_dir: str,
+                     cur_sh: str, batch: str, learn: str, epoch: str, prior: str,
+                     thresh_feat: str, latent_dim: str, train_column: str,
+                     n_example: str, gpu: bool, force: bool, standalone: bool) -> None:
+    """
+    Run mmvec: Neural networks for microbe-metabolite interaction analysis.
+    https://github.com/biocore/mmvec
+    (in-loop function).
+
+    :param odir:
+    :param pair:
+    :param meta_fp:
+    :param qza1:
+    :param qza2:
+    :param res_dir:
+    :param cur_sh:
+    :param batch:
+    :param learn:
+    :param epoch:
+    :param prior:
+    :param thresh_feat:
+    :param latent_dim:
+    :param train_column:
+    :param n_example:
+    :param gpu:
+    :param standalone:
+    :return:
+    """
+    remove = True
+    with open(cur_sh, 'w') as cur_sh_o:
+        cur_rad = '%s/%s' % (odir, pair)
+        conditionals_tsv = '%s_conditionals.tsv' % cur_rad
+        biplot_tsv = '%s_ordination.tsv' % cur_rad
+        if force or not isfile(conditionals_tsv):
+            write_mmvec_cmd(meta_fp, qza1, qza2, res_dir,
+                            conditionals_tsv, biplot_tsv,
+                            batch, learn, epoch, prior,
+                            thresh_feat, latent_dim, train_column,
+                            n_example, gpu, standalone, cur_sh_o)
+
+            remove = False
+    if remove:
+        os.remove(cur_sh)
+
+
+
 def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
                                      datasets_read: dict, mmvec_pairs: dict,
                                      mmvec_filtering: dict, job_folder: str,
@@ -370,16 +416,20 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                 cur_sh = '%s/run_mmvec_%s_%s_%s.sh' % (job_folder2, preval, abund, res_dir)
                 all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
                 # print('[', idx, ']', it)
-                p = multiprocessing.Process(
-                    target=run_multi_mmvec,
-                    args=(odir, pair, meta_fp, qza1, qza2, res_dir, cur_sh,
-                          batch, learn, epoch, prior, thresh_feat,
-                          latent_dim, train_column, n_example,
-                          gpu, force, standalone))
-                p.start()
-                jobs.append(p)
-    for j in jobs:
-        j.join()
+                # p = multiprocessing.Process(
+                #     target=run_multi_mmvec,
+                #     args=(odir, pair, meta_fp, qza1, qza2, res_dir, cur_sh,
+                #           batch, learn, epoch, prior, thresh_feat,
+                #           latent_dim, train_column, n_example,
+                #           gpu, force, standalone))
+                # p.start()
+                # jobs.append(p)
+                run_single_mmvec(odir, pair, meta_fp, qza1, qza2, res_dir, cur_sh,
+                                 batch, learn, epoch, prior, thresh_feat,
+                                 latent_dim, train_column, n_example,
+                                 gpu, force, standalone)
+    # for j in jobs:
+    #     j.join()
 
     main_sh = write_main_sh(job_folder, '3_mmvec', all_sh_pbs,
                             '%s.mmvc' % prjct_nm, '150', '1', '1', '2', 'gb',
