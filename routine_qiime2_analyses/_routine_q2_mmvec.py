@@ -341,13 +341,13 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
 
         for (meta_fp, qza1, qza2) in meta_qzas:
 
-            print('"""""""')
-            print('COMMON:')
-            print('""""""""""""""""""""""""""""""')
-            print('meta_fp', meta_fp)
-            print('qza1', qza1)
-            print('qza2', qza2)
-            print('""""""""""""""""""""""""""""""')
+            # print('"""""""')
+            # print('COMMON:')
+            # print('""""""""""""""""""""""""""""""')
+            # print('meta_fp', meta_fp)
+            # print('qza1', qza1)
+            # print('qza2', qza2)
+            # print('""""""""""""""""""""""""""""""')
 
             train_columns = mmvec_params['train_column']
             n_examples = mmvec_params['n_examples']
@@ -369,7 +369,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                 odir = get_analysis_folder(i_datasets_folder, 'mmvec/paired/%s/%s_%s/%s' % (pair, preval, abund, res_dir))
                 cur_sh = '%s/run_mmvec_%s_%s_%s.sh' % (job_folder2, preval, abund, res_dir)
                 all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
-                print('[', idx, ']', it)
+                # print('[', idx, ']', it)
                 p = multiprocessing.Process(
                     target=run_multi_mmvec,
                     args=(odir, pair, meta_fp, qza1, qza2, res_dir, cur_sh,
