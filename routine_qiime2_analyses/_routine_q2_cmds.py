@@ -515,7 +515,6 @@ def write_emperor(meta: str, pcoa_biplot: str, out_plot: str, cur_sh: TextIO, ta
             ordi.proportion_explained = ordi.proportion_explained[:3]
             ordi.write(pcoa_biplot_txt)
         cmd = run_import(pcoa_biplot_txt, pcoa_biplot, "PCoAResults % Properties('biplot')")
-        cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n\n' % cmd)
 
         cmd = 'qiime emperor biplot \\\n'
