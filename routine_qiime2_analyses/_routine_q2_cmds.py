@@ -953,8 +953,6 @@ def get_new_meta_pd(meta_pd: pd.DataFrame, case: str,
                 new_meta_pd = new_meta_pd[new_meta_pd[case_var].astype(float) <= float(case_val[1:])].copy()
     else:
         new_meta_pd = meta_pd[meta_pd[case_var].isin(case_vals)].copy()
-    if len(new_meta_pd[case_var].unique()) < 2:
-        return pd.DataFrame()
     return new_meta_pd
 
 
