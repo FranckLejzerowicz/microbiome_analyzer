@@ -95,7 +95,7 @@ def run_taxonomy_amplicon(dat: str, i_datasets_folder: str, force: bool, tsv_pd:
 
 def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict, datasets_phylo: dict,
                  datasets_features: dict, i_classifier: str, taxonomies: dict, force: bool,
-                 prjct_nm: str, qiime_env: str, chmod: str) -> None:
+                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     classify-sklearn: Pre-fitted sklearn-based taxonomy classifier
 
@@ -170,13 +170,13 @@ def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict, da
                     written += 1
             run_xpbs(out_sh, out_pbs, '%s.tx.sklrn.%s' % (prjct_nm, dat),
                      qiime_env, '4', '1', '4', '200', 'mb',
-                     chmod, written, 'single', o)
+                     chmod, written, 'single', o, noloc)
     if written:
         print_message('# Classify features using classify-sklearn', 'sh', run_pbs)
 
 
 def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
-                force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
+                force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     barplot: Visualize taxonomy with an interactive bar plot
 
@@ -212,7 +212,7 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
                     written += 1
             run_xpbs(out_sh, out_pbs, '%s.brplt.%s' % (prjct_nm, dat),
                      qiime_env, '4', '1', '1', '200', 'mb',
-                     chmod, written, 'single', o)
+                     chmod, written, 'single', o, noloc)
     if written:
         print_message('# Make sample compositions barplots', 'sh', run_pbs)
 

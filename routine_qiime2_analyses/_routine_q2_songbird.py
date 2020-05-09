@@ -140,7 +140,7 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
 
 
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
-                 force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> dict:
+                 force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
@@ -229,7 +229,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
     main_sh = write_main_sh(job_folder, '2_songbird', all_sh_pbs,
                             '%s.sngbrd' % prjct_nm, '150', '1', '1', '25', 'gb',
-                            qiime_env, chmod)
+                            qiime_env, chmod, noloc)
     if main_sh:
         if p_diff_models.startswith('/panfs'):
             p_diff_models = p_diff_models.replace(os.getcwd(), '')

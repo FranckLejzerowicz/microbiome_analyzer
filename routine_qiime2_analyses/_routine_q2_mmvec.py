@@ -311,7 +311,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
                                      datasets_read: dict, mmvec_pairs: dict,
                                      mmvec_filtering: dict, job_folder: str,
                                      force: bool, prjct_nm: str, qiime_env: str,
-                                     chmod: str) -> (dict, dict):
+                                     chmod: str, noloc: bool) -> (dict, dict):
     """
     :param i_datasets_folder:
     :param datasets: list of data_sets.
@@ -345,13 +345,13 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
                 import_o.write('%s\n' % cmd)
         run_xpbs(import_sh, import_pbs, '%s.xprt.lph' % prjct_nm,
                  qiime_env, '2', '1', '1', '150', 'mb', chmod, 1,
-                 '# Import common datasets for MMVEC')
+                 '# Import common datasets for MMVEC', noloc)
     return filt_datasets, common_datasets
 
 
 def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
               datasets_read: dict, force: bool, gpu: bool, standalone: bool,
-              prjct_nm: str, qiime_env: str, chmod: str) -> dict:
+              prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
     https://github.com/biocore/mmvec
@@ -433,7 +433,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
 
     main_sh = write_main_sh(job_folder, '3_mmvec', all_sh_pbs,
                             '%s.mmvc' % prjct_nm, '150', '1', '1', '2', 'gb',
-                            qiime_env, chmod)
+                            qiime_env, chmod, noloc)
     if main_sh:
         if p_mmvec_pairs.startswith('/panfs'):
             p_mmvec_pairs = p_mmvec_pairs.replace(os.getcwd(), '')

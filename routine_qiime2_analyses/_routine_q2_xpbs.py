@@ -15,7 +15,7 @@ from typing import TextIO
 def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
              qiime_env: str, time: str, n_nodes: str,
              n_procs: str, mem_num: str, mem_dim: str, chmod: str,
-             written: int, single: str, o: TextIO = None) -> None:
+             written: int, single: str, o: TextIO = None, noloc: bool = True) -> None:
     """
     Run the Xpbs script assorted with print or writing in higher-level command.
 
@@ -41,7 +41,8 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
                 for out_sh_line in out_sh_lines:
                     sh.write(out_sh_line.replace(os.getcwd(), ''))
         xpbs_call(out_sh, out_pbs, job_name, qiime_env,
-                  time, n_nodes, n_procs, mem_num, mem_dim, chmod)
+                  time, n_nodes, n_procs, mem_num,
+                  mem_dim, chmod, noloc)
         if single:
             if os.getcwd().startswith('/panfs'):
                 out_pbs = out_pbs.replace(os.getcwd(), '')
@@ -59,7 +60,7 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
 def xpbs_call(out_sh: str, out_pbs: str, prjct_nm: str,
               qiime_env: str, time: str, n_nodes: str,
               n_procs: str, mem_num: str, mem_dim: str,
-              chmod: str) -> None:
+              chmod: str, noloc: bool) -> None:
     """
     Call the subprocess to run Xpbs on the current bash script.
 
@@ -88,6 +89,8 @@ def xpbs_call(out_sh: str, out_pbs: str, prjct_nm: str,
         '-c', chmod,
         '--noq'
     ]
+    if noloc:
+        cmd.append('--no-loc')
     subprocess.call(cmd)
 
     if os.getcwd().startswith('/panfs'):

@@ -29,7 +29,7 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 
 def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
               datasets_phylo: dict, p_alpha_subsets: str, trees: dict,
-              force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> dict:
+              force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -115,14 +115,14 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 diversities[dat] = divs
             run_xpbs(out_sh, out_pbs, '%s.mg.lph.%s' % (prjct_nm, dat),
                      qiime_env, '4', '1', '1', '1', 'gb',
-                     chmod, written, 'single', o)
+                     chmod, written, 'single', o, noloc)
     if written:
         print_message('# Calculate alpha diversity indices', 'sh', run_pbs)
     return diversities
 
 
 def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
-                     force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> dict:
+                     force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -164,7 +164,7 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
                         written += 1
             run_xpbs(out_sh, out_pbs, '%s.mrg.lph.%s' % (prjct_nm, base),
                      qiime_env, '2', '1', '1', '150', 'mb',
-                     chmod, written, 'single', o)
+                     chmod, written, 'single', o, noloc)
     if written:
         print_message('# Merge and export alpha diversity indices', 'sh', run_pbs)
     return to_export
@@ -227,7 +227,7 @@ def export_meta_alpha(datasets: dict, datasets_rarefs: dict, to_export: dict) ->
 
 
 def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
-                     force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
+                     force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     Run alpha-correlation: Alpha diversity correlation
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-correlation/
@@ -268,13 +268,13 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                                 written += 1
             run_xpbs(out_sh, out_pbs, '%s.lphcrr.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '1', '1', 'gb',
-                     chmod, written, 'single', o)
+                     chmod, written, 'single', o, noloc)
     if written:
         print_message('# Correlate numeric metadata variables with alpha diversity indices', 'sh', run_pbs)
 
 
 def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
-                   force: bool, prjct_nm: str, qiime_env: str, chmod: str) -> None:
+                   force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     Run volatility: Generate interactive volatility plot.
     https://docs.qiime2.org/2019.10/plugins/available/longitudinal/volatility/
@@ -322,7 +322,7 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
                     written += 1
             run_xpbs(out_sh, out_pbs, '%s.vltlt.%s' % (prjct_nm, dat),
                      qiime_env, '2', '1', '1', '100', 'mb',
-                     chmod, written, 'single', o)
+                     chmod, written, 'single', o, noloc)
     if written:
         print_message('# Longitudinal change in alpha diversity indices', 'sh', run_pbs)
 
@@ -362,7 +362,7 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list:
 
 def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversities: dict,
                                  p_perm_groups: str, force: bool, prjct_nm: str,
-                                 qiime_env: str, chmod: str) -> None:
+                                 qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     Run alpha-group-significance: Alpha diversity comparisons.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-group-significance/
@@ -424,7 +424,7 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
     job_folder = get_job_folder(i_datasets_folder, 'alpha_group_significance')
     main_sh = write_main_sh(job_folder, '6_run_alpha_group_significance', all_sh_pbs,
                             '%s.kv' % prjct_nm, '2', '1', '1', '1', 'gb',
-                            qiime_env, chmod)
+                            qiime_env, chmod, noloc)
     if main_sh:
         if p_perm_groups:
             print("# Kruskal-Wallis on alpha diversity (groups config in %s)" % p_perm_groups)

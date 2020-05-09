@@ -124,6 +124,10 @@ from routine_qiime2_analyses import __version__
     "--raref/--no-raref", default=False, show_default=True,
     help="Rarefy and only perform the routine analyses on the rarefied dataset(s)."
 )
+@click.option(
+    "--noloc/--no-noloc", default=True, show_default=True,
+    help="whether to do compute on scratch."
+)
 @click.version_option(__version__, prog_name="routine_qiime2_analyses")
 
 
@@ -148,7 +152,8 @@ def standalone_routine(
         p_skip,
         gpu,
         standalone,
-        raref
+        raref,
+        noloc
 ):
 
     routine_qiime2_analyses(
@@ -172,7 +177,8 @@ def standalone_routine(
         p_skip,
         gpu,
         standalone,
-        raref
+        raref,
+        noloc
     )
 
 

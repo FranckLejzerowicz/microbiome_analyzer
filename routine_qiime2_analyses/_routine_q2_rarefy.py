@@ -22,7 +22,7 @@ np.set_printoptions(precision=2, suppress=True)
 def run_rarefy(i_datasets_folder: str, datasets: dict,
                datasets_read: dict, datasets_phylo: dict,
                datasets_rarefs: dict, force: bool, prjct_nm: str,
-               qiime_env: str, chmod: str) -> None:
+               qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     Run rarefy: Rarefy table.
     https://docs.qiime2.org/2019.10/plugins/available/feature-table/rarefy/
@@ -84,7 +84,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict,
 
             run_xpbs(out_sh, out_pbs, '%s.bt.%s' % (prjct_nm, dat),
                      qiime_env, '24', '1', '1', '10', 'gb',
-                     chmod, written, 'single', o)
+                     chmod, written, 'single', o, noloc)
     if written:
         print_message('# Calculate beta diversity indices', 'sh', run_pbs)
 

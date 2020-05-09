@@ -50,7 +50,8 @@ def routine_qiime2_analyses(
         p_skip: tuple,
         gpu: bool,
         standalone: bool,
-        raref: bool) -> None:
+        raref: bool,
+        noloc: bool) -> None:
     """
     Main qiime2 functions writer.
 

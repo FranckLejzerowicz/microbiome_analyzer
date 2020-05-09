@@ -18,7 +18,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
 
 
 def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str, i_qemistree: str,
-                  taxonomies: dict, force: bool, qiime_env: str, chmod: str) -> None:
+                  taxonomies: dict, force: bool, qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets_read: dataset -> [tsv table, meta table]
@@ -71,6 +71,6 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str, i_qemis
                 print('[Warning] Maybe run qemistree first and then re-run pipeline to '
                       'have the classyfire taxonomy include in the barplots!')
             run_xpbs(out_sh, out_pbs, '%s.qmstr.%s' % (prjct_nm, dat), qiime_env,
-                     '4', '1', '1', '200', 'mb', chmod, written, 'single', o)
+                     '4', '1', '1', '200', 'mb', chmod, written, 'single', o, noloc)
     if written:
         print_message('# Make qemistree classyfire classifications', 'sh', run_pbs)

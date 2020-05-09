@@ -24,7 +24,8 @@ from routine_qiime2_analyses._routine_q2_cmds import run_import
 
 
 def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datasets_phylo: dict,
-             prjct_nm: str, i_sepp_tree: str, trees: dict, force: bool, qiime_env: str, chmod: str) -> None:
+             prjct_nm: str, i_sepp_tree: str, trees: dict, force: bool,
+             qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     Run SEPP on the datasets composed or 16S deblur sequences (e.g. from redbiom/Qiita).
 
@@ -103,13 +104,14 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                         written += 1
                 run_xpbs(out_sh, out_pbs, '%s.spp.%s' % (prjct_nm, dat),
                          qiime_env, '100', '2', '12', '100', 'gb',
-                         chmod, written, 'single', main_o)
+                         chmod, written, 'single', main_o, noloc)
         if written:
             print_message("# Fragment insertion using SEPP (%s)" % ', '.join(sepp_datasets), 'sh', main_sh)
 
 
 def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict, datasets_features: dict,
-               prjct_nm: str, i_wol_tree: str, trees: dict, force: bool, qiime_env: str, chmod: str) -> None:
+               prjct_nm: str, i_wol_tree: str, trees: dict,
+               force: bool, qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     Get the sub-tree from the Web of Life tree that corresponds to the gOTUs-labeled features.
 
@@ -170,7 +172,7 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
 
                     run_xpbs(out_sh, out_pbs, '%s.shr.%s' % (prjct_nm, dat),
                              qiime_env,  '1', '1', '1', '200', 'mb',
-                             chmod, written, 'single', main_o)
+                             chmod, written, 'single', main_o, noloc)
         if written:
             print_message("# Shear Web of Life tree to features' genome IDs (%s)" % ', '.join(wol_datasets), 'sh', main_sh)
 
