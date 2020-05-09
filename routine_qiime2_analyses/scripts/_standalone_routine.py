@@ -153,7 +153,7 @@ def standalone_routine(
         gpu,
         standalone,
         raref,
-        noloc
+        loc
 ):
 
     routine_qiime2_analyses(
@@ -178,7 +178,7 @@ def standalone_routine(
         gpu,
         standalone,
         raref,
-        noloc
+        loc
     )
 
 
