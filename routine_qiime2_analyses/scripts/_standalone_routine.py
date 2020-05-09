@@ -125,7 +125,7 @@ from routine_qiime2_analyses import __version__
     help="Rarefy and only perform the routine analyses on the rarefied dataset(s)."
 )
 @click.option(
-    "--noloc/--no-noloc", default=True, show_default=True,
+    "--loc/--no-loc", default=True, show_default=True,
     help="whether to do compute on scratch."
 )
 @click.version_option(__version__, prog_name="routine_qiime2_analyses")
