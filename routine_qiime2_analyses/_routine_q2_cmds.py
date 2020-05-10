@@ -546,7 +546,7 @@ def write_emperor(meta: str, pcoa_biplot: str, out_plot: str, cur_sh: TextIO, ta
         cmd = 'qiime emperor biplot \\\n'
         cmd += '--i-biplot %s \\\n' % pcoa_biplot
         cmd += '--m-sample-metadata-file %s \\\n' % meta
-        if taxonomy != 'missing:'
+        if taxonomy != 'missing':
             cmd += '--m-feature-metadata-file %s \\\n' % taxonomy
         cmd += '--p-number-of-features 20 \\\n'
         cmd += '--o-visualization %s\n' % out_plot
