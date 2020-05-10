@@ -29,7 +29,7 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 
 def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
               datasets_phylo: dict, p_alpha_subsets: str, trees: dict,
-              force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
+              force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, As: tuple) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -47,7 +47,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
               'dataset2': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }], '...'}
     """
     # alpha_subsets_deletions = []
-    alpha_metrics = get_metrics('alpha_metrics')
+    alpha_metrics = get_metrics('alpha_metrics', As)
     alpha_subsets = get_alpha_subsets(p_alpha_subsets)
     job_folder = get_job_folder(i_datasets_folder, 'alpha')
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha/chunks')

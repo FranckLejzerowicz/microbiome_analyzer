@@ -64,7 +64,7 @@ def run_multi_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
         os.remove(cur_sh)
 
 
-def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str,
+def run_deicode(i_data_sets_folder: str, data_sets: dict, p_perm_groups: str, taxonomies: dict,
                 force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     Performs robust center log-ratio transform robust PCA and

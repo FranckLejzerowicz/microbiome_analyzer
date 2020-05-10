@@ -54,7 +54,9 @@ def routine_qiime2_analyses(
         gpu: bool,
         standalone: bool,
         raref: bool,
-        noloc: bool) -> None:
+        noloc: bool,
+        As: tuple,
+        Bs: tuple) -> None:
     """
     Main qiime2 functions writer.
 
@@ -151,7 +153,7 @@ def routine_qiime2_analyses(
     if 'alpha' not in p_skip:
         diversities = run_alpha(i_datasets_folder, datasets, datasets_read,
                                 datasets_phylo, p_alpha_subsets, trees,
-                                force, prjct_nm, qiime_env, chmod, noloc)
+                                force, prjct_nm, qiime_env, chmod, noloc, As)
         if 'merge_alpha' not in p_skip:
             to_export = merge_meta_alpha(i_datasets_folder, datasets, diversities,
                                          force, prjct_nm, qiime_env, chmod, noloc)
@@ -169,24 +171,24 @@ def routine_qiime2_analyses(
     # BETA ----------------------------------------------------
     if 'beta' not in p_skip:
         betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
-                         trees, force, prjct_nm, qiime_env, chmod, noloc)
+                         trees, force, prjct_nm, qiime_env, chmod, noloc, Bs)
         if 'export_beta' not in p_skip:
             export_beta(i_datasets_folder, betas,
                         force, prjct_nm, qiime_env, chmod, noloc)
         if 'emperor' not in p_skip:
             pcoas = run_pcoas(i_datasets_folder, datasets, betas,
                               force, prjct_nm, qiime_env, chmod, noloc)
-            run_emperor(i_datasets_folder, pcoas, taxonomies,
-                        prjct_nm, qiime_env, chmod, False, noloc)
-            biplots = run_biplots(i_datasets_folder, datasets, betas,
+            run_emperor(i_datasets_folder, pcoas,
+                        prjct_nm, qiime_env, chmod, noloc)
+            biplots = run_biplots(i_datasets_folder, datasets, betas, taxonomies,
                                   force, prjct_nm, qiime_env, chmod, noloc)
             run_emperor_biplot(i_datasets_folder, biplots, taxonomies,
-                        prjct_nm, qiime_env, chmod, True, noloc)
+                               prjct_nm, qiime_env, chmod, noloc)
     # ---------------------------------------------------------
 
     # STATS -----------------------------------------------------------------------
     if 'beta' not in p_skip and 'deicode' not in p_skip:
-        run_deicode(i_datasets_folder, datasets, p_perm_groups,
+        run_deicode(i_datasets_folder, datasets, p_perm_groups, taxonomies,
                     force, prjct_nm, qiime_env, chmod, noloc)
 
     if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:

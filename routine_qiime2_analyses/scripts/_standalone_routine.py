@@ -108,6 +108,16 @@ from routine_qiime2_analyses import __version__
          "'deicode', 'permanova', 'adonis'."
 )
 @click.option(
+    "-As", "--p-alphas", default=None, show_default=True, multiple=True,
+    type=click.Choice(['observed_otus','pielou_e','shannon','faith_pd']),
+    help="Alpha to use: 'observed_otus','pielou_e','shannon','faith_pd'."
+)
+@click.option(
+    "-Bs", "--p-betas", default=None, show_default=True, multiple=True,
+    type=click.Choice(['jaccard','braycurtis','aitchison','unweighted_unifrac','weighted_unifrac']),
+    help="Alpha to use: 'jaccard','braycurtis','aitchison','unweighted_unifrac','weighted_unifrac'."
+)
+@click.option(
     "--force/--no-force", default=False, show_default=True,
     help="Force the re-writing of scripts for all commands"
          "(default is to not re-run if output file exists)."
@@ -153,7 +163,9 @@ def standalone_routine(
         gpu,
         standalone,
         raref,
-        loc
+        loc,
+        As,
+        Bs
 ):
 
     routine_qiime2_analyses(
@@ -178,7 +190,9 @@ def standalone_routine(
         gpu,
         standalone,
         raref,
-        loc
+        loc,
+        As,
+        Bs
     )
 
 

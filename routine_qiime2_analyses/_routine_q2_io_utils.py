@@ -564,7 +564,7 @@ def get_analysis_folder(i_datasets_folder, analysis):
     return odir
 
 
-def get_metrics(file_name: str) -> list:
+def get_metrics(file_name: str, ABs: tuple) -> list:
     """
     Collect the alpha or beta diversity metrics from a resources file.
 
@@ -576,7 +576,11 @@ def get_metrics(file_name: str) -> list:
         for line in f:
             line_strip = line.strip()
             if len(line_strip):
-                metrics.append(line_strip)
+                if ABs:
+                    if line_strip in ABs:
+                        metrics.append(line_strip)
+                else:
+                    metrics.append(line_strip)
     return metrics
 
 

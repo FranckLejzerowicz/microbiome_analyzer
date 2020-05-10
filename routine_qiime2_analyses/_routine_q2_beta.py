@@ -25,7 +25,8 @@ from routine_qiime2_analyses._routine_q2_cmds import run_export
 
 
 def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
-             trees: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
+             trees: dict, force: bool, prjct_nm: str, qiime_env: str,
+             chmod: str, noloc: bool, Bs: tuple) -> dict:
     """
     Run beta: Beta diversity.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta/
@@ -42,7 +43,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
     :return: deta divesity matrices.
     """
 
-    beta_metrics = get_metrics('beta_metrics')
+    beta_metrics = get_metrics('beta_metrics', Bs)
     job_folder = get_job_folder(i_datasets_folder, 'beta')
     job_folder2 = get_job_folder(i_datasets_folder, 'beta/chunks')
 
@@ -156,8 +157,8 @@ def run_pcoas(i_datasets_folder: str, datasets: dict, betas: dict,
     return pcoas_d
 
 
-def run_emperor(i_datasets_folder: str, pcoas_d: dict, taxonomies: dict,
-                prjct_nm: str, qiime_env: str, chmod: str, biplot: bool, noloc: bool) -> None:
+def run_emperor(i_datasets_folder: str, pcoas_d: dict, prjct_nm: str,
+                qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -202,7 +203,7 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, taxonomies: dict,
 
 
 
-def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict,
+def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies: dict,
                 force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
     """
     Run pcoa-biplot: Principal Coordinate Analysis Biplot¶
@@ -225,6 +226,10 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict,
     run_pbs = '%s/3_run_biplot.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, meta_DMs in betas.items():
+            if dat in taxonomies:
+                method, tax_qza = taxonomies[dat]
+            else:
+                tax_qza = 'missing'
             tsv, meta = datasets[dat]
             qza = '%s.qza' % splitext(tsv)[0]
             odir = get_analysis_folder(i_datasets_folder, 'biplot/%s' % dat)
@@ -235,11 +240,12 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict,
             with open(out_sh, 'w') as cur_sh:
                 for meta, DMs in meta_DMs.items():
                     for DM in DMs:
-                        out = '%s_biplot.qza' % splitext(DM)[0].replace('/beta/', '/biplot/')
-                        biplots_d[dat].setdefault(meta, []).append(out)
-                        if force or not isfile(out):
-                            write_diversity_biplot(qza, out, out, cur_sh)
+                        out_pcoa = '%s_PCoA.qza' % splitext(DM)[0].replace('/beta/', '/pcoa/')
+                        out_biplot = '%s_biplot.qza' % splitext(DM)[0].replace('/beta/', '/biplot/')
+                        if force or not isfile(out_biplot):
+                            tsv_tax_tax = write_diversity_biplot(tsv, qza, out_pcoa, out_biplot, tax_qza, cur_sh)
                             written += 1
+                        biplots_d[dat].setdefault(meta, []).append((out_biplot, tsv_tax_tax))
             run_xpbs(out_sh, out_pbs, '%s.bplt.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '2', '2', 'gb',
                      chmod, written, 'single', o, noloc)
@@ -249,7 +255,7 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict,
 
 
 def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict,
-                prjct_nm: str, qiime_env: str, chmod: str, biplot: bool, noloc: bool) -> None:
+                prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -267,14 +273,17 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
     first_print = 0
     run_pbs = '%s/4_run_emperor_biplot.sh' % job_folder
     with open(run_pbs, 'w') as o:
-        for dat, meta_biplots in biplots_d.items():
+        for dat, meta_biplots_taxs in biplots_d.items():
             if dat in taxonomies:
                 method, tax_qza = taxonomies[dat]
+                tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
+            else:
+                tax_tsv = 'missing'
             odir = get_analysis_folder(i_datasets_folder, 'emperor_biplot/%s' % dat)
             out_sh = '%s/run_emperor_biplot_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
-                for meta_, biplots in meta_biplots.items():
+                for meta_, biplots_taxs in meta_biplots_taxs.items():
                     meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
                     if isfile(meta_alphas):
                         meta = meta_alphas
@@ -284,9 +293,12 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
                             print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
                                   '\t(if you want alpha diversity as a variable in the PCoA biplot)!')
                             first_print += 1
-                    for biplot in biplots:
+                    for biplot, tax in biplots_taxs:
                         out_plot = '%s_emperor_biplot.qzv' % splitext(biplot)[0].replace('/biplot/', '/emperor_biplot/')
-                        write_emperor(meta, biplot, out_plot, cur_sh, tax_qza)
+                        if tax:
+                            write_emperor(meta, biplot, out_plot, cur_sh, tax)
+                        else:
+                            write_emperor(meta, biplot, out_plot, cur_sh, tax_tsv)
                         written += 1
             run_xpbs(out_sh, out_pbs, '%s.mprr.bplt.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '1', '1', 'gb',

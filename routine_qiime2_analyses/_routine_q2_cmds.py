@@ -467,7 +467,7 @@ def write_diversity_pcoa(DM: str, out_pcoa: str, cur_sh: TextIO) -> None:
     cur_sh.write('%s\n\n' % cmd)
 
 
-def write_diversity_biplot(in_tab: str, out_pcoa: str, out_biplot: str, cur_sh: TextIO) -> None:
+def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str, out_biplot: str, tax_qza: str, cur_sh: TextIO) -> str:
     """
     pcoa-biplot: Principal Coordinate Analysis Biplot.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa-biplot/
@@ -476,15 +476,39 @@ def write_diversity_biplot(in_tab: str, out_pcoa: str, out_biplot: str, cur_sh: 
     :param out_pcoa: The resulting PCoA matrix.
     :param cur_sh: writing file handle.
     """
-    rel = '%s_rel.qza' % splitext(in_tab)[0]
-    cmd = 'qiime feature-table relative-frequency \\\n'
-    cmd += '--i-table %s \\\n' % in_tab
-    cmd += '--o-relative-frequency-table %s\n' % rel
+    cmd = ''
+    tsv_tax_tax = ''
+    if tax_qza != 'missing':
+        tsv_tax = '%s_tax.tsv' % splitext(out_biplot)[0]
+        tsv_tax_tax = '%s_assign.tsv' % splitext(out_biplot)[0]
+        qza = '%s.qza' % splitext(tsv_tax)[0]
+        # tsv_tax_qza = '%s.qza' % splitext(tsv_tax_tax)[0]
+        if not isfile(qza):
+            tax_dict = {}
+            with open('%s.tsv' % splitext(tax_qza)[0]) as f, open(tsv_tax_tax, 'w') as o:
+                o.write('Feature ID\tTaxon\n')
+                for ldx, line in enumerate(f):
+                    if ldx and not line.startswith('#q2:types'):
+                        tax_dict[line.split()[0]] = line.strip().split()[1]
+                        o.write('%s\t%s\n' % (line.split()[0], line.strip().split()[1]))
+            with open(tsv_tax, 'w') as o, open(tsv) as f:
+                for line in f:
+                    t = line.split()[0]
+                    if t in tax_dict:
+                        o.write(line.replace(t, tax_dict[t]))
+                    else:
+                        o.write(line)
+            cmd += run_import(tsv_tax, qza, 'FeatureTable[Frequency]')
+            # cmd += run_import(tsv_tax_tax, tsv_tax_qza, 'FeatureData[Taxonomy]')
+    rel_qza = '%s_rel.qza' % splitext(qza)[0]
+    cmd += '\nqiime feature-table relative-frequency \\\n'
+    cmd += '--i-table %s \\\n' % qza
+    cmd += '--o-relative-frequency-table %s\n' % rel_qza
     cmd += 'qiime diversity pcoa-biplot \\\n'
     cmd += '--i-pcoa %s \\\n' % out_pcoa
-    cmd += '--i-features %s \\\n' % rel
+    cmd += '--i-features %s \\\n' % rel_qza
     cmd += '--o-biplot %s\n' % out_biplot
-    cmd += 'rm %s\n' % rel
+    cmd += 'rm %s\n' % rel_qza
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 
@@ -492,6 +516,8 @@ def write_diversity_biplot(in_tab: str, out_pcoa: str, out_biplot: str, cur_sh: 
     cmd = run_export(out_biplot, out_biplot_txt, 'biplot')
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
+
+    return tsv_tax_tax
 
 
 def write_emperor(meta: str, pcoa_biplot: str, out_plot: str, cur_sh: TextIO, taxonomy: str) -> None:
@@ -520,7 +546,8 @@ def write_emperor(meta: str, pcoa_biplot: str, out_plot: str, cur_sh: TextIO, ta
         cmd = 'qiime emperor biplot \\\n'
         cmd += '--i-biplot %s \\\n' % pcoa_biplot
         cmd += '--m-sample-metadata-file %s \\\n' % meta
-        cmd += '--m-feature-metadata-file %s \\\n' % taxonomy
+        if taxonomy != 'missing:'
+            cmd += '--m-feature-metadata-file %s \\\n' % taxonomy
         cmd += '--p-number-of-features 20 \\\n'
         cmd += '--o-visualization %s\n' % out_plot
     else:
