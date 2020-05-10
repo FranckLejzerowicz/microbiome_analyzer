@@ -72,7 +72,8 @@ def run_multi_adonis(odir: str, case_vals_list: list, metric: str, case_var: str
 
 
 def run_adonis(p_formulas: str, i_data_sets_folder: str, data_sets: dict, betas: dict,
-               p_perm_groups: str, force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
+               p_perm_groups: str, force: bool, prjct_nm: str, qiime_env: str,
+               chmod: str, noloc: bool, Bs: tuple) -> None:
     """
     Run beta-group-significance: Beta diversity group significance.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
@@ -90,7 +91,7 @@ def run_adonis(p_formulas: str, i_data_sets_folder: str, data_sets: dict, betas:
     """
 
     job_folder2 = get_job_folder(i_data_sets_folder, 'adonis/chunks')
-    beta_metrics = get_metrics('beta_metrics')
+    beta_metrics = get_metrics('beta_metrics', Bs)
 
     main_cases_dict = get_main_cases_dict(p_perm_groups)
     formulas = get_formulas_dict(p_formulas)

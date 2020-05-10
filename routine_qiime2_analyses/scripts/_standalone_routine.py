@@ -115,7 +115,7 @@ from routine_qiime2_analyses import __version__
 @click.option(
     "-Bs", "--p-betas", default=None, show_default=True, multiple=True,
     type=click.Choice(['jaccard','braycurtis','aitchison','unweighted_unifrac','weighted_unifrac']),
-    help="Alpha to use: 'jaccard','braycurtis','aitchison','unweighted_unifrac','weighted_unifrac'."
+    help="Beta to use: 'jaccard','braycurtis','aitchison','unweighted_unifrac','weighted_unifrac'."
 )
 @click.option(
     "--force/--no-force", default=False, show_default=True,
@@ -164,8 +164,8 @@ def standalone_routine(
         standalone,
         raref,
         loc,
-        As,
-        Bs
+        p_alphas,
+        p_betas
 ):
 
     routine_qiime2_analyses(
@@ -191,8 +191,8 @@ def standalone_routine(
         standalone,
         raref,
         loc,
-        As,
-        Bs
+        p_alphas,
+        p_betas
     )
 
 
