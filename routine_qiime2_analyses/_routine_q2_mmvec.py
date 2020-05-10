@@ -294,6 +294,7 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, r
         cur_rad = '%s/%s' % (odir, pair)
         conditionals_tsv = '%s_conditionals.tsv' % cur_rad
         biplot_tsv = '%s_ordination.tsv' % cur_rad
+        print(biplot_tsv)
         if force or not isfile(conditionals_tsv):
             write_mmvec_cmd(meta_fp, qza1, qza2, res_dir,
                             conditionals_tsv, biplot_tsv,
@@ -345,7 +346,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
                 import_o.write('%s\n' % cmd)
         run_xpbs(import_sh, import_pbs, '%s.xprt.lph' % prjct_nm,
                  qiime_env, '2', '1', '1', '150', 'mb', chmod, 1,
-                 '# Import common datasets for MMVEC', noloc)
+                 '# Import common datasets for MMVEC', None, noloc)
     return filt_datasets, common_datasets
 
 
@@ -374,7 +375,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     print(' [mmvec] Make filtered and_common datasets:')
     filt_datasets, common_datasets = make_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_read, mmvec_pairs, mmvec_filtering,
-        job_folder, force, prjct_nm, qiime_env, chmod)
+        job_folder, force, prjct_nm, qiime_env, chmod, noloc)
     mmvec_outputs = {}
 
     jobs = []
@@ -430,7 +431,8 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                                  gpu, force, standalone)
     # for j in jobs:
     #     j.join()
-
+    if standalone:
+        qiime_env = 'mmvec2'
     main_sh = write_main_sh(job_folder, '3_mmvec', all_sh_pbs,
                             '%s.mmvc' % prjct_nm, '150', '1', '1', '2', 'gb',
                             qiime_env, chmod, noloc)
