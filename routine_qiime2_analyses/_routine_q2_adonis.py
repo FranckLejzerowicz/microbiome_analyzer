@@ -100,6 +100,9 @@ def run_adonis(p_formulas: str, i_data_sets_folder: str, data_sets: dict, betas:
     first_print = 0
     for dat, tsv_meta_pds in data_sets.items():
 
+        if dat not in formulas:
+            continue
+
         tsv, meta = tsv_meta_pds
         mat_qzas = betas[dat][meta]
 
@@ -110,13 +113,13 @@ def run_adonis(p_formulas: str, i_data_sets_folder: str, data_sets: dict, betas:
         meta_pd = read_meta_pd(meta)
         meta_pd = meta_pd.set_index('sample_name')
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'ADONIS')
-        formulas = check_metadata_formulas(meta, meta_pd, dict(formulas), 'ADONIS')
+        formulas = check_metadata_formulas(meta, meta_pd, formulas[dat], 'ADONIS')
 
         odir = get_analysis_folder(i_data_sets_folder, 'adonis/%s' % dat)
         for mat_qza in mat_qzas:
             metric = get_metric(beta_metrics, mat_qza)
             out_sh = '%s/run_adonis_%s_%s.sh' % (job_folder2, dat, metric)
-            for form, formula in formulas.items():
+            for form, formula in formulas[dat].items():
                 for case_var, case_vals_list in cases_dict.items():
                     cur_sh = '%s/run_adonis_%s_%s_%s_%s.sh' % (
                         job_folder2, dat, metric, form, case_var)
