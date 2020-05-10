@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import os, sys
+import glob
 import itertools
 import pandas as pd
 from os.path import isfile, splitext
@@ -99,7 +100,24 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
     filt_datasets = {}
     for (dat, mb) in unique_datasets:
         dat_dir = get_analysis_folder(i_datasets_folder, 'mmvec/datasets/%s' % dat)
-        if datasets_read[dat] == 'raref':
+        if dat not in datasets:
+            if dat.endwith('__raref'):
+                dat_rt = dat.split('__raref')[0]
+                raref_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat_rt)
+                tsv_globbed = glob.glob('%s/tab_%s_raref*.tsv' % (raref_dir, dat_rt))
+                if len(tsv_globbed) != 1:
+                    print('Must have one rarefaction for "%s" to use it further in mmvec ("%s")...'
+                          '\nExiting' % (dat_rt, dat))
+                    sys.exit(0)
+                tsv = tsv_globbed[0]
+                meta = '%s/meta_%s_raref*_alphas.tsv' % (raref_dir, dat_rt)
+                if not isfile(meta):
+                    meta = '%s/meta_%s_raref*.tsv' % (raref_dir, dat_rt)
+                tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
+            else:
+                print('MMVEC dataset "" not found...\nExiting' % dat)
+                sys.exit(0)
+        elif datasets_read[dat] == 'raref':
             tsv, meta = datasets[dat]
             if not isfile(tsv):
                 print('Must have run rarefaction to use it further...\nExiting')
@@ -144,7 +162,9 @@ def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFram
     return meta_subset
 
 
-def merge_and_write_metas(meta_subset1: pd.DataFrame, meta_subset2: pd.DataFrame, meta_fp: str) -> pd.DataFrame:
+def merge_and_write_metas(meta_subset1: pd.DataFrame,
+                          meta_subset2: pd.DataFrame,
+                          meta_fp: str) -> pd.DataFrame:
     """
     :param meta_subset1:
     :param meta_subset2:
