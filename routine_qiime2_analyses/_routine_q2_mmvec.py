@@ -163,8 +163,7 @@ def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFram
 
 
 def merge_and_write_metas(meta_subset1: pd.DataFrame,
-                          meta_subset2: pd.DataFrame,
-                          meta_fp: str) -> pd.DataFrame:
+                          meta_subset2: pd.DataFrame,meta_fp: str) -> pd.DataFrame:
     """
     :param meta_subset1:
     :param meta_subset2:

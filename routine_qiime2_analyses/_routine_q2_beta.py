@@ -135,7 +135,6 @@ def run_pcoas(i_datasets_folder: str, datasets: dict, betas: dict,
     with open(run_pbs, 'w') as o:
         for dat, meta_DMs in betas.items():
             tsv, meta = datasets[dat]
-            qza = '%s.qza' % splitext(tsv)[0]
             odir = get_analysis_folder(i_datasets_folder, 'pcoa/%s' % dat)
             if dat not in pcoas_d:
                 pcoas_d[dat] = {}
@@ -177,8 +176,6 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, taxonomies: dict,
     run_pbs = '%s/4_run_emperor.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, meta_pcoas in pcoas_d.items():
-            if dat in taxonomies:
-                method, tax_qza = taxonomies[dat]
             odir = get_analysis_folder(i_datasets_folder, 'emperor/%s' % dat)
             out_sh = '%s/run_emperor_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
@@ -195,7 +192,7 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, taxonomies: dict,
                             first_print += 1
                     for pcoa in pcoas:
                         out_plot = '%s_emperor.qzv' % splitext(pcoa)[0].replace('/pcoa/', '/emperor/')
-                        write_emperor(meta, pcoa, out_plot, cur_sh, tax_qza)
+                        write_emperor(meta, pcoa, out_plot, cur_sh, '')
                         written += 1
             run_xpbs(out_sh, out_pbs, '%s.mprr.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '1', '1', 'gb',
