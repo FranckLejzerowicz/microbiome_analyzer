@@ -242,6 +242,7 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies:
                     for DM in DMs:
                         out_pcoa = '%s_PCoA.qza' % splitext(DM)[0].replace('/beta/', '/pcoa/')
                         out_biplot = '%s_biplot.qza' % splitext(DM)[0].replace('/beta/', '/biplot/')
+                        tsv_tax_tax = ''
                         if force or not isfile(out_biplot):
                             tsv_tax_tax = write_diversity_biplot(tsv, qza, out_pcoa, out_biplot, tax_qza, cur_sh)
                             written += 1
