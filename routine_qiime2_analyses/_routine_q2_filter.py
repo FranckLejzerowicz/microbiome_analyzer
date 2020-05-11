@@ -48,7 +48,7 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
                 written += 1
     run_xpbs(out_sh, out_pbs, '%s.mprt' % prjct_nm,
              qiime_env,'1', '1', '1', '100', 'mb', chmod, written,
-             '# Import tables to qiime2', noloc)
+             '# Import tables to qiime2', None, noloc)
 
 
 def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: dict,
@@ -123,7 +123,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
 
     run_xpbs(out_sh, out_pbs, '%s.fltr' % prjct_nm,
              qiime_env, '4', '4', '1', '100', 'mb', chmod, written,
-             '# Filter samples for a min number of %s reads' % thresh, noloc)
+             '# Filter samples for a min number of %s reads' % thresh, None, noloc)
 
     datasets.update(datasets_update)
     datasets_read.update(datasets_read_update)
