@@ -317,7 +317,6 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, r
         cur_rad = '%s/%s' % (odir, pair)
         conditionals_tsv = '%s_conditionals.tsv' % cur_rad
         biplot_tsv = '%s_ordination.tsv' % cur_rad
-        print(biplot_tsv)
         if force or not isfile(conditionals_tsv):
             write_mmvec_cmd(meta_fp, qza1, qza2, res_dir,
                             conditionals_tsv, biplot_tsv,
