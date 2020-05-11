@@ -16,7 +16,16 @@
 def run_mmbird(i_datasets_folder: str, datasets: dict, taxonomies: dict,
                songbird_outputs: dict, mmvec_outputs: dict,
                prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
-    # print(i_datasets_folder)
-    # print(songbird_outputs)
-    # print(mmvec_outputs)
+    print()
+    print()
+    print("i_datasets_folder")
+    print(i_datasets_folder)
+    print()
+    print()
+    print("songbird_outputs")
+    print(songbird_outputs)
+    print()
+    print()
+    print("mmvec_outputs")
+    print(mmvec_outputs)
     pass

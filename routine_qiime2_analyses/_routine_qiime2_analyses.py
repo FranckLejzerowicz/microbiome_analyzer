@@ -180,6 +180,7 @@ def routine_qiime2_analyses(
                               force, prjct_nm, qiime_env, chmod, noloc)
             run_emperor(i_datasets_folder, pcoas,
                         prjct_nm, qiime_env, chmod, noloc)
+        if 'emperor_biplot' not in p_skip:
             biplots = run_biplots(i_datasets_folder, datasets, betas, taxonomies,
                                   force, prjct_nm, qiime_env, chmod, noloc)
             run_emperor_biplot(i_datasets_folder, biplots, taxonomies,
@@ -215,8 +216,8 @@ def routine_qiime2_analyses(
             mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
                                       datasets_read, force, gpu, standalone,
                                       prjct_nm, qiime_env, chmod, noloc)
-    # if p_diff_models and p_mmvec_pairs:
-    #     run_mmbird(i_datasets_folder, datasets, taxonomies,
-    #                songbird_outputs, mmvec_outputs,
-    #                prjct_nm, qiime_env, chmod, noloc)
+    if p_diff_models and p_mmvec_pairs:
+        run_mmbird(i_datasets_folder, datasets, taxonomies,
+                   songbird_outputs, mmvec_outputs,
+                   prjct_nm, qiime_env, chmod, noloc)
     # ------------------------------------------------------------------------------
