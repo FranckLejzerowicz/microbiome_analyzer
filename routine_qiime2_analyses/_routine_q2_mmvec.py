@@ -110,9 +110,13 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                           '\nExiting' % (dat_rt, dat))
                     sys.exit(0)
                 tsv = tsv_globbed[0]
-                meta = '%s/meta_%s_raref*_alphas.tsv' % (raref_dir, dat_rt)
-                if not isfile(meta):
-                    meta = '%s/meta_%s_raref*.tsv' % (raref_dir, dat_rt)
+                meta = glob.glob('%s/meta_%s_raref*_alphas.tsv' % (raref_dir, dat_rt))
+                if not len(meta):
+                    meta = glob.glob('%s/meta_%s_raref*.tsv' % (raref_dir, dat_rt))
+                    if not len(meta):
+                        continue
+                    meta = meta[0]
+                meta = meta[0]
                 tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
             else:
                 print('MMVEC dataset "" not found...\nExiting' % dat)
