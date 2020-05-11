@@ -108,7 +108,7 @@ def export_beta(i_datasets_folder: str, betas: dict,
                         written += 1
     run_xpbs(out_sh, out_pbs, '%s.xprt.bt' % prjct_nm,
              qiime_env, '2', '1', '1', '1', 'gb',
-             chmod, written, '# Export beta diversity matrices', noloc)
+             chmod, written, '# Export beta diversity matrices', None, noloc)
 
 
 def run_pcoas(i_datasets_folder: str, datasets: dict, betas: dict,
