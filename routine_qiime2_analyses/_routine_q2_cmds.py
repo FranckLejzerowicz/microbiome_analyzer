@@ -491,7 +491,7 @@ def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str,
                 for ldx, line in enumerate(f):
                     if ldx and not line.startswith('#q2:types'):
                         new = 'x__%s;%s' % (n, line.strip().split('\t')[1])
-                        tax_dict[line.split()[0]] = new
+                        tax_dict[line.split('\t')[0]] = new
                         o.write('%s\t%s\t%s\n' % (new, new, line.split('\t')[0]))
                         n += 1
             with open(tsv_tax, 'w') as o, open(tsv) as f:
