@@ -203,7 +203,6 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, prjct_nm: str,
         print_message('# Make EMPeror plots', 'sh', run_pbs)
 
 
-
 def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies: dict,
                 force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
     """
