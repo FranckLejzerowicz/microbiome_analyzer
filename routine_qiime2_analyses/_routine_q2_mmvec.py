@@ -101,7 +101,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
     for (dat, mb) in unique_datasets:
         dat_dir = get_analysis_folder(i_datasets_folder, 'mmvec/datasets/%s' % dat)
         if dat not in datasets:
-            if dat.endwith('__raref'):
+            if dat.endswith('__raref'):
                 dat_rt = dat.split('__raref')[0]
                 raref_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat_rt)
                 tsv_globbed = glob.glob('%s/tab_%s_raref*.tsv' % (raref_dir, dat_rt))
