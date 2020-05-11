@@ -467,7 +467,9 @@ def write_diversity_pcoa(DM: str, out_pcoa: str, cur_sh: TextIO) -> None:
     cur_sh.write('%s\n\n' % cmd)
 
 
-def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str, out_biplot: str, tax_qza: str, cur_sh: TextIO) -> str:
+def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str,
+                           out_biplot: str, tax_qza: str,
+                           tsv_tax_tax: str, cur_sh: TextIO) -> None:
     """
     pcoa-biplot: Principal Coordinate Analysis Biplot.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa-biplot/
@@ -477,10 +479,8 @@ def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str, out_biplot: str, t
     :param cur_sh: writing file handle.
     """
     cmd = ''
-    tsv_tax_tax = ''
     if tax_qza != 'missing':
         tsv_tax = '%s_tax.tsv' % splitext(out_biplot)[0]
-        tsv_tax_tax = '%s_assign.tsv' % splitext(out_biplot)[0]
         qza = '%s.qza' % splitext(tsv_tax)[0]
         # tsv_tax_qza = '%s.qza' % splitext(tsv_tax_tax)[0]
         if not isfile(qza):
@@ -520,10 +520,9 @@ def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str, out_biplot: str, t
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 
-    return tsv_tax_tax
 
-
-def write_emperor(meta: str, pcoa_biplot: str, out_plot: str, cur_sh: TextIO, taxonomy: str) -> None:
+def write_emperor_biplot(meta: str, biplot: str, out_plot: str,
+                         cur_sh: TextIO, taxonomy: str) -> None:
     """
     Generates an interactive ordination plot where the user can visually
     integrate sample metadata.
@@ -534,30 +533,44 @@ def write_emperor(meta: str, pcoa_biplot: str, out_plot: str, cur_sh: TextIO, ta
     :param out_plot: VISUALIZATION.
     :param cur_sh: writing file handle.
     """
-    if taxonomy:
-        pcoa_biplot_txt = '%s.txt' % splitext(pcoa_biplot)[0]
-        if isfile(pcoa_biplot_txt):
-            ordi = OrdinationResults.read(pcoa_biplot_txt)
-            ordi.features = ordi.features.iloc[:,:3]
-            ordi.samples= ordi.samples.iloc[:,:3]
-            ordi.eigvals = ordi.eigvals[:3]
-            ordi.proportion_explained = ordi.proportion_explained[:3]
-            ordi.write(pcoa_biplot_txt)
-        cmd = run_import(pcoa_biplot_txt, pcoa_biplot, "PCoAResults % Properties('biplot')")
-        cur_sh.write('%s\n\n' % cmd)
+    pcoa_biplot_txt = '%s.txt' % splitext(biplot)[0]
+    pcoa_biplot_3d = '%s_3d.txt' % splitext(biplot)[0]
+    pcoa_biplot_3d_qza = '%s_3d.qza' % splitext(biplot)[0]
+    ordi = OrdinationResults.read(pcoa_biplot_txt)
+    ordi.features = ordi.features.iloc[:,:3]
+    ordi.samples= ordi.samples.iloc[:,:3]
+    ordi.eigvals = ordi.eigvals[:3]
+    ordi.proportion_explained = ordi.proportion_explained[:3]
+    ordi.write(pcoa_biplot_3d)
+    cmd = run_import(pcoa_biplot_3d, pcoa_biplot_3d_qza, "PCoAResults % Properties('biplot')")
+    cur_sh.write('%s\n\n' % cmd)
 
-        cmd = 'qiime emperor biplot \\\n'
-        cmd += '--i-biplot %s \\\n' % pcoa_biplot
-        cmd += '--m-sample-metadata-file %s \\\n' % meta
-        if taxonomy != 'missing':
-            cmd += '--m-feature-metadata-file %s \\\n' % taxonomy
-        cmd += '--p-number-of-features 20 \\\n'
-        cmd += '--o-visualization %s\n' % out_plot
-    else:
-        cmd = 'qiime emperor plot \\\n'
-        cmd += '--i-pcoa %s \\\n' % pcoa_biplot
-        cmd += '--m-metadata-file %s \\\n' % meta
-        cmd += '--o-visualization %s\n' % out_plot
+    cmd = 'qiime emperor biplot \\\n'
+    cmd += '--i-biplot %s \\\n' % pcoa_biplot_3d_qza
+    cmd += '--m-sample-metadata-file %s \\\n' % meta
+    if taxonomy != 'missing':
+        cmd += '--m-feature-metadata-file %s \\\n' % taxonomy
+    cmd += '--p-number-of-features 20 \\\n'
+    cmd += '--o-visualization %s\n' % out_plot
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n\n' % cmd)
+
+
+def write_emperor(meta: str, pcoa: str, out_plot: str, cur_sh: TextIO) -> None:
+    """
+    Generates an interactive ordination plot where the user can visually
+    integrate sample metadata.
+    https://docs.qiime2.org/2019.10/plugins/available/emperor/
+
+    :param meta: The sample metadata.
+    :param pcoa: The principal coordinates matrix to be plotted.
+    :param out_plot: VISUALIZATION.
+    :param cur_sh: writing file handle.
+    """
+    cmd = 'qiime emperor plot \\\n'
+    cmd += '--i-pcoa %s \\\n' % pcoa
+    cmd += '--m-metadata-file %s \\\n' % meta
+    cmd += '--o-visualization %s\n' % out_plot
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 

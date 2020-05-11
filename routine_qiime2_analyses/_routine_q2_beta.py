@@ -19,7 +19,8 @@ from routine_qiime2_analyses._routine_q2_cmds import (
     write_diversity_beta,
     write_diversity_pcoa,
     write_diversity_biplot,
-    write_emperor
+    write_emperor,
+    write_emperor_biplot
 )
 from routine_qiime2_analyses._routine_q2_cmds import run_export
 
@@ -193,7 +194,7 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, prjct_nm: str,
                             first_print += 1
                     for pcoa in pcoas:
                         out_plot = '%s_emperor.qzv' % splitext(pcoa)[0].replace('/pcoa/', '/emperor/')
-                        write_emperor(meta, pcoa, out_plot, cur_sh, '')
+                        write_emperor(meta, pcoa, out_plot, cur_sh)
                         written += 1
             run_xpbs(out_sh, out_pbs, '%s.mprr.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '1', '1', 'gb',
@@ -242,9 +243,10 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies:
                     for DM in DMs:
                         out_pcoa = '%s_PCoA.qza' % splitext(DM)[0].replace('/beta/', '/pcoa/')
                         out_biplot = '%s_biplot.qza' % splitext(DM)[0].replace('/beta/', '/biplot/')
-                        tsv_tax_tax = ''
+                        tsv_tax_tax = '%s_assign.tsv' % splitext(out_biplot)[0]
                         if force or not isfile(out_biplot):
-                            tsv_tax_tax = write_diversity_biplot(tsv, qza, out_pcoa, out_biplot, tax_qza, cur_sh)
+                            write_diversity_biplot(tsv, qza, out_pcoa, out_biplot,
+                                                   tax_qza, tsv_tax_tax, cur_sh)
                             written += 1
                         biplots_d[dat].setdefault(meta, []).append((out_biplot, tsv_tax_tax))
             run_xpbs(out_sh, out_pbs, '%s.bplt.%s' % (prjct_nm, dat),
@@ -277,9 +279,8 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
         for dat, meta_biplots_taxs in biplots_d.items():
             if dat in taxonomies:
                 method, tax_qza = taxonomies[dat]
-                tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
             else:
-                tax_tsv = 'missing'
+                tax_qza = 'missing'
             odir = get_analysis_folder(i_datasets_folder, 'emperor_biplot/%s' % dat)
             out_sh = '%s/run_emperor_biplot_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
@@ -296,10 +297,10 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
                             first_print += 1
                     for biplot, tax in biplots_taxs:
                         out_plot = '%s_emperor_biplot.qzv' % splitext(biplot)[0].replace('/biplot/', '/emperor_biplot/')
-                        if tax:
-                            write_emperor(meta, biplot, out_plot, cur_sh, tax)
+                        if isfile(tax):
+                            write_emperor_biplot(meta, biplot, out_plot, cur_sh, tax)
                         else:
-                            write_emperor(meta, biplot, out_plot, cur_sh, tax_tsv)
+                            write_emperor_biplot(meta, biplot, out_plot, cur_sh, tax_qza)
                         written += 1
             run_xpbs(out_sh, out_pbs, '%s.mprr.bplt.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '1', '1', 'gb',
