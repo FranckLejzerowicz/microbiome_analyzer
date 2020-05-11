@@ -533,20 +533,19 @@ def write_emperor_biplot(meta: str, biplot: str, out_plot: str,
     :param out_plot: VISUALIZATION.
     :param cur_sh: writing file handle.
     """
-    pcoa_biplot_txt = '%s.txt' % splitext(biplot)[0]
-    pcoa_biplot_3d = '%s_3d.txt' % splitext(biplot)[0]
-    pcoa_biplot_3d_qza = '%s_3d.qza' % splitext(biplot)[0]
-    ordi = OrdinationResults.read(pcoa_biplot_txt)
-    ordi.features = ordi.features.iloc[:,:3]
-    ordi.samples= ordi.samples.iloc[:,:3]
-    ordi.eigvals = ordi.eigvals[:3]
-    ordi.proportion_explained = ordi.proportion_explained[:3]
-    ordi.write(pcoa_biplot_3d)
-    cmd = run_import(pcoa_biplot_3d, pcoa_biplot_3d_qza, "PCoAResults % Properties('biplot')")
+    biplot_txt = '%s.txt' % splitext(biplot)[0]
+    if isfile(biplot_txt):
+        ordi = OrdinationResults.read(biplot_txt)
+        ordi.features = ordi.features.iloc[:,:3]
+        ordi.samples= ordi.samples.iloc[:,:3]
+        ordi.eigvals = ordi.eigvals[:3]
+        ordi.proportion_explained = ordi.proportion_explained[:3]
+        ordi.write(biplot_txt)
+    cmd = run_import(biplot_txt, biplot, "PCoAResults % Properties('biplot')")
     cur_sh.write('%s\n\n' % cmd)
 
     cmd = 'qiime emperor biplot \\\n'
-    cmd += '--i-biplot %s \\\n' % pcoa_biplot_3d_qza
+    cmd += '--i-biplot %s \\\n' % biplot
     cmd += '--m-sample-metadata-file %s \\\n' % meta
     if taxonomy != 'missing':
         cmd += '--m-feature-metadata-file %s \\\n' % taxonomy
