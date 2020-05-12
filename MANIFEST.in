@@ -2,5 +2,6 @@ include routine_qiime2_analyses/resources/wol_tree.nwk
 include routine_qiime2_analyses/resources/g2lineage.txt
 include routine_qiime2_analyses/resources/alpha_metrics.txt
 include routine_qiime2_analyses/resources/beta_metrics.txt
+include routine_qiime2_analyses/resources/run_params.yml
 include routine_qiime2_analyses/examples/example_ADONIS_formulas.yml
 include routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml
