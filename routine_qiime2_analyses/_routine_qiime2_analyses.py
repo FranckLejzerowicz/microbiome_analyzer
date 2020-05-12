@@ -155,10 +155,6 @@ def routine_qiime2_analyses(
 
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
-        print("datasets_phylo")
-        print(datasets_phylo)
-        print("trees")
-        print(trees)
         diversities = run_alpha(i_datasets_folder, datasets, datasets_read,
                                 datasets_phylo, p_alpha_subsets, trees,
                                 force, prjct_nm, qiime_env, chmod, noloc, As)
