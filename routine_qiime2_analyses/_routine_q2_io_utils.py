@@ -685,9 +685,9 @@ def get_run_params(p_run_params: str) -> dict:
         run_params_fp = p_run_params
         with open(run_params_fp) as handle:
             run_params = yaml.load(handle, Loader=yaml.FullLoader)
+        run_params_default.update(run_params)
     else:
         print('using run parameters from', run_params_default_fp)
 
-    run_params_default.update(run_params)
     return run_params_default
 
