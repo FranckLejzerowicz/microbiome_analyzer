@@ -127,15 +127,6 @@ def routine_qiime2_analyses(
     if thresh:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
                             datasets_phylo, prjct_nm, qiime_env, thresh, chmod, noloc, run_params['filter'])
-    trees = {}
-    get_precomputed_trees(i_datasets_folder, datasets, datasets_phylo, trees)
-    if 'wol' not in p_skip:
-        shear_tree(i_datasets_folder, datasets_read, datasets_phylo, datasets_features, prjct_nm,
-                   i_wol_tree, trees, force, qiime_env, chmod, noloc)
-    if i_sepp_tree and 'sepp' not in p_skip:
-        run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo, prjct_nm,
-                 i_sepp_tree, trees, force, qiime_env, chmod, noloc)
-
     taxonomies = {}
     get_precomputed_taxonomies(i_datasets_folder, datasets, taxonomies)
     if i_qemistree and 'qemistree' not in p_skip:
@@ -151,6 +142,15 @@ def routine_qiime2_analyses(
 
         if 'barplot' not in p_skip:
             run_barplot(i_datasets_folder, datasets, taxonomies, force, prjct_nm, qiime_env, chmod, noloc)
+
+    trees = {}
+    get_precomputed_trees(i_datasets_folder, datasets, datasets_phylo, trees)
+    if 'wol' not in p_skip:
+        shear_tree(i_datasets_folder, datasets_read, datasets_phylo, datasets_features, prjct_nm,
+                   i_wol_tree, trees, force, qiime_env, chmod, noloc)
+    if i_sepp_tree and 'sepp' not in p_skip:
+        run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo, prjct_nm,
+                 i_sepp_tree, trees, force, qiime_env, chmod, noloc)
     # ------------------------------------------------------------------------------------------
 
     # ALPHA ------------------------------------------------------------

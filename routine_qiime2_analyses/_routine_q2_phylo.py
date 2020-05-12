@@ -190,4 +190,4 @@ def get_precomputed_trees(i_datasets_folder: str, datasets: dict,
         tree_qza = '%s/tree_%s.qza' % (analysis_folder, dat)
         if isfile(tree_qza):
             trees[dat] = ('', tree_qza)
-            #datasets_phylo[dat] = ('precpu', 0)
+            datasets_phylo[dat] = ('precpu', 0)
