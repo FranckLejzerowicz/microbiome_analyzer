@@ -60,7 +60,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
             if datasets_read[dat] == 'raref':
                 if not isfile(tsv):
-                    print('Must have run rarefcation to use it further...\nExiting')
+                    print('Must have run rarefaction to use it further...\nExiting')
                     sys.exit(0)
                 tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
                 datasets_read[dat] = [tsv_pd, meta_pd]
