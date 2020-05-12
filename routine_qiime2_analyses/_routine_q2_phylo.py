@@ -140,7 +140,6 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
         main_sh = '%s/0_run_import_trees.sh' % job_folder
         with open(main_sh, 'w') as main_o:
             for dat in wol_datasets:
-
                 if datasets_features[dat] == 'raref':
                     tab_pd = datasets_read[dat][0]
                     datasets_features[dat] = dict(
@@ -150,6 +149,7 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
                 analysis_folder = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
                 wol_features_fpo = '%s/tree_%s.nwk' % (analysis_folder, dat)
                 wol_features_qza = wol_features_fpo.replace('.nwk', '.qza')
+
                 trees[dat] = ('', wol_features_qza)
 
                 if force or not isfile(wol_features_qza):
@@ -190,4 +190,4 @@ def get_precomputed_trees(i_datasets_folder: str, datasets: dict,
         tree_qza = '%s/tree_%s.qza' % (analysis_folder, dat)
         if isfile(tree_qza):
             trees[dat] = ('', tree_qza)
-            datasets_phylo[dat] = ('precpu', 0)
+            #datasets_phylo[dat] = ('precpu', 0)
