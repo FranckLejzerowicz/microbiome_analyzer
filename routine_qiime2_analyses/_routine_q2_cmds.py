@@ -11,6 +11,7 @@ from typing import TextIO
 from os.path import isdir, isfile, splitext
 
 from skbio.stats.ordination import OrdinationResults
+from routine_qiime2_analyses._routine_q2_taxonomy import get_split_taxonomy
 
 
 def get_subset(tsv_pd: pd.DataFrame, subset: str, meta_subset: str, subset_regex: list) -> int:
@@ -551,7 +552,15 @@ def write_emperor_biplot(meta: str, biplot: str, out_plot: str,
     cmd += '--i-biplot %s \\\n' % biplot
     cmd += '--m-sample-metadata-file %s \\\n' % meta
     if taxonomy != 'missing':
-        cmd += '--m-feature-metadata-file %s \\\n' % taxonomy
+        tax_tmp = '%s_taxonomy.tmp' % splitext(biplot)[0]
+        tax_pd = pd.read_csv(taxonomy, header=0, sep='\t')
+        if 'Taxon' in tax_pd:
+            tax_split_pd = get_split_taxonomy(tax_pd.Taxon.tolist())
+            tax_pd = tax_pd.merge(tax_split_pd, on='Taxon', how='left').drop_duplicates()
+            tax_pd.to_csv(tax_tmp, index=False, sep='\t')
+        else:
+            tax_tmp = taxonomy
+        cmd += '--m-feature-metadata-file %s \\\n' % tax_tmp
     cmd += '--p-number-of-features 20 \\\n'
     cmd += '--o-visualization %s\n' % out_plot
     cur_sh.write('echo "%s"\n' % cmd)
