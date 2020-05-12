@@ -247,7 +247,7 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies:
                             write_diversity_biplot(tsv, qza, out_pcoa, out_biplot,
                                                    tax_qza, tsv_tax, cur_sh)
                             written += 1
-                        biplots_d[dat].setdefault(meta, []).append((out_biplot, tsv_tax_tax))
+                        biplots_d[dat].setdefault(meta, []).append((out_biplot, tsv_tax))
             run_xpbs(out_sh, out_pbs, '%s.bplt.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '2', '2', 'gb',
                      chmod, written, 'single', o, noloc)
@@ -278,8 +278,9 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
         for dat, meta_biplots_taxs in biplots_d.items():
             if dat in taxonomies:
                 method, tax_qza = taxonomies[dat]
+                tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
             else:
-                tax_qza = 'missing'
+                tax_tsv = 'missing'
             odir = get_analysis_folder(i_datasets_folder, 'emperor_biplot/%s' % dat)
             out_sh = '%s/run_emperor_biplot_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
@@ -294,12 +295,12 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
                             print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
                                   '\t(if you want alpha diversity as a variable in the PCoA biplot)!')
                             first_print += 1
-                    for biplot, tax in biplots_taxs:
+                    for biplot, tsv_tax in biplots_taxs:
                         out_plot = '%s_emperor_biplot.qzv' % splitext(biplot)[0].replace('/biplot/', '/emperor_biplot/')
-                        if isfile(tax):
-                            write_emperor_biplot(meta, biplot, out_plot, cur_sh, tax)
+                        if isfile(tsv_tax):
+                            write_emperor_biplot(meta, biplot, out_plot, cur_sh, tsv_tax)
                         else:
-                            write_emperor_biplot(meta, biplot, out_plot, cur_sh, tax_qza)
+                            write_emperor_biplot(meta, biplot, out_plot, cur_sh, tax_tsv)
                         written += 1
             run_xpbs(out_sh, out_pbs, '%s.mprr.bplt.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '1', '1', 'gb',
