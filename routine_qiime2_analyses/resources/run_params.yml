@@ -47,92 +47,92 @@ wol:
   mem_num: "500"
   mem_dim: "mb"
 taxonomy:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 barplot:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 volatility:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 beta:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 export_beta:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 emperor:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 emperor_biplot:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 deicode:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 sepp:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 alpha_kw:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 permanova:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 adonis:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 songbird:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 mmvec
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"
 mmbird:
-  time:
-  n_nodes:
-  n_procs:
-  mem_num:
-  mem_dim:
+  time: "1"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "500"
+  mem_dim: "mb"

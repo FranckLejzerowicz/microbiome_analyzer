@@ -469,7 +469,7 @@ def write_diversity_pcoa(DM: str, out_pcoa: str, cur_sh: TextIO) -> None:
 
 def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str,
                            out_biplot: str, tax_qza: str,
-                           tsv_tax_tax: str, cur_sh: TextIO) -> None:
+                           tsv_tax: str, cur_sh: TextIO) -> None:
     """
     pcoa-biplot: Principal Coordinate Analysis Biplot.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa-biplot/
@@ -480,38 +480,41 @@ def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str,
     """
     cmd = ''
     if tax_qza != 'missing':
-        tsv_tax = '%s_tax.tsv' % splitext(out_biplot)[0]
-        qza = '%s.qza' % splitext(tsv_tax)[0]
-        # tsv_tax_qza = '%s.qza' % splitext(tsv_tax_tax)[0]
-        if not isfile(qza):
-            tax_dict = {}
-            with open('%s.tsv' % splitext(tax_qza)[0]) as f, open(tsv_tax_tax, 'w') as o:
-                o.write('Feature ID\tTaxon\tPrevious ID\n')
-                n = 0
-                for ldx, line in enumerate(f):
-                    if ldx and not line.startswith('#q2:types'):
-                        new = 'x__%s;%s' % (n, line.strip().split('\t')[1])
-                        tax_dict[line.split('\t')[0]] = new
-                        o.write('%s\t%s\t%s\n' % (new, new, line.split('\t')[0]))
-                        n += 1
-            with open(tsv_tax, 'w') as o, open(tsv) as f:
-                for ldx, line in enumerate(f):
-                    t = line.split('\t')[0]
-                    if t in tax_dict:
-                        o.write(line.replace(t, tax_dict[t]))
-                    else:
-                        o.write(line)
-            cmd += run_import(tsv_tax, qza, 'FeatureTable[Frequency]')
-            # cmd += run_import(tsv_tax_tax, tsv_tax_qza, 'FeatureData[Taxonomy]')
-    rel_qza = '%s_rel.qza' % splitext(qza)[0]
+        biplot_tab_tsv = '%s_table.tsv' % splitext(out_biplot)[0]
+        biplot_tab_qza = '%s.qza' % splitext(biplot_tab_tsv)[0]
+        tax_dict = {}
+        with open('%s.tsv' % splitext(tax_qza)[0]) as f, open(tsv_tax, 'w') as o:
+            o.write('Feature ID\tTaxon\tPrevious ID\n')
+            n = 0
+            for ldx, line in enumerate(f):
+                if ldx and not line.startswith('#q2:types'):
+                    new = 'x__%s;%s' % (n, line.strip().split('\t')[1])
+                    tax_dict[line.split('\t')[0]] = new
+                    o.write('%s\t%s\t%s\n' % (new, new, line.split('\t')[0]))
+                    n += 1
+        with open(tsv) as f, open(biplot_tab_tsv, 'w') as o:
+            for ldx, line in enumerate(f):
+                t = line.strip().split('\t')
+                if t[0] in tax_dict:
+                    o.write('%s\t%s\n' % (tax_dict[t[0]], '\t'.join(t[1:])))
+                else:
+                    o.write(line)
+        cmd += run_import(biplot_tab_tsv, biplot_tab_qza, 'FeatureTable[Frequency]')
+    else:
+        biplot_tab_qza = qza
+
+    biplot_tab_rel_qza = '%s_rel.qza' % splitext(biplot_tab_qza)[0]
+
     cmd += '\nqiime feature-table relative-frequency \\\n'
-    cmd += '--i-table %s \\\n' % qza
-    cmd += '--o-relative-frequency-table %s\n' % rel_qza
+    cmd += '--i-table %s \\\n' % biplot_tab_qza
+    cmd += '--o-relative-frequency-table %s\n' % biplot_tab_rel_qza
+
     cmd += 'qiime diversity pcoa-biplot \\\n'
     cmd += '--i-pcoa %s \\\n' % out_pcoa
-    cmd += '--i-features %s \\\n' % rel_qza
+    cmd += '--i-features %s \\\n' % biplot_tab_rel_qza
     cmd += '--o-biplot %s\n' % out_biplot
-    cmd += 'rm %s\n' % rel_qza
+
+    cmd += 'rm %s\n' % biplot_tab_rel_qza
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 
