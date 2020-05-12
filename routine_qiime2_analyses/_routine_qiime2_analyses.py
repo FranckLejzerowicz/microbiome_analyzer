@@ -10,7 +10,7 @@ import sys
 import subprocess
 from os.path import abspath, exists, isdir, isfile
 
-from routine_qiime2_analyses._routine_q2_io_utils import get_prjct_nm, get_datasets
+from routine_qiime2_analyses._routine_q2_io_utils import get_prjct_nm, get_datasets, get_run_params
 from routine_qiime2_analyses._routine_q2_filter import import_datasets, filter_rare_samples
 from routine_qiime2_analyses._routine_q2_rarefy import run_rarefy
 from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp, get_precomputed_trees
@@ -49,6 +49,7 @@ def routine_qiime2_analyses(
         p_diff_models: str,
         p_mmvec_pairs: str,
         qiime_env: str,
+        p_run_params: str,
         chmod: str,
         p_skip: tuple,
         gpu: bool,
@@ -108,6 +109,8 @@ def routine_qiime2_analyses(
 
     prjct_nm = get_prjct_nm(project_name)
 
+    run_params = get_run_params(p_run_params)
+
     # INIT -------------------------------------------------------------------------------------
     datasets, datasets_read, datasets_features, datasets_phylo, datasets_rarefs = get_datasets(
         i_datasets, i_datasets_folder)
@@ -115,14 +118,15 @@ def routine_qiime2_analyses(
     # --> datasets_read <--
     # path_pd : indexed with feature name
     # meta_pd : not indexed -> "sample_name" as first column
-    import_datasets(i_datasets_folder, datasets, datasets_phylo, force, prjct_nm, qiime_env, chmod, noloc)
+    import_datasets(i_datasets_folder, datasets, datasets_phylo,
+                    force, prjct_nm, qiime_env, chmod, noloc, run_params['import'])
     if raref:
         run_rarefy(i_datasets_folder, datasets, datasets_read,
-                   datasets_phylo, datasets_rarefs,
-                   force, prjct_nm, qiime_env, chmod, noloc)
+                   datasets_phylo, datasets_rarefs, force, prjct_nm,
+                   qiime_env, chmod, noloc, run_params['rarefy'])
     if thresh:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
-                            datasets_phylo, prjct_nm, qiime_env, thresh, chmod, noloc)
+                            datasets_phylo, prjct_nm, qiime_env, thresh, chmod, noloc, run_params['filter'])
     trees = {}
     get_precomputed_trees(i_datasets_folder, datasets, datasets_phylo, trees)
     if 'wol' not in p_skip:

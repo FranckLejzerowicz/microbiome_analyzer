@@ -54,6 +54,10 @@ from routine_qiime2_analyses import __version__
     help="name of your qiime2 conda environment (e.g. qiime2-2019.10) "
 )
 @click.option(
+    "-r", "--p-run-params", required=False, show_default=True,
+    help="server run paramters"
+)
+@click.option(
     "-b", "--p-alpha-subsets", required=False, show_default=True, default=None,
     help="Regex to use for subsetting features for alpha diversity subsets (yml file)."
 )
@@ -158,6 +162,7 @@ def standalone_routine(
         p_diff_models,
         p_mmvec_pairs,
         p_qiime2_env,
+        p_run_params,
         p_chmod,
         p_skip,
         gpu,
@@ -185,6 +190,7 @@ def standalone_routine(
         p_diff_models,
         p_mmvec_pairs,
         p_qiime2_env,
+        p_run_params,
         p_chmod,
         p_skip,
         gpu,

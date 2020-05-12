@@ -19,10 +19,9 @@ from routine_qiime2_analyses._routine_q2_cmds import write_rarefy, run_export
 np.set_printoptions(precision=2, suppress=True)
 
 
-def run_rarefy(i_datasets_folder: str, datasets: dict,
-               datasets_read: dict, datasets_phylo: dict,
-               datasets_rarefs: dict, force: bool, prjct_nm: str,
-               qiime_env: str, chmod: str, noloc: bool) -> None:
+def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
+               datasets_phylo: dict, datasets_rarefs: dict, force: bool, prjct_nm: str,
+               qiime_env: str, chmod: str, noloc: bool, run_params: dict) -> None:
     """
     Run rarefy: Rarefy table.
     https://docs.qiime2.org/2019.10/plugins/available/feature-table/rarefy/
@@ -82,8 +81,9 @@ def run_rarefy(i_datasets_folder: str, datasets: dict,
                 datasets_phylo[dat] = datasets_phylo[dat]
                 # datasets_features[dat] = 'raref'
 
-            run_xpbs(out_sh, out_pbs, '%s.bt.%s' % (prjct_nm, dat),
-                     qiime_env, '24', '1', '1', '10', 'gb',
+            run_xpbs(out_sh, out_pbs, '%s.bt.%s' % (prjct_nm, dat), qiime_env,
+                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                     run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc)
     if written:
         print_message('# Calculate beta diversity indices', 'sh', run_pbs)

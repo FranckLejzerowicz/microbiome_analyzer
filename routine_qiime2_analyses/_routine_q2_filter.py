@@ -15,7 +15,8 @@ from routine_qiime2_analyses._routine_q2_cmds import run_import
 
 
 def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
-                    force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
+                    force: bool, prjct_nm: str, qiime_env: str,  chmod: str,
+                    noloc: bool, run_params: dict) -> None:
     """
     Initial import of the .tsv datasets in to Qiime2 Artefact.
 
@@ -46,14 +47,15 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
                 sh.write('echo "%s"\n' % cmd)
                 sh.write('%s\n' % cmd)
                 written += 1
-    run_xpbs(out_sh, out_pbs, '%s.mprt' % prjct_nm,
-             qiime_env,'1', '1', '1', '100', 'mb', chmod, written,
-             '# Import tables to qiime2', None, noloc)
+    run_xpbs(out_sh, out_pbs, '%s.mprt' % prjct_nm, qiime_env,
+             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+             run_params["mem_num"], run_params["mem_dim"],
+             chmod, written, '# Import tables to qiime2', None, noloc)
 
 
 def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: dict,
-                        datasets_features: dict, datasets_phylo: dict,
-                        prjct_nm: str, qiime_env: str, thresh: int, chmod: str, noloc: bool) -> None:
+                        datasets_features: dict, datasets_phylo: dict, prjct_nm: str, qiime_env: str,
+                        thresh: int, chmod: str, noloc: bool, run_params: dict) -> None:
     """
     Filter the rare features, keep samples with enough reads/features and import to Qiime2.
 
@@ -121,8 +123,9 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             sh.write('%s\n' % cmd)
             written += 1
 
-    run_xpbs(out_sh, out_pbs, '%s.fltr' % prjct_nm,
-             qiime_env, '4', '4', '1', '100', 'mb', chmod, written,
+    run_xpbs(out_sh, out_pbs, '%s.fltr' % prjct_nm, qiime_env,
+             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+             run_params["mem_num"], run_params["mem_dim"],
              '# Filter samples for a min number of %s reads' % thresh, None, noloc)
 
     datasets.update(datasets_update)

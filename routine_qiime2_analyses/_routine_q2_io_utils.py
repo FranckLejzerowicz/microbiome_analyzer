@@ -673,3 +673,21 @@ def parse_g2lineage() -> dict:
         line_split = line.strip().split('\t')
         g2lineage[line_split[0]] = line_split[1]
     return g2lineage
+
+
+def get_run_params(p_run_params: str) -> dict:
+
+    run_params_default_fp = '%s/run_params.yml' % RESOURCES
+    with open(run_params_default_fp) as handle:
+        run_params_default = yaml.load(handle, Loader=yaml.FullLoader)
+
+    if p_run_params and isfile(p_run_params):
+        run_params_fp = p_run_params
+        with open(run_params_fp) as handle:
+            run_params = yaml.load(handle, Loader=yaml.FullLoader)
+    else:
+        print('using run parameters from', run_params_default_fp)
+
+    run_params_default.update(run_params)
+    return run_params_default
+
