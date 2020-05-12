@@ -22,7 +22,8 @@ from routine_qiime2_analyses._routine_q2_cmds import (
     write_barplots,
     write_seqs_fasta,
     write_taxonomy_sklearn,
-    run_export, run_import
+    run_export,
+    run_import
 )
 
 
@@ -231,40 +232,3 @@ def get_precomputed_taxonomies(i_datasets_folder: str, datasets: dict, taxonomie
         tax_qza = '%s/tax_%s.qza' % (analysis_folder, dat)
         if isfile(tax_qza):
             taxonomies[dat] = ('', tax_qza)
-
-
-
-def get_padded_new_rows_list(new_rows, max_new_rows):
-    # create a new 'Not available' matrix of shape (n_features x n_fields)
-    padded_new_rows_list = []
-    for padded_row in new_rows:
-        # update row if not of max length
-        n_pad = max_new_rows - len(padded_row)
-        if n_pad:
-            to_pad = ['Not available']*n_pad
-            padded_row = padded_row + to_pad
-        padded_new_rows_list.append(padded_row)
-    return padded_new_rows_list
-
-
-def add_alpha_level_label(taxa, padded_new_rows_list, max_new_rows):
-    # add a alpha label for rank-identification prupose
-    ALPHA = 'ABCDEFGHIJKL'
-    cols = ['Node_level_%s' % (ALPHA[idx]) for idx in range(1, max_new_rows + 1)]
-    padded_new_rows_pd = pd.DataFrame(
-        padded_new_rows_list,
-        index = taxa,
-        columns = cols
-    )
-    split_taxonomy_pd = padded_new_rows_pd.reset_index()
-    return split_taxonomy_pd
-
-
-def get_split_taxonomy(taxa, taxo_sep=';'):
-    # get the Node names split per "taxon" level
-    new_rows = [[x.strip() for x in node.split(taxo_sep) if len(x.strip()) and x[0]!='x'] for node in taxa]
-    # get the max number of fields
-    max_new_rows = max([len(new_row) for new_row in new_rows])
-    padded_new_rows_list = get_padded_new_rows_list(new_rows, max_new_rows)
-    split_taxonomy_pd = add_alpha_level_label(taxa, padded_new_rows_list, max_new_rows)
-    return split_taxonomy_pd.rename(columns={'index': 'Taxon'})
