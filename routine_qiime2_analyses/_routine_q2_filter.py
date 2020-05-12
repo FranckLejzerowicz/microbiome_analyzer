@@ -125,7 +125,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
 
     run_xpbs(out_sh, out_pbs, '%s.fltr' % prjct_nm, qiime_env,
              run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-             run_params["mem_num"], run_params["mem_dim"],
+             run_params["mem_num"], run_params["mem_dim"], chmod, written,
              '# Filter samples for a min number of %s reads' % thresh, None, noloc)
 
     datasets.update(datasets_update)

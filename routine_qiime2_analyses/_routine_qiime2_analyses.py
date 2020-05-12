@@ -145,6 +145,9 @@ def routine_qiime2_analyses(
         else:
             print('[Warning] The Qemistree path %s is not a folder.')
 
+    print("datasets_phylo")
+    print(datasets_phylo)
+    print(datasets_phylods)
     if 'taxonomy' not in p_skip:
         run_taxonomy(i_datasets_folder, datasets, datasets_read, datasets_phylo, datasets_features,
                      i_classifier, taxonomies, force, prjct_nm, qiime_env, chmod, noloc)

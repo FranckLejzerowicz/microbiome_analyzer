@@ -15,7 +15,8 @@ from typing import TextIO
 def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
              qiime_env: str, time: str, n_nodes: str,
              n_procs: str, mem_num: str, mem_dim: str, chmod: str,
-             written: int, single: str, o: TextIO = None, noloc: bool = True) -> None:
+             written: int, single: str, o: TextIO = None,
+             noloc: bool = True) -> None:
     """
     Run the Xpbs script assorted with print or writing in higher-level command.
 
