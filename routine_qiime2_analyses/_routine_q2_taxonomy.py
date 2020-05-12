@@ -116,6 +116,10 @@ def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict, da
 
     amplicon_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'amplicon']
     wol_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'wol']
+    print("amplicon_datasets")
+    print(amplicon_datasets)
+    print("wol_datasets")
+    print(wol_datasets)
 
     method = 'sklearn'
     # method = 'hybrid-vsearch-sklearn'
