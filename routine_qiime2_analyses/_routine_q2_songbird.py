@@ -114,15 +114,15 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
     cur_rad = odir + '/' + basename(qza).replace('.qza', '_%s' % case)
     new_meta = '%s.meta' % cur_rad
     new_qza = '%s.qza' % cur_rad
-    diffs = '%s/differentials.tsv' % cur_rad
-    diffs_qza = '%s/differentials.qza' % cur_rad
-    stats = '%s/differentials-stats.qza' % cur_rad
-    plot = '%s/differentials-biplot.qza' % cur_rad
-    base_diff_qza = '%s/differentials-baseline.qza' % cur_rad
-    base_stats = '%s/differentials-baseline-stats.qza' % cur_rad
-    base_plot = '%s/differentials-baseline-biplot.qza' % cur_rad
-    tensor = '%s/differentials-tensorboard.qzv' % cur_rad
-    tensor_dir = '%s/differentials-tensorboard.Q2' % cur_rad
+    diffs = '%s_differentials.tsv' % cur_rad
+    diffs_qza = '%s_differentials.qza' % cur_rad
+    stats = '%s_differentials-stats.qza' % cur_rad
+    plot = '%s_differentials-biplot.qza' % cur_rad
+    base_diff_qza = '%s_differentials-baseline.qza' % cur_rad
+    base_stats = '%s_differentials-baseline-stats.qza' % cur_rad
+    base_plot = '%s_differentials-baseline-biplot.qza' % cur_rad
+    tensor = '%s_differentials-tensorboard.qzv' % cur_rad
+    tensor_dir = '%s_differentials-tensorboard.Q2' % cur_rad
 
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor_dir):
