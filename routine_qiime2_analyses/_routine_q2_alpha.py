@@ -96,18 +96,8 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                         if not nfeats:
                             continue
                         write_filter_features(qza, qza_subset, meta_subset, cur_sh)
-
-                        print()
-                        print()
-                        print("subset")
-                        print(subset)
-                        print(subset_regex)
                         for metric in alpha_metrics:
-                            print()
-                            print("metric")
-                            print(metric)
                             out_fp = '%s/%s_%s__%s.qza' % (odir, basename(splitext(qza)[0]), metric, subset)
-                            print(' ->', out_fp)
                             out_tsv = '%s.tsv' % splitext(out_fp)[0]
                             # alpha_subsets_deletions.extend([out_fp, out_tsv, meta_subset])
                             if force or not isfile(out_fp):
