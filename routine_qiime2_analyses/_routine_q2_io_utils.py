@@ -316,7 +316,7 @@ def get_raref_tab_meta_pds(meta: str, tsv: str) -> (pd.DataFrame, pd.DataFrame):
     :param tsv: rarefied table.
     :return:
     """
-    tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t', low_memory=False, dtype=str)
+    tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t', low_memory=False)
     meta_pd = read_meta_pd(meta)
     meta_raref_pd = meta_pd.loc[meta_pd.sample_name.isin(tsv_pd.columns.tolist()),:].copy()
     meta_raref_pd.to_csv(meta, index=False, sep='\t')
