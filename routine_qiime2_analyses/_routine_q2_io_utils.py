@@ -107,10 +107,11 @@ def get_filtering(p_yml: str, filtering_dict: dict) -> dict:
         print('No filtering thresholds set in %s:\nUsing defaults:' % p_yml)
         for k, v in filtering.items():
             print(k, v)
+        return filtering
     else:
         filtering_dict.update(update_filtering_prevalence(filtering_dict, p_yml, filtering))
         filtering_dict.update(update_filtering_abundance(filtering_dict, p_yml, filtering))
-    return filtering_dict['filtering']
+        return filtering_dict['filtering']
 
 
 def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
