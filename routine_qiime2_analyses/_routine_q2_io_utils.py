@@ -795,8 +795,8 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                 if not tsv_pd_.shape[0]:
                     continue
             else:
-                print('%s dataset "%s" not found...\nExiting' % (analysis, dat))
-                sys.exit(0)
+                print('%s dataset "%s" not found...' % (analysis, dat))
+                continue
         elif datasets_read[dat] == 'raref':
             tsv, meta = datasets[dat]
             if not isfile(tsv):
