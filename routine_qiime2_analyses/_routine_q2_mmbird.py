@@ -35,7 +35,6 @@ def get_mmvec_outputs(mmvec_outputs: list):
         mmvec_outputs_pd.columns.tolist()[:-1]).unstack()
     mmvec_outputs_pd.columns = mmvec_outputs_pd.columns.droplevel()
     mmvec_outputs_pd.reset_index(inplace=True)
-    mmvec_outputs_pd.to_csv('/Users/franck/Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/nut/mmvec_outputs_pd.tsv', index=False, sep='\t')
     return mmvec_outputs_pd
 
 
