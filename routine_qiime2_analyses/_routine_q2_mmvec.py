@@ -49,8 +49,7 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
     diff_cols = [c for c in common_cols if meta_subset1[c].tolist() != meta_subset2[c].tolist()]
     # edit these different columns' names
     if len(diff_cols):
-        meta_subset1.rename(columns=dict((c, '%s.1' % c) for c in diff_cols), inplace=True)
-        meta_subset2.rename(columns=dict((c, '%s.2' % c) for c in diff_cols), inplace=True)
+        meta_subset2.rename(columns=dict((c, '%s.copy' % c) for c in diff_cols), inplace=True)
     meta_subset = meta_subset1.merge(meta_subset2,
         on=(['sample_name'] + [c for c in common_cols if c not in diff_cols]))
     sorting_col =['sample_name'] + [x for x in meta_subset.columns.tolist() if x != 'sample_name']
