@@ -106,7 +106,7 @@ def get_filtering(p_yml: str, filtering_dict: dict) -> dict:
     if 'filtering' not in filtering_dict:
         print('No filtering thresholds set in %s:\nUsing defaults:' % p_yml)
         for k, v in filtering.items():
-            print(k, ' ,'.join(v))
+            print(k, v)
     else:
         filtering_dict.update(update_filtering_prevalence(filtering_dict, p_yml, filtering))
         filtering_dict.update(update_filtering_abundance(filtering_dict, p_yml, filtering))
