@@ -242,7 +242,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
                        thresh_sample: str, thresh_feat: str, n_random: str,
                        diffs: str, diffs_qza: str, stats: str, plot: str,
                        base_diff_qza: str, base_stats: str, base_plot: str,
-                       tensor: str, tensor_dir: str, cur_sh: TextIO) -> None:
+                       tensor: str, tensor_html: str, cur_sh: TextIO) -> None:
     """
     :param qza:
     :param new_qza:
@@ -325,8 +325,8 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 
-    if not isdir(tensor_dir):
-        cmd = run_export(tensor, tensor_dir, 'songbird')
+    if not isdir(tensor_html):
+        cmd = run_export(tensor, tensor_html, 'songbird')
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 

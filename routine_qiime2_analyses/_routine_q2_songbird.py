@@ -71,6 +71,7 @@ def run_multi_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
     base_stats = '%s/differentials-baseline-stats.qza' % cur_rad
     base_plot = '%s/differentials-baseline-biplot.qza' % cur_rad
     tensor = '%s/differentials-tensorboard.qzv' % cur_rad
+    tensor_html = '%s/differentials-tensorboard.html' % cur_rad
 
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor):
@@ -79,7 +80,8 @@ def run_multi_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
             write_songbird_cmd(qza, new_qza, new_meta,
                                formula, epoch, batch, diff_prior, learn, thresh_sample,
                                thresh_feat, n_random, diffs, diffs_qza, stats, plot,
-                               base_diff_qza, base_stats, base_plot, tensor, cur_sh_o)
+                               base_diff_qza, base_stats, base_plot, tensor, tensor_html,
+                               cur_sh_o)
             remove = False
     if remove:
         os.remove(cur_sh)
@@ -124,22 +126,22 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
     base_stats = '%s_differentials-baseline-stats.qza' % cur_rad
     base_plot = '%s_differentials-baseline-biplot.qza' % cur_rad
     tensor = '%s_differentials-tensorboard.qzv' % cur_rad
-    tensor_dir = '%s_differentials-tensorboard.Q2' % cur_rad
+    tensor_html = '%s_differentials-tensorboard.html' % cur_rad
 
     with open(cur_sh, 'w') as cur_sh_o:
-        if force or not isfile(tensor_dir):
+        if force or not isfile(tensor_html):
             new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
             new_meta_pd.columns = [x.lower() for x in new_meta_pd.columns]
             new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
             write_songbird_cmd(qza, new_qza, new_meta,
                                formula, epoch, batch, diff_prior, learn, thresh_sample,
                                thresh_feat, n_random, diffs, diffs_qza, stats, plot,
-                               base_diff_qza, base_stats, base_plot, tensor, tensor_dir,
+                               base_diff_qza, base_stats, base_plot, tensor, tensor_html,
                                cur_sh_o)
             remove = False
     if remove:
         os.remove(cur_sh)
-    return diffs, tensor_dir
+    return diffs, tensor_html
 
 
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
@@ -268,14 +270,14 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                 job_folder2, dat, filt, model_rep, case)
                             cur_sh = cur_sh.replace(' ', '-')
                             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                            diffs, tensor = run_single_songbird(
+                            diffs, tensor_html = run_single_songbird(
                                 odir, qza, meta_pd, cur_sh, case, formula,
                                 case_var, case_vals, force, batch, learn,
                                 epoch, diff_prior, thresh_feat,
                                 thresh_sample, n_random
                             )
                             if '/mmvec/' in tsv:
-                                songbird_outputs.setdefault(dat, []).append([params.replace('/', '__'), diffs, tensor])
+                                songbird_outputs.setdefault(dat, []).append([params.replace('/', '__'), diffs, tensor_html])
                             # p = multiprocessing.Process(
                             #     target=run_multi_songbird,
                             #     args=(odir, qza, meta_pd, cur_sh, case, formula, case_var, case_vals, force,
