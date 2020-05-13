@@ -274,7 +274,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                 epoch, diff_prior, thresh_feat,
                                 thresh_sample, n_random
                             )
-                            songbird_outputs.setdefault(dat, []).append([params.replace('/', '__'), diffs, tensor])
+                            if '/mmvec/' in tsv:
+                                songbird_outputs.setdefault(dat, []).append([params.replace('/', '__'), diffs, tensor])
                             # p = multiprocessing.Process(
                             #     target=run_multi_songbird,
                             #     args=(odir, qza, meta_pd, cur_sh, case, formula, case_var, case_vals, force,
