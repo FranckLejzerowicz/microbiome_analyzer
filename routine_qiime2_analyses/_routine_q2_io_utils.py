@@ -10,12 +10,13 @@ import os
 import re
 import sys
 import yaml
+import glob
 import pkg_resources
 import pandas as pd
 from os.path import basename, splitext, isfile, isdir, abspath
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
-from routine_qiime2_analyses._routine_q2_cmds import run_export
+from routine_qiime2_analyses._routine_q2_cmds import run_import, run_export
 
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
@@ -65,29 +66,29 @@ def update_filtering_abundance(mmvec_dict: dict, p_mmvec_pairs: str, filtering: 
     return {}
 
 
-def update_filtering_prevalence(mmvec_dict: dict, p_mmvec_pairs: str, filtering: dict) -> dict:
-    if 'prevalence' in mmvec_dict['filtering']:
-        if not isinstance(mmvec_dict['filtering']['prevalence'], list):
-            print('Filtering parameter "prevalence" should be a list (see %s)\nExiting\n' % p_mmvec_pairs)
+def update_filtering_prevalence(filtering_dict: dict, p_yml: str, filtering: dict) -> dict:
+    if 'prevalence' in filtering_dict['filtering']:
+        if not isinstance(filtering_dict['filtering']['prevalence'], list):
+            print('Filtering parameter "prevalence" should be a list (see %s)\nExiting\n' % p_yml)
             sys.exit(0)
         not_int = []
-        for prevalence in mmvec_dict['filtering']['prevalence']:
+        for prevalence in filtering_dict['filtering']['prevalence']:
             try:
                 int(prevalence)
             except ValueError:
                 not_int.append(prevalence)
         if not_int:
-            print('Filtering parameter "prevalence" should contain integers (see %s)\n' % p_mmvec_pairs)
+            print('Filtering parameter "prevalence" should contain integers (see %s)\n' % p_yml)
             print('  Not integer(s)\n:%s\nExiting\n' % ', '.join(not_int))
             sys.exit(0)
     else:
-        print('No "prevalence" filter specified in %s:\nUsing defaults: %s' % (p_mmvec_pairs,
-                                                                               ','.join(filtering['prevalence'])))
+        print('No "prevalence" filter specified in %s:\nUsing defaults: %s' %
+              (p_yml, ','.join(filtering['prevalence'])))
         return {'filtering': {'prevalence': filtering['prevalence']}}
     return {}
 
 
-def get_mmvec_filtering(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
+def get_filtering(p_yml: str, filtering_dict: dict) -> dict:
     """
     Get the parameters for songbird passed by the user.
     :param p_mmvec_pairs: file containing the parameters.
@@ -102,14 +103,14 @@ def get_mmvec_filtering(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
             ['0', '0']
         ]
     }
-    if 'filtering' not in mmvec_dict:
-        print('No filtering thresholds set in %s:\nUsing defaults:' % p_mmvec_pairs)
+    if 'filtering' not in filtering_dict:
+        print('No filtering thresholds set in %s:\nUsing defaults:' % p_yml)
         for k, v in filtering.items():
             print(k, ' ,'.join(v))
     else:
-        mmvec_dict.update(update_filtering_prevalence(mmvec_dict, p_mmvec_pairs, filtering))
-        mmvec_dict.update(update_filtering_abundance(mmvec_dict, p_mmvec_pairs, filtering))
-    return mmvec_dict['filtering']
+        filtering_dict.update(update_filtering_prevalence(filtering_dict, p_yml, filtering))
+        filtering_dict.update(update_filtering_abundance(filtering_dict, p_yml, filtering))
+    return filtering_dict['filtering']
 
 
 def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
@@ -175,7 +176,7 @@ def get_mmvec_dicts(p_mmvec_pairs: str) -> (dict, dict, dict):
         mmvec_dict = yaml.load(handle, Loader=yaml.FullLoader)
 
     mmvec_pairs = get_mmvec_pairs(p_mmvec_pairs, mmvec_dict)
-    mmvec_filtering = get_mmvec_filtering(p_mmvec_pairs, mmvec_dict)
+    mmvec_filtering = get_filtering(p_mmvec_pairs, mmvec_dict)
     mmvec_params = get_mmvec_params(p_mmvec_pairs, mmvec_dict)
     return mmvec_pairs, mmvec_filtering, mmvec_params
 
@@ -222,7 +223,7 @@ def get_songbird_cases_dict(p_diff_models: str, diff_dict: dict) -> dict:
         return diff_dict['subsets']
 
 
-def get_songbird_models(p_diff_models: str, diff_dict: dict) -> None:
+def get_songbird_models(p_diff_models: str, diff_dict: dict) -> dict:
     """
     Get the models for songbird passed by the user.
     :param p_diff_models: file containing the models.
@@ -232,9 +233,10 @@ def get_songbird_models(p_diff_models: str, diff_dict: dict) -> None:
     if 'models' not in diff_dict:
         print('No models in %s' % p_diff_models)
         sys.exit(0)
+    return diff_dict['models']
 
 
-def get_songbird_dict(p_diff_models: str) -> (dict, dict, dict):
+def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict):
     """
     Collect from on the passed yaml file:
     - subsets to perform songbird on
@@ -251,8 +253,12 @@ def get_songbird_dict(p_diff_models: str) -> (dict, dict, dict):
     main_cases_dict = {'ALL': [[]]}
     if 'subsets' in diff_dict:
         main_cases_dict.update(get_songbird_cases_dict(p_diff_models, diff_dict))
+
+    models = get_songbird_models(p_diff_models, diff_dict)
     params = get_songbird_params(p_diff_models, diff_dict)
-    return diff_dict['models'], main_cases_dict, params
+    filtering = get_filtering(p_diff_models, diff_dict)
+    datasets = [(dat[:-1], 1) if dat[-1] == '*' else (dat, 0) for dat in models]
+    return models, filtering, params, datasets, main_cases_dict
 
 
 def get_main_cases_dict(p_perm_groups: str) -> dict:
@@ -310,7 +316,7 @@ def get_raref_tab_meta_pds(meta: str, tsv: str) -> (pd.DataFrame, pd.DataFrame):
     :param tsv: rarefied table.
     :return:
     """
-    tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t', low_memory=False)
+    tsv_pd = pd.read_csv(tsv, header=0, index_col=0, sep='\t', low_memory=False, dtype=str)
     meta_pd = read_meta_pd(meta)
     meta_raref_pd = meta_pd.loc[meta_pd.sample_name.isin(tsv_pd.columns.tolist()),:].copy()
     meta_raref_pd.to_csv(meta, index=False, sep='\t')
@@ -691,3 +697,165 @@ def get_run_params(p_run_params: str) -> dict:
 
     return run_params_default
 
+
+def filter_mb_table(preval_filt: int, abund_filt: int,
+                    tsv_pd: pd.DataFrame) -> pd.DataFrame:
+    if preval_filt or abund_filt:
+        new_cols = []
+        cur_index = tsv_pd.index.tolist()
+        cur_columns = tsv_pd.columns.tolist()
+        for r, row in tsv_pd.iterrows():
+            if sum(row == 0):
+                min_thresh = min([x for x in row if x > 0]) * abund_filt
+                cur_row = [x if x >= min_thresh else 0 for x in row]
+                new_cols.append(cur_row)
+            else:
+                new_cols.append(row.tolist())
+        tsv_pd = pd.DataFrame(
+            new_cols,
+            index=cur_index,
+            columns=cur_columns
+        )
+        tsv_pd = tsv_pd[tsv_pd.sum(1) > 1]
+        n_perc = (preval_filt / tsv_pd.shape[1]) * 100
+        if preval_filt and abund_filt:
+            tsv_pd = tsv_pd.loc[tsv_pd.astype(bool).sum(1) >= n_perc, :]
+        tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
+    return tsv_pd
+
+
+def filter_non_mb_table(preval_filt: int, abund_filt: int,
+                        tsv_pd: pd.DataFrame) -> pd.DataFrame:
+    n_perc = (preval_filt / tsv_pd.shape[1]) * 100
+    if preval_filt and abund_filt:
+        tsv_filt_pd = tsv_pd.loc[(tsv_pd.values >= abund_filt).sum(1) >= n_perc, :].copy()
+    elif preval_filt:
+        tsv_filt_pd = tsv_pd.loc[tsv_pd.values.astype(bool).sum(1) >= n_perc, :].copy()
+    elif abund_filt:
+        tsv_filt_pd = tsv_pd.loc[tsv_pd.sum(1) > abund_filt, :].copy()
+    else:
+        tsv_filt_pd = tsv_pd.copy()
+    tsv_filt_pd = tsv_filt_pd.loc[:, tsv_filt_pd.sum(0) > 0]
+    return tsv_filt_pd
+
+
+def get_raref_table(dat: str, i_datasets_folder: str,
+                    analysis: str) -> (pd.DataFrame, pd.DataFrame):
+    dat_rt = dat.split('__raref')[0]
+    raref_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat_rt)
+    tsv_globbed = glob.glob('%s/tab_%s_raref*.tsv' % (raref_dir, dat_rt))
+    if len(tsv_globbed) != 1:
+        print('Must have one rarefaction for "%s" to use it further in %s ("%s")...'
+              '\nExiting' % (dat_rt, analysis, dat))
+        sys.exit(0)
+    tsv = tsv_globbed[0]
+    meta = glob.glob('%s/meta_%s_raref*_alphas.tsv' % (raref_dir, dat_rt))
+    if not len(meta):
+        meta = glob.glob('%s/meta_%s_raref*.tsv' % (raref_dir, dat_rt))
+        if not len(meta):
+            return pd.DataFrame(), pd.DataFrame()
+        meta = meta[0]
+    meta = meta[0]
+    tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
+    return tsv_pd_, meta_pd_
+
+
+def write_filtered_tsv(tsv_out: str, tsv_pd: pd.DataFrame) -> None:
+    tsv_sams_col = tsv_pd.reset_index().columns[0]
+    tsv_pd = tsv_pd.reset_index().rename(columns={tsv_sams_col: 'Feature ID'}).set_index('Feature ID')
+    tsv_pd.reset_index().to_csv(tsv_out, index=False, sep='\t')
+
+
+def write_filtered_meta(meta_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFrame) -> pd.DataFrame:
+    meta_filt_pd = meta_pd_.loc[meta_pd_.sample_name.isin(tsv_pd.columns),:].copy()
+    meta_filt_pd.to_csv(meta_out, index=False, sep='\t')
+    return meta_filt_pd
+
+
+def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
+                          datasets_read: dict, unique_datasets: list,
+                          filtering: dict, force: bool, analysis: str) -> (dict, list):
+    """
+    Filter the datasets for use in mmvec.
+
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param datasets: list of data_sets.
+    :param datasets_read: dataset -> [tsv table, meta table] (here it updates tsv table after features correction)
+    :param datasets: datasets names from the yaml pairs.
+    :param filtering: validated filtering thersholds.
+    :param force: Force the re-writing of scripts for all commands.
+    :return: list of datasets from filtered threshold.
+    """
+    filt_jobs = []
+    filt_datasets = {}
+    for (dat, mb) in unique_datasets:
+        if dat not in datasets:
+            if dat.endswith('__raref'):
+                tsv_pd_, meta_pd_ = get_raref_table(dat, i_datasets_folder, analysis)
+                if not tsv_pd_.shape[0]:
+                    continue
+            else:
+                print('%s dataset "%s" not found...\nExiting' % (analysis, dat))
+                sys.exit(0)
+        elif datasets_read[dat] == 'raref':
+            tsv, meta = datasets[dat]
+            if not isfile(tsv):
+                print('Must have run rarefaction to use it further...\nExiting')
+                sys.exit(0)
+            tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
+            datasets_read[dat] = [tsv_pd_, meta_pd_]
+        else:
+            tsv_pd_, meta_pd_ = datasets_read[dat]
+
+        dat_filts = {}
+        dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
+        for preval_filt in filtering['prevalence']:
+            for abund_filt in filtering['abundance']:
+                # make sure there's no empty row / column
+                tsv_pd = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :].copy()
+                tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
+                if mb:
+                    abund_filter = int(abund_filt[1])
+                    tsv_pd = filter_mb_table(int(preval_filt), abund_filter, tsv_pd)
+                else:
+                    abund_filter = int(abund_filt[0])
+                    tsv_pd = filter_non_mb_table(int(preval_filt), abund_filter, tsv_pd)
+                rad_out = '%s_%s_%s_%ss' % (dat, preval_filt, abund_filter, tsv_pd.shape[1])
+                tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
+                tsv_qza = '%s.qza' % splitext(tsv_out)[0]
+                meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
+
+                if analysis == 'songbird':
+                    meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
+                    tsv_out_mmvec = tsv_out.replace('/songbird/', '/mmvec/')
+                    tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
+                    if isfile(meta_out_mmvec):
+                        meta_out = meta_out_mmvec
+                        meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
+                                              dtype={'sample_name': str},
+                                              low_memory=False)
+                    else:
+                        meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
+
+                    if isfile(tsv_out_mmvec):
+                        tsv_out = tsv_out_mmvec
+                    elif force or not isfile(tsv_out):
+                        write_filtered_tsv(tsv_out, tsv_pd)
+
+                    if isfile(tsv_qza_mmvec):
+                        tsv_qza = tsv_qza_mmvec
+                    elif force or not isfile(tsv_qza):
+                        cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
+                        filt_jobs.append(cmd)
+                else:
+                    meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
+                    if force or not isfile(tsv_out):
+                        write_filtered_tsv(tsv_out, tsv_pd)
+                    if force or not isfile(tsv_qza):
+                        cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
+                        filt_jobs.append(cmd)
+                dat_filts[(preval_filt, str(abund_filter))] = [
+                    tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()
+                ]
+        filt_datasets[dat] = dat_filts
+    return filt_datasets, filt_jobs

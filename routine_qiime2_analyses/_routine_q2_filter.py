@@ -108,7 +108,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             meta_filt_fp = tab_filt_fp.replace('/data/', '/metadata/').replace('tab_', 'meta_')
 
             tab_filt_pd.reset_index().to_csv(tab_filt_fp, index=False, sep='\t')
-            meta_filt_pd.reset_index().to_csv(meta_filt_fp, index=False, sep='\t')
+            meta_filt_pd.reset_index().to_csv(meta_filt_fp, index=False, sep='\t', dtype=str)
 
             datasets_update[dat_filt] = [tab_filt_fp, meta_filt_fp]
             datasets_read_update[dat_filt] = [tab_filt_pd, meta_filt_pd.reset_index()]

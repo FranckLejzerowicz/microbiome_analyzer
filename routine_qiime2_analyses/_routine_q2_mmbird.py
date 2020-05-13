@@ -8,57 +8,57 @@
 
 # import os
 # import itertools
-# import pandas as pd
-# from os.path import basename, isfile, splitext
+import pandas as pd
+from os.path import basename, isfile, splitext
 # import multiprocessing
+
+
+def get_mmvec_outputs(mmvec_outputs: list):
+    mmvec_outputs_pd = pd.DataFrame(
+        mmvec_outputs,
+        columns=[
+             'pair',
+             'omic_filt1',
+             'omic_filt2',
+             'omic1',
+             'omic2',
+             'n_common',
+             'meta_common_fp',
+             'omic1_common_fp',
+             'omic2_common_fp',
+             'omic1_common_qza',
+             'omic2_common_qza',
+             'mmvec_parameters',
+             'mmvec_out'
+         ])
+    mmvec_outputs_pd = mmvec_outputs_pd.set_index(
+        mmvec_outputs_pd.columns.tolist()[:-1]).unstack()
+    mmvec_outputs_pd.columns = mmvec_outputs_pd.columns.droplevel()
+    mmvec_outputs_pd.reset_index(inplace=True)
+    mmvec_outputs_pd.to_csv('/Users/franck/Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/nut/mmvec_outputs_pd.tsv', index=False, sep='\t')
+    return mmvec_outputs_pd
 
 
 def run_mmbird(i_datasets_folder: str, datasets: dict, taxonomies: dict,
                songbird_outputs: dict, mmvec_outputs: dict,
                prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
-    print()
-    print()
-    print("i_datasets_folder")
-    print(i_datasets_folder)
-    print()
-    print()
-    print("songbird_outputs")
-    print(songbird_outputs)
-    # {
-    #   'vioscreen_foods_consumed_grams_per_day_1800s_noLiquids':
-    #      [
-    #         [
-    #            'vioscreen_foods_consumed_grams_per_day_1800s_noLiquids',
-    #            '.../nut/metadata/meta_vioscreen_foods_consumed_grams_per_day_1800s_noLiquids_alphas.tsv',
-    #            '.../data/tab_vioscreen_foods_consumed_grams_per_day_1800s_noLiquids.qza',
-    #            'age',
-    #            'vioscreen_foods_consumed_grams_per_day_1800s_noLiquids/age/filt_f0_s0/2_1e-4_100_05'
-    #         ]
-    #      ],
-    #   'vioscreen_micromacro_qemistree_1800s':
-    #      [
-    #         [
-    #            'vioscreen_micromacro_qemistree_1800s',
-    #            '.../nut/metadata/meta_vioscreen_micromacro_qemistree_1800s_alphas.tsv',
-    #            .../nut/data/tab_vioscreen_micromacro_qemistree_1800s.qza',
-    #            'age',
-    #            'vioscreen_micromacro_qemistree_1800s/age/filt_f0_s0/2_1e-4_100_05'
-    #         ]
-    #      ]
-    #   }
-    print()
-    print()
-    print("mmvec_outputs")
-    print(mmvec_outputs)
-    # {'grams_qemi':
-    #   [
-    #     [
-    #        '.../metadata/grams_qemi/meta_grams_qemi__10_0_1800s.tsv',
-    #        '.../data/grams_qemi/tab_vioscreen_foods_consumed_grams_per_day_1800s_noLiquids__grams_qemi__10_0_1800s.qza',
-    #        '.../data/grams_qemi/tab_vioscreen_micromacro_qemistree_1800s__grams_qemi__10_0_1800s.qza',
-    #        'None',
-    #        'b-2_l-1e-4_e-5000_p-05_f-0_d-3_t-None_n-100_gpu-F'
-    #     ]
-    #   ]
-    # }
+
+    # print("songbird_outputs")
+    # print(songbird_outputs)
+
+    songbird_table = []
+    for omic, params in songbird_outputs.items():
+        songbird_table.append(([omic] + params))
+    songbird_table_pd = pd.DataFrame(
+        songbird_table,
+        columns=[
+             'omic',
+             'songbird_parameters',
+             'songbird_fp',
+             'songbird_q2'
+         ])
+    songbird_table_pd = songbird_table_pd.set_index(songbird_table_pd.columns.tolist()[:2]).unstack()
+    songbird_table_pd.columns = songbird_table_pd.columns.droplevel()
+    songbird_table_pd.reset_index(inplace=True)
+    songbird_table_pd.to_csv('/Users/franck/Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/nut/songbird_table_pd.tsv', index=False, sep='\t')
     pass

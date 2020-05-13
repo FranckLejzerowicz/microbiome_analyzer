@@ -6,8 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os, sys
-import glob
+import os
 import itertools
 import pandas as pd
 from os.path import isfile, splitext
@@ -19,7 +18,8 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_analysis_folder,
     get_mmvec_dicts,
     write_main_sh,
-    get_raref_tab_meta_pds
+    get_datasets_filtered
+
 )
 from routine_qiime2_analyses._routine_q2_cmds import (
     filter_feature_table,
@@ -27,141 +27,9 @@ from routine_qiime2_analyses._routine_q2_cmds import (
     write_mmvec_cmd
 )
 
-
-def filter_mb_table(preval_filt: int, abund_filt: int, tsv_pd: pd.DataFrame) -> pd.DataFrame:
-    if preval_filt or abund_filt:
-        new_cols = []
-        cur_index = tsv_pd.index.tolist()
-        cur_columns = tsv_pd.columns.tolist()
-        for r, row in tsv_pd.iterrows():
-            if sum(row == 0):
-                min_thresh = min([x for x in row if x > 0]) * abund_filt
-                cur_row = [x if x >= min_thresh else 0 for x in row]
-                new_cols.append(cur_row)
-            else:
-                new_cols.append(row.tolist())
-        tsv_pd = pd.DataFrame(
-            new_cols,
-            index=cur_index,
-            columns=cur_columns
-        )
-        tsv_pd = tsv_pd[tsv_pd.sum(1) > 1]
-        n_perc = (preval_filt / tsv_pd.shape[1]) * 100
-        if preval_filt and abund_filt:
-            tsv_pd = tsv_pd.loc[tsv_pd.astype(bool).sum(1) >= n_perc, :]
-        tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
-    return tsv_pd
-
-
-def filter_non_mb_table(preval_filt: int, abund_filt: int, tsv_pd: pd.DataFrame) -> pd.DataFrame:
-
-    n_perc = (preval_filt / tsv_pd.shape[1]) * 100
-    if preval_filt and abund_filt:
-        tsv_filt_pd = tsv_pd.loc[(tsv_pd.values >= abund_filt).sum(1) >= n_perc, :].copy()
-    elif preval_filt:
-        tsv_filt_pd = tsv_pd.loc[tsv_pd.values.astype(bool).sum(1) >= n_perc, :].copy()
-    elif abund_filt:
-        tsv_filt_pd = tsv_pd.loc[tsv_pd.sum(1) > abund_filt, :].copy()
-    else:
-        tsv_filt_pd = tsv_pd.copy()
-    tsv_filt_pd = tsv_filt_pd.loc[:, tsv_filt_pd.sum(0) > 0]
-    return tsv_filt_pd
-
-
-def write_filtered_tsv(tsv_out: str, tsv_pd: pd.DataFrame) -> None:
-    tsv_sams_col = tsv_pd.reset_index().columns[0]
-    tsv_pd = tsv_pd.reset_index().rename(columns={tsv_sams_col: 'Feature ID'}).set_index('Feature ID')
-    print('write_filtered_tsv:', tsv_out)
-    tsv_pd.reset_index().to_csv(tsv_out, index=False, sep='\t')
-
-
-def write_filtered_meta(meta_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFrame) -> pd.DataFrame:
-    meta_filt_pd = meta_pd_.loc[meta_pd_.sample_name.isin(tsv_pd.columns),:].copy()
-    # print('write_filtered_meta:', meta_out)
-    meta_filt_pd.to_csv(meta_out, index=False, sep='\t')
-    return meta_filt_pd
-
-
-def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
-                          datasets_read: dict, unique_datasets: list,
-                          mmvec_filtering: dict, force: bool) -> (dict, list):
-    """
-    Filter the datasets for use in mmvec.
-
-    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :param datasets: list of data_sets.
-    :param datasets_read: dataset -> [tsv table, meta table] (here it updates tsv table after features correction)
-    :param datasets: datasets names from the yaml pairs.
-    :param mmvec_filtering: validated filtering thersholds.
-    :param force: Force the re-writing of scripts for all commands.
-    :return: list of datasets from filtered threshold.
-    """
-    filt_jobs = []
-    filt_datasets = {}
-    for (dat, mb) in unique_datasets:
-        dat_dir = get_analysis_folder(i_datasets_folder, 'mmvec/datasets/%s' % dat)
-        if dat not in datasets:
-            if dat.endswith('__raref'):
-                dat_rt = dat.split('__raref')[0]
-                raref_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat_rt)
-                tsv_globbed = glob.glob('%s/tab_%s_raref*.tsv' % (raref_dir, dat_rt))
-                if len(tsv_globbed) != 1:
-                    print('Must have one rarefaction for "%s" to use it further in mmvec ("%s")...'
-                          '\nExiting' % (dat_rt, dat))
-                    sys.exit(0)
-                tsv = tsv_globbed[0]
-                meta = glob.glob('%s/meta_%s_raref*_alphas.tsv' % (raref_dir, dat_rt))
-                if not len(meta):
-                    meta = glob.glob('%s/meta_%s_raref*.tsv' % (raref_dir, dat_rt))
-                    if not len(meta):
-                        continue
-                    meta = meta[0]
-                meta = meta[0]
-                tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
-            else:
-                print('MMVEC dataset "" not found...\nExiting' % dat)
-                sys.exit(0)
-        elif datasets_read[dat] == 'raref':
-            tsv, meta = datasets[dat]
-            if not isfile(tsv):
-                print('Must have run rarefaction to use it further...\nExiting')
-                sys.exit(0)
-            tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
-            datasets_read[dat] = [tsv_pd_, meta_pd_]
-        else:
-            tsv_pd_, meta_pd_ = datasets_read[dat]
-
-        dat_filts = {}
-        for preval_filt in mmvec_filtering['prevalence']:
-            for abund_filt in mmvec_filtering['abundance']:
-                # make sure there's no empty row / column
-                tsv_pd = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :].copy()
-                tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
-                if mb:
-                    abund_filter = int(abund_filt[1])
-                    tsv_pd = filter_mb_table(int(preval_filt), abund_filter, tsv_pd)
-                else:
-                    abund_filter = int(abund_filt[0])
-                    tsv_pd = filter_non_mb_table(int(preval_filt), abund_filter, tsv_pd)
-                rad_out = '%s_%s_%s_%ss' % (dat, preval_filt, abund_filter, tsv_pd.shape[1])
-                tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
-                tsv_qza = '%s.qza' % splitext(tsv_out)[0]
-                meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
-                meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
-                if force or not isfile(tsv_out):
-                    write_filtered_tsv(tsv_out, tsv_pd)
-                if force or not isfile(tsv_qza):
-                    cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
-                    filt_jobs.append(cmd)
-                dat_filts[(preval_filt, abund_filter)] = [
-                    tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()
-                ]
-        filt_datasets[dat] = dat_filts
-    return filt_datasets, filt_jobs
-
-
 def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFrame:
     meta_subset = meta.loc[meta.sample_name.isin(common_sams),:].copy()
+    meta_subset.columns = [x.lower() for x in meta_subset.columns]
     meta_subset.sort_values('sample_name', inplace=True)
     return meta_subset
 
@@ -175,8 +43,8 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
     :return:
     """
     # get the columns present in both metadata
-    common_cols = [x for x in list(set(meta_subset1.columns.tolist()) &
-                                   set(meta_subset2.columns.tolist())) if x!='sample_name']
+    common_cols = set(meta_subset1.columns) & set(meta_subset2.columns)
+    common_cols = [x for x in common_cols if x!='sample_name']
     # get these columns that also have different contents
     diff_cols = [c for c in common_cols if meta_subset1[c].tolist() != meta_subset2[c].tolist()]
     # edit these different columns' names
@@ -203,25 +71,39 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
     common_jobs = []
     common_datasets = {}
     for pair, pair_datasets in mmvec_pairs.items():
+
         data_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s' % pair)
         meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
         (omic1, bool1), (omic2, bool2) = pair_datasets
-        # pair_datasets
-        # e.g. [('dataset_number_3', 1), ('dataset_number_4', 0)]
-        # ('dataset_number_3' --> dataset , 1 --> metabolomics == special filtering)
-        for fdx, (preval_filt, abund_filter) in enumerate(filt_datasets[omic1]):
-            filts_1 = list(filt_datasets[omic1].keys())
-            filts_2 = list(filt_datasets[omic2].keys())
-            qza1, meta1, meta_pd1, sams1 = filt_datasets[omic1][filts_1[fdx]]
-            qza2, meta2, meta_pd2, sams2 = filt_datasets[omic2][filts_2[fdx]]
+
+        filts_1 = list(filt_datasets[omic1].keys())
+        filts_2 = list(filt_datasets[omic2].keys())
+
+        for fdx in range(len(filts_1)):
+            preval_filt1, abund_filter1 = filts_1[fdx]
+            preval_filt2, abund_filter2 = filts_2[fdx]
+            omic_filt1 = '_'.join([omic1, preval_filt1, abund_filter1])
+            omic_filt2 = '_'.join([omic2, preval_filt2, abund_filter2])
+            tsv1, qza1, meta1, meta_pd1, sams1 = filt_datasets[omic1][filts_1[fdx]]
+            tsv2, qza2, meta2, meta_pd2, sams2 = filt_datasets[omic2][filts_2[fdx]]
             common_sams = sorted(set(sams1) & set(sams2))
             meta_subset1 = get_meta_common_sorted(meta_pd1, common_sams)
             meta_subset2 = get_meta_common_sorted(meta_pd2, common_sams)
-            meta_fp = '%s/meta_%s__%s_%s_%ss.tsv' % (meta_dir, pair, preval_filt, abund_filter, len(common_sams))
-            new_qza1 = '%s/tab_%s__%s__%s_%s_%ss.qza' % (data_dir, omic1, pair, preval_filt, abund_filter, len(common_sams))
-            new_qza2 = '%s/tab_%s__%s__%s_%s_%ss.qza' % (data_dir, omic2, pair, preval_filt, abund_filter, len(common_sams))
-            new_tsv1 = '%s.tsv' % splitext(new_qza1)[0]
-            new_tsv2 = '%s.tsv' % splitext(new_qza2)[0]
+            meta_fp = '%s/meta_%s_%s_%s__%s_%s_%s__%s_%ss.tsv' % (
+                meta_dir, omic1, preval_filt1, abund_filter1,
+                omic2, preval_filt2, abund_filter2,
+                pair, len(common_sams)
+            )
+            new_tsv1 = '%s/tab_%s_%s_%s__%s_%ss.tsv' % (
+                data_dir, omic1, preval_filt1,
+                abund_filter1, pair, len(common_sams)
+            )
+            new_qza1 = '%s.qza' % splitext(new_tsv1)[0]
+            new_tsv2 = '%s/tab_%s_%s_%s__%s_%ss.tsv' % (
+                data_dir, omic2, preval_filt2,
+                abund_filter2, pair, len(common_sams)
+            )
+            new_qza2 = '%s.qza' % splitext(new_tsv2)[0]
             merge_and_write_metas(meta_subset1, meta_subset2, meta_fp)
             if force or not isfile(new_qza1):
                 cmd = filter_feature_table(qza1, new_qza1, meta_fp)
@@ -235,7 +117,11 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
             if force or not isfile(new_tsv2):
                 cmd = run_export(new_qza2, new_tsv2, 'FeatureTable')
                 common_jobs.append(cmd)
-            common_datasets.setdefault((pair, preval_filt, abund_filter), []).append([meta_fp, new_qza1, new_qza2])
+            common_datasets.setdefault(pair, []).append(
+                [meta_fp, omic_filt1, omic_filt2,
+                 new_tsv1, new_tsv2, new_qza1,
+                 new_qza2, len(common_sams)]
+            )
     return common_datasets, common_jobs
 
 
@@ -329,12 +215,11 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, r
         os.remove(cur_sh)
 
 
-
 def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
-                                     datasets_read: dict, mmvec_pairs: dict,
-                                     mmvec_filtering: dict, job_folder: str,
+                                     datasets_read: dict, unique_datasets: list,
+                                     mmvec_pairs: dict, filtering: dict, job_folder: str,
                                      force: bool, prjct_nm: str, qiime_env: str,
-                                     chmod: str, noloc: bool) -> (dict, dict):
+                                     chmod: str, noloc: bool, analysis: str) -> (dict, dict):
     """
     :param i_datasets_folder:
     :param datasets: list of data_sets.
@@ -348,33 +233,39 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
     :param chmod:
     :return:
     """
-    unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
 
     print('\t-> Get datasets filtered...', end = ' ')
-    filt_datasets, filt_jobs = get_datasets_filtered(i_datasets_folder, datasets, datasets_read,
-                                                     unique_datasets, mmvec_filtering, force)
+    filt_datasets, filt_jobs = get_datasets_filtered(
+        i_datasets_folder, datasets, datasets_read,
+        unique_datasets, filtering, force, analysis
+    )
     print('Done.')
-    print('\t-> Get common datasets...', end = ' ')
-    common_datasets, common_jobs = get_common_datasets(i_datasets_folder, mmvec_pairs,
-                                                       filt_datasets, force)
-    print('Done.')
+    common_datasets = {}
+    common_jobs = []
+    if analysis == 'mmvec':
+        print('\t-> Get common datasets...', end = ' ')
+        common_datasets, common_jobs = get_common_datasets(
+            i_datasets_folder, mmvec_pairs, filt_datasets, force
+        )
+        print('Done.')
+
     pre_jobs = filt_jobs + common_jobs
     if len(pre_jobs):
-        import_sh = '%s/2_run_mmvec_imports.sh' % job_folder
+        import_sh = '%s/2_run_%s_imports.sh' % (job_folder, analysis)
         import_pbs = '%s.pbs' % splitext(import_sh)[0]
         with open(import_sh, 'w') as import_o:
             for cmd in pre_jobs:
                 import_o.write('\necho "%s"\n' % cmd)
                 import_o.write('%s\n' % cmd)
-        run_xpbs(import_sh, import_pbs, '%s.xprt.lph' % prjct_nm,
+        run_xpbs(import_sh, import_pbs, '%s.mprt.mmsb' % prjct_nm,
                  qiime_env, '2', '1', '1', '150', 'mb', chmod, 1,
-                 '# Import common datasets for MMVEC', None, noloc)
+                 '# Import datasets for %s' % analysis, None, noloc)
     return filt_datasets, common_datasets
 
 
 def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
               datasets_read: dict, force: bool, gpu: bool, standalone: bool,
-              prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
+              prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> list:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
     https://github.com/biocore/mmvec
@@ -392,31 +283,27 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     :param qiime_env: qiime2-xxxx.xx conda environment.
     :param chmod: whether to change permission of output files (default: 644).
     """
+
     mmvec_pairs, mmvec_filtering, mmvec_params = get_mmvec_dicts(p_mmvec_pairs)
+    unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
+
     job_folder = get_job_folder(i_datasets_folder, 'mmvec')
     print(' [mmvec] Make filtered and_common datasets:')
     filt_datasets, common_datasets = make_filtered_and_common_dataset(
-        i_datasets_folder, datasets, datasets_read, mmvec_pairs, mmvec_filtering,
-        job_folder, force, prjct_nm, qiime_env, chmod, noloc)
-    mmvec_outputs = {}
+        i_datasets_folder, datasets, datasets_read, unique_datasets,
+        mmvec_pairs, mmvec_filtering, job_folder, force,
+        prjct_nm, qiime_env, chmod, noloc, 'mmvec')
 
     jobs = []
     all_sh_pbs = {}
-    for (pair, preval, abund), meta_qzas in common_datasets.items():
+    mmvec_outputs = []
+
+    for pair, pair_data in common_datasets.items():
 
         job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
         out_sh = '%s/chunks/run_mmvec_%s.sh' % (job_folder, pair)
-        pair_filt = '_'.join([str(x) for x in [pair, preval, abund]])
 
-        for (meta_fp, qza1, qza2) in meta_qzas:
-
-            # print('"""""""')
-            # print('COMMON:')
-            # print('""""""""""""""""""""""""""""""')
-            # print('meta_fp', meta_fp)
-            # print('qza1', qza1)
-            # print('qza2', qza2)
-            # print('""""""""""""""""""""""""""""""')
+        for (meta_fp, omic_filt1, omic_filt2, tsv1, tsv2, qza1, qza2, ncommon) in pair_data:
 
             train_columns = mmvec_params['train_column']
             n_examples = mmvec_params['n_examples']
@@ -434,9 +321,16 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                     thresh_feat, latent_dim, train_column,
                     n_example, str(gpu)[0]
                 )
-                mmvec_outputs.setdefault(pair, []).append([meta_fp, qza1, qza2, train_column, res_dir])
-                odir = get_analysis_folder(i_datasets_folder, 'mmvec/paired/%s/%s_%s/%s' % (pair, preval, abund, res_dir))
-                cur_sh = '%s/run_mmvec_%s_%s_%s.sh' % (job_folder2, preval, abund, res_dir)
+                odir = get_analysis_folder(i_datasets_folder, 'mmvec/paired/%s/%s__%s/%s' % (
+                    pair, omic_filt1, omic_filt2, res_dir
+                ))
+                mmvec_outputs.append([
+                    pair, omic_filt1, omic_filt2,
+                    mmvec_pairs[pair][0][0], mmvec_pairs[pair][1][0],
+                    ncommon, meta_fp, tsv1, tsv2, qza1, qza2,
+                    'mmvec_out__%s' % res_dir, odir
+                ])
+                cur_sh = '%s/run_mmvec_%s_%s_%s.sh' % (job_folder2, omic_filt1, omic_filt2, res_dir)
                 all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
                 # print('[', idx, ']', it)
                 # p = multiprocessing.Process(
@@ -447,14 +341,18 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                 #           gpu, force, standalone))
                 # p.start()
                 # jobs.append(p)
-                run_single_mmvec(odir, pair, meta_fp, qza1, qza2, res_dir, cur_sh,
-                                 batch, learn, epoch, prior, thresh_feat,
-                                 latent_dim, train_column, n_example,
-                                 gpu, force, standalone)
+                run_single_mmvec(
+                    odir, pair, meta_fp,
+                    qza1, qza2, res_dir, cur_sh,
+                    batch, learn, epoch, prior, thresh_feat,
+                    latent_dim, train_column, n_example,
+                    gpu, force, standalone
+                )
     # for j in jobs:
     #     j.join()
     if standalone:
         qiime_env = 'mmvec2'
+
     main_sh = write_main_sh(job_folder, '3_mmvec', all_sh_pbs,
                             '%s.mmvc' % prjct_nm, '150', '1', '1', '2', 'gb',
                             qiime_env, chmod, noloc)
@@ -462,4 +360,5 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         if p_mmvec_pairs.startswith('/panfs'):
             p_mmvec_pairs = p_mmvec_pairs.replace(os.getcwd(), '')
         print_message("# MMVEC (datasets pairs in %s)" % p_mmvec_pairs, 'sh', main_sh)
+
     return mmvec_outputs

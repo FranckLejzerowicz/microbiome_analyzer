@@ -16,9 +16,9 @@ from routine_qiime2_analyses._routine_q2_xpbs import print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_job_folder,
     get_analysis_folder,
-    get_songbird_dict,
+    get_songbird_dicts,
     write_main_sh,
-    read_meta_pd
+    read_meta_pd,
 )
 from routine_qiime2_analyses._routine_q2_metadata import (
     check_metadata_cases_dict,
@@ -28,6 +28,8 @@ from routine_qiime2_analyses._routine_q2_cmds import (
     get_new_meta_pd, get_case,
     write_songbird_cmd
 )
+from routine_qiime2_analyses._routine_q2_mmbird import get_mmvec_outputs
+from routine_qiime2_analyses._routine_q2_mmvec import make_filtered_and_common_dataset
 
 
 def run_multi_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
@@ -86,7 +88,7 @@ def run_multi_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
 def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
                         case: str, formula: str, case_var: str, case_vals: list, force: bool,
                         batch: str, learn: str, epoch: str, diff_prior: str,
-                        thresh_feat: str, thresh_sample: str, n_random: str) -> None:
+                        thresh_feat: str, thresh_sample: str, n_random: str) -> (str, str):
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
@@ -137,10 +139,12 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
             remove = False
     if remove:
         os.remove(cur_sh)
+    return diffs, tensor_dir
 
 
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
-                 force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
+                 datasets_read: dict, mmvec_outputs: list, force: bool,
+                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
@@ -154,8 +158,36 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     :param qiime_env: qiime2-xxxx.xx conda environment.
     :param chmod: whether to change permission of output files (defalt: 775).
     """
+    job_folder = get_job_folder(i_datasets_folder, 'songbird')
     job_folder2 = get_job_folder(i_datasets_folder, 'songbird/chunks')
-    main_models, main_cases_dict, params = get_songbird_dict(p_diff_models)
+    songbird_dicts = get_songbird_dicts(p_diff_models)
+    songbird_models = songbird_dicts[0]
+    songbird_filtering = songbird_dicts[1]
+    params = songbird_dicts[2]
+    songbird_datasets = songbird_dicts[3]
+    main_cases_dict = songbird_dicts[4]
+
+    # print("songbird_models")
+    # print(songbird_models)
+    # {
+    #   'vioscreen_foods_consumed_grams_per_day_1800s_noLiquids':
+    #       {'age': 'age_years', 'bmi': 'bmi'},
+    #   'vioscreen_micromacro_qemistree_1800s':
+    #       {'age': 'age_years', 'bmi': 'bmi'}}
+
+    # print("songbird_filtering")
+    # print(songbird_filtering)
+    # {'prevalence': ['0', '10'],
+    #  'abundance': [['0', '0'], ['1', '3']]}
+
+    # print("main_cases_dict")
+    # print(main_cases_dict)
+    # {'ALL': [[]]}
+
+    # print("params")
+    # print(params)
+    # {'batches': ['2'], 'learns': ['1e-3'], 'epochs': ['20'],
+    #  'thresh_feats': ['0'], 'thresh_samples': ['0'], 'diff_priors': ['0.5'], 'n_randoms': ['250']}
 
     batches = params['batches']
     learns = params['learns']
@@ -165,64 +197,91 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     diff_priors = params['diff_priors']
     n_randoms = params['n_randoms']
 
-    songbird_outputs = {}
+    filt_datasets, common_datasets = make_filtered_and_common_dataset(
+        i_datasets_folder, datasets, datasets_read,
+        songbird_datasets, {}, songbird_filtering,
+        job_folder, force, prjct_nm, qiime_env,
+        chmod, noloc, 'songbird')
+
+    songbirds = {}
+    for dat, filts_files in filt_datasets.items():
+        for filts, files in filts_files.items():
+            songbirds.setdefault(dat, []).append(['_'.join(filts), files[0], files[2]])
+
+    if mmvec_outputs:
+        mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
+        for r, row in mmvec_outputs_pd.iterrows():
+            dat1 = row['omic1']
+            dat2 = row['omic2']
+            dat_filt1 = row['omic_filt1']
+            dat_filt2 = row['omic_filt2']
+            omic1_common_fp = row['omic1_common_fp']
+            omic2_common_fp = row['omic2_common_fp']
+            meta_common_fp = row['meta_common_fp']
+            songbirds.setdefault(dat1, []).append([dat_filt1, omic1_common_fp, meta_common_fp])
+            songbirds.setdefault(dat2, []).append([dat_filt2, omic2_common_fp, meta_common_fp])
 
     jobs = []
     all_sh_pbs = {}
     first_print = 0
-    for dat, tsv_meta_pds in datasets.items():
-
-        tsv, meta_ = tsv_meta_pds
-        meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
-        if isfile(meta_alphas):
-            meta = meta_alphas
-        else:
-            meta = meta_
-            if not first_print:
-                print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
-                      '\t(if you have alpha diversity as a factors in the models)!')
-                first_print += 1
-
-        qza = '%s.qza' % splitext(tsv)[0]
-        meta_pd = read_meta_pd(meta)
-        meta_pd = meta_pd.set_index('sample_name')
-
-        cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
-        if dat in main_models:
-            models = check_metadata_models(meta, meta_pd, main_models[dat], 'songbird')
-        else:
-            continue
+    songbird_outputs = {}
+    for dat, filts_tsvs_metas in songbirds.items():
 
         out_sh = '%s/run_songbird_%s.sh' % (job_folder2, dat)
-        for model, formula in models.items():
-            for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
-                                                       thresh_feats, thresh_samples, n_randoms)):
-                batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random = [str(x) for x in it]
-                res_dir = '%s/%s/filt_f%s_s%s/%s_%s_%s_%s' % (
-                    dat, model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE'),
-                    thresh_feat, thresh_sample, batch, learn, epoch, diff_prior.replace('.', '')
-                )
-                songbird_outputs.setdefault(dat, []).append([dat, meta, qza, model, res_dir])
-                odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % res_dir)
-                for case_var, case_vals_list in cases_dict.items():
-                    for case_vals in case_vals_list:
-                        
-                        case = get_case(case_vals, case_var, str(idx))
-                        cur_sh = '%s/run_songbird_%s_%s_%s.sh' % (
-                            job_folder2, dat, model, case)
-                        cur_sh = cur_sh.replace(' ', '-')
-                        all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                        run_single_songbird(odir, qza, meta_pd, cur_sh, case, formula,
-                                            case_var, case_vals, force, batch, learn,
-                                            epoch, diff_prior, thresh_feat,
-                                            thresh_sample, n_random)
-                        # p = multiprocessing.Process(
-                        #     target=run_multi_songbird,
-                        #     args=(odir, qza, meta_pd, cur_sh, case, formula, case_var, case_vals, force,
-                        #           batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random
-                        #           ))
-                        # p.start()
-                        # jobs.append(p)
+        for (filt, tsv, meta_) in filts_tsvs_metas:
+
+            meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
+            if isfile(meta_alphas):
+                meta = meta_alphas
+            else:
+                meta = meta_
+                if not first_print:
+                    print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
+                          '\t(if you have alpha diversity as a factors in the models)!')
+                    first_print += 1
+
+            qza = '%s.qza' % splitext(tsv)[0]
+            meta_pd = read_meta_pd(meta)
+            meta_pd = meta_pd.set_index('sample_name')
+
+            cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
+            if dat in songbird_models:
+                models = check_metadata_models(meta, meta_pd, songbird_models[dat], 'songbird')
+            else:
+                continue
+
+            for model, formula in models.items():
+                for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
+                                                           thresh_feats, thresh_samples, n_randoms)):
+                    batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random = [str(x) for x in it]
+                    model_rep = model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE')
+                    params = '%s/%s/filt_f%s_s%s/%s_%s_%s_%s' % (
+                        filt, model_rep, thresh_feat, thresh_sample,
+                        batch, learn, epoch, diff_prior.replace('.', '')
+                    )
+                    res_dir = '%s/%s' % (dat, params)
+                    odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % res_dir)
+                    for case_var, case_vals_list in cases_dict.items():
+                        for case_vals in case_vals_list:
+                            case = get_case(case_vals, case_var, str(idx))
+                            cur_sh = '%s/run_songbird_%s_%s_%s_%s.sh' % (
+                                job_folder2, dat, filt, model_rep, case)
+                            cur_sh = cur_sh.replace(' ', '-')
+                            all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
+                            diffs, tensor = run_single_songbird(
+                                odir, qza, meta_pd, cur_sh, case, formula,
+                                case_var, case_vals, force, batch, learn,
+                                epoch, diff_prior, thresh_feat,
+                                thresh_sample, n_random
+                            )
+                            songbird_outputs.setdefault(dat, []).append([params.replace('/', '__'), diffs, tensor])
+                            # p = multiprocessing.Process(
+                            #     target=run_multi_songbird,
+                            #     args=(odir, qza, meta_pd, cur_sh, case, formula, case_var, case_vals, force,
+                            #           batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random
+                            #           ))
+                            # p.start()
+                            # jobs.append(p)
     # for j in jobs:
     #     j.join()
 

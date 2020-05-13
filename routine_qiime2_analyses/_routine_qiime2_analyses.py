@@ -210,16 +210,18 @@ def routine_qiime2_analyses(
     # ------------------------------------------------------------------------------
 
     # MMVEC AND SONGBIRD -----------------------------------------------------------
-    songbird_outputs, mmvec_outputs = {}, {}
-    if p_diff_models:
-        if 'songbird' not in p_skip:
-            songbird_outputs = run_songbird(p_diff_models, i_datasets_folder, datasets,
-                                            force, prjct_nm, qiime_env, chmod, noloc)
+    mmvec_outputs = []
     if p_mmvec_pairs:
         if 'mmvec' not in p_skip:
             mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
                                       datasets_read, force, gpu, standalone,
                                       prjct_nm, qiime_env, chmod, noloc)
+    songbird_outputs = {}
+    if p_diff_models:
+        if 'songbird' not in p_skip:
+            songbird_outputs = run_songbird(p_diff_models, i_datasets_folder, datasets,
+                                            datasets_read, mmvec_outputs, force,
+                                            prjct_nm, qiime_env, chmod, noloc)
     if p_diff_models and p_mmvec_pairs:
         run_mmbird(i_datasets_folder, datasets, taxonomies,
                    songbird_outputs, mmvec_outputs,
