@@ -248,6 +248,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
             if dat in songbird_models:
+                print()
+                print(dat)
+                print(meta)
                 models = check_metadata_models(meta, meta_pd, songbird_models[dat], 'songbird')
             else:
                 continue
