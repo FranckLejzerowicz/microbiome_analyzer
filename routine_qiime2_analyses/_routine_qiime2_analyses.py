@@ -38,6 +38,7 @@ def routine_qiime2_analyses(
         p_longi_column: str,
         thresh: int,
         p_alpha_subsets: str,
+        p_beta_subsets: str,
         p_perm_tests: tuple,
         p_perm_groups: str,
         p_formulas: str,
@@ -175,7 +176,8 @@ def routine_qiime2_analyses(
     # BETA ----------------------------------------------------
     if 'beta' not in p_skip:
         betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
-                         trees, force, prjct_nm, qiime_env, chmod, noloc, Bs)
+                         datasets_read, p_beta_subsets, trees, force,
+                         prjct_nm, qiime_env, chmod, noloc, Bs)
         if 'export_beta' not in p_skip:
             export_beta(i_datasets_folder, betas,
                         force, prjct_nm, qiime_env, chmod, noloc)
@@ -216,7 +218,7 @@ def routine_qiime2_analyses(
             mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
                                       datasets_read, force, gpu, standalone,
                                       prjct_nm, qiime_env, chmod, noloc)
-    songbird_outputs = {}
+    songbird_outputs = []
     if p_diff_models:
         if 'songbird' not in p_skip:
             songbird_outputs = run_songbird(p_diff_models, i_datasets_folder, datasets,

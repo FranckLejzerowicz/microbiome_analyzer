@@ -6,11 +6,9 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-# import os
-# import itertools
+import os, sys
 import pandas as pd
 from os.path import basename, isfile, splitext
-# import multiprocessing
 
 
 def get_mmvec_outputs(mmvec_outputs: list):
@@ -38,26 +36,42 @@ def get_mmvec_outputs(mmvec_outputs: list):
     return mmvec_outputs_pd
 
 
+def get_songbird_outputs(songbird_outputs: list):
+    songbird_outputs_pd = pd.DataFrame(
+        songbird_outputs,
+        columns=[
+            'songbird_dat',
+            'songbird_filt',
+            'songbird_parameters',
+            'songbird_case_var',
+            'songbird_case',
+            'songbird_fp',
+            'songbird_q2'
+         ])
+    # songbird_outputs_pd = mmvec_outputs_pd.set_index(
+    #     mmvec_outputs_pd.columns.tolist()[:-1]).unstack()
+    # mmvec_outputs_pd.columns = mmvec_outputs_pd.columns.droplevel()
+    # mmvec_outputs_pd.reset_index(inplace=True)
+    return songbird_outputs_pd
+
+
 def run_mmbird(i_datasets_folder: str, datasets: dict, taxonomies: dict,
-               songbird_outputs: dict, mmvec_outputs: dict,
+               songbird_outputs: list, mmvec_outputs: list,
                prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
 
     # print("songbird_outputs")
     # print(songbird_outputs)
 
-    songbird_table = []
-    for omic, params in songbird_outputs.items():
-        songbird_table.append(([omic] + params))
-    songbird_table_pd = pd.DataFrame(
-        songbird_table,
-        columns=[
-             'omic',
-             'songbird_parameters',
-             'songbird_fp',
-             'songbird_q2'
-         ])
-    songbird_table_pd = songbird_table_pd.set_index(songbird_table_pd.columns.tolist()[:2]).unstack()
-    songbird_table_pd.columns = songbird_table_pd.columns.droplevel()
-    songbird_table_pd.reset_index(inplace=True)
-    songbird_table_pd.to_csv('/Users/franck/Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/nut/songbird_table_pd.tsv', index=False, sep='\t')
+    if not mmvec_outputs:
+        print('No mmvec output detected...')
+        sys.exit(0)
+    if not songbird_outputs:
+        print('No songbird output detected...')
+        sys.exit(0)
+
+    mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
+    mmvec_outputs_pd.to_csv('/Users/franck/Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/nut/mmvec_outputs_pd.tsv', index=False, sep='\t')
+
+    songbird_outputs_pd = get_songbird_outputs(songbird_outputs)
+    songbird_outputs_pd.to_csv('/Users/franck/Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/nut/songbird_outputs_pd.tsv', index=False, sep='\t')
     pass

@@ -21,20 +21,20 @@ from routine_qiime2_analyses._routine_q2_cmds import run_import, run_export
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
 
-def get_alpha_subsets(p_alpha_subsets: str) -> dict:
+def get_subsets(p_subsets: str) -> dict:
     """
-    :param p_alpha_subsets: Subsets for alpha diversity.
+    :param p_subsets: Subsets for alpha diversity.
     """
-    if p_alpha_subsets:
-        if not isfile(p_alpha_subsets):
-            print('[Warning] yaml file for alpha subsets does not exist: %s\n' % p_alpha_subsets)
+    if p_subsets:
+        if not isfile(p_subsets):
+            print('[Warning] yaml file for subsets does not exist: %s\n' % p_subsets)
         else:
-            with open(p_alpha_subsets) as handle:
-                alpha_subsets = yaml.load(handle, Loader=yaml.FullLoader)
-            if not isinstance(alpha_subsets, dict):
-                print('[Warning] %s must be a dictionary\n' % p_alpha_subsets)
+            with open(p_subsets) as handle:
+                subsets = yaml.load(handle, Loader=yaml.FullLoader)
+            if not isinstance(subsets, dict):
+                print('[Warning] %s must be a dictionary\n' % p_subsets)
             else:
-                return alpha_subsets
+                return subsets
     return {}
 
 

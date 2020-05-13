@@ -146,7 +146,7 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
 
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                  datasets_read: dict, mmvec_outputs: list, force: bool,
-                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
+                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> list:
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
@@ -226,7 +226,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     jobs = []
     all_sh_pbs = {}
     first_print = 0
-    songbird_outputs = {}
+    songbird_outputs = []
     for dat, filts_tsvs_metas in songbirds.items():
 
         out_sh = '%s/run_songbird_%s.sh' % (job_folder2, dat)
@@ -277,7 +277,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                 thresh_sample, n_random
                             )
                             if '/mmvec/' in tsv:
-                                songbird_outputs.setdefault(dat, []).append([params.replace('/', '__'), diffs, tensor_html])
+                                songbird_outputs.append([dat, filt, params.replace('/', '__'),
+                                                         case_var, case, diffs, tensor_html])
                             # p = multiprocessing.Process(
                             #     target=run_multi_songbird,
                             #     args=(odir, qza, meta_pd, cur_sh, case, formula, case_var, case_vals, force,

@@ -13,13 +13,13 @@ from os.path import isdir, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
 
-def get_subset(tsv_pd: pd.DataFrame, subset: str, meta_subset: str, subset_regex: list) -> int:
+def get_subset(tsv_pd: pd.DataFrame, subset: str, feats_subset: str, subset_regex: list) -> int:
     """
     Make a feature metadata from the regex
     to get the names of the features to keep.
 
     :param tsv_pd: Table containing the features to subset.
-    :param meta_subset: Feature metadata to create.
+    :param feats_subset: Feature metadata to create.
     :param subset_regex: subsetting regex.
     """
     to_keep_feats = {}
@@ -28,11 +28,11 @@ def get_subset(tsv_pd: pd.DataFrame, subset: str, meta_subset: str, subset_regex
     to_keep_feats_pd = pd.DataFrame(to_keep_feats)
     to_keep_feats = to_keep_feats_pd.any(axis=1)
 
-    feats_subset = tsv_pd.index[to_keep_feats].tolist()
-    subset_pd = pd.DataFrame({'Feature ID': feats_subset, 'Subset': [subset]*len(feats_subset)})
-    subset_pd.to_csv(meta_subset, index=False, sep='\t')
+    feats_subset_list = tsv_pd.index[to_keep_feats].tolist()
+    subset_pd = pd.DataFrame({'Feature ID': feats_subset_list, 'Subset': [subset]*len(feats_subset_list)})
+    subset_pd.to_csv(feats_subset, index=False, sep='\t')
 
-    return len(feats_subset)
+    return len(feats_subset_list)
 
 
 def write_filter_features(qza: str, qza_subset: str, meta_subset: str, cur_sh: TextIO) -> None:

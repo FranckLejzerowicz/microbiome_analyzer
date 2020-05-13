@@ -62,6 +62,10 @@ from routine_qiime2_analyses import __version__
     help="Regex to use for subsetting features for alpha diversity subsets (yml file)."
 )
 @click.option(
+    "-k", "--p-beta-subsets", required=False, show_default=True, default=None,
+    help="Regex to use for subsetting features for beta diversity subsets (yml file)."
+)
+@click.option(
     "-t", "--p-perm-tests", multiple=True, required=False, show_default=True, default=False,
     help="Groups to tests between in each PERMANOVA subset "
          "(multiple values are possible, e.g. '-d sex -d age_cat')."
@@ -152,6 +156,7 @@ def standalone_routine(
         p_longi_column,
         p_reads_filter,
         p_alpha_subsets,
+        p_beta_subsets,
         p_perm_tests,
         p_perm_groups,
         p_adonis_formulas,
@@ -180,6 +185,7 @@ def standalone_routine(
         p_longi_column,
         p_reads_filter,
         p_alpha_subsets,
+        p_beta_subsets,
         p_perm_tests,
         p_perm_groups,
         p_adonis_formulas,

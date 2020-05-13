@@ -15,7 +15,7 @@ from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics, get_job_folder, get_analysis_folder,
     write_main_sh, get_main_cases_dict, read_meta_pd,
-    get_alpha_subsets, get_raref_tab_meta_pds
+    get_subsets, get_raref_tab_meta_pds
 )
 from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
 from routine_qiime2_analyses._routine_q2_cmds import (
@@ -48,7 +48,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     """
     # alpha_subsets_deletions = []
     alpha_metrics = get_metrics('alpha_metrics', As)
-    alpha_subsets = get_alpha_subsets(p_alpha_subsets)
+    alpha_subsets = get_subsets(p_alpha_subsets)
     job_folder = get_job_folder(i_datasets_folder, 'alpha')
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha/chunks')
     written = 0
@@ -91,11 +91,13 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                     for subset, subset_regex in alpha_subsets[dat].items():
                         odir = get_analysis_folder(i_datasets_folder, 'alpha/%s/%s' % (dat, subset))
                         qza_subset = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]),  subset)
-                        meta_subset = '%s.meta' % splitext(qza_subset)[0]
-                        nfeats = get_subset(tsv_pd, subset, meta_subset, subset_regex)
+                        feats_subset = '%s.meta' % splitext(qza_subset)[0]
+                        nfeats = get_subset(tsv_pd, subset, feats_subset, subset_regex)
+                        print(subset, nfeats)
+                        print(subset_regex)
                         if not nfeats:
                             continue
-                        write_filter_features(qza, qza_subset, meta_subset, cur_sh)
+                        write_filter_features(qza, qza_subset, feats_subset, cur_sh)
                         for metric in alpha_metrics:
                             out_fp = '%s/%s_%s__%s.qza' % (odir, basename(splitext(qza)[0]), metric, subset)
                             out_tsv = '%s.tsv' % splitext(out_fp)[0]
