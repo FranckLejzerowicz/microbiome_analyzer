@@ -54,10 +54,11 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
     job_folder2 = get_job_folder(i_datasets_folder, 'beta/chunks')
 
     betas = {}
-    written = 0
+    main_written = 0
     run_pbs = '%s/2_run_beta.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
+            written = 0
             tsv, meta = tsv_meta_pds
 
             if datasets_read[dat] == 'raref':
@@ -68,7 +69,6 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                 datasets_read[dat] = [tsv_pd, meta_pd]
             else:
                 tsv_pd, meta_pd = datasets_read[dat]
-
 
             if dat not in betas:
                 betas[dat] = {}
@@ -87,6 +87,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                         if ret_continue:
                             continue
                         written += 1
+                        main_written += 1
                     # divs.setdefault('', []).append(out_fp)
                     divs.append(out_fp)
 
@@ -107,6 +108,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                 if ret_continue:
                                     continue
                                 written += 1
+                                main_written += 1
                             # divs.setdefault(subset, []).append(out_fp)
                             divs.append(out_fp)
 
@@ -114,7 +116,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
             run_xpbs(out_sh, out_pbs, '%s.bt.%s' % (prjct_nm, dat),
                      qiime_env, '24', '1', '1', '10', 'gb',
                      chmod, written, 'single', o, noloc)
-    if written:
+    if main_written:
         print_message('# Calculate beta diversity indices', 'sh', run_pbs)
     return betas
 
@@ -171,10 +173,11 @@ def run_pcoas(i_datasets_folder: str, datasets: dict, betas: dict,
     job_folder2 = get_job_folder(i_datasets_folder, 'pcoa/chunks')
 
     pcoas_d = {}
-    written = 0
+    main_written = 0
     run_pbs = '%s/3_run_pcoa.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, meta_DMs in betas.items():
+            written = 0
             # tsv, meta = datasets[dat]
             odir = get_analysis_folder(i_datasets_folder, 'pcoa/%s' % dat)
             if dat not in pcoas_d:
@@ -192,10 +195,11 @@ def run_pcoas(i_datasets_folder: str, datasets: dict, betas: dict,
                         if force or not isfile(out):
                             write_diversity_pcoa(DM, out, cur_sh)
                             written += 1
+                            main_written += 1
             run_xpbs(out_sh, out_pbs, '%s.pc.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '2', '2', 'gb',
                      chmod, written, 'single', o, noloc)
-    if written:
+    if main_written:
         print_message('# Calculate principal coordinates', 'sh', run_pbs)
     return pcoas_d
 
@@ -215,11 +219,12 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, prjct_nm: str,
     job_folder = get_job_folder(i_datasets_folder, 'emperor')
     job_folder2 = get_job_folder(i_datasets_folder, 'emperor/chunks')
 
-    written = 0
+    main_written = 0
     first_print = 0
     run_pbs = '%s/4_run_emperor.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, meta_pcoas in pcoas_d.items():
+            written = 0
             odir = get_analysis_folder(i_datasets_folder, 'emperor/%s' % dat)
             out_sh = '%s/run_emperor_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
@@ -241,10 +246,11 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, prjct_nm: str,
                             os.makedirs(out_dir)
                         write_emperor(meta, pcoa, out_plot, cur_sh)
                         written += 1
+                        main_written += 1
             run_xpbs(out_sh, out_pbs, '%s.mprr.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '1', '1', 'gb',
                      chmod, written, 'single', o, noloc)
-    if written:
+    if main_written:
         print_message('# Make EMPeror plots', 'sh', run_pbs)
 
 
@@ -267,10 +273,11 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies:
     job_folder2 = get_job_folder(i_datasets_folder, 'biplot/chunks')
 
     biplots_d = {}
-    written = 0
+    main_written = 0
     run_pbs = '%s/3_run_biplot.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, meta_DMs in betas.items():
+            written = 0
             if dat in taxonomies:
                 method, tax_qza = taxonomies[dat]
             else:
@@ -295,11 +302,12 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies:
                             write_diversity_biplot(tsv, qza, out_pcoa, out_biplot,
                                                    tax_qza, tsv_tax, cur_sh)
                             written += 1
+                            main_written += 1
                         biplots_d[dat].setdefault(meta, []).append((out_biplot, tsv_tax))
             run_xpbs(out_sh, out_pbs, '%s.bplt.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '2', '2', 'gb',
                      chmod, written, 'single', o, noloc)
-    if written:
+    if main_written:
         print_message('# Calculate principal coordinates (biplot)', 'sh', run_pbs)
     return biplots_d
 
@@ -319,11 +327,12 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
     job_folder = get_job_folder(i_datasets_folder, 'emperor_biplot')
     job_folder2 = get_job_folder(i_datasets_folder, 'emperor_biplot/chunks')
 
-    written = 0
+    main_written = 0
     first_print = 0
     run_pbs = '%s/4_run_emperor_biplot.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, meta_biplots_taxs in biplots_d.items():
+            written = 0
             if dat in taxonomies:
                 method, tax_qza = taxonomies[dat]
                 tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
@@ -353,8 +362,9 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
                         else:
                             write_emperor_biplot(meta, biplot, out_plot, cur_sh, tax_tsv)
                         written += 1
+                        main_written += 1
             run_xpbs(out_sh, out_pbs, '%s.mprr.bplt.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '1', '1', 'gb',
                      chmod, written, 'single', o, noloc)
-    if written:
+    if main_written:
         print_message('# Make EMPeror biplots', 'sh', run_pbs)
