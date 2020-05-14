@@ -258,11 +258,11 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                                            thresh_feats, thresh_samples, n_randoms)):
                     batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random = [str(x) for x in it]
                     model_rep = model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE')
-                    params = '%s/%s/filt_f%s_s%s/%s_%s_%s_%s' % (
-                        filt, model_rep, thresh_feat, thresh_sample,
+                    params = '%s/filt_f%s_s%s/%s_%s_%s_%s' % (
+                        model_rep, thresh_feat, thresh_sample,
                         batch, learn, epoch, diff_prior.replace('.', '')
                     )
-                    res_dir = '%s/%s' % (dat, params)
+                    res_dir = '%s/%s/%s' % (dat, filt, params)
                     odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % res_dir)
                     for case_var, case_vals_list in cases_dict.items():
                         for case_vals in case_vals_list:
