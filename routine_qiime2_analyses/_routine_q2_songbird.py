@@ -208,29 +208,30 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     songbirds = {}
     for dat, filts_files in filt_datasets.items():
         for filts, files in filts_files.items():
-            songbirds.setdefault(dat, []).append(['_'.join(filts), files[0], files[2]])
+            songbirds.setdefault(dat, []).append(['_'.join(filts), files[0], files[2], ''])
 
     if mmvec_outputs:
         mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
         for r, row in mmvec_outputs_pd.iterrows():
-            dat1 = row['omic1']
-            dat2 = row['omic2']
-            dat_filt1 = row['omic_filt1']
-            dat_filt2 = row['omic_filt2']
+            pair = row['pair']
+            omic1 = row['omic1']
+            omic2 = row['omic2']
+            filt1 = row['filt1']
+            filt2 = row['filt2']
             omic1_common_fp = row['omic1_common_fp']
             omic2_common_fp = row['omic2_common_fp']
             meta_common_fp = row['meta_common_fp']
-            songbirds.setdefault(dat1, []).append([dat_filt1, omic1_common_fp, meta_common_fp])
-            songbirds.setdefault(dat2, []).append([dat_filt2, omic2_common_fp, meta_common_fp])
+            songbirds.setdefault(omic1, []).append([filt1, omic1_common_fp, meta_common_fp, pair])
+            songbirds.setdefault(omic2, []).append([filt2, omic2_common_fp, meta_common_fp, pair])
 
     jobs = []
     all_sh_pbs = {}
     first_print = 0
     songbird_outputs = []
-    for dat, filts_tsvs_metas in songbirds.items():
+    for dat, filts_tsvs_metas_pair in songbirds.items():
 
         out_sh = '%s/run_songbird_%s.sh' % (job_folder2, dat)
-        for (filt, tsv, meta_) in filts_tsvs_metas:
+        for (filt, tsv, meta_, pair) in filts_tsvs_metas_pair:
 
             meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
             if isfile(meta_alphas):
@@ -276,9 +277,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                 epoch, diff_prior, thresh_feat,
                                 thresh_sample, n_random
                             )
-                            if '/mmvec/' in tsv:
+                            if pair:
                                 songbird_outputs.append([dat, filt, params.replace('/', '__'),
-                                                         case_var, case, diffs, tensor_html])
+                                                         case, diffs, pair])
                             # p = multiprocessing.Process(
                             #     target=run_multi_songbird,
                             #     args=(odir, qza, meta_pd, cur_sh, case, formula, case_var, case_vals, force,

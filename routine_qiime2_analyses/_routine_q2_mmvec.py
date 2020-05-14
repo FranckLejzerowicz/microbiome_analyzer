@@ -83,8 +83,8 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
         for fdx in range(len(filts_1)):
             preval_filt1, abund_filter1 = filts_1[fdx]
             preval_filt2, abund_filter2 = filts_2[fdx]
-            omic_filt1 = '_'.join([omic1, preval_filt1, abund_filter1])
-            omic_filt2 = '_'.join([omic2, preval_filt2, abund_filter2])
+            omic_filt1 = '_'.join([preval_filt1, abund_filter1])
+            omic_filt2 = '_'.join([preval_filt2, abund_filter2])
             tsv1, qza1, meta1, meta_pd1, sams1 = filt_datasets[omic1][filts_1[fdx]]
             tsv2, qza2, meta2, meta_pd2, sams2 = filt_datasets[omic2][filts_2[fdx]]
             common_sams = sorted(set(sams1) & set(sams2))
@@ -119,7 +119,7 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
                 cmd = run_export(new_qza2, new_tsv2, 'FeatureTable')
                 common_jobs.append(cmd)
             common_datasets.setdefault(pair, []).append(
-                [meta_fp, omic_filt1, omic_filt2,
+                [meta_fp, omic1, omic2, omic_filt1, omic_filt2,
                  new_tsv1, new_tsv2, new_qza1,
                  new_qza2, len(common_sams)]
             )
@@ -304,7 +304,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
         out_sh = '%s/chunks/run_mmvec_%s.sh' % (job_folder, pair)
 
-        for (meta_fp, omic_filt1, omic_filt2, tsv1, tsv2, qza1, qza2, ncommon) in pair_data:
+        for (meta_fp, omic1, omic2, filt1, filt2, tsv1, tsv2, qza1, qza2, ncommon) in pair_data:
 
             train_columns = mmvec_params['train_column']
             n_examples = mmvec_params['n_examples']
@@ -322,16 +322,15 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                     thresh_feat, latent_dim, train_column,
                     n_example, str(gpu)[0]
                 )
-                odir = get_analysis_folder(i_datasets_folder, 'mmvec/paired/%s/%s__%s/%s' % (
-                    pair, omic_filt1, omic_filt2, res_dir
+                odir = get_analysis_folder(i_datasets_folder, 'mmvec/paired/%s/%s_%s__%s_%s/%s' % (
+                    pair, omic1, filt1, omic2, filt2, res_dir
                 ))
                 mmvec_outputs.append([
-                    pair, omic_filt1, omic_filt2,
-                    mmvec_pairs[pair][0][0], mmvec_pairs[pair][1][0],
+                    pair, omic1, omic2, filt1, filt2,
                     ncommon, meta_fp, tsv1, tsv2, qza1, qza2,
                     'mmvec_out__%s' % res_dir, odir
                 ])
-                cur_sh = '%s/run_mmvec_%s_%s_%s.sh' % (job_folder2, omic_filt1, omic_filt2, res_dir)
+                cur_sh = '%s/run_mmvec_%s_%s_%s_%s.sh' % (job_folder2, pair, filt1, filt2, res_dir)
                 all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
                 # print('[', idx, ']', it)
                 # p = multiprocessing.Process(

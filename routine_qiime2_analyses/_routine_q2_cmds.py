@@ -13,7 +13,7 @@ from os.path import isdir, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
 
-def get_subset(tsv_pd: pd.DataFrame, subset: str, feats_subset: str, subset_regex: list) -> int:
+def get_subset(tsv_pd: pd.DataFrame, subset_regex: list) -> list:
     """
     Make a feature metadata from the regex
     to get the names of the features to keep.
@@ -29,10 +29,9 @@ def get_subset(tsv_pd: pd.DataFrame, subset: str, feats_subset: str, subset_rege
     to_keep_feats = to_keep_feats_pd.any(axis=1)
 
     feats_subset_list = tsv_pd.index[to_keep_feats].tolist()
-    subset_pd = pd.DataFrame({'Feature ID': feats_subset_list, 'Subset': [subset]*len(feats_subset_list)})
-    subset_pd.to_csv(feats_subset, index=False, sep='\t')
-
-    return len(feats_subset_list)
+    # subset_pd = pd.DataFrame({'Feature ID': feats_subset_list, 'Subset': [subset]*len(feats_subset_list)})
+    # subset_pd.to_csv(feats_subset, index=False, sep='\t')
+    return feats_subset_list
 
 
 def write_filter_features(qza: str, qza_subset: str, meta_subset: str, cur_sh: TextIO) -> None:
@@ -412,7 +411,7 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
 
 
 def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: str,
-                         qza: str, metric: str, cur_sh: TextIO) -> bool:
+                         qza: str, metric: str, cur_sh: TextIO, subset: bool) -> None:
     """
     Computes a user-specified beta diversity metric for all pairs of samples
     in a feature table.
@@ -432,13 +431,16 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
     :return: whether the command is to be skipped or not.
     """
     if 'unifrac' in metric:
-        if not datasets_phylo[dat][0] or dat not in trees:
-            return True
+        # if not datasets_phylo[dat][0] or dat not in trees:
+        #     return True
         cmd = 'qiime diversity beta-phylogenetic \\\n'
-        if datasets_phylo[dat][1]:
-            cmd += '--i-table %s \\\n' % trees[dat][0]
-        else:
+        if subset:
             cmd += '--i-table %s \\\n' % qza
+        else:
+            if datasets_phylo[dat][1]:
+                cmd += '--i-table %s \\\n' % trees[dat][0]
+            else:
+                cmd += '--i-table %s \\\n' % qza
         cmd += '--i-phylogeny %s \\\n' % trees[dat][1]
     else:
         cmd = 'qiime diversity beta \\\n'
@@ -448,7 +450,7 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
     cmd += '--o-distance-matrix %s\n' % out_fp
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
-    return False
+    # return False
 
 
 def write_diversity_pcoa(DM: str, out_pcoa: str, cur_sh: TextIO) -> None:
@@ -690,6 +692,10 @@ def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
     cmd += '--i-tree %s \\\n' % out_fp_sepp_tree
     cmd += '--o-filtered-table %s \\\n' % qza_in
     cmd += '--o-removed-table %s\n' % qza_out
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n\n' % cmd)
+    qza_in_tsv = '%s.tsv' % splitext(qza_in)[0]
+    cmd = run_export(qza_in, qza_in_tsv, 'FeatureTable')
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 

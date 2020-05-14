@@ -16,10 +16,10 @@ def get_mmvec_outputs(mmvec_outputs: list):
         mmvec_outputs,
         columns=[
              'pair',
-             'omic_filt1',
-             'omic_filt2',
              'omic1',
              'omic2',
+             'filt1',
+             'filt2',
              'n_common',
              'meta_common_fp',
              'omic1_common_fp',
@@ -43,10 +43,9 @@ def get_songbird_outputs(songbird_outputs: list):
             'songbird_dat',
             'songbird_filt',
             'songbird_parameters',
-            'songbird_case_var',
             'songbird_case',
-            'songbird_fp',
-            'songbird_q2'
+            'songbird_fp'
+            'pair'
          ])
     # songbird_outputs_pd = mmvec_outputs_pd.set_index(
     #     mmvec_outputs_pd.columns.tolist()[:-1]).unstack()
