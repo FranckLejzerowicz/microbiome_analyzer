@@ -44,7 +44,7 @@ def get_songbird_outputs(songbird_outputs: list):
             'songbird_filt',
             'songbird_parameters',
             'songbird_case',
-            'songbird_fp'
+            'songbird_fp',
             'pair'
          ])
     # songbird_outputs_pd = mmvec_outputs_pd.set_index(
