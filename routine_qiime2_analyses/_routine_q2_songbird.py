@@ -115,18 +115,17 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
     """
     remove = True
 
-    cur_rad = odir + '/' + basename(qza).replace('.qza', '_%s' % case)
-    new_meta = '%s.meta' % cur_rad
-    new_qza = '%s.qza' % cur_rad
-    diffs = '%s_differentials.tsv' % cur_rad
-    diffs_qza = '%s_differentials.qza' % cur_rad
-    stats = '%s_differentials-stats.qza' % cur_rad
-    plot = '%s_differentials-biplot.qza' % cur_rad
-    base_diff_qza = '%s_differentials-baseline.qza' % cur_rad
-    base_stats = '%s_differentials-baseline-stats.qza' % cur_rad
-    base_plot = '%s_differentials-baseline-biplot.qza' % cur_rad
-    tensor = '%s_differentials-tensorboard.qzv' % cur_rad
-    tensor_html = '%s_differentials-tensorboard.html' % cur_rad
+    new_meta = '%s/metadata.tsv' % odir
+    new_qza = '%s/tab.qza' % odir
+    diffs = '%s/differentials.tsv' % odir
+    diffs_qza = '%s/differentials.qza' % odir
+    stats = '%s/differentials-stats.qza' % odir
+    plot = '%s/differentials-biplot.qza' % odir
+    base_diff_qza = '%s/differentials-baseline.qza' % odir
+    base_stats = '%s/differentials-baseline-stats.qza' % odir
+    base_plot = '%s/differentials-baseline-biplot.qza' % odir
+    tensor = '%s/differentials-tensorboard.qzv' % odir
+    tensor_html = '%s/differentials-tensorboard.html' % odir
 
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor_html):
@@ -262,13 +261,16 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                         model_rep, thresh_feat, thresh_sample,
                         batch, learn, epoch, diff_prior.replace('.', '')
                     )
-                    res_dir = '%s/%s/%s' % (dat, filt, params)
-                    odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % res_dir)
                     for case_var, case_vals_list in cases_dict.items():
                         for case_vals in case_vals_list:
                             case = get_case(case_vals, case_var, str(idx))
-                            cur_sh = '%s/run_songbird_%s_%s_%s_%s.sh' % (
-                                job_folder2, dat, filt, model_rep, case)
+                            if pair:
+                                res_dir = '%s/%s/%s/%s/%s' % (dat, pair, filt, case, params)
+                            else:
+                                res_dir = '%s/%s/%s/%s' % (dat, filt, case, params)
+                            odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % res_dir)
+                            cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s.sh' % (
+                                job_folder2, dat, filt, model_rep, case, pair)
                             cur_sh = cur_sh.replace(' ', '-')
                             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                             diffs, tensor_html = run_single_songbird(

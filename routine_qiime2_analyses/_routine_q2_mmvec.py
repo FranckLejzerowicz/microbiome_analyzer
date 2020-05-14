@@ -23,7 +23,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
 )
 from routine_qiime2_analyses._routine_q2_cmds import (
     filter_feature_table,
-    run_import, run_export,
+    run_export,
     write_mmvec_cmd
 )
 
@@ -201,9 +201,8 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, r
     """
     remove = True
     with open(cur_sh, 'w') as cur_sh_o:
-        cur_rad = '%s/%s' % (odir, pair)
-        conditionals_tsv = '%s_conditionals.tsv' % cur_rad
-        biplot_tsv = '%s_ordination.tsv' % cur_rad
+        conditionals_tsv = '%s/ranks.tsv' % odir
+        biplot_tsv = '%s/ordination.txt' % odir
         if force or not isfile(conditionals_tsv):
             write_mmvec_cmd(meta_fp, qza1, qza2, res_dir,
                             conditionals_tsv, biplot_tsv,
