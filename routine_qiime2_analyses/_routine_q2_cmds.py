@@ -486,22 +486,22 @@ def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str,
         biplot_tab_tsv = '%s_table.tsv' % splitext(out_biplot)[0]
         biplot_tab_qza = '%s.qza' % splitext(biplot_tab_tsv)[0]
         tax_dict = {}
-        with open('%s.tsv' % splitext(tax_qza)[0]) as f, open(tsv_tax, 'w') as o:
-            o.write('Feature ID\tTaxon\tPrevious ID\n')
+        with open('%s.tsv' % splitext(tax_qza)[0]) as f, open(tsv_tax, 'w') as o_tax:
+            o_tax.write('Feature ID\tTaxon\tPrevious ID\n')
             n = 0
             for ldx, line in enumerate(f):
                 if ldx and not line.startswith('#q2:types'):
                     new = 'x__%s;%s' % (n, line.strip().split('\t')[1])
                     tax_dict[line.split('\t')[0]] = new
-                    o.write('%s\t%s\t%s\n' % (new, new, line.split('\t')[0]))
+                    o_tax.write('%s\t%s\t%s\n' % (new, new, line.split('\t')[0]))
                     n += 1
-        with open(tsv) as f, open(biplot_tab_tsv, 'w') as o:
+        with open(tsv) as f, open(biplot_tab_tsv, 'w') as o_tab:
             for ldx, line in enumerate(f):
                 t = line.strip().split('\t')
                 if t[0] in tax_dict:
-                    o.write('%s\t%s\n' % (tax_dict[t[0]], '\t'.join(t[1:])))
+                    o_tab.write('%s\t%s\n' % (tax_dict[t[0]], '\t'.join(t[1:])))
                 else:
-                    o.write(line)
+                    o_tab.write(line)
         cmd += run_import(biplot_tab_tsv, biplot_tab_qza, 'FeatureTable[Frequency]')
     else:
         biplot_tab_qza = qza
