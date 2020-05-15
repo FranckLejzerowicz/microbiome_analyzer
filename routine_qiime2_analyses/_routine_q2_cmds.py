@@ -196,22 +196,23 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
     else:
         conditionals_qza = '%s.qza' % splitext(conditionals_tsv)[0]
         biplot_qza = '%s.qza' % splitext(biplot_tsv)[0]
-        cmd += '\nqiime mmvec paired-omics \\\n'
-        cmd += '--i-microbes %s \\\n' % qza1
-        cmd += '--i-metabolites %s \\\n' % qza2
-        cmd += '--m-metadata-file %s \\\n' % meta_fp
-        if str(train_column) != 'None':
-            cmd += '--p-training-column %s \\\n' % train_column
-        cmd += '--p-num-testing-examples %s \\\n' % n_example
-        cmd += '--p-min-feature-count %s \\\n' % thresh_feat
-        cmd += '--p-epochs %s \\\n' % epoch
-        cmd += '--p-batch-size %s \\\n' % batch
-        cmd += '--p-latent-dim %s \\\n' % latent_dim
-        cmd += '--p-input-prior %s \\\n' % prior
-        cmd += '--p-learning-rate %s \\\n' % learn
-        cmd += '--p-summary-interval 10 \\\n'
-        cmd += '--o-conditionals %s \\\n' % conditionals_qza
-        cmd += '--o-conditional-biplot %s\n' % biplot_qza
+        if not isfile(conditionals_qza) or not isfile(biplot_qza):
+            cmd += '\nqiime mmvec paired-omics \\\n'
+            cmd += '--i-microbes %s \\\n' % qza1
+            cmd += '--i-metabolites %s \\\n' % qza2
+            cmd += '--m-metadata-file %s \\\n' % meta_fp
+            if str(train_column) != 'None':
+                cmd += '--p-training-column %s \\\n' % train_column
+            cmd += '--p-num-testing-examples %s \\\n' % n_example
+            cmd += '--p-min-feature-count %s \\\n' % thresh_feat
+            cmd += '--p-epochs %s \\\n' % epoch
+            cmd += '--p-batch-size %s \\\n' % batch
+            cmd += '--p-latent-dim %s \\\n' % latent_dim
+            cmd += '--p-input-prior %s \\\n' % prior
+            cmd += '--p-learning-rate %s \\\n' % learn
+            cmd += '--p-summary-interval 10 \\\n'
+            cmd += '--o-conditionals %s \\\n' % conditionals_qza
+            cmd += '--o-conditional-biplot %s\n' % biplot_qza
         if not isfile(conditionals_tsv):
             cmd += run_export(conditionals_qza, conditionals_tsv, '')
         if not isfile(biplot_tsv):

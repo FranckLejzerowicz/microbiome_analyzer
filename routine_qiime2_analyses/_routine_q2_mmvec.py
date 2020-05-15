@@ -203,7 +203,7 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, r
     with open(cur_sh, 'w') as cur_sh_o:
         conditionals_tsv = '%s/ranks.tsv' % odir
         biplot_tsv = '%s/ordination.txt' % odir
-        if force or not isfile(conditionals_tsv):
+        if force or not isfile(conditionals_tsv) or not isile(biplot_tsv):
             write_mmvec_cmd(meta_fp, qza1, qza2, res_dir,
                             conditionals_tsv, biplot_tsv,
                             batch, learn, epoch, prior,
