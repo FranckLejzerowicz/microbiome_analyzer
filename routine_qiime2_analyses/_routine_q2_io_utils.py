@@ -755,8 +755,10 @@ def get_raref_table(dat: str, i_datasets_folder: str,
         meta = glob.glob('%s/meta_%s_raref*.tsv' % (raref_dir, dat_rt))
         if not len(meta):
             return pd.DataFrame(), pd.DataFrame()
+        else:
+            meta = meta[0]
+    else:
         meta = meta[0]
-    meta = meta[0]
     tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
     return tsv_pd_, meta_pd_
 
