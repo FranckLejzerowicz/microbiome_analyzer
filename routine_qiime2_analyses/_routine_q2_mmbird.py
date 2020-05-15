@@ -157,7 +157,6 @@ def get_mmvec_res(mmvec_outputs_pd):
 
 def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
     all_omic1_diff_list = []
-    print(omic1_diff_fps)
     for (omic1_diff_fp, model) in omic1_diff_fps:
         if isfile(omic1_diff_fp):
             omic1_diff_pd = pd.read_csv(omic1_diff_fp, header=0, sep='\t')
@@ -221,15 +220,15 @@ def get_order_omics(omic1, omic2, omic_filt1, omic_filt2, omics_pairs):
     return omic1, omic2, omic_filt1, omic_filt2, omic_feature, omic_sample, omic_microbe, omic_metabolite
 
 
-def get_omic_taxs(omic_filt1, omic_filt2, taxonomies, merges_files_pd):
-    o1 = merges_files_pd.loc[
-        (merges_files_pd['omic_filt1'] == omic_filt1) &
-        (merges_files_pd['omic_filt2'] == omic_filt2),
-        'omic1'].item()
-    o2 = merges_files_pd.loc[
-        (merges_files_pd['omic_filt1'] == omic_filt1) &
-        (merges_files_pd['omic_filt2'] == omic_filt2),
-        'omic2'].item()
+def get_omic_taxs(omic_filt1, omic_filt2, taxonomies, mmvec_songbird_pd):
+    o1 = mmvec_songbird_pd.loc[
+        (mmvec_songbird_pd['omic_filt1'] == omic_filt1) &
+        (mmvec_songbird_pd['omic_filt2'] == omic_filt2),
+        'omic1']
+    o2 = mmvec_songbird_pd.loc[
+        (mmvec_songbird_pd['omic_filt1'] == omic_filt1) &
+        (mmvec_songbird_pd['omic_filt2'] == omic_filt2),
+        'omic2']
     omic1_tax_fp = '%s.tsv' % splitext(taxonomies[o1][1])[0]
     omic2_tax_fp = '%s.tsv' % splitext(taxonomies[o2][1])[0]
     return omic1_tax_fp, omic2_tax_fp
@@ -409,7 +408,7 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
             all_omic1_songbird_ranks, all_omic2_songbird_ranks = get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps)
             omic1, omic2, omic_filt1, omic_filt2, omic_feature, omic_sample, omic_microbe, omic_metabolite = get_order_omics(
                 omic1, omic2, omic_filt1, omic_filt2, omics_pairs)
-            omic1_tax_fp, omic2_tax_fp = get_omic_taxs(omic1, omic2, taxonomies, mmvec_songbird_pd)
+            omic1_tax_fp, omic2_tax_fp = get_omic_taxs(omic_filt1, omic_filt2, taxonomies, mmvec_songbird_pd)
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
                 omic_filt1, omic_filt2,
                 omic1_tax_fp, omic2_tax_fp,
