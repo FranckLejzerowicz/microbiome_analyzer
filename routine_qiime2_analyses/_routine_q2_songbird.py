@@ -129,9 +129,10 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
 
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor_html):
-            new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-            new_meta_pd.columns = [x.lower() for x in new_meta_pd.columns]
-            new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
+            if not isfile(new_meta):
+                new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+                new_meta_pd.columns = [x.lower() for x in new_meta_pd.columns]
+                new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
             write_songbird_cmd(qza, new_qza, new_meta,
                                formula, epoch, batch, diff_prior, learn, thresh_sample,
                                thresh_feat, n_random, diffs, diffs_qza, stats, plot,
@@ -167,28 +168,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     params = songbird_dicts[2]
     songbird_datasets = songbird_dicts[3]
     main_cases_dict = songbird_dicts[4]
-
-    # print("songbird_models")
-    # print(songbird_models)
-    # {
-    #   'vioscreen_foods_consumed_grams_per_day_1800s_noLiquids':
-    #       {'age': 'age_years', 'bmi': 'bmi'},
-    #   'vioscreen_micromacro_qemistree_1800s':
-    #       {'age': 'age_years', 'bmi': 'bmi'}}
-
-    # print("songbird_filtering")
-    # print(songbird_filtering)
-    # {'prevalence': ['0', '10'],
-    #  'abundance': [['0', '0'], ['1', '3']]}
-
-    # print("main_cases_dict")
-    # print(main_cases_dict)
-    # {'ALL': [[]]}
-
-    # print("params")
-    # print(params)
-    # {'batches': ['2'], 'learns': ['1e-3'], 'epochs': ['20'],
-    #  'thresh_feats': ['0'], 'thresh_samples': ['0'], 'diff_priors': ['0.5'], 'n_randoms': ['250']}
 
     batches = params['batches']
     learns = params['learns']
