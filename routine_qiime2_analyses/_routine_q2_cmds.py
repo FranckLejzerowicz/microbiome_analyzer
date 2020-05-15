@@ -217,7 +217,6 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
             cmd += run_export(conditionals_qza, conditionals_tsv, '')
         if not isfile(biplot_tsv):
             cmd += run_export(biplot_qza, biplot_tsv, 'mmvec')
-
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 
