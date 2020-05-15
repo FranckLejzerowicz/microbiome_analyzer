@@ -213,7 +213,6 @@ def export_meta_alpha(datasets: dict, datasets_rarefs: dict, to_export: dict) ->
         meta_alphas_pd.rename(columns={meta_alphas_pd.columns[0]: 'sample_name'}, inplace=True)
 
         meta_alpha_fpo = '%s_alphas.tsv' % splitext(meta)[0]
-        print(meta_alpha_fpo)
         if isfile(meta_alpha_fpo):
             meta_pd = read_meta_pd(meta_alpha_fpo)
         else:

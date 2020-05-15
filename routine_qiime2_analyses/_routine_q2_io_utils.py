@@ -301,10 +301,16 @@ def get_sample_col(meta: str) -> str:
     :param meta: metadata file name
     :return: column name
     """
+    n = 0
     with open(meta) as f:
         for line in f:
+            n += 1
             break
-    return line.split()[0]
+    if n:
+        return line.split()[0]
+    else:
+        print('Empty now: %s (possily being written elsewhere..)' % meta)
+        sys.exit(0)
 
 
 def get_raref_tab_meta_pds(meta: str, tsv: str) -> (pd.DataFrame, pd.DataFrame):
