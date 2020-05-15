@@ -224,11 +224,11 @@ def get_omic_taxs(omic_filt1, omic_filt2, taxonomies, mmvec_songbird_pd):
     o1 = mmvec_songbird_pd.loc[
         (mmvec_songbird_pd['omic_filt1'] == omic_filt1) &
         (mmvec_songbird_pd['omic_filt2'] == omic_filt2),
-        'omic1']
+        'omic1'].item()
     o2 = mmvec_songbird_pd.loc[
         (mmvec_songbird_pd['omic_filt1'] == omic_filt1) &
         (mmvec_songbird_pd['omic_filt2'] == omic_filt2),
-        'omic2']
+        'omic2'].item()
     omic1_tax_fp = '%s.tsv' % splitext(taxonomies[o1][1])[0]
     omic2_tax_fp = '%s.tsv' % splitext(taxonomies[o2][1])[0]
     return omic1_tax_fp, omic2_tax_fp
@@ -503,14 +503,13 @@ def run_mmbird(i_datasets_folder: str, taxonomies: dict,
 
     pair_cmds = get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force)
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
-    job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks')
+    job_folder2 = get_job_folder(i_datasets_folder, 'mmbird/chunks')
 
     written = 0
     run_pbs = '%s/run_mmbird.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for pair, cmds in pair_cmds.items():
-            job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks')
-            out_sh = '%s/chunks/run_mmbird_%s.sh' % (job_folder2, pair)
+            out_sh = '%s/run_mmbird_%s.sh' % (job_folder2, pair)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for cmd in cmds:
