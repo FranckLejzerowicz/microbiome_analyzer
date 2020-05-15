@@ -38,7 +38,7 @@ def get_mmvec_outputs(mmvec_outputs: list):
     mmvec_outputs_pd.columns = mmvec_outputs_pd.columns.droplevel()
     mmvec_outputs_pd.reset_index(inplace=True)
     mmvec_outputs_pd['omic_filt1'] = mmvec_outputs_pd['omic1'] + '__' + mmvec_outputs_pd['filt1']
-    mmvec_outputs_pd['omic_filt2'] = mmvec_outputs_pd['omic1'] + '__' + mmvec_outputs_pd['filt1']
+    mmvec_outputs_pd['omic_filt2'] = mmvec_outputs_pd['omic2'] + '__' + mmvec_outputs_pd['filt2']
     mmvec_outputs_pd['pair_omic_filt1'] = mmvec_outputs_pd['pair'] + '__' + mmvec_outputs_pd['omic_filt1']
     mmvec_outputs_pd['pair_omic_filt2'] = mmvec_outputs_pd['pair'] + '__' + mmvec_outputs_pd['omic_filt2']
     return mmvec_outputs_pd
