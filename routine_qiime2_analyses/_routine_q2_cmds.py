@@ -215,7 +215,7 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
         if not isfile(conditionals_tsv):
             cmd += run_export(conditionals_qza, conditionals_tsv, '')
         if not isfile(biplot_tsv):
-            cmd += run_export(biplot_qza, biplot_tsv, '')
+            cmd += run_export(biplot_qza, biplot_tsv, 'mmvec')
 
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
@@ -400,6 +400,8 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
         if 'Phylogeny' in typ:
             cmd += 'mv %s/*.nwk %s\n' % (splitext(output_path)[0], output_path)
         elif 'biplot' in typ:
+            cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
+        elif 'mmvec' in typ:
             cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
         elif 'songbird' in typ:
             cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
