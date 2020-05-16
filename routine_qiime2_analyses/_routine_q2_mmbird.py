@@ -222,17 +222,13 @@ def get_order_omics(omic1, omic2, omic_filt1, omic_filt2, omics_pairs):
 
 def get_omic_taxs(omic_filt1, omic_filt2, taxonomies, mmvec_songbird_pd):
     o1 = mmvec_songbird_pd.loc[
-        (mmvec_songbird_pd['omic_filt1'] == omic_filt1) &
-        (mmvec_songbird_pd['omic_filt2'] == omic_filt2),
+        (mmvec_songbird_pd['filt1'] == omic_filt1) &
+        (mmvec_songbird_pd['filt2'] == omic_filt2),
         'omic1'].item()
     o2 = mmvec_songbird_pd.loc[
-        (mmvec_songbird_pd['omic_filt1'] == omic_filt1) &
-        (mmvec_songbird_pd['omic_filt2'] == omic_filt2),
+        (mmvec_songbird_pd['filt1'] == omic_filt1) &
+        (mmvec_songbird_pd['filt2'] == omic_filt2),
         'omic2'].item()
-    print("taxonomies[o1]")
-    print(taxonomies[o1])
-    print("taxonomies[o2]")
-    print(taxonomies[o2])
     omic1_tax_fp = '%s.tsv' % splitext(taxonomies[o1][1])[0]
     omic2_tax_fp = '%s.tsv' % splitext(taxonomies[o2][1])[0]
     return omic1_tax_fp, omic2_tax_fp
