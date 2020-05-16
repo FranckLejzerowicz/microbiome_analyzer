@@ -8,7 +8,7 @@
 
 import pandas as pd
 from typing import TextIO
-from os.path import isdir, isfile, splitext
+from os.path import dirname, isdir, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
 
@@ -211,8 +211,11 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
             cmd += '--p-input-prior %s \\\n' % prior
             cmd += '--p-learning-rate %s \\\n' % learn
             cmd += '--p-summary-interval 10 \\\n'
+            cmd += '--p-equalize-biplot \\\n'
             cmd += '--o-conditionals %s \\\n' % conditionals_qza
             cmd += '--o-conditional-biplot %s\n' % biplot_qza
+            cmd += 'current_time=$(date "+%y%m%d_%H%M%S")\n'
+            cmd += 'touch %s/logdirname_${current_time}\n' % dirname(biplot_qza)
         if not isfile(conditionals_tsv):
             cmd += run_export(conditionals_qza, conditionals_tsv, '')
         if not isfile(biplot_tsv):
