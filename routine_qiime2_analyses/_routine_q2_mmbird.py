@@ -123,15 +123,12 @@ def get_mmvec_res(mmvec_outputs_pd):
             if str(mmvec_out) == 'nan':
                 continue
 
-            # get the ranks file and skip + warning if not performed
+            # get the ordination file and the ranks file and skip + warning if not performed
             mmvec_out_ranks = mmvec_out + '/ranks.tsv'
-            if not isfile(mmvec_out_ranks):
+            mmvec_out_ordi = mmvec_out + '/ordination.txt'
+            if not isfile(mmvec_out_ranks) or not isfile(mmvec_out_ordi):
                 print('[ - mmvec] %s %s' % (omic_filt1, omic_filt2))
                 continue
-
-            # get the ordination file
-            # mmvec_out_ordi = glob.glob(mmvec_out + '/*ordination.txt')[0]
-            mmvec_out_ordi = mmvec_out + '/ordination.txt'
 
             # collect the ranks + ordination + songbirds for each pair of omics and parameters
             mmvec_res[

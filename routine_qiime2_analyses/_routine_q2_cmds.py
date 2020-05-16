@@ -142,7 +142,7 @@ def write_rarefy(qza: str, qza_out: str, depth: str, cur_sh: TextIO) -> None:
 
 
 def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
-                    conditionals_tsv: str, biplot_tsv: str,
+                    ranks_tsv: str, ordination_tsv: str,
                     batch: str, learn: str, epoch: str,
                     prior: str, thresh_feat: str, latent_dim: str,
                     train_column: str, n_example: str, gpu: bool,
@@ -157,7 +157,7 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
     :param qza2:
     :param res_dir:
     :param conditionals_tsv:
-    :param biplot_tsv:
+    :param ordination_tsv:
     :param batch:
     :param learn:
     :param epoch:
@@ -192,11 +192,11 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
         cmd += '--checkpoint-interval 10 \\\n'
         cmd += '--summary-interval 10 \\\n'
         cmd += '--summary-dir %s \\\n' % res_dir
-        cmd += '--ranks-file %s\n' % conditionals_tsv
+        cmd += '--ranks-file %s\n' % ranks_tsv
     else:
-        conditionals_qza = '%s.qza' % splitext(conditionals_tsv)[0]
-        biplot_qza = '%s.qza' % splitext(biplot_tsv)[0]
-        if not isfile(conditionals_qza) or not isfile(biplot_qza):
+        ranks_qza = '%s.qza' % splitext(ranks_tsv)[0]
+        ordination_qza = '%s.qza' % splitext(ordination_tsv)[0]
+        if not isfile(ranks_qza) or not isfile(ordination_qza):
             cmd += '\nqiime mmvec paired-omics \\\n'
             cmd += '--i-microbes %s \\\n' % qza1
             cmd += '--i-metabolites %s \\\n' % qza2
@@ -212,14 +212,14 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
             cmd += '--p-learning-rate %s \\\n' % learn
             cmd += '--p-summary-interval 10 \\\n'
             cmd += '--p-equalize-biplot \\\n'
-            cmd += '--o-conditionals %s \\\n' % conditionals_qza
-            cmd += '--o-conditional-biplot %s\n' % biplot_qza
+            cmd += '--o-conditionals %s \\\n' % ranks_qza
+            cmd += '--o-conditional-biplot %s\n' % ordination_qza
             cmd += 'current_time=$(date "+%y%m%d_%H%M%S")\n'
-            cmd += 'touch %s/logdirname_${current_time}\n' % dirname(biplot_qza)
-        if not isfile(conditionals_tsv):
-            cmd += run_export(conditionals_qza, conditionals_tsv, '')
-        if not isfile(biplot_tsv):
-            cmd += run_export(biplot_qza, biplot_tsv, 'mmvec')
+            cmd += 'touch %s/logdirname_${current_time}\n' % dirname(ordination_qza)
+        if not isfile(ranks_tsv):
+            cmd += run_export(ranks_qza, ranks_tsv, '')
+        if not isfile(ordination_tsv):
+            cmd += run_export(ordination_qza, ordination_tsv, 'mmvec')
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 
