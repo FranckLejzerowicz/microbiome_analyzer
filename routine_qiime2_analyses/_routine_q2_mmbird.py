@@ -227,20 +227,6 @@ def get_order_omics(omic1, omic2, omic_filt1, omic_filt2, omics_pairs):
     return omic1, omic2, omic_filt1, omic_filt2, omic_feature, omic_sample, omic_microbe, omic_metabolite
 
 
-def get_omic_taxs(omic_filt1, omic_filt2, taxonomies, mmvec_songbird_pd):
-    o1 = mmvec_songbird_pd.loc[
-        (mmvec_songbird_pd['filt1'] == omic_filt1) &
-        (mmvec_songbird_pd['filt2'] == omic_filt2),
-        'omic1'].item()
-    o2 = mmvec_songbird_pd.loc[
-        (mmvec_songbird_pd['filt1'] == omic_filt1) &
-        (mmvec_songbird_pd['filt2'] == omic_filt2),
-        'omic2'].item()
-    omic1_tax_fp = '%s.tsv' % splitext(taxonomies[o1][1])[0]
-    omic2_tax_fp = '%s.tsv' % splitext(taxonomies[o2][1])[0]
-    return omic1_tax_fp, omic2_tax_fp
-
-
 def get_tax_extended_fps(
         omic_filt1, omic_filt2,
         omic1_tax_fp, omic2_tax_fp,
@@ -421,7 +407,8 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
 
             # get differentials
             all_omic1_songbird_ranks, all_omic2_songbird_ranks = get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps)
-            omic1_tax_fp, omic2_tax_fp = get_omic_taxs(omic_filt1, omic_filt2, taxonomies, mmvec_songbird_pd)
+            omic1_tax_fp = '%s.tsv' % splitext(taxonomies[omic1][1])[0]
+            omic2_tax_fp = '%s.tsv' % splitext(taxonomies[omic2][1])[0]
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
                 omic_filt1, omic_filt2,
                 omic1_tax_fp, omic2_tax_fp,
