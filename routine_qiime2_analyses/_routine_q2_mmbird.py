@@ -498,8 +498,11 @@ def run_mmbird(i_datasets_folder: str, taxonomies: dict,
 
     songbird_outputs_pd = get_songbird_outputs(songbird_outputs)
     mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
+    print(mmvec_outputs_pd.shape)
     mmvec_songbird_pd = merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd)
+    print(mmvec_songbird_pd.shape)
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
+    print(mmvec_res)
 
     pair_cmds = get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force)
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
