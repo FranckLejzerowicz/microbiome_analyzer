@@ -864,7 +864,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                         cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
                         filt_jobs.append(cmd)
                 dat_filts[(preval_filt, str(abund_filter))] = [
-                    tsv_out, tsv_qza, meta_out, meta_pd, t                       esv_pd.columns.tolist()
+                    tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()
                 ]
         filt_datasets[dat] = dat_filts
     return filt_datasets, filt_jobs
