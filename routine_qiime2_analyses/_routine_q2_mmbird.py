@@ -156,11 +156,10 @@ def get_mmvec_res(mmvec_outputs_pd):
 
 def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
 
-
     all_omic1_diff_list = []
     all_omic1_songbird_ranks = pd.DataFrame()
     for (omic1_diff_fp, model) in omic1_diff_fps:
-        if isfile(omic1_diff_fp):
+        if str(omic1_diff_fp)!='nan' and isfile(omic1_diff_fp):
             omic1_diff_pd = pd.read_csv(omic1_diff_fp, header=0, sep='\t')
             if omic1_diff_pd['featureid'][0] == '#q2:types':
                 omic1_diff_pd = omic1_diff_pd[1:]
@@ -178,7 +177,7 @@ def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
     all_omic2_diff_list = []
     all_omic2_songbird_ranks = pd.DataFrame()
     for (omic2_diff_fp, model) in omic2_diff_fps:
-        if isfile(omic2_diff_fp):
+        if str(omic2_diff_fp)!='nan' and isfile(omic2_diff_fp):
             omic2_diff_pd = pd.read_csv(omic2_diff_fp, header=0, sep='\t')
             if omic2_diff_pd['featureid'][0] == '#q2:types':
                 omic2_diff_pd = omic2_diff_pd[1:]
