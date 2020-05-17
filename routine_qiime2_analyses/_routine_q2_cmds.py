@@ -197,6 +197,8 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
         ranks_qza = '%s.qza' % splitext(ranks_tsv)[0]
         ordination_qza = '%s.qza' % splitext(ordination_tsv)[0]
         if not isfile(ranks_qza) or not isfile(ordination_qza):
+            cmd += 'current_time=$(date "+%y%m%d_%H%M%S")\n'
+            cmd += 'touch %s/logdirname_${current_time}\n' % dirname(ordination_qza)
             cmd += '\nqiime mmvec paired-omics \\\n'
             cmd += '--i-microbes %s \\\n' % qza1
             cmd += '--i-metabolites %s \\\n' % qza2
@@ -213,9 +215,8 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
             cmd += '--p-summary-interval 10 \\\n'
             cmd += '--p-equalize-biplot \\\n'
             cmd += '--o-conditionals %s \\\n' % ranks_qza
-            cmd += '--o-conditional-biplot %s\n' % ordination_qza
-            cmd += 'current_time=$(date "+%y%m%d_%H%M%S")\n'
-            cmd += 'touch %s/logdirname_${current_time}\n' % dirname(ordination_qza)
+            cmd += '--o-conditional-biplot %s \\\n' % ordination_qza
+            cmd += '--output-dir %s/logdirname_${current_time}\n' % dirname(ordination_qza)
         if not isfile(ranks_tsv):
             cmd += run_export(ranks_qza, ranks_tsv, '')
         if not isfile(ordination_tsv):
