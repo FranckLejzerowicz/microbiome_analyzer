@@ -142,9 +142,9 @@ def write_rarefy(qza: str, qza_out: str, depth: str, cur_sh: TextIO) -> None:
 
 
 def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
-                    ranks_tsv: str, ordination_tsv: str,
-                    batch: str, learn: str, epoch: str,
-                    prior: str, thresh_feat: str, latent_dim: str,
+                    odir: str, ranks_tsv: str, ordination_tsv: str,
+                    batch: str, learn: str, epoch: str, prior: str,
+                    thresh_feat: str, latent_dim: str,
                     train_column: str, n_example: str, gpu: bool,
                     standalone: bool, cur_sh: TextIO) -> None:
     """
@@ -198,6 +198,7 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
         ordination_qza = '%s.qza' % splitext(ordination_tsv)[0]
         if not isfile(ranks_qza) or not isfile(ordination_qza):
             cmd += 'current_time=$(date "+%y%m%d_%H%M%S")\n'
+            cmd += '\ncd %s \\\n' % odir
             cmd += '\nqiime mmvec paired-omics \\\n'
             cmd += '--i-microbes %s \\\n' % qza1
             cmd += '--i-metabolites %s \\\n' % qza2

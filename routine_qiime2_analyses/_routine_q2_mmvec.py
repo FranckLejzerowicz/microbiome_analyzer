@@ -204,7 +204,7 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, r
         ranks_tsv = '%s/ranks.tsv' % odir
         ordination_tsv = '%s/ordination.txt' % odir
         if force or not isfile(ordination_tsv) or not isfile(ranks_tsv):
-            write_mmvec_cmd(meta_fp, qza1, qza2, res_dir,
+            write_mmvec_cmd(meta_fp, qza1, qza2, res_dir, odir,
                             ranks_tsv, ordination_tsv,
                             batch, learn, epoch, prior,
                             thresh_feat, latent_dim, train_column,

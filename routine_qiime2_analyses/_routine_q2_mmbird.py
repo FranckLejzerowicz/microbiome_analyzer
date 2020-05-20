@@ -90,7 +90,6 @@ def merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd):
 
 def get_mmvec_res(mmvec_outputs_pd):
     mmvec_out_cols = [x for x in mmvec_outputs_pd.columns if x.startswith('mmvec_out__')]
-
     all_omic1_sb = [x for x in mmvec_outputs_pd.columns if x.endswith('omic1_songbird_common_fp')]
     all_omic2_sb = [x for x in mmvec_outputs_pd.columns if x.endswith('omic2_songbird_common_fp')]
 
@@ -157,22 +156,26 @@ def get_mmvec_res(mmvec_outputs_pd):
 def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
 
     all_omic1_diff_list = []
-    all_omic1_songbird_ranks = pd.DataFrame()
     for (omic1_diff_fp, model) in omic1_diff_fps:
-        if str(omic1_diff_fp)!='nan' and isfile(omic1_diff_fp):
+        print("omic1_diff_fp, model")
+        print(omic1_diff_fp, model)
+        if str(omic1_diff_fp) != 'nan' and isfile(omic1_diff_fp):
             omic1_diff_pd = pd.read_csv(omic1_diff_fp, header=0, sep='\t')
             if omic1_diff_pd['featureid'][0] == '#q2:types':
                 omic1_diff_pd = omic1_diff_pd[1:]
             omic1_diff_pd = omic1_diff_pd.rename(columns={'featureid': 'Feature ID'})
             omic1_diff_pd = omic1_diff_pd.set_index('Feature ID')
-            omic1_diff_pd = omic1_diff_pd.drop(columns='Intercept')
+            # omic1_diff_pd = omic1_diff_pd.drop(columns='Intercept')
             omic1_diff_pd.columns = ['%s__%s' % (model, x) for x in omic1_diff_pd.columns]
+            print(omic1_diff_pd[:3])
             all_omic1_diff_list.append(omic1_diff_pd)
     if len(all_omic1_diff_list):
         all_omic1_diff_pd = pd.concat(all_omic1_diff_list, axis=1, sort=False)
         all_omic1_songbird_ranks = all_omic1_diff_pd.reset_index()
         all_omic1_songbird_ranks = all_omic1_songbird_ranks.rename(
             columns={all_omic1_songbird_ranks.columns.tolist()[0]: 'Feature ID'})
+    else:
+        all_omic1_songbird_ranks = pd.DataFrame()
 
     all_omic2_diff_list = []
     all_omic2_songbird_ranks = pd.DataFrame()
@@ -499,7 +502,7 @@ def run_mmbird(i_datasets_folder: str, taxonomies: dict,
     mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
     print(mmvec_outputs_pd.shape)
     mmvec_songbird_pd = merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd)
-    print(mmvec_songbird_pd.shape)
+    print(mmvec_songbird_pd.values)
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
     print(mmvec_res)
 
