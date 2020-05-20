@@ -407,6 +407,8 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
             cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
         elif 'mmvec' in typ:
             cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
+        elif 'pcoa' in typ:
+            cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
         elif 'songbird' in typ:
             cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
         else:
@@ -474,7 +476,7 @@ def write_diversity_pcoa(DM: str, out_pcoa: str, out_tsv: str, cur_sh: TextIO) -
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n\n' % cmd)
     if not isfile(out_tsv):
-        cmd = run_export(out_pcoa, out_tsv, '')
+        cmd = run_export(out_pcoa, out_tsv, 'pcoa')
         cur_sh.write('%s\n\n' % cmd)
 
 

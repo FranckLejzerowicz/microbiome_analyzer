@@ -151,7 +151,8 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
 
 def export_beta(i_datasets_folder: str, betas: dict,
-                force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
+                force: bool, prjct_nm: str, qiime_env: str,
+                chmod: str, noloc: bool) -> None:
     """
     Export beta diverity matrices.
 
@@ -184,7 +185,8 @@ def export_beta(i_datasets_folder: str, betas: dict,
 
 
 def run_pcoas(i_datasets_folder: str, datasets: dict, betas: dict,
-              force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
+              force: bool, prjct_nm: str, qiime_env: str,
+              chmod: str, noloc: bool) -> dict:
     """
     Run pcoa: Principal Coordinate Analysis.
     Run pcoa: Principal Coordinate Analysis Biplot¶
