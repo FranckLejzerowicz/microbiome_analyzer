@@ -220,12 +220,13 @@ def run_pcoas(i_datasets_folder: str, datasets: dict, betas: dict,
                     for group, qzas_DMs in groups_DMs.items():
                         for qza, DM in qzas_DMs:
                             out = '%s_PCoA.qza' % splitext(DM)[0].replace('/beta/', '/pcoa/')
+                            out_tsv = '%s.tsv' % splitext(out)[0]
                             out_dir = os.path.dirname(out)
                             if not os.path.isdir(out_dir):
                                 os.makedirs(out_dir)
                             pcoas_d[dat].setdefault(meta, []).append(out)
-                            if force or not isfile(out):
-                                write_diversity_pcoa(DM, out, cur_sh)
+                            if force or not isfile(out) or not isfile(out_tsv):
+                                write_diversity_pcoa(DM, out, out_tsv, cur_sh)
                                 written += 1
                                 main_written += 1
             run_xpbs(out_sh, out_pbs, '%s.pc.%s' % (prjct_nm, dat),

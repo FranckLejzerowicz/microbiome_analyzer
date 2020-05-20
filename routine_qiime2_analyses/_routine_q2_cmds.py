@@ -458,7 +458,7 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
     # return False
 
 
-def write_diversity_pcoa(DM: str, out_pcoa: str, cur_sh: TextIO) -> None:
+def write_diversity_pcoa(DM: str, out_pcoa: str, out_tsv: str, cur_sh: TextIO) -> None:
     """
     Apply principal coordinate analysis.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa/
@@ -467,11 +467,15 @@ def write_diversity_pcoa(DM: str, out_pcoa: str, cur_sh: TextIO) -> None:
     :param out_pcoa: The resulting PCoA matrix.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime diversity pcoa \\\n'
-    cmd += '--i-distance-matrix %s \\\n' % DM
-    cmd += '--o-pcoa %s\n' % out_pcoa
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n\n' % cmd)
+    if not isfile(out_pcoa):
+        cmd = 'qiime diversity pcoa \\\n'
+        cmd += '--i-distance-matrix %s \\\n' % DM
+        cmd += '--o-pcoa %s\n' % out_pcoa
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n\n' % cmd)
+    if not isfile(out_tsv):
+        cmd = run_export(out_pcoa, out_tsv, '')
+        cur_sh.write('%s\n\n' % cmd)
 
 
 def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str,
