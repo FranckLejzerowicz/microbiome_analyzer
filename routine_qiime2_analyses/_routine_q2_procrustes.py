@@ -182,7 +182,7 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
 
         run_xpbs(out_sh, out_pbs, '%s.prcrt.R' % prjct_nm,
                  'renv', '4', '1', '1', '1', 'gb',
-                 chmod, 1, 'single', o, False)
+                 chmod, 1, 'single', None, False)
         print_message('# Procrustes for stats in R (pairs and samples subsets config in %s)', 'sh', run_pbs)
 
 
