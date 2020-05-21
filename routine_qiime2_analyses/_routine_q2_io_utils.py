@@ -785,14 +785,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
     filt_jobs = []
     filt_datasets = {}
     for (dat, mb) in unique_datasets:
-        if datasets_read[dat] == 'raref':
-            tsv, meta = datasets[dat]
-            if not isfile(tsv):
-                print('Must have run rarefaction to use it further...\nExiting')
-                sys.exit(0)
-            tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
-            datasets_read[dat] = [tsv_pd_, meta_pd_]
-        elif dat not in datasets:
+        if dat not in datasets:
             if dat.endswith('__raref'):
                 tsv_pd_, meta_pd_ = get_raref_table(dat, i_datasets_folder, analysis)
                 if not tsv_pd_.shape[0]:
@@ -800,6 +793,13 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
             else:
                 print('%s dataset "%s" not found...' % (analysis, dat))
                 continue
+        elif datasets_read[dat] == 'raref':
+            tsv, meta = datasets[dat]
+            if not isfile(tsv):
+                print('Must have run rarefaction to use it further...\nExiting')
+                sys.exit(0)
+            tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
+            datasets_read[dat] = [tsv_pd_, meta_pd_]
         else:
             tsv_pd_, meta_pd_ = datasets_read[dat]
 
