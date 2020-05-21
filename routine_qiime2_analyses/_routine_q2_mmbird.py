@@ -163,7 +163,7 @@ def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
             omic1_diff_pd = pd.read_csv(omic1_diff_fp, header=0, sep='\t')
             if omic1_diff_pd['featureid'][0] == '#q2:types':
                 omic1_diff_pd = omic1_diff_pd[1:]
-            omic1_diff_pd = omic1_diff_pd.rename(columns={'featureid': 'Feature ID'})
+            omic1_diff_pd = omic1_diff_pd.rename(columns={omic1_diff_pd.columns.tolist()[0]: 'Feature ID'})
             omic1_diff_pd = omic1_diff_pd.set_index('Feature ID')
             # omic1_diff_pd = omic1_diff_pd.drop(columns='Intercept')
             omic1_diff_pd.columns = ['%s__%s' % (model, x) for x in omic1_diff_pd.columns]
@@ -176,6 +176,8 @@ def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
             columns={all_omic1_songbird_ranks.columns.tolist()[0]: 'Feature ID'})
     else:
         all_omic1_songbird_ranks = pd.DataFrame()
+    print(all_omic1_songbird_ranks[:2])
+    print(kdfjhb)
 
     all_omic2_diff_list = []
     all_omic2_songbird_ranks = pd.DataFrame()
@@ -184,7 +186,7 @@ def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
             omic2_diff_pd = pd.read_csv(omic2_diff_fp, header=0, sep='\t')
             if omic2_diff_pd['featureid'][0] == '#q2:types':
                 omic2_diff_pd = omic2_diff_pd[1:]
-            omic2_diff_pd = omic2_diff_pd.rename(columns={'featureid': 'Feature ID'})
+            omic2_diff_pd = omic2_diff_pd.rename(columns={omic2_diff_pd.columns.tolist()[0]: 'Feature ID'})
             omic2_diff_pd = omic2_diff_pd.set_index('Feature ID')
             omic2_diff_pd = omic2_diff_pd.drop(columns='Intercept')
             omic2_diff_pd.columns = ['%s__%s' % (model, x) for x in omic2_diff_pd.columns]

@@ -80,15 +80,20 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
 
                 if dat1_.endswith('__raref'):
                     dm1_rgx = glob.glob('%s/tab_%s_raref*_%s_DM.qza' % (dirname(dm1), dat1, metric))
-                    print("dm1")
-                    print(dm1)
                     if len(dm1_rgx) == 1:
                         dm1 = dm1_rgx[0]
-                        print(dm1)
+                    meta_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat1)
+                    meta1_rgx = glob.glob('%s/meta_%s_raref*tsv' % (meta_dir, dat1))
+                    if len(meta1_rgx) == 1:
+                        meta1 = meta1_rgx[0]
                 if dat2_.endswith('__raref'):
                     dm2_rgx = glob.glob('%s/tab_%s_raref*_%s_DM.qza' % (dirname(dm2), dat2, metric))
                     if len(dm2_rgx) == 1:
                         dm2 = dm2_rgx[0]
+                    meta_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat2)
+                    meta2_rgx = glob.glob('%s/meta_%s_raref*tsv' % (meta_dir, dat2))
+                    if len(meta2_rgx) == 1:
+                        meta1 = meta2_rgx[0]
 
                 meta_pd1 = read_meta_pd(meta1)
                 meta_pd2 = read_meta_pd(meta2)
@@ -109,12 +114,12 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
                         cur_sh = cur_sh.replace(' ', '-')
                         all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
 
-                        dm_out1 = '%s/dm_%s__%s_DM.qza' % (odir, dat1, cur)
-                        dm_out2 = '%s/dm_%s__%s_DM.qza' % (odir, dat2, cur)
-                        biplot = '%s/procrustes_%s.qzv' % (odir, cur)
+                        dm_out1 = '%s/dm_%s__%s_DM.qza' % (odir, dat1_, cur)
+                        dm_out2 = '%s/dm_%s__%s_DM.qza' % (odir, dat2_, cur)
+                        biplot = '%s/procrustes_%s__%s__%s.qzv' % (odir, dat1_, dat2_, cur)
                         run_single_procrustes(odir, dm1, dm2, meta_pd, dm_out1, dm_out2,
                                               biplot, cur_sh, cur, case_var, case_vals, force)
-                        dms_tab.append([pair, dat1, dat2, metric, group1, group2,
+                        dms_tab.append([pair, dat1_, dat2_, metric, group1, group2,
                                         case_, dm_out1, dm_out2, biplot])
 
     job_folder = get_job_folder(i_datasets_folder, 'procrustes')
@@ -181,9 +186,9 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
             o.write('R -f %s --vanilla\n' % R_script)
 
         run_xpbs(out_sh, out_pbs, '%s.prcrt.R' % prjct_nm,
-                 'renv', '4', '1', '1', '1', 'gb',
-                 chmod, 1, 'single', None, False)
-        print_message('# Procrustes for stats in R (pairs and samples subsets config in %s)', 'sh', run_pbs)
+                 'renv', '4', '1', '1', '1', 'gb', chmod, 1,
+                 '# Procrustes for stats in R (pairs and samples subsets config in %s)' % p_procrustes,
+                 None, False)
 
 
 
