@@ -292,7 +292,6 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd += ' --o-differentials %s \\\n' % diffs_qza
         cmd += ' --o-regression-stats %s \\\n' % stats
         cmd += ' --o-regression-biplot %s\n' % plot
-        cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 
     if not isfile(diffs):
@@ -838,6 +837,68 @@ def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
     cmd += '--p-permutations 2999 \\\n'
     cmd += '--p-n-jobs 6 \\\n'
     cmd += '--o-visualization %s\n' % new_qzv
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n' % cmd)
+
+
+def write_procrustes(common_meta_fp: str, dm1: str, dm2: str,
+                     dm_out1: str, dm_out2: str, biplot: str,
+                     cur_sh: TextIO) -> None:
+
+    dm_out_tsv1 = '%s.tsv' % splitext(dm_out1)[0]
+    dm_out_tsv2 = '%s.tsv' % splitext(dm_out2)[0]
+    pcoa_out1 = '%s_PCoA.qza' % splitext(dm_out1)[0]
+    pcoa_out2 = '%s_PCoA.qza' % splitext(dm_out2)[0]
+    ref_pcoa = '%s_ref.qza' % splitext(pcoa_out1)[0]
+    oth_pcoa = '%s_oth.qza' % splitext(pcoa_out2)[0]
+
+    cmd = ''
+    if not isfile(dm_out1) or not isfile(dm_out_tsv1):
+        cmd += '\nqiime diversity filter-distance-matrix \\\n'
+        cmd += '--m-metadata-file %s \\\n' % common_meta_fp
+        cmd += '--i-distance-matrix %s \\\n' % dm1
+        cmd += '--o-filtered-distance-matrix %s\n' % dm_out1
+        cmd += run_export(dm_out1, dm_out_tsv1, '')
+    if not isfile(dm_out2) or not isfile(dm_out_tsv2):
+        cmd += '\nqiime diversity filter-distance-matrix \\\n'
+        cmd += '--m-metadata-file %s \\\n' % common_meta_fp
+        cmd += '--i-distance-matrix %s \\\n' % dm2
+        cmd += '--o-filtered-distance-matrix %s\n' % dm_out2
+        cmd += run_export(dm_out2, dm_out_tsv2, '')
+    if not isfile(pcoa_out1):
+        cmd += '\nqiime diversity pcoa \\\n'
+        cmd += '--i-distance-matrix %s \\\n' % dm_out1
+        cmd += '--o-pcoa %s\n' % pcoa_out1
+    if not isfile(pcoa_out2):
+        cmd += '\nqiime diversity pcoa \\\n'
+        cmd += '--i-distance-matrix %s \\\n' % dm_out2
+        cmd += '--o-pcoa %s\n' % pcoa_out2
+    if not isfile(ref_pcoa) or not isfile(oth_pcoa):
+        cmd += '\nqiime diversity procrustes-analysis \\\n'
+        cmd += '--i-reference %s \\\n' % pcoa_out1
+        cmd += '--i-other %s \\\n' % pcoa_out2
+        cmd += '--o-transformed-reference %s \\\n' % ref_pcoa
+        cmd += '--o-transformed-other %s\n' % oth_pcoa
+    if not isfile(biplot):
+        cmd += '\nqiime emperor procrustes-plot \\\n'
+        cmd += '--i-reference-pcoa %s \\\n' % ref_pcoa
+        cmd += '--i-other-pcoa %s \\\n' % oth_pcoa
+        cmd += '--m-metadata-file %s \\\n' % common_meta_fp
+        cmd += '--o-visualization %s\n' % biplot
+    if isfile(common_meta_fp):
+        cmd += 'rm %s\n' % common_meta_fp
+    if isfile(pcoa_out1):
+        cmd += 'rm %s\n' % pcoa_out1
+    if isfile(pcoa_out2):
+        cmd += 'rm %s\n' % pcoa_out2
+    if isfile(dm_out1):
+        cmd += 'rm %s\n' % dm_out1
+    if isfile(dm_out2):
+        cmd += 'rm %s\n' % dm_out2
+    if isfile(ref_pcoa):
+        cmd += 'rm %s\n' % ref_pcoa
+    if isfile(oth_pcoa):
+        cmd += 'rm %s\n' % oth_pcoa
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 

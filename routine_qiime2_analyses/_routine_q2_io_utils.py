@@ -210,20 +210,6 @@ def get_songbird_params(p_diff_models: str, diff_dict: dict) -> dict:
     return params
 
 
-def get_songbird_cases_dict(p_diff_models: str, diff_dict: dict) -> dict:
-    """
-    Get the subset cases for songbird passed by the user.
-    :param p_diff_models: file containing the subsets.
-    :param diff_dict: parsed content of the file containing the subsets.
-    :return: subsets.
-    """
-    if 'subsets' not in diff_dict:
-        print('No subsets in %s' % p_diff_models)
-        return {}
-    else:
-        return diff_dict['subsets']
-
-
 def get_songbird_models(p_diff_models: str, diff_dict: dict) -> dict:
     """
     Get the models for songbird passed by the user.
@@ -251,9 +237,10 @@ def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict):
         sys.exit(0)
     with open(p_diff_models) as handle:
         diff_dict = yaml.load(handle, Loader=yaml.FullLoader)
+
     main_cases_dict = {'ALL': [[]]}
     if 'subsets' in diff_dict:
-        main_cases_dict.update(get_songbird_cases_dict(p_diff_models, diff_dict))
+        main_cases_dict.update(diff_dict['subsets'])
 
     models = get_songbird_models(p_diff_models, diff_dict)
     params = get_songbird_params(p_diff_models, diff_dict)
@@ -798,7 +785,14 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
     filt_jobs = []
     filt_datasets = {}
     for (dat, mb) in unique_datasets:
-        if dat not in datasets:
+        if datasets_read[dat] == 'raref':
+            tsv, meta = datasets[dat]
+            if not isfile(tsv):
+                print('Must have run rarefaction to use it further...\nExiting')
+                sys.exit(0)
+            tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
+            datasets_read[dat] = [tsv_pd_, meta_pd_]
+        elif dat not in datasets:
             if dat.endswith('__raref'):
                 tsv_pd_, meta_pd_ = get_raref_table(dat, i_datasets_folder, analysis)
                 if not tsv_pd_.shape[0]:
@@ -806,13 +800,6 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
             else:
                 print('%s dataset "%s" not found...' % (analysis, dat))
                 continue
-        elif datasets_read[dat] == 'raref':
-            tsv, meta = datasets[dat]
-            if not isfile(tsv):
-                print('Must have run rarefaction to use it further...\nExiting')
-                sys.exit(0)
-            tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
-            datasets_read[dat] = [tsv_pd_, meta_pd_]
         else:
             tsv_pd_, meta_pd_ = datasets_read[dat]
 
@@ -868,3 +855,30 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                 ]
         filt_datasets[dat] = dat_filts
     return filt_datasets, filt_jobs
+
+
+def get_procrustes_dicts(p_procrustes):
+    if not isfile(p_procrustes):
+        print('yaml file for procrustes pairs does not exist:\n%s\nExiting...' % p_mmvec_pairs)
+        sys.exit(0)
+    with open(p_procrustes) as handle:
+        procrustes_dict = yaml.load(handle, Loader=yaml.FullLoader)
+
+    if 'pairs' not in procrustes_dict:
+        print('No datasets pairs specified in %s:\nExiting\n' % p_procrustes)
+        sys.exit(0)
+
+    procrustes_pairs = {}
+    for pair, paired_datasets in procrustes_dict['pairs'].items():
+        n_dats = len(paired_datasets)
+        if n_dats != 2:
+            print('Must be two datasets per mmvec pair (found %s in %s)\n'
+                  'Exiting\n' % (n_dats, p_procrustes))
+            sys.exit(0)
+        procrustes_pairs[pair] = paired_datasets
+
+    procrustes_subsets = {'ALL': [[]]}
+    if 'subsets' in procrustes_dict:
+        procrustes_subsets.update(procrustes_dict['subsets'])
+
+    return procrustes_pairs, procrustes_subsets

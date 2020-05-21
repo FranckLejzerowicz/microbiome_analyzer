@@ -80,15 +80,21 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
     """
     meta_pd_vars = [x.lower() for x in set(meta_pd.columns.tolist())]
     models = {}
-    for model, formula in songbird_models.items():
-        formula_split = [x.lower() for x in re.split('[+/:*]', formula.strip('"').strip("'"))]
+    for model, formula_ in songbird_models.items():
+        formula = formula_.strip('"').strip("'")
+        if formula.startswith('C('):
+            formula_split = [formula.split('C(')[-1].split(',')[0].strip().strip()]
+            formula = formula.replace(formula_split[0], formula_split[0].lower())
+        else:
+            formula = formula.lower()
+            formula_split = [x.lower() for x in re.split('[+/:*]', formula)]
         common_with_md = set(meta_pd_vars) & set(formula_split)
         if sorted(set(formula_split)) != sorted(common_with_md):
             only_formula = sorted(set(formula_split) ^ common_with_md)
             print('Songbird formula term(s) missing in metadata:\n  %s\n  [not used]: %s=%s' % (
                 ', '.join(sorted(only_formula)), model, formula))
         else:
-            models[model] = formula.lower()
+            models[model] = formula
     return models
 
 

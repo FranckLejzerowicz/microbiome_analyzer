@@ -167,7 +167,7 @@ def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
             omic1_diff_pd = omic1_diff_pd.set_index('Feature ID')
             # omic1_diff_pd = omic1_diff_pd.drop(columns='Intercept')
             omic1_diff_pd.columns = ['%s__%s' % (model, x) for x in omic1_diff_pd.columns]
-            print(omic1_diff_pd[:3])
+            print(omic1_diff_pd[:2])
             all_omic1_diff_list.append(omic1_diff_pd)
     if len(all_omic1_diff_list):
         all_omic1_diff_pd = pd.concat(all_omic1_diff_list, axis=1, sort=False)
@@ -401,8 +401,46 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
             omic1_common_fp = values[5]
             omic2_common_fp = values[6]
 
-            omic1, omic2, omic_filt1, omic_filt2, omic_feature, omic_sample, omic_microbe, omic_metabolite = get_order_omics(
-                omic1, omic2, omic_filt1, omic_filt2, omics_pairs)
+            order_omics = get_order_omics(omic1, omic2, omic_filt1, omic_filt2, omics_pairs)
+            omic1 = order_omics[0]
+            omic2 = order_omics[1]
+            omic_filt1 = order_omics[2]
+            omic_filt2 = order_omics[3]
+            omic_feature = order_omics[4]
+            omic_sample = order_omics[5]
+            omic_microbe = order_omics[6]
+            omic_metabolite = order_omics[7]
+
+            print("ranks_fp")
+            print(ranks_fp)
+            print("ordi_fp")
+            print(ordi_fp)
+            print("omic1_diff_fps")
+            print(omic1_diff_fps)
+            print("omic2_diff_fps")
+            print(omic2_diff_fps)
+            print("meta_fp")
+            print(meta_fp)
+            print("omic1_common_fp")
+            print(omic1_common_fp)
+            print("omic2_common_fp")
+            print(omic2_common_fp)
+            print("omic1")
+            print(omic1)
+            print("omic2")
+            print(omic2)
+            print("omic_filt1")
+            print(omic_filt1)
+            print("omic_filt2")
+            print(omic_filt2)
+            print("omic_feature")
+            print(omic_feature)
+            print("omic_sample")
+            print(omic_sample)
+            print("omic_microbe")
+            print(omic_microbe)
+            print("omic_metabolite")
+            print(omic_metabolite)
 
             # get differentials
             all_omic1_songbird_ranks, all_omic2_songbird_ranks = get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps)
@@ -500,11 +538,21 @@ def run_mmbird(i_datasets_folder: str, taxonomies: dict,
 
     songbird_outputs_pd = get_songbird_outputs(songbird_outputs)
     mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
-    print(mmvec_outputs_pd.shape)
     mmvec_songbird_pd = merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd)
-    print(mmvec_songbird_pd.values)
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
-    print(mmvec_res)
+
+
+    for k,v in mmvec_res.items():
+        print()
+        print()
+        print(k)
+        print('-'*30)
+        for i in v:
+            if isinstance(i, list):
+                for j in i:
+                    print('      >', i)
+            else:
+                print('   -', i)
 
     pair_cmds = get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force)
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')

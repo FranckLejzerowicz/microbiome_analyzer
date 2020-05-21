@@ -76,6 +76,11 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
+    "-r", "--p-procrustes", required=False, show_default=True, default=False,
+    help="Pairs and subsets for procrustes/protests. Must be a yaml file, e.g.\n"
+         "(see example in 'examples/procrustes_subsets.yml' and README)."
+)
+@click.option(
     "-a", "--p-adonis-formulas", required=False, default=False, show_default=True,
     help="Formula for Adonis tests for each PERMANOVA subset. Must be a yaml file, e.g.\n"
          "(see example in 'examples/adonis_formulas.yml' and README)."
@@ -159,6 +164,7 @@ def standalone_routine(
         p_beta_subsets,
         p_perm_tests,
         p_perm_groups,
+        p_procrustes,
         p_adonis_formulas,
         force, i_classifier,
         i_wol_tree,
@@ -188,6 +194,7 @@ def standalone_routine(
         p_beta_subsets,
         p_perm_tests,
         p_perm_groups,
+        p_procrustes,
         p_adonis_formulas,
         force, i_classifier,
         i_wol_tree,

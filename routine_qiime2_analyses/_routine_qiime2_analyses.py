@@ -19,10 +19,10 @@ from routine_qiime2_analyses._routine_q2_taxonomy import run_taxonomy, run_barpl
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
                                                        run_correlations, run_volatility,
                                                        run_alpha_group_significance)
-
 from routine_qiime2_analyses._routine_q2_beta import (run_beta, export_beta,
                                                       run_pcoas, run_biplots,
                                                       run_emperor, run_emperor_biplot)
+from routine_qiime2_analyses._routine_q2_procrustes import run_procrustes
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
 from routine_qiime2_analyses._routine_q2_permanova import run_permanova
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
@@ -41,6 +41,7 @@ def routine_qiime2_analyses(
         p_beta_subsets: str,
         p_perm_tests: tuple,
         p_perm_groups: str,
+        p_procrustes: str,
         p_formulas: str,
         force: bool,
         i_classifier: str,
@@ -182,8 +183,8 @@ def routine_qiime2_analyses(
             export_beta(i_datasets_folder, betas,
                         force, prjct_nm, qiime_env, chmod, noloc)
         if 'emperor' not in p_skip:
-            pcoas = run_pcoas(i_datasets_folder, datasets, betas,
-                              force, prjct_nm, qiime_env, chmod, noloc)
+            pcoas = run_pcoas(i_datasets_folder, betas, force,
+                              prjct_nm, qiime_env, chmod, noloc)
             run_emperor(i_datasets_folder, pcoas,
                         prjct_nm, qiime_env, chmod, noloc)
         if 'emperor_biplot' not in p_skip:
@@ -218,6 +219,12 @@ def routine_qiime2_analyses(
             mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
                                       datasets_read, force, gpu, standalone,
                                       prjct_nm, qiime_env, chmod, noloc)
+
+    if p_procrustes:
+        if betas and 'procrustes' not in p_skip:
+            run_procrustes(i_datasets_folder, datasets, p_procrustes, betas,
+                           force, prjct_nm, qiime_env, chmod, noloc)
+
     songbird_outputs = []
     if p_diff_models:
         if 'songbird' not in p_skip:

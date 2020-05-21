@@ -16,6 +16,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_job_folder,
     get_analysis_folder,
     get_subsets,
+    get_procrustes_dicts,
     get_raref_tab_meta_pds
 )
 from routine_qiime2_analyses._routine_q2_cmds import (
@@ -25,7 +26,6 @@ from routine_qiime2_analyses._routine_q2_cmds import (
     write_emperor,
     write_emperor_biplot,
     get_subset,
-    write_filter_features
 )
 from routine_qiime2_analyses._routine_q2_cmds import run_export, run_import
 
@@ -61,7 +61,6 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
         for dat, tsv_meta_pds in datasets.items():
             written = 0
             tsv, meta = tsv_meta_pds
-
             if datasets_read[dat] == 'raref':
                 if not isfile(tsv):
                     print('Must have run rarefaction to use it further...\nExiting')
@@ -83,18 +82,19 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                         if not datasets_phylo[dat][0] or dat not in trees:
                             continue
                     qza = tsv.replace('.tsv', '.qza')
+                    if metric not in divs:
+                        divs[metric] = {}
 
                     odir = get_analysis_folder(i_datasets_folder, 'beta/%s' % dat)
                     out_fp = '%s/%s_%s_DM.qza' % (odir, basename(splitext(qza)[0]), metric)
                     if force or not os.path.isfile(out_fp):
                         write_diversity_beta(out_fp, datasets_phylo, trees,
-                                             dat, qza, metric,
-                                             cur_sh, False)
+                                             dat, qza, metric, cur_sh, False)
                         # if ret_continue:
                         #     continue
                         written += 1
                         main_written += 1
-                    divs.setdefault('', []).append((qza, out_fp))
+                    divs[metric][''] = (meta, qza, out_fp)
                     # divs.append(out_fp)
 
                 if beta_subsets and dat in beta_subsets:
@@ -115,7 +115,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
                             qza_subset = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]), subset)
                             tsv_subset = '%s.tsv' % splitext(qza_subset)[0]
-                            meta_subset = '%s.meta' % splitext(qza_subset)[0]
+                            # meta_subset = '%s.meta' % splitext(qza_subset)[0]
                             subset_feats = get_subset(tsv_to_subset_pd, subset_regex)
                             if not len(subset_feats):
                                 continue
@@ -138,10 +138,10 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                 #     continue
                                 written += 1
                                 main_written += 1
-                            divs.setdefault(subset, []).append((qza_subset, out_fp))
+                            divs[metric][subset] = (meta, qza_subset, out_fp)
                             # divs.append(out_fp)
 
-                betas[dat][meta] = divs
+                betas[dat] = divs
             run_xpbs(out_sh, out_pbs, '%s.bt.%s' % (prjct_nm, dat),
                      qiime_env, '24', '1', '1', '10', 'gb',
                      chmod, written, 'single', o, noloc)
@@ -169,22 +169,21 @@ def export_beta(i_datasets_folder: str, betas: dict,
     out_pbs = '%s.pbs' % splitext(out_sh)[0]
     written = 0
     with open(out_sh, 'w') as sh:
-        for dat, meta_dms in betas.items():
-            for meta, group_dms in meta_dms.items():
-                for group, dms in group_dms.items():
-                    for dm in dms:
-                        mat_export = '%s.tsv' % splitext(dm[1])[0]
-                        if force or not isfile(mat_export):
-                            cmd = run_export(dm[1], mat_export, '')
-                            sh.write('echo "%s"\n' % cmd)
-                            sh.write('%s\n\n' % cmd)
-                            written += 1
+        for dat, metric_group_meta_dms in betas.items():
+            for metric, group_meta_dms in metric_group_meta_dms.items():
+                for group, (meta, qza, dm) in group_meta_dms.items():
+                    mat_export = '%s.tsv' % splitext(dm)[0]
+                    if force or not isfile(mat_export):
+                        cmd = run_export(dm, mat_export, '')
+                        sh.write('echo "%s"\n' % cmd)
+                        sh.write('%s\n\n' % cmd)
+                        written += 1
     run_xpbs(out_sh, out_pbs, '%s.xprt.bt' % prjct_nm,
              qiime_env, '2', '1', '1', '1', 'gb',
              chmod, written, '# Export beta diversity matrices', None, noloc)
 
 
-def run_pcoas(i_datasets_folder: str, datasets: dict, betas: dict,
+def run_pcoas(i_datasets_folder: str, betas: dict,
               force: bool, prjct_nm: str, qiime_env: str,
               chmod: str, noloc: bool) -> dict:
     """
@@ -208,29 +207,26 @@ def run_pcoas(i_datasets_folder: str, datasets: dict, betas: dict,
     main_written = 0
     run_pbs = '%s/3_run_pcoa.sh' % job_folder
     with open(run_pbs, 'w') as o:
-        for dat, meta_DMs in betas.items():
+        for dat, metric_groups_metas_dms in betas.items():
             written = 0
-            # tsv, meta = datasets[dat]
             odir = get_analysis_folder(i_datasets_folder, 'pcoa/%s' % dat)
             if dat not in pcoas_d:
-                pcoas_d[dat] = {}
+                pcoas_d[dat] = []
             out_sh = '%s/run_PCoA_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
-                for meta, groups_DMs in meta_DMs.items():
-                    # betas[dat][meta] = {(subset, qza_subset): [out_fp, out_fp, ...]}
-                    for group, qzas_DMs in groups_DMs.items():
-                        for qza, DM in qzas_DMs:
-                            out = '%s_PCoA.qza' % splitext(DM)[0].replace('/beta/', '/pcoa/')
-                            out_tsv = '%s.tsv' % splitext(out)[0]
-                            out_dir = os.path.dirname(out)
-                            if not os.path.isdir(out_dir):
-                                os.makedirs(out_dir)
-                            pcoas_d[dat].setdefault(meta, []).append(out)
-                            if force or not isfile(out) or not isfile(out_tsv):
-                                write_diversity_pcoa(DM, out, out_tsv, cur_sh)
-                                written += 1
-                                main_written += 1
+                for metric, group_meta_dms in metric_groups_metas_dms.items():
+                    for group, (meta, qza, dm) in group_meta_dms.items():
+                        out = '%s_PCoA.qza' % splitext(dm)[0].replace('/beta/', '/pcoa/')
+                        out_tsv = '%s.tsv' % splitext(out)[0]
+                        out_dir = os.path.dirname(out)
+                        if not os.path.isdir(out_dir):
+                            os.makedirs(out_dir)
+                        pcoas_d[dat].append((meta, out))
+                        if force or not isfile(out) or not isfile(out_tsv):
+                            write_diversity_pcoa(dm, out, out_tsv, cur_sh)
+                            written += 1
+                            main_written += 1
             run_xpbs(out_sh, out_pbs, '%s.pc.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '2', '2', 'gb',
                      chmod, written, 'single', o, noloc)
@@ -258,13 +254,13 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, prjct_nm: str,
     first_print = 0
     run_pbs = '%s/4_run_emperor.sh' % job_folder
     with open(run_pbs, 'w') as o:
-        for dat, meta_pcoas in pcoas_d.items():
+        for dat, metas_pcoas in pcoas_d.items():
             written = 0
             odir = get_analysis_folder(i_datasets_folder, 'emperor/%s' % dat)
             out_sh = '%s/run_emperor_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
-                for meta_, pcoas in meta_pcoas.items():
+                for meta_, pcoa in metas_pcoas:
                     meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
                     if isfile(meta_alphas):
                         meta = meta_alphas
@@ -274,14 +270,13 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, prjct_nm: str,
                             print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
                                   '\t(if you want alpha diversity as a variable in the PCoA)!')
                             first_print += 1
-                    for pcoa in pcoas:
-                        out_plot = '%s_emperor.qzv' % splitext(pcoa)[0].replace('/pcoa/', '/emperor/')
-                        out_dir = os.path.dirname(out_plot)
-                        if not os.path.isdir(out_dir):
-                            os.makedirs(out_dir)
-                        write_emperor(meta, pcoa, out_plot, cur_sh)
-                        written += 1
-                        main_written += 1
+                    out_plot = '%s_emperor.qzv' % splitext(pcoa)[0].replace('/pcoa/', '/emperor/')
+                    out_dir = os.path.dirname(out_plot)
+                    if not os.path.isdir(out_dir):
+                        os.makedirs(out_dir)
+                    write_emperor(meta, pcoa, out_plot, cur_sh)
+                    written += 1
+                    main_written += 1
             run_xpbs(out_sh, out_pbs, '%s.mprr.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '1', '1', 'gb',
                      chmod, written, 'single', o, noloc)
@@ -311,7 +306,7 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies:
     main_written = 0
     run_pbs = '%s/3_run_biplot.sh' % job_folder
     with open(run_pbs, 'w') as o:
-        for dat, meta_DMs in betas.items():
+        for dat, metric_groups_metas_dms in betas.items():
             written = 0
             if dat in taxonomies:
                 method, tax_qza = taxonomies[dat]
@@ -324,22 +319,21 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies:
             out_sh = '%s/run_biplot_%s.sh' % (job_folder2, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
-                for meta, groups_DMs in meta_DMs.items():
-                    for group, qzas_DMs in groups_DMs.items():
-                        for qza, DM in qzas_DMs:
-                            tsv = '%s.tsv' % splitext(qza)[0]
-                            out_pcoa = '%s_PCoA.qza' % splitext(DM)[0].replace('/beta/', '/pcoa/')
-                            out_biplot = '%s_biplot.qza' % splitext(DM)[0].replace('/beta/', '/biplot/')
-                            out_dir = os.path.dirname(out_biplot)
-                            if not os.path.isdir(out_dir):
-                                os.makedirs(out_dir)
-                            tsv_tax = '%s_tax.tsv' % splitext(out_biplot)[0]
-                            if force or not isfile(out_biplot):
-                                write_diversity_biplot(tsv, qza, out_pcoa, out_biplot,
-                                                       tax_qza, tsv_tax, cur_sh)
-                                written += 1
-                                main_written += 1
-                            biplots_d[dat].setdefault(meta, []).append((out_biplot, tsv_tax))
+                for metric, group_meta_dms in metric_groups_metas_dms.items():
+                    for group, (meta, qza, dm) in group_meta_dms.items():
+                        tsv = '%s.tsv' % splitext(qza)[0]
+                        out_pcoa = '%s_PCoA.qza' % splitext(dm)[0].replace('/beta/', '/pcoa/')
+                        out_biplot = '%s_biplot.qza' % splitext(dm)[0].replace('/beta/', '/biplot/')
+                        out_dir = os.path.dirname(out_biplot)
+                        if not os.path.isdir(out_dir):
+                            os.makedirs(out_dir)
+                        tsv_tax = '%s_tax.tsv' % splitext(out_biplot)[0]
+                        if force or not isfile(out_biplot):
+                            write_diversity_biplot(tsv, qza, out_pcoa, out_biplot,
+                                                   tax_qza, tsv_tax, cur_sh)
+                            written += 1
+                            main_written += 1
+                        biplots_d[dat].setdefault(meta, []).append((out_biplot, tsv_tax))
             run_xpbs(out_sh, out_pbs, '%s.bplt.%s' % (prjct_nm, dat),
                      qiime_env, '10', '1', '2', '2', 'gb',
                      chmod, written, 'single', o, noloc)
