@@ -448,10 +448,6 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
                 all_omic2_songbird_ranks,
                 ordi_fp
             )
-            print("metatax_omic1_fp")
-            print(metatax_omic1_fp)
-            print("metatax_omic2_fp")
-            print(metatax_omic2_fp)
 
             if all_omic1_songbird_ranks.shape[0]:
                 max_feats = all_omic1_songbird_ranks.shape[0]
