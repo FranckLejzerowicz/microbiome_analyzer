@@ -157,8 +157,6 @@ def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
 
     all_omic1_diff_list = []
     for (omic1_diff_fp, model) in omic1_diff_fps:
-        print("omic1_diff_fp, model")
-        print(omic1_diff_fp, model)
         if str(omic1_diff_fp) != 'nan' and isfile(omic1_diff_fp):
             omic1_diff_pd = pd.read_csv(omic1_diff_fp, header=0, sep='\t')
             if omic1_diff_pd['featureid'][0] == '#q2:types':
@@ -167,7 +165,6 @@ def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
             omic1_diff_pd = omic1_diff_pd.set_index('Feature ID')
             # omic1_diff_pd = omic1_diff_pd.drop(columns='Intercept')
             omic1_diff_pd.columns = ['%s__%s' % (model, x) for x in omic1_diff_pd.columns]
-            print(omic1_diff_pd[:2])
             all_omic1_diff_list.append(omic1_diff_pd)
     if len(all_omic1_diff_list):
         all_omic1_diff_pd = pd.concat(all_omic1_diff_list, axis=1, sort=False)
@@ -176,8 +173,6 @@ def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
             columns={all_omic1_songbird_ranks.columns.tolist()[0]: 'Feature ID'})
     else:
         all_omic1_songbird_ranks = pd.DataFrame()
-    print(all_omic1_songbird_ranks[:2])
-    print(kdfjhb)
 
     all_omic2_diff_list = []
     all_omic2_songbird_ranks = pd.DataFrame()
@@ -196,6 +191,7 @@ def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
         all_omic2_songbird_ranks = all_omic2_diff_pd.reset_index()
         all_omic2_songbird_ranks = all_omic2_songbird_ranks.rename(
             columns={all_omic2_songbird_ranks.columns.tolist()[0]: 'Feature ID'})
+
     return all_omic1_songbird_ranks, all_omic2_songbird_ranks
 
 
@@ -413,39 +409,36 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
             omic_microbe = order_omics[6]
             omic_metabolite = order_omics[7]
 
-            print("ranks_fp")
-            print(ranks_fp)
-            print("ordi_fp")
-            print(ordi_fp)
-            print("omic1_diff_fps")
-            print(omic1_diff_fps)
-            print("omic2_diff_fps")
-            print(omic2_diff_fps)
-            print("meta_fp")
-            print(meta_fp)
-            print("omic1_common_fp")
-            print(omic1_common_fp)
-            print("omic2_common_fp")
-            print(omic2_common_fp)
-            print("omic1")
-            print(omic1)
-            print("omic2")
-            print(omic2)
-            print("omic_filt1")
-            print(omic_filt1)
-            print("omic_filt2")
-            print(omic_filt2)
-            print("omic_feature")
-            print(omic_feature)
-            print("omic_sample")
-            print(omic_sample)
-            print("omic_microbe")
-            print(omic_microbe)
-            print("omic_metabolite")
-            print(omic_metabolite)
+            # print("ranks_fp")
+            # print(ranks_fp)
+            # print("ordi_fp")
+            # print(ordi_fp)
+            # print("omic1_diff_fps")
+            # print(omic1_diff_fps)
+            # print("omic2_diff_fps")
+            # print(omic2_diff_fps)
+            # print("meta_fp")
+            # print(meta_fp)
+            # print("omic1_common_fp")
+            # print(omic1_common_fp)
+            # print("omic2_common_fp")
+            # print(omic2_common_fp)
+            # print("omic1")
+            # print(omic1)
+            # print("omic2")
+            # print(omic2)
+            # print("omic_filt1")
+            # print(omic_filt1)
+            # print("omic_filt2")
+            # print(omic_filt2)
 
             # get differentials
             all_omic1_songbird_ranks, all_omic2_songbird_ranks = get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps)
+            # print(all_omic1_songbird_ranks.columns)
+            # print(all_omic1_songbird_ranks.T)
+            # print(all_omic2_songbird_ranks.columns)
+            # print(all_omic2_songbird_ranks.T)
+
             omic1_tax_fp = '%s.tsv' % splitext(taxonomies[omic1][1])[0]
             omic2_tax_fp = '%s.tsv' % splitext(taxonomies[omic2][1])[0]
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
@@ -455,6 +448,10 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
                 all_omic2_songbird_ranks,
                 ordi_fp
             )
+            print("metatax_omic1_fp")
+            print(metatax_omic1_fp)
+            print("metatax_omic2_fp")
+            print(metatax_omic2_fp)
 
             if all_omic1_songbird_ranks.shape[0]:
                 max_feats = all_omic1_songbird_ranks.shape[0]
@@ -468,8 +465,10 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
                 ranks_fp,
                 ordi_fp,
                 meta_fp,
-                omic1_tax_fp, omic2_tax_fp,
-                omic1_common_fp, omic2_common_fp
+                omic1_tax_fp,
+                omic2_tax_fp,
+                omic1_common_fp,
+                omic2_common_fp
             ])
 
             # if 'mbAnnot' in ordi_fp:
@@ -502,7 +501,7 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
                     '', n_mbAnnot_CLAs_in_file, crowded, max_feats
                 )
 
-            ranks_edit_fp = ranks_fp
+            # ranks_edit_fp = ranks_fp
             # if omic_metabolite == 'metabolite':
             #     metatax_omic2_pd = pd.read_csv(metatax_omic2_fp, header=0, sep='\t')
             #     metatax_omic2_pd_cols = metatax_omic2_pd.columns.tolist()[(metatax_omic2_pd.columns.tolist().index('Intercept')+1):]
@@ -543,18 +542,17 @@ def run_mmbird(i_datasets_folder: str, taxonomies: dict,
     mmvec_songbird_pd = merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd)
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
 
-
-    for k,v in mmvec_res.items():
-        print()
-        print()
-        print(k)
-        print('-'*30)
-        for i in v:
-            if isinstance(i, list):
-                for j in i:
-                    print('      >', i)
-            else:
-                print('   -', i)
+    # for k,v in mmvec_res.items():
+    #     print()
+    #     print()
+    #     print(k)
+    #     print('-'*30)
+    #     for i in v:
+    #         if isinstance(i, list):
+    #             for j in i:
+    #                 print('      >', i)
+    #         else:
+    #             print('   -', i)
 
     pair_cmds = get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force)
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')

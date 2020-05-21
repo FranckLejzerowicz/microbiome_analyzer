@@ -93,7 +93,7 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
                     meta_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat2)
                     meta2_rgx = glob.glob('%s/meta_%s_raref*tsv' % (meta_dir, dat2))
                     if len(meta2_rgx) == 1:
-                        meta1 = meta2_rgx[0]
+                        meta2 = meta2_rgx[0]
 
                 meta_pd1 = read_meta_pd(meta1)
                 meta_pd2 = read_meta_pd(meta2)
