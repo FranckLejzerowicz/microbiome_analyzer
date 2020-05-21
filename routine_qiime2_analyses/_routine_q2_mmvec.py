@@ -257,7 +257,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
             for cmd in pre_jobs:
                 import_o.write('\necho "%s"\n' % cmd)
                 import_o.write('%s\n' % cmd)
-        run_xpbs(import_sh, import_pbs, '%s.mprt.mmsb' % prjct_nm,
+        run_xpbs(import_sh, import_pbs, '%s.mprt.mmsb.%s' % (prjct_nm, analysis),
                  qiime_env, '2', '1', '1', '150', 'mb', chmod, 1,
                  '# Import datasets for %s' % analysis, None, noloc)
     return filt_datasets, common_datasets
