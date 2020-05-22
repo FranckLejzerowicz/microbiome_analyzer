@@ -489,7 +489,8 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
             qza, qzv = get_qzs(ordi_edit_fp)
             # if 1:
             cmd = ''
-            if force or not isfile(qzv):
+            if 1:
+            # if force or not isfile(qzv):
                 cmd = get_biplot_commands(
                     ordi_edit_fp, qza, qzv,
                     omic_feature, omic_sample,
