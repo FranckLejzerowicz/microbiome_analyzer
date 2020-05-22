@@ -84,11 +84,11 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
                         dm1 = dm1_rgx[0]
                     meta_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat1)
                     meta1_rgx = glob.glob('%s/meta_%s_raref*tsv' % (meta_dir, dat1))
-                    if len(meta1_rgx) == 1:
+                    if len(meta1_rgx) >= 1:
                         meta1 = meta1_rgx[0]
                 if dat2_.endswith('__raref'):
                     dm2_rgx = glob.glob('%s/tab_%s_raref*_%s_DM.qza' % (dirname(dm2), dat2, metric))
-                    if len(dm2_rgx) == 1:
+                    if len(dm2_rgx) >= 1:
                         dm2 = dm2_rgx[0]
                     meta_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat2)
                     meta2_rgx = glob.glob('%s/meta_%s_raref*tsv' % (meta_dir, dat2))
