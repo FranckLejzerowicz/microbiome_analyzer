@@ -122,7 +122,7 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
                         run_single_procrustes(odir, dm1, dm2, meta_pd, dm_out1, dm_out2,
                                               biplot, cur_sh, cur, case_var, case_vals, force)
                         dms_tab.append([pair, dat1_, dat2_, metric, group1, group2,
-                                        case_, dm_out1, dm_out2, biplot])
+                                        case_, dm_out1, dm_out2])
 
     job_folder = get_job_folder(i_datasets_folder, 'procrustes')
     main_sh = write_main_sh(job_folder, 'run_procrustes', all_sh_pbs,
@@ -141,7 +141,7 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
         dms_tab, columns = [
             'pair', 'dat1', 'dat2', 'metric',
             'group1', 'group2', 'case',
-            'dm_out1', 'dm_out2', 'biplot',
+            'dm_out1', 'dm_out2',
         ]
     )
     odir = get_analysis_folder(i_datasets_folder, 'procrustes/R')
@@ -155,28 +155,33 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
         with open(R_script, 'w') as o:
             o.write("suppressMessages(library(vegan))\n")
             o.write("dms_files <- read.table('%s', h=T)\n" % dms_tab_fp)
-            o.write("dms_files\n")
-            o.write("res <- setNames(data.frame(matrix(ncol = 6, nrow = 0)), c('comparson', 'metric', 'f1', 'f2', 'M2', 'signif'))\n")
+            o.write("cols <- c('comparison', 'd1', 'd2', 'g1', 'g2', 'case', 'metric', 'f1', 'f2', 'M2', 'signif')\n")
+            o.write("res <- setNames(data.frame(matrix(ncol = 10, nrow = 0)), cols)\n")
             o.write("for (i in seq(1, dim(dms_files)[1])) {\n")
             o.write("    message(i)\n")
             o.write("    row <- as.vector(unlist(dms_files[i,]))\n")
             o.write("    com <- row[1]\n")
-            o.write("    metric <- row[2]\n")
-            o.write("    f1 <- row[5]\n")
-            o.write("    f2 <- row[6]\n")
+            o.write("    d1 <- row[2]\n")
+            o.write("    d2 <- row[3]\n")
+            o.write("    metric <- row[4]\n")
+            o.write("    group1 <- row[5]\n")
+            o.write("    group2 <- row[6]\n")
+            o.write("    case <- row[7]\n")
+            o.write("    f1 <- row[8]\n")
+            o.write("    f2 <- row[9]\n")
             o.write("    message(f1)\n")
             o.write("    message(f2)\n")
             o.write("\n")
-            o.write("    filin_tsv_pd1 <- read.csv(f1, header = TRUE, check.names=FALSE, row.names = 1, sep = '\\t')\n")
-            o.write("    filin_tsv_pd2 <- read.csv(f2, header = TRUE, check.names=FALSE, row.names = 1, sep = '\\t')\n")
+            o.write("    filin_tsv_pd1 <- read.csv(f1, header = TRUE, check.names=FALSE, row.names = 1, sep = '\\\t')\n")
+            o.write("    filin_tsv_pd2 <- read.csv(f2, header = TRUE, check.names=FALSE, row.names = 1, sep = '\\\t')\n")
             o.write("    filin_tsv_pd1 <- as.matrix(filin_tsv_pd1)\n")
             o.write("    filin_tsv_pd2 <- as.matrix(filin_tsv_pd2)\n")
             o.write("\n")
-            o.write("    cat(paste('meta dimension:', paste(as.character(dim(filin_tsv_pd1)), collapse = '-'), typeof(filin_tsv_pd1), '\\n', sep=' '))\n")
-            o.write("    cat(paste('meta dimension:', paste(as.character(dim(filin_tsv_pd2)), collapse = '-'), typeof(filin_tsv_pd2), '\\n', sep=' '))\n")
+            o.write("    cat(paste('meta dimension:', paste(as.character(dim(filin_tsv_pd1)), collapse = '-'), typeof(filin_tsv_pd1), '\\\n', sep=' '))\n")
+            o.write("    cat(paste('meta dimension:', paste(as.character(dim(filin_tsv_pd2)), collapse = '-'), typeof(filin_tsv_pd2), '\\\n', sep=' '))\n")
             o.write("    # procrustes12 <- procrustes(filin_tsv_pd1, filin_tsv_pd2, kind=2, permutations=999)\n")
             o.write("    prtst <- protest(filin_tsv_pd1, filin_tsv_pd2, permutations = 999)\n")
-            o.write("    res[i,] <- c(com, metric, f1, f2, prtst$ss, prtst$signif)\n")
+            o.write("    res[i,] <- c(com, d1, d2, group1, group2, case, metric, f1, f2, prtst$ss, prtst$signif)\n")
             o.write("}\n")
             o.write("write.table(x = res, file = '%s')\n" % out_R)
 
