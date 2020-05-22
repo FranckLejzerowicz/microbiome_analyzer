@@ -66,6 +66,8 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
         metrics_groups_metas_qzas1 = betas[dat1]
         for metric, groups_metas_qzas1 in metrics_groups_metas_qzas1.items():
 
+            if not metric in betas[dat2] or not metric in betas[dat1]:
+                continue
             groups_metas_qzas2 = betas[dat2][metric]
             groups1 = sorted(groups_metas_qzas2.keys())
             groups2 = sorted(groups_metas_qzas2.keys())
