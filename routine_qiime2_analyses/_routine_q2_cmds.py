@@ -146,7 +146,7 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
                     batch: str, learn: str, epoch: str, prior: str,
                     thresh_feat: str, latent_dim: str,
                     train_column: str, n_example: str, gpu: bool,
-                    standalone: bool, cur_sh: TextIO) -> None:
+                    standalone: bool, cur_sh: TextIO, qiime_env: str) -> None:
     """
     Performs bi-loglinear multinomial regression and calculates the
     conditional probability ranks of metabolite co-occurence given the microbe
@@ -213,7 +213,8 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
             cmd += '--p-input-prior %s \\\n' % prior
             cmd += '--p-learning-rate %s \\\n' % learn
             cmd += '--p-summary-interval 10 \\\n'
-            cmd += '--p-equalize-biplot \\\n'
+            if qiime_env == 'qiime2-2020.2':
+                cmd += '--p-equalize-biplot \\\n'
             cmd += '--o-conditionals %s \\\n' % ranks_qza
             cmd += '--o-conditional-biplot %s \\\n' % ordination_qza
             cmd += '--output-dir %s/logdir_${current_time}\n' % dirname(ordination_qza)

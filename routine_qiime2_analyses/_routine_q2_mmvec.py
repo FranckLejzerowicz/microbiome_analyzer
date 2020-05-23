@@ -176,7 +176,7 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
 def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, res_dir: str,
                      cur_sh: str, batch: str, learn: str, epoch: str, prior: str,
                      thresh_feat: str, latent_dim: str, train_column: str,
-                     n_example: str, gpu: bool, force: bool, standalone: bool) -> None:
+                     n_example: str, gpu: bool, force: bool, standalone: bool, qiime_env: str) -> None:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
     https://github.com/biocore/mmvec
@@ -210,7 +210,7 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, r
                             ranks_tsv, ordination_tsv,
                             batch, learn, epoch, prior,
                             thresh_feat, latent_dim, train_column,
-                            n_example, gpu, standalone, cur_sh_o)
+                            n_example, gpu, standalone, cur_sh_o, qiime_env)
 
             remove = False
     if remove:
@@ -347,7 +347,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                     qza1, qza2, res_dir, cur_sh,
                     batch, learn, epoch, prior, thresh_feat,
                     latent_dim, train_column, n_example,
-                    gpu, force, standalone
+                    gpu, force, standalone, qiime_env
                 )
     # for j in jobs:
     #     j.join()
