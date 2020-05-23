@@ -110,8 +110,14 @@ def get_mmvec_res(mmvec_outputs_pd):
         meta_fp = row['meta_common_fp']
 
         # get the songbirds
-        omic1_songbird_common_fps = [(x, all_omic1_sb[idx].replace('_omic1_songbird_common_fp', '')) for idx, x in enumerate(row[all_omic1_sb])]
-        omic2_songbird_common_fps = [(x, all_omic2_sb[idx].replace('_omic2_songbird_common_fp', '')) for idx, x in enumerate(row[all_omic2_sb])]
+        if len(all_omic1_sb):
+            omic1_songbird_common_fps = [(x, all_omic1_sb[idx].replace('_omic1_songbird_common_fp', '')) for idx, x in enumerate(row[all_omic1_sb])]
+        else:
+            omic1_songbird_common_fps = []
+        if len(all_omic2_sb):
+            omic2_songbird_common_fps = [(x, all_omic2_sb[idx].replace('_omic2_songbird_common_fp', '')) for idx, x in enumerate(row[all_omic2_sb])]
+        else:
+            omic2_songbird_common_fps = []
 
         # for each mmvec-parameters result
         for mmvec_out_col in mmvec_out_cols:
@@ -534,22 +540,27 @@ def run_mmbird(i_datasets_folder: str, taxonomies: dict,
         print('No songbird output detected...')
         sys.exit(0)
 
-    songbird_outputs_pd = get_songbird_outputs(songbird_outputs)
     mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
-    mmvec_songbird_pd = merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd)
+    if len(songbird_outputs):
+        songbird_outputs_pd = get_songbird_outputs(songbird_outputs)
+        mmvec_songbird_pd = merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd)
+    else:
+        mmvec_songbird_pd = mmvec_outputs_pd.copy()
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
 
-    # for k,v in mmvec_res.items():
-    #     print()
-    #     print()
-    #     print(k)
-    #     print('-'*30)
-    #     for i in v:
-    #         if isinstance(i, list):
-    #             for j in i:
-    #                 print('      >', i)
-    #         else:
-    #             print('   -', i)
+
+    for k,v in mmvec_res.items():
+        print()
+        print()
+        print(k)
+        print('-'*30)
+        for i in v:
+            if isinstance(i, list):
+                for j in i:
+                    print('      >', i)
+            else:
+                print('   -', i)
+
 
     pair_cmds = get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force)
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
