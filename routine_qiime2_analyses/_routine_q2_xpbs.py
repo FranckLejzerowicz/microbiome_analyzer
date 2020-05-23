@@ -90,7 +90,7 @@ def xpbs_call(out_sh: str, out_pbs: str, prjct_nm: str,
         '-c', chmod,
         '--noq'
     ]
-    if noloc:
+    if not noloc:
         cmd.append('--no-loc')
     subprocess.call(cmd)
 
