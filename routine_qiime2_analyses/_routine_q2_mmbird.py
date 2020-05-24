@@ -445,8 +445,17 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
             # print(all_omic2_songbird_ranks.columns)
             # print(all_omic2_songbird_ranks.T)
 
-            omic1_tax_fp = '%s.tsv' % splitext(taxonomies[omic1][1])[0]
-            omic2_tax_fp = '%s.tsv' % splitext(taxonomies[omic2][1])[0]
+            if omic1.endswith('__raref'):
+                omic1_tax_fp = '%s.tsv' % splitext(
+                    taxonomies['__raref'.join(omic1.split('__raref')[:-1])][1])[0]
+            else:
+                omic1_tax_fp = '%s.tsv' % splitext(taxonomies[omic1][1])[0]
+            if omic2.endswith('__raref'):
+                omic2_tax_fp = '%s.tsv' % splitext(
+                    taxonomies['__raref'.join(omic2.split('__raref')[:-1])][1])[0]
+            else:
+                omic2_tax_fp = '%s.tsv' % splitext(taxonomies[omic2][1])[0]
+
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
                 omic_filt1, omic_filt2,
                 omic1_tax_fp, omic2_tax_fp,
@@ -548,19 +557,17 @@ def run_mmbird(i_datasets_folder: str, taxonomies: dict,
         mmvec_songbird_pd = mmvec_outputs_pd.copy()
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
 
-
-    for k,v in mmvec_res.items():
-        print()
-        print()
-        print(k)
-        print('-'*30)
-        for i in v:
-            if isinstance(i, list):
-                for j in i:
-                    print('      >', i)
-            else:
-                print('   -', i)
-
+    # for k,v in mmvec_res.items():
+    #     print()
+    #     print()
+    #     print(k)
+    #     print('-'*30)
+    #     for i in v:
+    #         if isinstance(i, list):
+    #             for j in i:
+    #                 print('      >', i)
+    #         else:
+    #             print('   -', i)
 
     pair_cmds = get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force)
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
