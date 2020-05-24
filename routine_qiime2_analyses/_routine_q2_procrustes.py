@@ -156,7 +156,7 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
             o.write("suppressMessages(library(vegan))\n")
             o.write("dms_files <- read.table('%s', h=T)\n" % dms_tab_fp)
             o.write("cols <- c('comparison', 'd1', 'd2', 'g1', 'g2', 'case', 'metric', 'f1', 'f2', 'M2', 'signif')\n")
-            o.write("res <- setNames(data.frame(matrix(ncol = 10, nrow = 0)), cols)\n")
+            o.write("res <- setNames(data.frame(matrix(ncol = 11, nrow = 0)), cols)\n")
             o.write("for (i in seq(1, dim(dms_files)[1])) {\n")
             o.write("    message(i)\n")
             o.write("    row <- as.vector(unlist(dms_files[i,]))\n")
