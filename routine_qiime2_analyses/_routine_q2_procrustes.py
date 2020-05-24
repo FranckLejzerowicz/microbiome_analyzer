@@ -118,12 +118,14 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
 
                         dm_out1 = '%s/dm_%s__%s_DM.qza' % (odir, dat1_, cur)
                         dm_out2 = '%s/dm_%s__%s_DM.qza' % (odir, dat2_, cur)
+                        dm_out1_tsv = '%s.tsv' % splitext(dm_out1)[0]
+                        dm_out2_tsv = '%s.tsv' % splitext(dm_out2)[0]
                         biplot = '%s/procrustes_%s__%s__%s.qzv' % (odir, dat1_, dat2_, cur)
                         run_single_procrustes(odir, dm1, dm2, meta_pd, dm_out1, dm_out2,
                                               biplot, cur_sh, cur, case_var, case_vals, force)
                         dms_tab.append([pair, dat1_, dat2_,
                                         group1, group2, case_, metric,
-                                        dm_out1, dm_out2])
+                                        dm_out1_tsv, dm_out2_tsv])
 
     job_folder = get_job_folder(i_datasets_folder, 'procrustes')
     main_sh = write_main_sh(job_folder, 'run_procrustes', all_sh_pbs,
@@ -154,12 +156,11 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
         job_folder = get_job_folder(i_datasets_folder, 'procrustes/R')
         R_script = '%s/4_run_procrustes.R' % job_folder
         with open(R_script, 'w') as o:
-            o.write("suppressMessages(library(vegan))\n")
+            o.write("library(vegan)\n")
             o.write("dms_files <- read.table('%s', h=T)\n" % dms_tab_fp)
             o.write("cols <- c('comparison', 'd1', 'd2', 'g1', 'g2', 'case', 'metric', 'f1', 'f2', 'M2', 'signif')\n")
             o.write("res <- setNames(data.frame(matrix(ncol = 11, nrow = 0)), cols)\n")
             o.write("for (i in seq(1, dim(dms_files)[1])) {\n")
-            o.write("    message(i)\n")
             o.write("    row <- as.vector(unlist(dms_files[i,]))\n")
             o.write("    com <- row[1]\n")
             o.write("    d1 <- row[2]\n")
@@ -170,16 +171,10 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
             o.write("    metric <- row[7]\n")
             o.write("    f1 <- row[8]\n")
             o.write("    f2 <- row[9]\n")
-            o.write("    message(f1)\n")
-            o.write("    message(f2)\n")
-            o.write("\n")
             o.write("    filin_tsv_pd1 <- read.csv(f1, header = TRUE, check.names=FALSE, row.names = 1, sep = '\\t')\n")
             o.write("    filin_tsv_pd2 <- read.csv(f2, header = TRUE, check.names=FALSE, row.names = 1, sep = '\\t')\n")
             o.write("    filin_tsv_pd1 <- as.matrix(filin_tsv_pd1)\n")
             o.write("    filin_tsv_pd2 <- as.matrix(filin_tsv_pd2)\n")
-            o.write("\n")
-            o.write("    cat(paste('meta dimension:', paste(as.character(dim(filin_tsv_pd1)), collapse = '-'), typeof(filin_tsv_pd1), '\\n', sep=' '))\n")
-            o.write("    cat(paste('meta dimension:', paste(as.character(dim(filin_tsv_pd2)), collapse = '-'), typeof(filin_tsv_pd2), '\\n', sep=' '))\n")
             o.write("    # procrustes12 <- procrustes(filin_tsv_pd1, filin_tsv_pd2, kind=2, permutations=999)\n")
             o.write("    prtst <- protest(filin_tsv_pd1, filin_tsv_pd2, permutations = 999)\n")
             o.write("    res[i,] <- c(com, d1, d2, group1, group2, case, metric, f1, f2, prtst$ss, prtst$signif)\n")
