@@ -121,8 +121,9 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
                         biplot = '%s/procrustes_%s__%s__%s.qzv' % (odir, dat1_, dat2_, cur)
                         run_single_procrustes(odir, dm1, dm2, meta_pd, dm_out1, dm_out2,
                                               biplot, cur_sh, cur, case_var, case_vals, force)
-                        dms_tab.append([pair, dat1_, dat2_, metric, group1, group2,
-                                        case_, dm_out1, dm_out2])
+                        dms_tab.append([pair, dat1_, dat2_,
+                                        group1, group2, case_, metric,
+                                        dm_out1, dm_out2])
 
     job_folder = get_job_folder(i_datasets_folder, 'procrustes')
     main_sh = write_main_sh(job_folder, 'run_procrustes', all_sh_pbs,
@@ -163,10 +164,10 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
             o.write("    com <- row[1]\n")
             o.write("    d1 <- row[2]\n")
             o.write("    d2 <- row[3]\n")
-            o.write("    metric <- row[4]\n")
-            o.write("    group1 <- row[5]\n")
-            o.write("    group2 <- row[6]\n")
-            o.write("    case <- row[7]\n")
+            o.write("    group1 <- row[4]\n")
+            o.write("    group2 <- row[5]\n")
+            o.write("    case <- row[6]\n")
+            o.write("    metric <- row[7]\n")
             o.write("    f1 <- row[8]\n")
             o.write("    f2 <- row[9]\n")
             o.write("    message(f1)\n")
