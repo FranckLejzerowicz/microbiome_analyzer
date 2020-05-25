@@ -84,15 +84,35 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
         formula = formula_.strip('"').strip("'")
         if formula.startswith('C('):
             formula_split = [formula.split('C(')[-1].split(',')[0].strip().strip()]
-            formula = formula.replace(formula_split[0], formula_split[0].lower())
+            formula = formula.replace('C(%s' % formula_split[0], 'C(%s' % formula_split[0].lower())
+            if 'Diff' in formula:
+                levels = formula.split("levels=['")[-1].split("']")[0].split("','")
+            elif 'Treatment(' in formula:
+                levels = formula.split("Treatment('")[-1].split("')")[0]
         else:
             formula = formula.lower()
             formula_split = [x.lower() for x in re.split('[+/:*]', formula)]
+            levels = []
         common_with_md = set(meta_pd_vars) & set(formula_split)
         if sorted(set(formula_split)) != sorted(common_with_md):
             only_formula = sorted(set(formula_split) ^ common_with_md)
             print('Songbird formula term(s) missing in metadata:\n  %s\n  [not used]: %s=%s' % (
                 ', '.join(sorted(only_formula)), model, formula))
+            continue
+        if len(levels):
+            levels_set = set(meta_pd[formula_split[0]].unique())
+            if 'Diff' in formula:
+                if not set(levels).issubset(levels_set):
+                    not_in_levels = set(levels_set).difference(levels)
+                    print('Songbird formula factors(s) missing in metadata "%s":\n  %s' % (
+                        formula_split[0], not_in_levels))
+                    continue
+            elif 'Treatment(' in formula:
+                levels = formula.split("Treatment('")[-1].split("')")[0]
+                if levels not in levels_set:
+                    print('Songbird formula factors(s) missing in metadata "%s":\n  %s' % (
+                        formula_split[0], levels))
+                    continue
         else:
             models[model] = formula
     return models
