@@ -445,6 +445,7 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
             # print(all_omic2_songbird_ranks.columns)
             # print(all_omic2_songbird_ranks.T)
 
+            print(taxonomies)
             if omic1.endswith('__raref'):
                 omic1_tax_fp = '%s.tsv' % splitext(
                     taxonomies['__raref'.join(omic1.split('__raref')[:-1])][1])[0]
