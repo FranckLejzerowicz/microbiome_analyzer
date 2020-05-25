@@ -113,8 +113,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                     print('Songbird formula factors(s) missing in metadata "%s":\n  %s' % (
                         formula_split[0], levels))
                     continue
-        else:
-            models[model] = formula
+        models[model] = formula
     return models
 
 
