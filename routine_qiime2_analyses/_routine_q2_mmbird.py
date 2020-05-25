@@ -447,14 +447,22 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
 
             if omic1.endswith('__raref'):
                 omic1_tax = '__raref'.join(omic1.split('__raref')[:-1])
+                if omic1_tax not in taxonomies:
+                    print('be sure to load the "-d %s"' % omic1_tax)
                 omic1_tax_fp = '%s.tsv' % splitext(taxonomies[omic1_tax][1])[0]
             else:
+                if omic1 not in taxonomies:
+                    print('be sure to load the "-d %s"' % omic1)
                 omic1_tax_fp = '%s.tsv' % splitext(taxonomies[omic1][1])[0]
 
             if omic2.endswith('__raref'):
                 omic2_tax = '__raref'.join(omic2.split('__raref')[:-1])
+                if omic2_tax not in taxonomies:
+                    print('be sure to load the "-d %s"' % omic2_tax)
                 omic2_tax_fp = '%s.tsv' % splitext(taxonomies[omic2_tax][1])[0]
             else:
+                if omic2 not in taxonomies:
+                    print('be sure to load the "-d %s"' % omic1)
                 omic2_tax_fp = '%s.tsv' % splitext(taxonomies[omic2][1])[0]
 
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
