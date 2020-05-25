@@ -13,7 +13,7 @@ from os.path import isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
-from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder
+from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder
 from routine_qiime2_analyses._routine_q2_cmds import get_split_taxonomy
 
 
@@ -232,19 +232,24 @@ def get_order_omics(omic1, omic2, omic_filt1, omic_filt2, omics_pairs):
 
 def get_tax_extended_fps(
         omic_filt1, omic_filt2,
+        omic1_common_fp, omic2_common_fp,
         omic1_tax_fp, omic2_tax_fp,
         all_omic1_songbird_ranks,
         all_omic2_songbird_ranks,
         ordi_fp
 ):
-    omic1_tax_pd = pd.read_csv(omic1_tax_fp, header=0, sep='\t', dtype=str)
-    omic2_tax_pd = pd.read_csv(omic2_tax_fp, header=0, sep='\t', dtype=str)
-    if 'Taxon' in omic1_tax_pd:
-        omic1_split_taxo = get_split_taxonomy(omic1_tax_pd.Taxon.tolist())
-        omic1_tax_pd = omic1_tax_pd.merge(omic1_split_taxo, on='Taxon', how='left').drop_duplicates()
-    if 'Taxon' in omic2_tax_pd:
-        omic2_split_taxo = get_split_taxonomy(omic2_tax_pd.Taxon.tolist())
-        omic2_tax_pd = omic2_tax_pd.merge(omic2_split_taxo, on='Taxon', how='left').drop_duplicates()
+    if isfile(omic1_tax_fp):
+        omic1_tax_pd = pd.read_csv(omic1_tax_fp, header=0, sep='\t', dtype=str)
+        if 'Taxon' in omic1_tax_pd:
+            omic1_split_taxo = get_split_taxonomy(omic1_tax_pd.Taxon.tolist())
+            omic1_tax_pd = omic1_tax_pd.merge(omic1_split_taxo, on='Taxon', how='left').drop_duplicates()
+        else:
+            omic1_tax_list = []
+            with open(omic1_common_fp) as f:
+                for ldx, line in enumerate(f):
+                    if ldx:
+                        omic1_tax_list.append([line.split('\t')[0]])
+            omic1_tax_pd = pd.DataFrame(omic1_tax_list, columns=['Feature ID'])
 
     if all_omic1_songbird_ranks.shape[0]:
         omic1_tax_pd = omic1_tax_pd.merge(
@@ -252,6 +257,21 @@ def get_tax_extended_fps(
             on='Feature ID',
             how='left'
         ).drop_duplicates()
+    metatax_omic1_fp = ordi_fp.replace('.txt', '_meta-%s.tsv' % omic_filt1)
+    omic1_tax_pd.to_csv(metatax_omic1_fp, index=False, sep='\t')
+
+    if isfile(omic2_tax_fp):
+        omic2_tax_pd = pd.read_csv(omic2_tax_fp, header=0, sep='\t', dtype=str)
+        if 'Taxon' in omic2_tax_pd:
+            omic2_split_taxo = get_split_taxonomy(omic2_tax_pd.Taxon.tolist())
+            omic2_tax_pd = omic2_tax_pd.merge(omic2_split_taxo, on='Taxon', how='left').drop_duplicates()
+        else:
+            omic2_tax_list = []
+            with open(omic2_common_fp) as f:
+                for ldx, line in enumerate(f):
+                    if ldx:
+                        omic2_tax_list.append([line.split('\t')[0]])
+            omic2_tax_pd = pd.DataFrame(omic2_tax_list, columns=['Feature ID'])
 
     if all_omic2_songbird_ranks.shape[0]:
         omic2_tax_pd = omic2_tax_pd.merge(
@@ -259,11 +279,9 @@ def get_tax_extended_fps(
             on='Feature ID',
             how='left'
         ).drop_duplicates()
-
-    metatax_omic1_fp = ordi_fp.replace('.txt', '_meta-%s.tsv' % omic_filt1)
     metatax_omic2_fp = ordi_fp.replace('.txt', '_meta-%s.tsv' % omic_filt2)
-    omic1_tax_pd.to_csv(metatax_omic1_fp, index=False, sep='\t')
     omic2_tax_pd.to_csv(metatax_omic2_fp, index=False, sep='\t')
+
     return metatax_omic1_fp, metatax_omic2_fp
 
 
@@ -385,7 +403,8 @@ def get_biplot_commands(ordi_edit_fp, qza, qzv,
 #     return n_mbAnnot_CLAs_in_file, ordi_edit_fp
 
 
-def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
+def get_pair_cmds(i_datasets_folder: str, mmvec_songbird_pd: pd.DataFrame,
+                  mmvec_res: dict):
 
     crowdeds = [0, 1]
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
@@ -445,25 +464,18 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
             # print(all_omic2_songbird_ranks.columns)
             # print(all_omic2_songbird_ranks.T)
 
+            tax_dir = get_analysis_folder(i_datasets_folder, 'taxonomy')
             if omic1.endswith('__raref'):
                 omic1_tax = '__raref'.join(omic1.split('__raref')[:-1])
-                if omic1_tax not in taxonomies:
-                    print('be sure to load the "-d %s"' % omic1_tax)
-                omic1_tax_fp = '%s.tsv' % splitext(taxonomies[omic1_tax][1])[0]
             else:
-                if omic1 not in taxonomies:
-                    print('be sure to load the "-d %s"' % omic1)
-                omic1_tax_fp = '%s.tsv' % splitext(taxonomies[omic1][1])[0]
+                omic1_tax = omic1
+            omic1_tax_fp = '%s/%s/tax_%s.tsv' % (tax_dir, omic1_tax, omic1_tax)
 
             if omic2.endswith('__raref'):
                 omic2_tax = '__raref'.join(omic2.split('__raref')[:-1])
-                if omic2_tax not in taxonomies:
-                    print('be sure to load the "-d %s"' % omic2_tax)
-                omic2_tax_fp = '%s.tsv' % splitext(taxonomies[omic2_tax][1])[0]
             else:
-                if omic2 not in taxonomies:
-                    print('be sure to load the "-d %s"' % omic1)
-                omic2_tax_fp = '%s.tsv' % splitext(taxonomies[omic2][1])[0]
+                omic2_tax = omic2
+            omic2_tax_fp = '%s/%s/tax_%s.tsv' % (tax_dir, omic2_tax, omic2_tax)
 
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
                 omic_filt1, omic_filt2,
@@ -547,9 +559,9 @@ def get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force):
     return pair_cmds
 
 
-def run_mmbird(i_datasets_folder: str, taxonomies: dict,
-               songbird_outputs: list, mmvec_outputs: list, force: bool,
-               prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
+def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
+               mmvec_outputs: list, force: bool, prjct_nm: str,
+               qiime_env: str, chmod: str, noloc: bool) -> None:
 
     if not mmvec_outputs:
         print('No mmvec output detected...')
@@ -578,7 +590,7 @@ def run_mmbird(i_datasets_folder: str, taxonomies: dict,
     #         else:
     #             print('   -', i)
 
-    pair_cmds = get_pair_cmds(mmvec_songbird_pd, mmvec_res, taxonomies, force)
+    pair_cmds = get_pair_cmds(mmvec_songbird_pd, mmvec_res, force)
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
     job_folder2 = get_job_folder(i_datasets_folder, 'mmbird/chunks')
 
