@@ -152,7 +152,7 @@ from routine_qiime2_analyses import __version__
     help="whether to do compute on scratch."
 )
 @click.option(
-    "--split/--no-split", default=True, show_default=True,
+    "--split/--no-split", default=False, show_default=True,
     help="whether to split the commands to a lower looping level (i.e. more jobs)."
 )
 @click.version_option(__version__, prog_name="routine_qiime2_analyses")
