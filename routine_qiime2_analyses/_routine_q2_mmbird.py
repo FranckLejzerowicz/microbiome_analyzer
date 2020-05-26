@@ -243,13 +243,13 @@ def get_tax_extended_fps(
         if 'Taxon' in omic1_tax_pd:
             omic1_split_taxo = get_split_taxonomy(omic1_tax_pd.Taxon.tolist())
             omic1_tax_pd = omic1_tax_pd.merge(omic1_split_taxo, on='Taxon', how='left').drop_duplicates()
-        else:
-            omic1_tax_list = []
-            with open(omic1_common_fp) as f:
-                for ldx, line in enumerate(f):
-                    if ldx:
-                        omic1_tax_list.append([line.split('\t')[0]])
-            omic1_tax_pd = pd.DataFrame(omic1_tax_list, columns=['Feature ID'])
+    else:
+        omic1_tax_list = []
+        with open(omic1_common_fp) as f:
+            for ldx, line in enumerate(f):
+                if ldx:
+                    omic1_tax_list.append([line.split('\t')[0]])
+        omic1_tax_pd = pd.DataFrame(omic1_tax_list, columns=['Feature ID'])
 
     if all_omic1_songbird_ranks.shape[0]:
         omic1_tax_pd = omic1_tax_pd.merge(
@@ -265,13 +265,13 @@ def get_tax_extended_fps(
         if 'Taxon' in omic2_tax_pd:
             omic2_split_taxo = get_split_taxonomy(omic2_tax_pd.Taxon.tolist())
             omic2_tax_pd = omic2_tax_pd.merge(omic2_split_taxo, on='Taxon', how='left').drop_duplicates()
-        else:
-            omic2_tax_list = []
-            with open(omic2_common_fp) as f:
-                for ldx, line in enumerate(f):
-                    if ldx:
-                        omic2_tax_list.append([line.split('\t')[0]])
-            omic2_tax_pd = pd.DataFrame(omic2_tax_list, columns=['Feature ID'])
+    else:
+        omic2_tax_list = []
+        with open(omic2_common_fp) as f:
+            for ldx, line in enumerate(f):
+                if ldx:
+                    omic2_tax_list.append([line.split('\t')[0]])
+        omic2_tax_pd = pd.DataFrame(omic2_tax_list, columns=['Feature ID'])
 
     if all_omic2_songbird_ranks.shape[0]:
         omic2_tax_pd = omic2_tax_pd.merge(
@@ -485,6 +485,11 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             else:
                 omic2_tax = omic2
             omic2_tax_fp = '%s/%s/tax_%s.tsv' % (tax_dir, omic2_tax, omic2_tax)
+
+            print("omic1_tax_fp")
+            print(omic1_tax_fp)
+            print("omic2_tax_fp")
+            print(omic2_tax_fp)
 
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
                 omic1_common_fp, omic2_common_fp,
