@@ -403,7 +403,7 @@ def get_biplot_commands(ordi_edit_fp, qza, qzv,
 #     return n_mbAnnot_CLAs_in_file, ordi_edit_fp
 
 
-def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, force: bool):
+def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, force: bool):
 
     crowdeds = [0, 1]
 
@@ -411,6 +411,17 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, force: bool):
     pair_cmds = {}
     for crowded in crowdeds:
         for keys, values in mmvec_res.items():
+
+            # print()
+            # print()
+            # print(keys)
+            # print('-'*30)
+            # for i in values:
+            #     if isinstance(i, list):
+            #         for j in i:
+            #             print('      >', i)
+            #     else:
+            #         print('   -', i)
 
             pair, omic1, omic2, omic_filt1, omic_filt2, sams, mmvec = keys
 
@@ -482,6 +493,16 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, force: bool):
                 all_omic2_songbird_ranks,
                 ordi_fp
             )
+
+            print()
+            print()
+            print()
+            print("keys")
+            print(keys)
+            print("metatax_omic1_fp")
+            print(metatax_omic1_fp)
+            print("metatax_omic2_fp")
+            print(metatax_omic2_fp)
 
             if all_omic1_songbird_ranks.shape[0]:
                 max_feats = all_omic1_songbird_ranks.shape[0]
@@ -586,22 +607,7 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
 
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
-
-    # for k,v in mmvec_res.items():
-    #     print()
-    #     print()
-    #     print(k)
-    #     print('-'*30)
-    #     for i in v:
-    #         if isinstance(i, list):
-    #             for j in i:
-    #                 print('      >', i)
-    #         else:
-    #             print('   -', i)
-
-
-
-    pair_cmds = get_pair_cmds(mmvec_songbird_pd, mmvec_res, force)
+    pair_cmds = get_pair_cmds(mmvec_songbird_pd, mmvec_res, omics_pairs, force)
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
     job_folder2 = get_job_folder(i_datasets_folder, 'mmbird/chunks')
 
