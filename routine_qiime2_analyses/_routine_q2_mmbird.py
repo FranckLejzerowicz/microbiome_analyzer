@@ -487,6 +487,7 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             omic2_tax_fp = '%s/%s/tax_%s.tsv' % (tax_dir, omic2_tax, omic2_tax)
 
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
+                omic1_common_fp, omic2_common_fp,
                 omic_filt1, omic_filt2,
                 omic1_tax_fp, omic2_tax_fp,
                 all_omic1_songbird_ranks,
