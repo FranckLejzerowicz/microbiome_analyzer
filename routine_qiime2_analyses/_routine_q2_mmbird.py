@@ -103,9 +103,13 @@ def get_mmvec_res(mmvec_outputs_pd):
         omic_filt1 = row['omic_filt1']
         omic_filt2 = row['omic_filt2']
         omic1_common_fp = row['omic1_common_fp']
+        print('get_mmvec_res - omic1_common_fp')
+        print(omic1_common_fp)
         if str(omic1_common_fp) == 'nan':
             continue
         omic2_common_fp = row['omic2_common_fp']
+        print('get_mmvec_res - omic2_common_fp')
+        print(omic2_common_fp)
         n_common = row['n_common']
         meta_fp = row['meta_common_fp']
 
