@@ -403,13 +403,9 @@ def get_biplot_commands(ordi_edit_fp, qza, qzv,
 #     return n_mbAnnot_CLAs_in_file, ordi_edit_fp
 
 
-def get_pair_cmds(i_datasets_folder: str, mmvec_songbird_pd: pd.DataFrame,
-                  mmvec_res: dict):
+def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, force: bool):
 
     crowdeds = [0, 1]
-    print("mmvec_songbird_pd[['omic_filt1', 'omic_filt2']]")
-    print(mmvec_songbird_pd[['omic_filt1', 'omic_filt2']])
-    omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
 
     mmvec_tab = []
     pair_cmds = {}
@@ -578,6 +574,17 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
         mmvec_songbird_pd = merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd)
     else:
         mmvec_songbird_pd = mmvec_outputs_pd.copy()
+
+    print("mmvec_songbird_pd.index")
+    print(mmvec_songbird_pd.index)
+    print("mmvec_songbird_pd.columns")
+    print(mmvec_songbird_pd.columns)
+    print("mmvec_songbird_pd.values[:3]")
+    print(mmvec_songbird_pd.values[:3])
+    print("mmvec_songbird_pd[['omic_filt1', 'omic_filt2']]")
+    print(mmvec_songbird_pd[['omic_filt1', 'omic_filt2']])
+    omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
+
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
 
     # for k,v in mmvec_res.items():
@@ -591,6 +598,8 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
     #                 print('      >', i)
     #         else:
     #             print('   -', i)
+
+
 
     pair_cmds = get_pair_cmds(mmvec_songbird_pd, mmvec_res, force)
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
