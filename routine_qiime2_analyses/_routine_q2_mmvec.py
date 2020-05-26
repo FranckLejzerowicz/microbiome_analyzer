@@ -267,7 +267,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
 
 def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
               datasets_read: dict, force: bool, gpu: bool, standalone: bool,
-              prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> list:
+              prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, split: bool) -> list:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
     https://github.com/biocore/mmvec
@@ -303,7 +303,8 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     for pair, pair_data in common_datasets.items():
 
         job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
-        out_sh = '%s/chunks/run_mmvec_%s.sh' % (job_folder, pair)
+        if not split:
+            out_sh = '%s/chunks/run_mmvec_%s.sh' % (job_folder, pair)
 
         for (meta_fp, omic1, omic2, filt1, filt2, tsv1, tsv2, qza1, qza2, ncommon) in pair_data:
 
@@ -315,6 +316,8 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
             priors = mmvec_params['priors']
             thresh_feats = mmvec_params['thresh_feats']
             latent_dims = mmvec_params['latent_dims']
+            if split:
+                out_sh = '%s/chunks/run_mmvec_%s_%s_%s_%s_%s.sh' % (job_folder, pair, omic1, filt1, omic2, filt2)
             for idx, it in enumerate(itertools.product(train_columns, n_examples, batches, learns,
                                                        epochs, priors, thresh_feats, latent_dims)):
                 train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = [str(x) for x in it]

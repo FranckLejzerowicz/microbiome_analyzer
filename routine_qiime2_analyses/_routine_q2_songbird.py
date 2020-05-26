@@ -146,7 +146,7 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
 
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                  datasets_read: dict, mmvec_outputs: list, force: bool,
-                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> list:
+                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, split: bool) -> list:
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
@@ -208,8 +208,12 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     songbird_outputs = []
     for dat, filts_tsvs_metas_pair in songbirds.items():
 
-        out_sh = '%s/run_songbird_%s.sh' % (job_folder2, dat)
+        if not split:
+            out_sh = '%s/run_songbird_%s.sh' % (job_folder2, dat)
         for (filt, tsv, meta_, pair) in filts_tsvs_metas_pair:
+
+            if split:
+                out_sh = '%s/run_songbird_%s_%s_%s.sh' % (job_folder2, dat, filt, pair)
 
             meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
             if isfile(meta_alphas):

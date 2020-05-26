@@ -59,7 +59,8 @@ def routine_qiime2_analyses(
         raref: bool,
         noloc: bool,
         As: tuple,
-        Bs: tuple) -> None:
+        Bs: tuple,
+        split: bool) -> None:
     """
     Main qiime2 functions writer.
 
@@ -218,7 +219,7 @@ def routine_qiime2_analyses(
         if 'mmvec' not in p_skip:
             mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
                                       datasets_read, force, gpu, standalone,
-                                      prjct_nm, qiime_env, chmod, noloc)
+                                      prjct_nm, qiime_env, chmod, noloc, split)
 
     if p_procrustes:
         if betas and 'procrustes' not in p_skip:
@@ -230,7 +231,7 @@ def routine_qiime2_analyses(
         if 'songbird' not in p_skip:
             songbird_outputs = run_songbird(p_diff_models, i_datasets_folder, datasets,
                                             datasets_read, mmvec_outputs, force,
-                                            prjct_nm, qiime_env, chmod, noloc)
+                                            prjct_nm, qiime_env, chmod, noloc, split)
     if p_diff_models and p_mmvec_pairs:
         run_mmbird(i_datasets_folder, songbird_outputs, mmvec_outputs,
                    force, prjct_nm, qiime_env, chmod, noloc)
