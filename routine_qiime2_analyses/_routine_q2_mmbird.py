@@ -407,6 +407,8 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_songbird_pd: pd.DataFrame,
                   mmvec_res: dict):
 
     crowdeds = [0, 1]
+    print("mmvec_songbird_pd[['omic_filt1', 'omic_filt2']]")
+    print(mmvec_songbird_pd[['omic_filt1', 'omic_filt2']])
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
 
     mmvec_tab = []
