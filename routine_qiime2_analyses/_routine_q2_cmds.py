@@ -26,12 +26,13 @@ def get_subset(tsv_pd: pd.DataFrame, subset_regex: list) -> list:
         to_keep_feats[regex.lower()] = tsv_pd.index.str.lower().str.contains(regex.lower())
     to_keep_feats_pd = pd.DataFrame(to_keep_feats)
     to_keep_feats = to_keep_feats_pd.any(axis=1)
-
     feats_subset_list = tsv_pd.index[to_keep_feats].tolist()
     return feats_subset_list
 
 
-def write_filter_features(qza: str, qza_subset: str, meta_subset: str, cur_sh: TextIO) -> None:
+def write_filter_features(tsv_pd: pd.DataFrame, feats: list, qza: str,
+                          qza_subset: str, meta_subset: str,
+                          cur_sh: TextIO, dropout: bool) -> None:
     """
     filter-features: Filter features from table¶
     https://docs.qiime2.org/2020.2/plugins/available/feature-table/filter-features/
@@ -45,10 +46,17 @@ def write_filter_features(qza: str, qza_subset: str, meta_subset: str, cur_sh: T
     :param meta_subset: Feature metadata to write.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime feature-table filter-features \\\n'
-    cmd += '--i-table %s \\\n' % qza
-    cmd += '--m-metadata-file %s \\\n' % meta_subset
-    cmd += '--o-filtered-table %s\n' % qza_subset
+
+    if dropout:
+        cmd = 'qiime feature-table filter-features \\\n'
+        cmd += '--i-table %s \\\n' % qza
+        cmd += '--m-metadata-file %s \\\n' % meta_subset
+        cmd += '--o-filtered-table %s\n' % qza_subset
+    else:
+        tsv_subset = '%s.tsv' % splitext(qza_subset)[0]
+        tsv_nodrop = tsv_pd.loc[list(set(tsv_pd.index) & set(feats)), :].copy()
+        tsv_nodrop.to_csv(tsv_subset, index=True, sep='\t')
+        cmd = run_import(tsv_subset, qza_subset, "FeatureTable[Frequency]")
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 

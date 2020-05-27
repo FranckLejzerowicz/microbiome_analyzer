@@ -60,7 +60,8 @@ def routine_qiime2_analyses(
         noloc: bool,
         As: tuple,
         Bs: tuple,
-        split: bool) -> None:
+        split: bool,
+        dropout: bool) -> None:
     """
     Main qiime2 functions writer.
 
@@ -160,7 +161,7 @@ def routine_qiime2_analyses(
     if 'alpha' not in p_skip:
         diversities = run_alpha(i_datasets_folder, datasets, datasets_read,
                                 datasets_phylo, p_alpha_subsets, trees,
-                                force, prjct_nm, qiime_env, chmod, noloc, As)
+                                force, prjct_nm, qiime_env, chmod, noloc, As, dropout)
         if 'merge_alpha' not in p_skip:
             to_export = merge_meta_alpha(i_datasets_folder, datasets, diversities,
                                          force, prjct_nm, qiime_env, chmod, noloc)
@@ -179,7 +180,7 @@ def routine_qiime2_analyses(
     if 'beta' not in p_skip:
         betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
                          datasets_read, p_beta_subsets, trees, force,
-                         prjct_nm, qiime_env, chmod, noloc, Bs)
+                         prjct_nm, qiime_env, chmod, noloc, Bs, dropout)
         if 'export_beta' not in p_skip:
             export_beta(i_datasets_folder, betas,
                         force, prjct_nm, qiime_env, chmod, noloc)

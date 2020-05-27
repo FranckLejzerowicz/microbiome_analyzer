@@ -29,7 +29,8 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 
 def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
               datasets_phylo: dict, p_alpha_subsets: str, trees: dict,
-              force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, As: tuple) -> dict:
+              force: bool, prjct_nm: str, qiime_env: str, chmod: str,
+              noloc: bool, As: tuple, dropout: bool) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -90,20 +91,39 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 if alpha_subsets and dat in alpha_subsets:
                     for subset, subset_regex in alpha_subsets[dat].items():
                         odir = get_analysis_folder(i_datasets_folder, 'alpha/%s/%s' % (dat, subset))
-                        qza_subset = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]),  subset)
-                        feats_subset = '%s.meta' % splitext(qza_subset)[0]
+                        if dropout:
+                            qza_subset_ = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]),  subset)
+                        else:
+                            qza_subset_ = '%s/%s_%s_noDropout.qza' % (odir, basename(splitext(qza)[0]),  subset)
+                        feats_subset = '%s.meta' % splitext(qza_subset_)[0]
                         feats = get_subset(tsv_pd, subset_regex)
                         if not len(feats):
                             continue
                         subset_pd = pd.DataFrame({'Feature ID': feats, 'Subset': [subset]*len(feats)})
                         subset_pd.to_csv(feats_subset, index=False, sep='\t')
-                        write_filter_features(qza, qza_subset, feats_subset, cur_sh)
+                        write_filter_features(tsv_pd, feats, qza, qza_subset_,
+                                              feats_subset, cur_sh, dropout)
                         for metric in alpha_metrics:
-                            out_fp = '%s/%s_%s__%s.qza' % (odir, basename(splitext(qza)[0]), metric, subset)
+
+                            if metric in ['faith_pd'] and datasets_phylo[dat][1] and dat in trees:
+                                tree_in_qza = trees[dat][0]
+                                tree_in_tsv = '%s.tsv' % splitext(tree_in_qza)[0]
+                                if dropout:
+                                    qza_subset = '%s/%s_%s.qza' % (odir, basename(splitext(tree_in_qza)[0]), subset)
+                                else:
+                                    qza_subset = '%s/%s_%s_noDropout.qza' % (odir, basename(splitext(tree_in_qza)[0]), subset)
+                                write_filter_features(pd.read_csv(tree_in_tsv, header=0, index_col=0, sep='\t'),
+                                                      feats, tree_in_qza, qza_subset,
+                                                      feats_subset, cur_sh, dropout)
+                                out_fp = '%s/%s__%s.qza' % (odir, basename(splitext(qza_subset)[0]), metric)
+                            else:
+                                qza_subset = qza_subset_
+
+                            out_fp = '%s/%s__%s.qza' % (odir, basename(splitext(qza_subset)[0]), metric)
                             out_tsv = '%s.tsv' % splitext(out_fp)[0]
                             # alpha_subsets_deletions.extend([out_fp, out_tsv, meta_subset])
                             if force or not isfile(out_fp):
-                                ret_continue = write_diversity_alpha(out_fp, datasets_phylo, trees,
+                                ret_continue = write_diversity_alpha(out_fp, {dat: [1, 0]}, trees,
                                                                      dat, qza_subset, metric, cur_sh)
                                 if ret_continue:
                                     continue
