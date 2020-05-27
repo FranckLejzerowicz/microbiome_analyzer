@@ -437,7 +437,6 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             # omic1_common_fp,
             # omic2_common_fp
 
-
             ranks_fp = values[0]
             ordi_fp = values[1]
             omic1_diff_fps = values[2]
@@ -495,18 +494,14 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             else:
                 omic1_tax = omic1
             omic1_tax_fp = '%s/%s/tax_%s.tsv' % (tax_dir, omic1_tax, omic1_tax)
+            print(omic1_tax_fp)
+            print(omic1_tax_ffdsp)
 
             if omic2.endswith('__raref'):
                 omic2_tax = '__raref'.join(omic2.split('__raref')[:-1])
             else:
                 omic2_tax = omic2
             omic2_tax_fp = '%s/%s/tax_%s.tsv' % (tax_dir, omic2_tax, omic2_tax)
-
-            print("omic1_tax_fp")
-            print(omic1_tax_fp)
-            print("omic2_tax_fp")
-            print(omic2_tax_fp)
-            print(fdsa)
 
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
                 omic1_common_fp, omic2_common_fp,
@@ -619,14 +614,14 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
     else:
         mmvec_songbird_pd = mmvec_outputs_pd.copy()
 
-    print("mmvec_songbird_pd.index")
-    print(mmvec_songbird_pd.index)
-    print("mmvec_songbird_pd.columns")
-    print(mmvec_songbird_pd.columns)
-    print("mmvec_songbird_pd.values[:3]")
-    print(mmvec_songbird_pd.values[:3])
-    print("mmvec_songbird_pd[['omic_filt1', 'omic_filt2']]")
-    print(mmvec_songbird_pd[['omic_filt1', 'omic_filt2']])
+    # print("mmvec_songbird_pd.index")
+    # print(mmvec_songbird_pd.index)
+    # print("mmvec_songbird_pd.columns")
+    # print(mmvec_songbird_pd.columns)
+    # print("mmvec_songbird_pd.values[:3]")
+    # print(mmvec_songbird_pd.values[:3])
+    # print("mmvec_songbird_pd[['omic_filt1', 'omic_filt2']]")
+    # print(mmvec_songbird_pd[['omic_filt1', 'omic_filt2']])
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
 
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
