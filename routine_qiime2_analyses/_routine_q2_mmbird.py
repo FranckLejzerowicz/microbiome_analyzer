@@ -445,8 +445,6 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             meta_fp = values[4]
             omic1_common_fp = values[5]
             omic2_common_fp = values[6]
-            print(omic1_common_fp)
-            print(omic2_common_fp)
 
             order_omics = get_order_omics(omic1, omic2, omic_filt1, omic_filt2, omics_pairs)
             omic1 = order_omics[0]
