@@ -103,13 +103,13 @@ def get_mmvec_res(mmvec_outputs_pd):
         omic_filt1 = row['omic_filt1']
         omic_filt2 = row['omic_filt2']
         omic1_common_fp = row['omic1_common_fp']
-        print('get_mmvec_res - omic1_common_fp')
-        print(omic1_common_fp)
+        # print('get_mmvec_res - omic1_common_fp')
+        # print(omic1_common_fp)
         if str(omic1_common_fp) == 'nan':
             continue
         omic2_common_fp = row['omic2_common_fp']
-        print('get_mmvec_res - omic2_common_fp')
-        print(omic2_common_fp)
+        # print('get_mmvec_res - omic2_common_fp')
+        # print(omic2_common_fp)
         n_common = row['n_common']
         meta_fp = row['meta_common_fp']
 
@@ -429,6 +429,15 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
 
             pair, omic1, omic2, omic_filt1, omic_filt2, sams, mmvec = keys
 
+            # mmvec_out_ranks,
+            # mmvec_out_ordi,
+            # omic1_songbird_common_fps,
+            # omic2_songbird_common_fps,
+            # meta_fp,
+            # omic1_common_fp,
+            # omic2_common_fp
+
+
             ranks_fp = values[0]
             ordi_fp = values[1]
             omic1_diff_fps = values[2]
@@ -436,6 +445,8 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             meta_fp = values[4]
             omic1_common_fp = values[5]
             omic2_common_fp = values[6]
+            print(omic1_common_fp)
+            print(omic2_common_fp)
 
             order_omics = get_order_omics(omic1, omic2, omic_filt1, omic_filt2, omics_pairs)
             omic1 = order_omics[0]
@@ -471,7 +482,10 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             # print(omic_filt2)
 
             # get differentials
-            all_omic1_songbird_ranks, all_omic2_songbird_ranks = get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps)
+            all_omic1_songbird_ranks, all_omic2_songbird_ranks = get_all_omics_songbirds(
+                omic1_diff_fps,
+                omic2_diff_fps
+            )
             # print(all_omic1_songbird_ranks.columns)
             # print(all_omic1_songbird_ranks.T)
             # print(all_omic2_songbird_ranks.columns)
@@ -494,6 +508,7 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             print(omic1_tax_fp)
             print("omic2_tax_fp")
             print(omic2_tax_fp)
+            print(fdsa)
 
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
                 omic1_common_fp, omic2_common_fp,
