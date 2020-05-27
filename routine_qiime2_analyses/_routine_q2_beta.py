@@ -32,7 +32,8 @@ from routine_qiime2_analyses._routine_q2_cmds import run_export, run_import
 
 def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
              datasets_read: dict, p_beta_subsets: str, trees: dict, force: bool,
-             prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, Bs: tuple) -> dict:
+             prjct_nm: str, qiime_env: str, chmod: str,
+             noloc: bool, Bs: tuple, dropout: bool) -> dict:
     """
     Run beta: Beta diversity.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta/
@@ -112,8 +113,10 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                     tsv_to_subset = '%s.tsv' % splitext(qza_to_subset)[0]
                                     tsv_to_subset_pd = pd.read_csv(tsv_to_subset, header=0, index_col=0,
                                                              sep='\t', low_memory=False)
-
-                            qza_subset = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]), subset)
+                            if dropout:
+                                qza_subset = '%s/%s_%s_noDropout.qza' % (odir, basename(splitext(qza)[0]), subset)
+                            else:
+                                qza_subset = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]), subset)
                             tsv_subset = '%s.tsv' % splitext(qza_subset)[0]
                             # meta_subset = '%s.meta' % splitext(qza_subset)[0]
                             subset_feats = get_subset(tsv_to_subset_pd, subset_regex)
@@ -122,16 +125,16 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
                             if tsv_subset not in subset_done:
                                 tsv_subset_pd = tsv_to_subset_pd.loc[[x for x in subset_feats if x in tsv_to_subset_pd.index],:].copy()
-                                tsv_subset_pd = tsv_subset_pd.loc[:,tsv_subset_pd.sum(0)>0]
+                                if dropout:
+                                    tsv_subset_pd = tsv_subset_pd.loc[:,tsv_subset_pd.sum(0)>0]
                                 tsv_subset_pd.to_csv(tsv_subset, index=True, sep='\t')
                                 # write_filter_features(qza_to_subset, qza_subset, meta_subset, cur_sh)
                                 cmd = run_import(tsv_subset, qza_subset, 'FeatureTable')
                                 cur_sh.write('%s\n\n' % cmd)
                                 subset_done.add(tsv_subset)
-
-                            out_fp = '%s/%s_%s__%s_DM.qza' % (odir, basename(splitext(qza)[0]), metric, subset)
+                            out_fp = '%s/%s__%s_DM.qza' % (odir, basename(splitext(qza_subset)[0]), metric)
                             if force or not isfile(out_fp):
-                                write_diversity_beta(out_fp, datasets_phylo, trees,
+                                write_diversity_beta(out_fp, {dat: [1, 0]}, trees,
                                                      dat, qza_subset, metric,
                                                      cur_sh, True)
                                 # if ret_continue:
