@@ -261,7 +261,7 @@ def get_tax_extended_fps(
             on='Feature ID',
             how='left'
         ).drop_duplicates()
-    metatax_omic1_fp = ordi_fp.replace('.txt', '_meta-%s.tsv' % omic_filt1)
+    metatax_omic1_fp = '%s_meta-%s.tsv' % (splitext(ordi_fp)[0], omic_filt1)
     omic1_tax_pd.to_csv(metatax_omic1_fp, index=False, sep='\t')
 
     if isfile(omic2_tax_fp):
@@ -283,7 +283,7 @@ def get_tax_extended_fps(
             on='Feature ID',
             how='left'
         ).drop_duplicates()
-    metatax_omic2_fp = ordi_fp.replace('.txt', '_meta-%s.tsv' % omic_filt2)
+    metatax_omic2_fp = '%s_meta-%s.tsv' % (splitext(ordi_fp)[0], omic_filt2)
     omic2_tax_pd.to_csv(metatax_omic2_fp, index=False, sep='\t')
 
     return metatax_omic1_fp, metatax_omic2_fp
@@ -407,6 +407,16 @@ def get_biplot_commands(ordi_edit_fp, qza, qzv,
 #     return n_mbAnnot_CLAs_in_file, ordi_edit_fp
 
 
+def get_tax_fp(i_datasets_folder, omic):
+    tax_dir = get_analysis_folder(i_datasets_folder, 'taxonomy')
+    if omic.endswith('__raref'):
+        omic_tax = '__raref'.join(omic.split('__raref')[:-1])
+    else:
+        omic_tax = omic
+    omic_tax_fp = '%s/%s/tax_%s.tsv' % (tax_dir, omic_tax, omic_tax)
+    return omic_tax_fp
+
+
 def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, force: bool):
 
     crowdeds = [0, 1]
@@ -416,7 +426,6 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
     for crowded in crowdeds:
         for keys, values in mmvec_res.items():
 
-            # print()
             # print()
             # print(keys)
             # print('-'*30)
@@ -428,14 +437,6 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             #         print('   -', i)
 
             pair, omic1, omic2, omic_filt1, omic_filt2, sams, mmvec = keys
-
-            # mmvec_out_ranks,
-            # mmvec_out_ordi,
-            # omic1_songbird_common_fps,
-            # omic2_songbird_common_fps,
-            # meta_fp,
-            # omic1_common_fp,
-            # omic2_common_fp
 
             ranks_fp = values[0]
             ordi_fp = values[1]
@@ -455,75 +456,22 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             omic_microbe = order_omics[6]
             omic_metabolite = order_omics[7]
 
-            # print("ranks_fp")
-            # print(ranks_fp)
-            # print("ordi_fp")
-            # print(ordi_fp)
-            # print("omic1_diff_fps")
-            # print(omic1_diff_fps)
-            # print("omic2_diff_fps")
-            # print(omic2_diff_fps)
-            # print("meta_fp")
-            # print(meta_fp)
-            # print("omic1_common_fp")
-            # print(omic1_common_fp)
-            # print("omic2_common_fp")
-            # print(omic2_common_fp)
-            # print("omic1")
-            # print(omic1)
-            # print("omic2")
-            # print(omic2)
-            # print("omic_filt1")
-            # print(omic_filt1)
-            # print("omic_filt2")
-            # print(omic_filt2)
-
             # get differentials
             all_omic1_songbird_ranks, all_omic2_songbird_ranks = get_all_omics_songbirds(
                 omic1_diff_fps,
                 omic2_diff_fps
             )
-            # print(all_omic1_songbird_ranks.columns)
-            # print(all_omic1_songbird_ranks.T)
-            # print(all_omic2_songbird_ranks.columns)
-            # print(all_omic2_songbird_ranks.T)
-
-            tax_dir = get_analysis_folder(i_datasets_folder, 'taxonomy')
-
-            if omic1.endswith('__raref'):
-                omic1_tax = '__raref'.join(omic1.split('__raref')[:-1])
-            else:
-                omic1_tax = omic1
-            omic1_tax_fp = '%s/%s/tax_%s.tsv' % (tax_dir, omic1_tax, omic1_tax)
-            print(tax_dir)
-            print(omic1_tax)
-            # print(omic1_tax_fp)
-            print(omic1_tax_ffdsp)
-
-            if omic2.endswith('__raref'):
-                omic2_tax = '__raref'.join(omic2.split('__raref')[:-1])
-            else:
-                omic2_tax = omic2
-            omic2_tax_fp = '%s/%s/tax_%s.tsv' % (tax_dir, omic2_tax, omic2_tax)
+            omic1_tax_fp = get_tax_fp(i_datasets_folder, omic1)
+            omic2_tax_fp = get_tax_fp(i_datasets_folder, omic2)
 
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
-                omic1_common_fp, omic2_common_fp,
                 omic_filt1, omic_filt2,
+                omic1_common_fp, omic2_common_fp,
                 omic1_tax_fp, omic2_tax_fp,
                 all_omic1_songbird_ranks,
                 all_omic2_songbird_ranks,
                 ordi_fp
             )
-
-            print()
-            print()
-            print()
-            print("keys")
-            print(keys)
-            print("metatax_omic1_fp")
-            print(metatax_omic1_fp)
-            print("metatax_omic2_fp")
-            print(metatax_omic2_fp)
 
             if all_omic1_songbird_ranks.shape[0]:
                 max_feats = all_omic1_songbird_ranks.shape[0]
