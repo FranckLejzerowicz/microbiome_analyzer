@@ -155,6 +155,8 @@ def routine_qiime2_analyses(
     if i_sepp_tree and 'sepp' not in p_skip:
         run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo, prjct_nm,
                  i_sepp_tree, trees, force, qiime_env, chmod, noloc)
+    print("datasets_phylo")
+    print(datasets_phylo)
     # ------------------------------------------------------------------------------------------
 
     # ALPHA ------------------------------------------------------------
