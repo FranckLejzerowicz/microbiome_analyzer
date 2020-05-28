@@ -35,7 +35,8 @@ def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFram
 
 
 def merge_and_write_metas(meta_subset1: pd.DataFrame,
-                          meta_subset2: pd.DataFrame,meta_fp: str) -> pd.DataFrame:
+                          meta_subset2: pd.DataFrame,
+                          meta_fp: str) -> pd.DataFrame:
     """
     :param meta_subset1:
     :param meta_subset2:
@@ -44,9 +45,15 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
     """
     # get the columns present in both metadata
     common_cols = set(meta_subset1.columns) & set(meta_subset2.columns)
-    common_cols = [x for x in common_cols if x!='sample_name']
+    common_cols = [x for x in common_cols if x != 'sample_name']
     # get these columns that also have different contents
-    diff_cols = [c for c in common_cols if meta_subset1[c].tolist() != meta_subset2[c].tolist()]
+    try:
+        diff_cols = [c for c in common_cols if meta_subset1[c].tolist() != meta_subset2[c].tolist()]
+    except:
+        print("meta_subset1[c]")
+        print(meta_subset1[c])
+        print("meta_subset2[c]")
+        print(meta_subset2[c])
     # edit these different columns' names
     if len(diff_cols):
         meta_subset2.rename(columns=dict((c, '%s.copy' % c) for c in diff_cols), inplace=True)
