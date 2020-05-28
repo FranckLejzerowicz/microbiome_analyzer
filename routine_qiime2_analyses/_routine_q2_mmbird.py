@@ -489,6 +489,7 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             # print(all_omic2_songbird_ranks.T)
 
             tax_dir = get_analysis_folder(i_datasets_folder, 'taxonomy')
+
             if omic1.endswith('__raref'):
                 omic1_tax = '__raref'.join(omic1.split('__raref')[:-1])
             else:
@@ -627,7 +628,7 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
 
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
-    pair_cmds = get_pair_cmds(mmvec_songbird_pd, mmvec_res, omics_pairs, force)
+    pair_cmds = get_pair_cmds(i_datasets_folder, mmvec_res, omics_pairs, force)
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
     job_folder2 = get_job_folder(i_datasets_folder, 'mmbird/chunks')
 
