@@ -172,7 +172,6 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
 
                     written += 1
                     main_written + 1
-                    print(out_sh)
                     run_xpbs(out_sh, out_pbs, '%s.shr.%s' % (prjct_nm, dat),
                              qiime_env,  '1', '1', '1', '200', 'mb',
                              chmod, written, 'single', main_o, noloc)
