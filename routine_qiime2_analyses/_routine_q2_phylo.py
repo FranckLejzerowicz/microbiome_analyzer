@@ -136,10 +136,11 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
         i_wol_tree = get_wol_tree(i_wol_tree)
         wol = TreeNode.read(i_wol_tree)
 
-        written = 0
+        main_written = 0
         main_sh = '%s/0_run_import_trees.sh' % job_folder
         with open(main_sh, 'w') as main_o:
             for dat in wol_datasets:
+                written = 0
                 if datasets_features[dat] == 'raref':
                     tab_pd = datasets_read[dat][0]
                     datasets_features[dat] = dict(
@@ -169,11 +170,12 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
                         o.write("echo '%s'\n" % cmd)
                         o.write('%s\n\n' % cmd)
                         written += 1
+                        main_written + 1
 
                     run_xpbs(out_sh, out_pbs, '%s.shr.%s' % (prjct_nm, dat),
                              qiime_env,  '1', '1', '1', '200', 'mb',
                              chmod, written, 'single', main_o, noloc)
-        if written:
+        if main_written:
             print_message("# Shear Web of Life tree to features' genome IDs (%s)" % ', '.join(wol_datasets), 'sh', main_sh)
 
 
