@@ -494,7 +494,9 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             else:
                 omic1_tax = omic1
             omic1_tax_fp = '%s/%s/tax_%s.tsv' % (tax_dir, omic1_tax, omic1_tax)
-            print(omic1_tax_fp)
+            print(tax_dir)
+            print(omic1_tax)
+            # print(omic1_tax_fp)
             print(omic1_tax_ffdsp)
 
             if omic2.endswith('__raref'):

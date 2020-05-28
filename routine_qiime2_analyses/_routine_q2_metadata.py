@@ -103,6 +103,10 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
             levels_set = set(meta_pd[formula_split[0]].unique())
             if 'Diff' in formula:
                 if not set(levels).issubset(levels_set):
+                    print('levels')
+                    print(levels)
+                    print('levels_set')
+                    print(levels_set)
                     not_in_levels = set(levels_set).difference(levels)
                     print('Songbird formula factors(s) missing in metadata "%s":\n  %s' % (
                         formula_split[0], not_in_levels))

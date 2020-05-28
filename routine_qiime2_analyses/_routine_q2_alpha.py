@@ -52,11 +52,12 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     alpha_subsets = get_subsets(p_alpha_subsets)
     job_folder = get_job_folder(i_datasets_folder, 'alpha')
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha/chunks')
-    written = 0
     diversities = {}
     run_pbs = '%s/1_run_alpha.sh' % job_folder
+    main_written = 0
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
+            written = 0
             tsv, meta = tsv_meta_pds
 
             if datasets_read[dat] == 'raref':
@@ -86,6 +87,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                         cur_sh.write('echo "%s"\n' % cmd)
                         cur_sh.write('%s\n\n' % cmd)
                         written += 1
+                        main_written += 1
                     divs.setdefault('', []).append(out_fp)
 
                 if alpha_subsets and dat in alpha_subsets:
@@ -131,13 +133,14 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                                 cur_sh.write('echo "%s"\n' % cmd)
                                 cur_sh.write('%s\n\n' % cmd)
                                 written += 1
+                                main_written += 1
                             divs.setdefault(subset, []).append(out_fp)
 
                 diversities[dat] = divs
             run_xpbs(out_sh, out_pbs, '%s.mg.lph.%s' % (prjct_nm, dat),
                      qiime_env, '4', '1', '1', '1', 'gb',
                      chmod, written, 'single', o, noloc)
-    if written:
+    if main_written:
         print_message('# Calculate alpha diversity indices', 'sh', run_pbs)
     return diversities
 
