@@ -86,7 +86,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
             formula_split = [formula.split('C(')[-1].split(',')[0].strip().strip()]
             formula = formula.replace('C(%s' % formula_split[0], 'C(%s' % formula_split[0].lower())
             if 'Diff' in formula:
-                levels = formula.split("levels=['")[-1].split("']")[0].split("','")
+                levels = [x.strip().strip('"').strip("'") for x in formula.split("levels=['")[-1].split("']")[0].split(",")]
             elif 'Treatment(' in formula:
                 levels = formula.split("Treatment('")[-1].split("')")[0]
         else:
@@ -100,12 +100,12 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                 ', '.join(sorted(only_formula)), model, formula))
             continue
         if len(levels):
-            levels_set = [str(x) for x in meta_pd[formula_split[0]].unique()]
+            levels_set = set([str(x) for x in meta_pd[formula_split[0]].unique()])
             if 'Diff' in formula:
                 if not set(levels).issubset(levels_set):
                     print(set(levels))
                     print(levels_set)
-                    not_in_levels = set(levels_set).difference(levels)
+                    not_in_levels = levels_set.difference(levels)
                     print('Songbird formula "Diff" factors(s) missing in metadata "%s":\n  %s' % (
                         formula_split[0], not_in_levels))
                     continue
