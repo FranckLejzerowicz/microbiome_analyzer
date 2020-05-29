@@ -146,7 +146,8 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
 
 def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
-                     force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
+                     force: bool, prjct_nm: str, qiime_env: str, chmod: str,
+                     noloc: bool, dropout: bool) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -177,7 +178,10 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
                         output_folder = get_analysis_folder(i_datasets_folder, 'tabulate/%s/%s' % (dat, group))
                     else:
                         output_folder = get_analysis_folder(i_datasets_folder, 'tabulate/%s' % dat)
-                    out_fp = '%s/%s_alphas__%s.qzv' % (output_folder, base, group)
+                    if dropout:
+                        out_fp = '%s/%s_alphas__%s.qzv' % (output_folder, base, group)
+                    else:
+                        out_fp = '%s/%s_alphas_noDropout__%s.qzv' % (output_folder, base, group)
                     out_fp_tsv = '%s.tsv' % splitext(out_fp)[0]
                     to_export.setdefault(dat, []).append(out_fp_tsv)
                     if force or not isfile(out_fp):
@@ -194,7 +198,8 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
     return to_export
 
 
-def export_meta_alpha(datasets: dict, datasets_rarefs: dict, to_export: dict) -> None:
+def export_meta_alpha(datasets: dict, datasets_rarefs: dict,
+                      to_export: dict, dropout: bool) -> None:
     """
     Export the alpha diversity vectors.
 
@@ -226,7 +231,10 @@ def export_meta_alpha(datasets: dict, datasets_rarefs: dict, to_export: dict) ->
 
             group = meta_alpha_fp.split('_alphas__')[-1].split('.tsv')[0]
             if group != '':
-                replace_cols = dict((x, '__'.join([x, group])) for x in meta_alpha_pd.columns)
+                if dropout:
+                    replace_cols = dict((x, '__'.join([x, group])) for x in meta_alpha_pd.columns)
+                else:
+                    replace_cols = dict((x, '__'.join([x, group, 'noDropout'])) for x in meta_alpha_pd.columns)
                 meta_alpha_pd.rename(columns=replace_cols, inplace=True)
             meta_alphas_pds.append(meta_alpha_pd)
         meta_alphas_pd = pd.concat(meta_alphas_pds, axis=1, sort=False)
