@@ -50,10 +50,12 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
     try:
         diff_cols = [c for c in common_cols if meta_subset1[c].tolist() != meta_subset2[c].tolist()]
     except:
-        print("meta_subset1[c]")
-        print(meta_subset1[c])
-        print("meta_subset2[c]")
-        print(meta_subset2[c])
+        for c in common_cols:
+            print("meta_subset1[c]")
+            print(meta_subset1[c])
+            print("meta_subset2[c]")
+            print(meta_subset2[c])
+            print(jskfjb)
     # edit these different columns' names
     if len(diff_cols):
         meta_subset2.rename(columns=dict((c, '%s.copy' % c) for c in diff_cols), inplace=True)

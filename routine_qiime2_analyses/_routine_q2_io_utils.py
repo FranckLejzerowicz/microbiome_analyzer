@@ -143,6 +143,19 @@ def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
     return params
 
 
+def get_mmvec_subsets(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
+    mmvec_subsets = {}
+    if 'subsets' in mmvec_dict:
+        for pair, paired_datasets in mmvec_dict['subsets'].items():
+            n_dats = len(paired_datasets)
+            if n_dats != 2:
+                print('Must be two datasets per mmvec pair (found %s in %s)\n'
+                      'Exiting\n' % (n_dats, p_mmvec_pairs))
+                sys.exit(0)
+            mmvec_subsets[pair] = [(dat[:-1], 1) if dat[-1] == '*' else (dat, 0) for dat in paired_datasets]
+    return mmvec_subsets
+
+
 def get_mmvec_pairs(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
     """
     Get the parameters for mmvec pairs to process.
@@ -179,6 +192,7 @@ def get_mmvec_dicts(p_mmvec_pairs: str) -> (dict, dict, dict):
     mmvec_pairs = get_mmvec_pairs(p_mmvec_pairs, mmvec_dict)
     mmvec_filtering = get_filtering(p_mmvec_pairs, mmvec_dict)
     mmvec_params = get_mmvec_params(p_mmvec_pairs, mmvec_dict)
+    mmvec_subsets = get_mmvec_subsets(p_mmvec_pairs, mmvec_dict)
     return mmvec_pairs, mmvec_filtering, mmvec_params
 
 
