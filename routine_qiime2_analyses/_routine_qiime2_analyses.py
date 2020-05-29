@@ -36,7 +36,7 @@ def routine_qiime2_analyses(
         i_datasets_folder: str,
         project_name: str,
         p_longi_column: str,
-        thresh: int,
+        p_filt_threshs: str,
         p_alpha_subsets: str,
         p_beta_subsets: str,
         p_perm_tests: tuple,
@@ -74,7 +74,7 @@ def routine_qiime2_analyses(
     :param p_perm_groups: Groups to test between in each PERMANOVA subset (yml file path).
     :param p_formulas: Formula for Adonis tests for each PERMANOVA subset (yml file path).
     :param p_longi_column: If data is longitudinal; provide the time metadata column for volatility analysis.
-    :param thresh: Minimum number of reads per sample to be kept.
+    :param p_filt_threshs:
     :param force: Force the re-writing of scripts for all commands.
     :param i_classifier: Path to the taxonomic classifier.
     :param i_wol_tree: default to ./routine_qiime2_analyses/resources/wol_tree.nwk.
@@ -128,9 +128,10 @@ def routine_qiime2_analyses(
         run_rarefy(i_datasets_folder, datasets, datasets_read,
                    datasets_phylo, datasets_rarefs, force, prjct_nm,
                    qiime_env, chmod, noloc, run_params['rarefy'])
-    if thresh:
-        filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
-                            datasets_phylo, prjct_nm, qiime_env, thresh, chmod, noloc, run_params['filter'])
+    datasets_filt = {}
+    if p_filt_threshs:
+        filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features, datasets_filt,
+                            datasets_phylo, prjct_nm, qiime_env, p_filt_threshs, chmod, noloc, run_params['filter'])
     taxonomies = {}
     get_precomputed_taxonomies(i_datasets_folder, datasets, taxonomies)
     if i_qemistree and 'qemistree' not in p_skip:
@@ -219,13 +220,15 @@ def routine_qiime2_analyses(
     if p_mmvec_pairs:
         if 'mmvec' not in p_skip:
             mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
-                                      datasets_read, force, gpu, standalone,
-                                      prjct_nm, qiime_env, chmod, noloc, split)
+                                      datasets_filt, datasets_read, force, gpu,
+                                      standalone, prjct_nm, qiime_env, chmod,
+                                      noloc, split)
 
     if p_procrustes:
         if betas and 'procrustes' not in p_skip:
-            run_procrustes(i_datasets_folder, datasets, p_procrustes, betas,
-                           force, prjct_nm, qiime_env, chmod, noloc)
+            run_procrustes(i_datasets_folder, datasets, datasets_filt,
+                           p_procrustes, betas, force, prjct_nm,
+                           qiime_env, chmod, noloc)
 
     songbird_outputs = []
     if p_diff_models:

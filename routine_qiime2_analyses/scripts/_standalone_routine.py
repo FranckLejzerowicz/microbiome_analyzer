@@ -101,8 +101,10 @@ from routine_qiime2_analyses import __version__
          "for volatility analysis."
 )
 @click.option(
-    "-f", "--p-reads-filter", default=0, show_default=True, type=int,
-    help="Minimum number of reads per sample to be kept."
+    "-f", "--p-filt-threshs", show_default=True, default=False,
+    help="Minimum reads abundance per sample to be kept in the sample / per dataset"
+         "(>1 = based on absolute reads, 0-1 = based on relative reads)."
+         "Must be a yaml file, e.g. (see example in 'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
     "-c", "--p-chmod", default='664', show_default=True,
@@ -167,7 +169,7 @@ def standalone_routine(
         i_datasets_folder,
         p_project_name,
         p_longi_column,
-        p_reads_filter,
+        p_filt_threshs,
         p_alpha_subsets,
         p_beta_subsets,
         p_perm_tests,
@@ -199,7 +201,7 @@ def standalone_routine(
         i_datasets_folder,
         p_project_name,
         p_longi_column,
-        p_reads_filter,
+        p_filt_threshs,
         p_alpha_subsets,
         p_beta_subsets,
         p_perm_tests,

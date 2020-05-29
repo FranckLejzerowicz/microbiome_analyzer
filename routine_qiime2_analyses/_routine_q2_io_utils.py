@@ -156,7 +156,7 @@ def get_mmvec_subsets(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
     return mmvec_subsets
 
 
-def get_mmvec_pairs(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
+def get_mmvec_pairs(p_mmvec_pairs: str, mmvec_dict: dict, datasets_filt: dict) -> dict:
     """
     Get the parameters for mmvec pairs to process.
     :param p_mmvec_pairs: file containing the parameters.
@@ -173,14 +173,26 @@ def get_mmvec_pairs(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
             print('Must be two datasets per mmvec pair (found %s in %s)\n'
                   'Exiting\n' % (n_dats, p_mmvec_pairs))
             sys.exit(0)
-        mmvec_pairs[pair] = [(dat[:-1], 1) if dat[-1] == '*' else (dat, 0) for dat in paired_datasets]
+        paired = []
+        for dat_ in paired_datasets:
+            if dat_[-1] == '*':
+                dat_, mb = dat_[:-1], 1
+            else:
+                mb = 0
+            if dat_ in datasets_filt:
+                dat = datasets_filt[dat_]
+            else:
+                dat = dat_
+            paired.append((dat, mb))
+        mmvec_pairs[pair] = paired
     return mmvec_pairs
 
 
-def get_mmvec_dicts(p_mmvec_pairs: str) -> (dict, dict, dict):
+def get_mmvec_dicts(p_mmvec_pairs: str, datasets_filt: dict) -> (dict, dict, dict):
     """
     Collect pairs of datasets from the passed yaml file:
     :param p_mmvec_pairs: Pairs of datasets for which to compute co-occurrences probabilities.
+    :param datasets_filt:
     :return: datasets pairs, filtering thresholds, mmvec run parameters.
     """
     if not isfile(p_mmvec_pairs):
@@ -189,7 +201,7 @@ def get_mmvec_dicts(p_mmvec_pairs: str) -> (dict, dict, dict):
     with open(p_mmvec_pairs) as handle:
         mmvec_dict = yaml.load(handle, Loader=yaml.FullLoader)
 
-    mmvec_pairs = get_mmvec_pairs(p_mmvec_pairs, mmvec_dict)
+    mmvec_pairs = get_mmvec_pairs(p_mmvec_pairs, mmvec_dict, datasets_filt)
     mmvec_filtering = get_filtering(p_mmvec_pairs, mmvec_dict)
     mmvec_params = get_mmvec_params(p_mmvec_pairs, mmvec_dict)
     mmvec_subsets = get_mmvec_subsets(p_mmvec_pairs, mmvec_dict)

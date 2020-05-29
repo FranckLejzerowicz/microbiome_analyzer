@@ -277,7 +277,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
     return filt_datasets, common_datasets
 
 
-def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
+def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict, datasets_filt: dict,
               datasets_read: dict, force: bool, gpu: bool, standalone: bool,
               prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, split: bool) -> list:
     """
@@ -298,7 +298,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     :param chmod: whether to change permission of output files (default: 644).
     """
 
-    mmvec_pairs, mmvec_filtering, mmvec_params = get_mmvec_dicts(p_mmvec_pairs)
+    mmvec_pairs, mmvec_filtering, mmvec_params = get_mmvec_dicts(p_mmvec_pairs, datasets_filt)
     unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
 
     job_folder = get_job_folder(i_datasets_folder, 'mmvec')

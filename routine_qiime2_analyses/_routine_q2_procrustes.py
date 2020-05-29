@@ -39,8 +39,8 @@ def run_single_procrustes(odir: str, dm1: str, dm2: str, meta_pd: pd.DataFrame,
         os.remove(cur_sh)
 
 
-def run_procrustes(i_datasets_folder: str, datasets: dict, p_procrustes: str,
-                   betas: dict, force: bool, prjct_nm: str,
+def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
+                   p_procrustes: str, betas: dict, force: bool, prjct_nm: str,
                    qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     """
