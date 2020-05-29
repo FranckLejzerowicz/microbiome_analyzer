@@ -114,9 +114,9 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                     tsv_to_subset_pd = pd.read_csv(tsv_to_subset, header=0, index_col=0,
                                                              sep='\t', low_memory=False)
                             if dropout:
-                                qza_subset = '%s/%s_%s_noDropout.qza' % (odir, basename(splitext(qza)[0]), subset)
-                            else:
                                 qza_subset = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]), subset)
+                            else:
+                                qza_subset = '%s/%s_%s_noDropout.qza' % (odir, basename(splitext(qza)[0]), subset)
                             tsv_subset = '%s.tsv' % splitext(qza_subset)[0]
                             # meta_subset = '%s.meta' % splitext(qza_subset)[0]
                             subset_feats = get_subset(tsv_to_subset_pd, subset_regex)
