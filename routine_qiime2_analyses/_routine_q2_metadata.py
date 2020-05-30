@@ -81,6 +81,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
     meta_pd_vars = [x.lower() for x in set(meta_pd.columns.tolist())]
     models = {}
     for model, formula_ in songbird_models.items():
+        drop = {}
         formula = formula_.strip('"').strip("'")
         if formula.startswith('C('):
             formula_split = [formula.split('C(')[-1].split(',')[0].strip().strip()]
@@ -100,22 +101,26 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                 ', '.join(sorted(only_formula)), model, formula))
             continue
         if len(levels):
-            levels_set = set([str(x) for x in meta_pd[formula_split[0]].unique()])
+            levels_set = sorted([str(x) for x in meta_pd[formula_split[0]].unique()])
             if 'Diff' in formula:
-                if not set(levels).issubset(levels_set):
-                    print(set(levels))
-                    print(levels_set)
-                    not_in_levels = levels_set.difference(levels)
+                common_levels = set(levels_set) & set(levels)
+                only_meta = set(levels_set) ^ common_levels
+                only_model = set(levels) ^ common_levels
+                if len(only_model):
                     print('Songbird formula "Diff" factors(s) missing in metadata "%s":\n  %s' % (
-                        formula_split[0], not_in_levels))
+                        formula_split[0], list(only_model)))
                     continue
+                elif len(only_meta):
+                    drop.extend(list(only_meta))
+                    print('Songbird formula "Diff" factors(s) incomplete for metadata "%s":\n  %s' % (
+                        formula_split[0], list(only_meta)))
             elif 'Treatment(' in formula:
                 levels = formula.split("Treatment('")[-1].split("')")[0]
                 if levels not in levels_set:
                     print('Songbird formula "Treatment" factors(s) missing in metadata "%s":\n  %s' % (
                         formula_split[0], levels))
                     continue
-        models[model] = formula
+        models[model] = [formula, drop]
     return models
 
 

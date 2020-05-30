@@ -88,7 +88,7 @@ def run_multi_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
 
 
 def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
-                        case: str, formula: str, case_var: str, case_vals: list, force: bool,
+                        case: str, formula_drop: list, case_var: str, case_vals: list, force: bool,
                         batch: str, learn: str, epoch: str, diff_prior: str,
                         thresh_feat: str, thresh_sample: str, n_random: str) -> (str, str):
     """
@@ -127,14 +127,17 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
     tensor = '%s/differentials-tensorboard.qzv' % odir
     tensor_html = '%s/differentials-tensorboard.html' % odir
 
+    formula, drop = formula_drop
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor_html):
             if not isfile(new_meta):
                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
                 new_meta_pd.columns = [x.lower() for x in new_meta_pd.columns]
+                if drop:
+                    new_meta_pd = new_meta_pd.loc[~new_meta_pd[formula].isin(drop),:]
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-            write_songbird_cmd(qza, new_qza, new_meta,
-                               formula, epoch, batch, diff_prior, learn, thresh_sample,
+            write_songbird_cmd(qza, new_qza, new_meta, formula, epoch,
+                               batch, diff_prior, learn, thresh_sample,
                                thresh_feat, n_random, diffs, diffs_qza, stats, plot,
                                base_diff_qza, base_stats, base_plot, tensor, tensor_html,
                                cur_sh_o)
@@ -235,7 +238,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             else:
                 continue
 
-            for model, formula in models.items():
+            for model, formula_drop in models.items():
                 for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
                                                            thresh_feats, thresh_samples, n_randoms)):
                     batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random = [str(x) for x in it]
@@ -257,7 +260,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             cur_sh = cur_sh.replace(' ', '-')
                             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                             diffs, tensor_html = run_single_songbird(
-                                odir, qza, meta_pd, cur_sh, case, formula,
+                                odir, qza, meta_pd, cur_sh, case, formula_drop,
                                 case_var, case_vals, force, batch, learn,
                                 epoch, diff_prior, thresh_feat,
                                 thresh_sample, n_random
