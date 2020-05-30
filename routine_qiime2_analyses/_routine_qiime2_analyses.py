@@ -122,14 +122,14 @@ def routine_qiime2_analyses(
     # meta_pd : not indexed -> "sample_name" as first column
     import_datasets(i_datasets_folder, datasets, datasets_phylo,
                     force, prjct_nm, qiime_env, chmod, noloc, run_params['import'])
-    if raref:
-        run_rarefy(i_datasets_folder, datasets, datasets_read,
-                   datasets_phylo, datasets_rarefs, force, prjct_nm,
-                   qiime_env, chmod, noloc, run_params['rarefy'])
     datasets_filt = {}
     if p_filt_threshs:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features, datasets_filt,
                             datasets_phylo, prjct_nm, qiime_env, p_filt_threshs, chmod, noloc, run_params['filter'])
+    if raref:
+        run_rarefy(i_datasets_folder, datasets, datasets_read,
+                   datasets_phylo, datasets_rarefs, force, prjct_nm,
+                   qiime_env, chmod, noloc, run_params['rarefy'])
     taxonomies = {}
     get_precomputed_taxonomies(i_datasets_folder, datasets, taxonomies)
     if i_qemistree and 'qemistree' not in p_skip:
