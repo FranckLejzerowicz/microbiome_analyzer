@@ -32,61 +32,6 @@ from routine_qiime2_analyses._routine_q2_mmbird import get_mmvec_outputs
 from routine_qiime2_analyses._routine_q2_mmvec import make_filtered_and_common_dataset
 
 
-def run_multi_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
-                       case: str, formula: str, case_var: str, case_vals: list, force: bool,
-                       batch: str, learn: str, epoch: str, diff_prior: str,
-                       thresh_feat: str, thresh_sample: str, n_random: str) -> None:
-    """
-    Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
-    https://github.com/biocore/songbird
-    (in-loop function).
-    :param odir: output analysis directory.
-    :param qza: features table input.
-    :param meta_pd: metadata table.
-    :param cur_sh: input bash script file.
-    :param case:
-    :param formula:
-    :param case_var:
-    :param case_vals:
-    :param force:
-    :param batch:
-    :param learn:
-    :param epoch:
-    :param diff_prior:
-    :param thresh_feat:
-    :param thresh_sample:
-    :param n_random:
-    :param force: Force the re-writing of scripts for all commands.
-    """
-    remove = True
-
-    cur_rad = odir + '/' + basename(qza).replace('.qza', '_%s' % case)
-    new_meta = '%s.meta' % cur_rad
-    new_qza = '%s.qza' % cur_rad
-    diffs = '%s/differentials.tsv' % cur_rad
-    diffs_qza = '%s/differentials.qza' % cur_rad
-    stats = '%s/differentials-stats.qza' % cur_rad
-    plot = '%s/differentials-biplot.qza' % cur_rad
-    base_diff_qza = '%s/differentials-baseline.qza' % cur_rad
-    base_stats = '%s/differentials-baseline-stats.qza' % cur_rad
-    base_plot = '%s/differentials-baseline-biplot.qza' % cur_rad
-    tensor = '%s/differentials-tensorboard.qzv' % cur_rad
-    tensor_html = '%s/differentials-tensorboard.html' % cur_rad
-
-    with open(cur_sh, 'w') as cur_sh_o:
-        if force or not isfile(tensor):
-            new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-            new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-            write_songbird_cmd(qza, new_qza, new_meta,
-                               formula, epoch, batch, diff_prior, learn, thresh_sample,
-                               thresh_feat, n_random, diffs, diffs_qza, stats, plot,
-                               base_diff_qza, base_stats, base_plot, tensor, tensor_html,
-                               cur_sh_o)
-            remove = False
-    if remove:
-        os.remove(cur_sh)
-
-
 def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
                         case: str, formula_drop: list, case_var: str, case_vals: list, force: bool,
                         batch: str, learn: str, epoch: str, diff_prior: str,
@@ -205,7 +150,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             songbirds.setdefault(omic1, []).append([filt1, omic1_common_fp, meta_common_fp, pair])
             songbirds.setdefault(omic2, []).append([filt2, omic2_common_fp, meta_common_fp, pair])
 
-    jobs = []
     all_sh_pbs = {}
     first_print = 0
     songbird_outputs = []
@@ -268,15 +212,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             if pair:
                                 songbird_outputs.append([dat, filt, params.replace('/', '__'),
                                                          case, diffs, pair])
-                            # p = multiprocessing.Process(
-                            #     target=run_multi_songbird,
-                            #     args=(odir, qza, meta_pd, cur_sh, case, formula, case_var, case_vals, force,
-                            #           batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random
-                            #           ))
-                            # p.start()
-                            # jobs.append(p)
-    # for j in jobs:
-    #     j.join()
 
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
     main_sh = write_main_sh(job_folder, '2_songbird', all_sh_pbs,

@@ -107,12 +107,12 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                 only_meta = set(levels_set) ^ common_levels
                 only_model = set(levels) ^ common_levels
                 if len(only_model):
-                    print('Songbird formula "Diff" factors(s) missing in metadata "%s":\n  %s' % (
+                    print('Songbird formula "Diff" factors(s) missing in metadata "%s": %s' % (
                         formula_split[0], list(only_model)))
                     continue
                 elif len(only_meta):
                     drop.extend(list(only_meta))
-                    print('Songbird formula "Diff" factors(s) incomplete for metadata "%s":\n  %s' % (
+                    print('Songbird formula "Diff" factors(s) incomplete for metadata "%s": %s' % (
                         formula_split[0], list(only_meta)))
             elif 'Treatment(' in formula:
                 levels = formula.split("Treatment('")[-1].split("')")[0]
