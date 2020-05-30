@@ -213,9 +213,9 @@ def routine_qiime2_analyses(
                           qiime_env, chmod, noloc, split)
     if p_formulas:
         if 'beta' not in p_skip and 'adonis' not in p_skip:
-            run_adonis(p_formulas, i_datasets_folder, datasets, betas,
+            run_adonis(p_formulas, i_datasets_folder, betas,
                        p_perm_groups, force, prjct_nm, qiime_env,
-                       chmod, noloc, Bs, split)
+                       chmod, noloc, split)
     # ------------------------------------------------------------------------------
 
     # MMVEC AND SONGBIRD -----------------------------------------------------------
