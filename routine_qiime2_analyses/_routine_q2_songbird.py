@@ -79,7 +79,9 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
                 new_meta_pd.columns = [x.lower() for x in new_meta_pd.columns]
                 if drop:
-                    new_meta_pd = new_meta_pd.loc[~new_meta_pd[formula].isin(drop),:]
+                    print(new_meta_pd.shape)
+                    new_meta_pd = new_meta_pd.loc[~new_meta_pd[formula].isin(drop), :]
+                    print(new_meta_pd.shape)
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
             write_songbird_cmd(qza, new_qza, new_meta, formula, epoch,
                                batch, diff_prior, learn, thresh_sample,

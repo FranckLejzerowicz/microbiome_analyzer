@@ -101,7 +101,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                 ', '.join(sorted(only_formula)), model, formula))
             continue
         if len(levels):
-            levels_set = sorted([str(x) for x in meta_pd[formula_split[0]].unique()])
+            levels_set = sorted([x for x in meta_pd[formula_split[0]].unique() if str(x) != 'nan'])
             if 'Diff' in formula:
                 common_levels = set(levels_set) & set(levels)
                 only_meta = set(levels_set) ^ common_levels
@@ -110,7 +110,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                     print('Songbird formula "Diff" factors(s) missing in metadata "%s": %s' % (
                         formula_split[0], list(only_model)))
                     continue
-                elif len(only_meta):
+                if len(only_meta):
                     drop.extend(list(only_meta))
                     print('Songbird formula "Diff" factors(s) incomplete for metadata "%s":\n'
                           '  -> skipping samples with %s' % (formula_split[0], list(only_meta)))
