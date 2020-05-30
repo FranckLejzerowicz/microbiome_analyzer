@@ -109,8 +109,8 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
             print_message("# Fragment insertion using SEPP (%s)" % ', '.join(sepp_datasets), 'sh', main_sh)
 
 
-def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict, datasets_features: dict,
-               prjct_nm: str, i_wol_tree: str, trees: dict,
+def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict,
+               datasets_features: dict, prjct_nm: str, i_wol_tree: str, trees: dict,
                force: bool, qiime_env: str, chmod: str, noloc: bool) -> None:
     """
     Get the sub-tree from the Web of Life tree that corresponds to the gOTUs-labeled features.
@@ -171,6 +171,7 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
                         o.write('%s\n\n' % cmd)
 
                     written += 1
+                    main_written += 1
                     main_written + 1
                     run_xpbs(out_sh, out_pbs, '%s.shr.%s' % (prjct_nm, dat),
                              qiime_env,  '1', '1', '1', '200', 'mb',
