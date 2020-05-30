@@ -26,44 +26,6 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 )
 
 
-# def run_multi_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
-#                       case_vals_list: list, cur_sh: str, force: bool) -> None:
-#     """
-#     Performs robust center log-ratio transform robust PCA and
-#     ranks the features by the loadings of the resulting SVD.
-#     https://library.qiime2.org/plugins/deicode/19/
-#     (in-loop function).
-#
-#     :param odir: output analysis directory.
-#     :param tsv: features table input to the beta diversity matrix.
-#     :param meta_pd: metadata table.
-#     :param case_var: metadata variable to make groups from.
-#     :param case_vals_list: groups for the metadata variable.
-#     :param cur_sh: input bash script file.
-#     :param force: Force the re-writing of scripts for all commands.
-#     """
-#
-#     remove = True
-#     qza = '%s.qza' % splitext(tsv)[0]
-#     with open(cur_sh, 'w') as cur_sh_o:
-#         for case_vals in case_vals_list:
-#             case = get_case(case_vals, '', case_var)
-#             cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
-#             new_meta = '%s.meta' % cur_rad
-#             new_mat_qza = '%s_DM.qza' % cur_rad
-#             new_qza = '%s.qza' % cur_rad
-#             ordi_qza = '%s_deicode_ordination.qza' % cur_rad
-#             ordi_qzv = '%s_deicode_ordination_biplot.qzv' % cur_rad
-#             if force or not isfile(ordi_qzv):
-#                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-#                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-#                 write_deicode_biplot(qza, new_meta, new_qza, ordi_qza,
-#                                      new_mat_qza, ordi_qzv, cur_sh_o)
-#                 remove = False
-#     if remove:
-#         os.remove(cur_sh)
-
-
 def run_single_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
                        case_vals_list: list, cur_sh: str, force: bool) -> None:
     """
@@ -136,16 +98,6 @@ def run_deicode(i_datasets_folder: str, datasets: dict, p_perm_groups: str,
             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
             run_single_deicode(odir, tsv, meta_pd, case_var,
                                case_vals_list, cur_sh, force)
-
-
-    #         p = multiprocessing.Process(
-    #             target=run_multi_deicode,
-    #             args=(odir, tsv, meta_pd, case_var, case_vals_list, cur_sh, force))
-    #         p.start()
-    #         jobs.append(p)
-    #
-    # for j in jobs:
-    #     j.join()
 
     job_folder = get_job_folder(i_datasets_folder, 'deicode')
     main_sh = write_main_sh(job_folder, '3_run_beta_deicode', all_sh_pbs,

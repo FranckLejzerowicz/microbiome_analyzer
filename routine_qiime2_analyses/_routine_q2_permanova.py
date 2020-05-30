@@ -101,7 +101,7 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
         for metric, subset_files in betas[dat].items():
             if split:
                 out_sh = '%s/run_beta_group_significance_%s_%s.sh' % (job_folder2, dat, metric)
-            for subset, (meta, mat_qza, out_fp) in subset_files.items():
+            for subset, (meta, qza, mat_qza) in subset_files.items():
 
                 if not isfile(mat_qza):
                     if not first_print:

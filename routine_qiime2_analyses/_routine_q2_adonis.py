@@ -107,7 +107,7 @@ def run_adonis(p_formulas: str, i_datasets_folder: str, betas: dict,
         for metric, subset_files in betas[dat].items():
             if split:
                 out_sh = '%s/run_adonis_%s_%s.sh' % (job_folder2, dat, metric)
-            for subset, (meta, mat_qza, out_fp) in subset_files.items():
+            for subset, (meta, qza, mat_qza) in subset_files.items():
                 if not isfile(mat_qza):
                     if not first_print:
                         print('Beta diversity, distances matrices must be generated already to automatise PERMANOVA\n'
