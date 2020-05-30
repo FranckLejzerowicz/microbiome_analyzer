@@ -153,7 +153,10 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             datasets_filt[dat] = dat_filt
             tab_filt_fp = '%s/data/tab_%s.tsv' % (i_datasets_folder, dat_filt)
             qza = tab_filt_fp.replace('.tsv', '.qza')
-            meta_filt_fp = tab_filt_fp.replace('/data/', '/metadata/').replace('tab_', 'meta_')
+            meta_filt_fp = tab_filt_fp.replace(
+                '%s/data/' % i_datasets_folder,
+                '%s/metadata/' % i_datasets_folder
+            ).replace('tab_', 'meta_')
             if isfile(qza) and isfile(meta_filt_fp):
                 datasets_update[dat_filt] = [tab_filt_fp, meta_filt_fp]
                 tab_filt_pd = pd.read_csv(tab_filt_fp, index_col=0, header=0, sep='\t')
