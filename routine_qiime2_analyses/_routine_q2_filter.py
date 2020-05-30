@@ -57,7 +57,7 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
 
 def get_threshs(p_filt_threshs):
     if not isfile(p_filt_threshs):
-        print('yaml file for filtering thresholds does not exist:\n%s\nExiting...' % threshs_fp)
+        print('yaml file for filtering thresholds does not exist:\n%s\nExiting...' % p_filt_threshs)
         sys.exit(0)
     with open(p_filt_threshs) as handle:
         threshs_d = yaml.load(handle, Loader=yaml.FullLoader)
