@@ -50,8 +50,6 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
     diff_cols = []
     for c in common_cols:
         if c in meta_subset1.columns:
-            print("meta_subset1.iloc[:4,:4]")
-            print(meta_subset1.iloc[:4,:4])
             meta_col1 = meta_subset1[c].tolist()
         else:
             continue
@@ -61,14 +59,12 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
             continue
         if meta_col1 != meta_col2:
             diff_cols.append(c)
-    # edit these different columns' names
     if len(diff_cols):
         meta_subset2.rename(columns=dict((c, '%s.copy' % c) for c in diff_cols), inplace=True)
     meta_subset = meta_subset1.merge(meta_subset2,
         on=(['sample_name'] + [c for c in common_cols if c not in diff_cols]))
     sorting_col =['sample_name'] + [x for x in meta_subset.columns.tolist() if x != 'sample_name']
     meta_subset[sorting_col].to_csv(meta_fp, index=False, sep='\t')
-    # print('merge_and_write_metas:', meta_fp)
     return meta_subset
 
 
@@ -89,9 +85,7 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
         meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
         (omic1, bool1), (omic2, bool2) = pair_datasets
 
-        if omic1 not in filt_datasets:
-            continue
-        if omic2 not in filt_datasets:
+        if omic1 not in filt_datasets or omic2 not in filt_datasets:
             continue
         filts_1 = list(filt_datasets[omic1].keys())
         filts_2 = list(filt_datasets[omic2].keys())
@@ -104,6 +98,9 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
             tsv1, qza1, meta1, meta_pd1, sams1 = filt_datasets[omic1][filts_1[fdx]]
             tsv2, qza2, meta2, meta_pd2, sams2 = filt_datasets[omic2][filts_2[fdx]]
             common_sams = sorted(set(sams1) & set(sams2))
+            if len(common_sams) < 10:
+                print('Not enough samples: %s (%s) vs %s (%s) -> skipping' % (omic1, omic_filt1, omic2, omic_filt2))
+                continue
             meta_subset1 = get_meta_common_sorted(meta_pd1, common_sams)
             meta_subset2 = get_meta_common_sorted(meta_pd2, common_sams)
             meta_fp = '%s/meta_%s_%s_%s__%s_%s_%s__%s_%ss.tsv' % (
@@ -350,15 +347,6 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict, datase
                 ])
                 cur_sh = '%s/run_mmvec_%s_%s_%s_%s.sh' % (job_folder2, pair, filt1, filt2, res_dir)
                 all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
-                # print('[', idx, ']', it)
-                # p = multiprocessing.Process(
-                #     target=run_multi_mmvec,
-                #     args=(odir, pair, meta_fp, qza1, qza2, res_dir, cur_sh,
-                #           batch, learn, epoch, prior, thresh_feat,
-                #           latent_dim, train_column, n_example,
-                #           gpu, force, standalone))
-                # p.start()
-                # jobs.append(p)
                 run_single_mmvec(
                     odir, pair, meta_fp,
                     qza1, qza2, res_dir, cur_sh,
@@ -366,8 +354,6 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict, datase
                     latent_dim, train_column, n_example,
                     gpu, force, standalone, qiime_env
                 )
-    # for j in jobs:
-    #     j.join()
     if standalone:
         qiime_env = 'mmvec2'
 
