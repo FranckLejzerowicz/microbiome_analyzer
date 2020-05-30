@@ -81,7 +81,6 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
     :param thresh: min number of reads per sample to keep it.
     :param chmod: whether to change permission of output files (defalt: 775).
     """
-
     threshs_dats = get_threshs(p_filt_threshs)
 
     written = 0

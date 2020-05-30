@@ -112,13 +112,11 @@ def routine_qiime2_analyses(
             sys.exit(1)
 
     prjct_nm = get_prjct_nm(project_name)
-
     run_params = get_run_params(p_run_params)
 
     # INIT -------------------------------------------------------------------------------------
     datasets, datasets_read, datasets_features, datasets_phylo, datasets_rarefs = get_datasets(
         i_datasets, i_datasets_folder)
-
     # --> datasets_read <--
     # path_pd : indexed with feature name
     # meta_pd : not indexed -> "sample_name" as first column
@@ -140,22 +138,22 @@ def routine_qiime2_analyses(
                           i_qemistree, taxonomies, force, qiime_env, chmod, noloc)
         else:
             print('[Warning] The Qemistree path %s is not a folder.')
-
     if 'taxonomy' not in p_skip:
-        run_taxonomy(i_datasets_folder, datasets, datasets_read, datasets_phylo, datasets_features,
-                     i_classifier, taxonomies, force, prjct_nm, qiime_env, chmod, noloc)
-
+        run_taxonomy(i_datasets_folder, datasets, datasets_read,
+                     datasets_phylo, datasets_features, i_classifier,
+                     taxonomies, force, prjct_nm, qiime_env, chmod, noloc)
         if 'barplot' not in p_skip:
-            run_barplot(i_datasets_folder, datasets, taxonomies, force, prjct_nm, qiime_env, chmod, noloc)
-
+            run_barplot(i_datasets_folder, datasets, taxonomies,
+                        force, prjct_nm, qiime_env, chmod, noloc)
     trees = {}
     get_precomputed_trees(i_datasets_folder, datasets, datasets_phylo, trees)
     if 'wol' not in p_skip:
-        shear_tree(i_datasets_folder, datasets_read, datasets_phylo, datasets_features, prjct_nm,
-                   i_wol_tree, trees, force, qiime_env, chmod, noloc)
+        shear_tree(i_datasets_folder, datasets_read, datasets_phylo,
+                   datasets_features, prjct_nm, i_wol_tree, trees,
+                   force, qiime_env, chmod, noloc)
     if i_sepp_tree and 'sepp' not in p_skip:
-        run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo, prjct_nm,
-                 i_sepp_tree, trees, force, qiime_env, chmod, noloc)
+        run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo,
+                 prjct_nm, i_sepp_tree, trees, force, qiime_env, chmod, noloc)
     # ------------------------------------------------------------------------------------------
 
     # ALPHA ------------------------------------------------------------
@@ -201,7 +199,6 @@ def routine_qiime2_analyses(
     if 'beta' not in p_skip and 'deicode' not in p_skip:
         run_deicode(i_datasets_folder, datasets, p_perm_groups,
                     force, prjct_nm, qiime_env, chmod, noloc)
-
     if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
         run_alpha_group_significance(i_datasets_folder, datasets, diversities,
                                      p_perm_groups, force, prjct_nm,
@@ -226,13 +223,11 @@ def routine_qiime2_analyses(
                                       datasets_filt, datasets_read, force, gpu,
                                       standalone, prjct_nm, qiime_env, chmod,
                                       noloc, split)
-
     if p_procrustes:
         if betas and 'procrustes' not in p_skip:
             run_procrustes(i_datasets_folder, datasets, datasets_filt,
                            p_procrustes, betas, force, prjct_nm,
                            qiime_env, chmod, noloc, split)
-
     songbird_outputs = []
     if p_diff_models:
         if 'songbird' not in p_skip:
