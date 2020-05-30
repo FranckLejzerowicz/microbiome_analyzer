@@ -162,7 +162,6 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                 meta_filt_pd = pd.read_csv(meta_filt_fp, header=0, sep='\t', dtype={'sample_name': str})
                 datasets_read_update[dat_filt] = [tab_filt_pd, meta_filt_pd]
                 datasets_phylo_update[dat_filt] = datasets_phylo[dat]
-
                 datasets_features_update[dat_filt] = dict(
                     gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_filt_pd.index
                 )
@@ -211,7 +210,6 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             datasets_update[dat_filt] = [tab_filt_fp, meta_filt_fp]
             datasets_read_update[dat_filt] = [tab_filt_pd, meta_filt_pd.reset_index()]
             datasets_phylo_update[dat_filt] = datasets_phylo[dat]
-
             datasets_features_update[dat_filt] = dict(
                 gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_filt_pd.index
             )
@@ -219,11 +217,11 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             sh.write('echo "%s"\n' % cmd)
             sh.write('%s\n' % cmd)
             written += 1
-
-    run_xpbs(out_sh, out_pbs, '%s.fltr' % prjct_nm, qiime_env,
-             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-             run_params["mem_num"], run_params["mem_dim"], chmod, written,
-             '# Filter samples for a min number of %s reads' % p_filt_threshs, None, noloc)
+    if written:
+        run_xpbs(out_sh, out_pbs, '%s.fltr' % prjct_nm, qiime_env,
+                 run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                 run_params["mem_num"], run_params["mem_dim"], chmod, written,
+                 '# Filter samples for a min number of %s reads' % p_filt_threshs, None, noloc)
 
     datasets.update(datasets_update)
     datasets_read.update(datasets_read_update)
