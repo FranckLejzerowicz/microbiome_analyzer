@@ -199,20 +199,23 @@ def routine_qiime2_analyses(
 
     # STATS -----------------------------------------------------------------------
     if 'beta' not in p_skip and 'deicode' not in p_skip:
-        run_deicode(i_datasets_folder, datasets, p_perm_groups, taxonomies,
+        run_deicode(i_datasets_folder, datasets, p_perm_groups,
                     force, prjct_nm, qiime_env, chmod, noloc)
 
     if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
         run_alpha_group_significance(i_datasets_folder, datasets, diversities,
-                                     p_perm_groups, force, prjct_nm, qiime_env, chmod, noloc, As)
+                                     p_perm_groups, force, prjct_nm,
+                                     qiime_env, chmod, noloc, As, split)
     if p_perm_tests:
         if 'beta' not in p_skip and 'permanova' not in p_skip:
-            run_permanova(i_datasets_folder, datasets, betas,
-                          p_perm_tests, p_perm_groups,force, prjct_nm, qiime_env, chmod, noloc, Bs)
+            run_permanova(i_datasets_folder, betas, p_perm_tests,
+                          p_perm_groups, force, prjct_nm,
+                          qiime_env, chmod, noloc, split)
     if p_formulas:
         if 'beta' not in p_skip and 'adonis' not in p_skip:
             run_adonis(p_formulas, i_datasets_folder, datasets, betas,
-                       p_perm_groups, force, prjct_nm, qiime_env, chmod, noloc, Bs)
+                       p_perm_groups, force, prjct_nm, qiime_env,
+                       chmod, noloc, Bs, split)
     # ------------------------------------------------------------------------------
 
     # MMVEC AND SONGBIRD -----------------------------------------------------------
@@ -228,7 +231,7 @@ def routine_qiime2_analyses(
         if betas and 'procrustes' not in p_skip:
             run_procrustes(i_datasets_folder, datasets, datasets_filt,
                            p_procrustes, betas, force, prjct_nm,
-                           qiime_env, chmod, noloc)
+                           qiime_env, chmod, noloc, split)
 
     songbird_outputs = []
     if p_diff_models:

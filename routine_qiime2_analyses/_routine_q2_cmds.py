@@ -753,8 +753,7 @@ def check_absence_mat(mat_qzas: list, first_print: int, analysis: str) -> bool:
 
 
 def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat_qza: str,
-                                            qza: str, new_qza: str, testing_group: str,
-                                            new_qzv: str, cur_sh: TextIO) -> None:
+                                            testing_group: str, new_qzv: str, cur_sh: TextIO) -> None:
     """
     Determine whether groups of samples are significantly different from one
     another using a permutation-based statistical test.
@@ -779,10 +778,6 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--i-distance-matrix %s \\\n' % mat_qza
     cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
-    cmd += 'qiime feature-table filter-samples \\\n'
-    cmd += '--i-table %s \\\n' % qza
-    cmd += '--m-metadata-file %s \\\n' % new_meta
-    cmd += '--o-filtered-table %s\n' % new_qza
     cmd += 'qiime diversity beta-group-significance \\\n'
     cmd += '--i-distance-matrix %s \\\n' % new_mat_qza
     cmd += '--m-metadata-file %s \\\n' % new_meta
@@ -794,8 +789,7 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
 
 
 def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
-                           qza: str, new_qza: str, formula: str,
-                           new_qzv: str, cur_sh: TextIO) -> None:
+                           formula: str, new_qzv: str, cur_sh: TextIO) -> None:
     """
     Determine whether groups of samples are significantly different from one
     another using the ADONIS permutation-based statistical test in vegan-R.
@@ -835,10 +829,6 @@ def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--i-distance-matrix %s \\\n' % mat_qza
     cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
-    cmd += 'qiime feature-table filter-samples \\\n'
-    cmd += '--i-table %s \\\n' % qza
-    cmd += '--m-metadata-file %s \\\n' % new_meta
-    cmd += '--o-filtered-table %s\n' % new_qza
     cmd += 'qiime diversity adonis \\\n'
     cmd += '--i-distance-matrix %s \\\n' % new_mat_qza
     cmd += '--m-metadata-file %s \\\n' % new_meta
@@ -848,6 +838,7 @@ def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
     cmd += '--o-visualization %s\n' % new_qzv
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
+
 
 
 def write_procrustes(common_meta_fp: str, dm1: str, dm2: str,

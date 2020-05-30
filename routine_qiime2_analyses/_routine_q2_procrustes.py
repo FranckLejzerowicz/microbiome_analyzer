@@ -41,7 +41,7 @@ def run_single_procrustes(odir: str, dm1: str, dm2: str, meta_pd: pd.DataFrame,
 
 def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                    p_procrustes: str, betas: dict, force: bool, prjct_nm: str,
-                   qiime_env: str, chmod: str, noloc: bool) -> None:
+                   qiime_env: str, chmod: str, noloc: bool, split: bool) -> None:
     """
     """
     job_folder = get_job_folder(i_datasets_folder, 'procrustes')
@@ -62,21 +62,26 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
             dat2 = dat2_
 
         job_folder2 = get_job_folder(i_datasets_folder, 'procrustes/chunks/%s' % pair)
-        out_sh = '%s/run_procrustes_%s.sh' % (job_folder2, pair)
+        if not split:
+            out_sh = '%s/run_procrustes_%s.sh' % (job_folder2, pair)
         metrics_groups_metas_qzas1 = betas[dat1]
         for metric, groups_metas_qzas1 in metrics_groups_metas_qzas1.items():
-
-            if not metric in betas[dat2] or not metric in betas[dat1]:
+            if split:
+                out_sh = '%s/run_procrustes_%s_%s.sh' % (job_folder2, pair, metric)
+            if metric not in betas[dat2] or metric not in betas[dat1]:
                 continue
             groups_metas_qzas2 = betas[dat2][metric]
-            groups1 = sorted(groups_metas_qzas2.keys())
+            groups1 = sorted(groups_metas_qzas1.keys())
             groups2 = sorted(groups_metas_qzas2.keys())
             for (group1_, group2_) in itertools.product(*[groups1, groups2]):
-
                 if group1_ == '':
                     group1 = 'full'
+                else:
+                    group1 = group1_
                 if group2_ == '':
                     group2 = 'full'
+                else:
+                    group2 = group2_
                 meta1, qza1, dm1 = betas[dat1][metric][group1_]
                 meta2, qza2, dm2 = betas[dat2][metric][group2_]
 
@@ -106,8 +111,10 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                 meta_pd = meta_pd1.loc[meta_pd1.sample_name.isin(common_sams)]
                 cases_dict = check_metadata_cases_dict(
                     meta1, meta_pd, dict(procrustes_subsets), 'procrustes')
-                odir = get_analysis_folder(i_datasets_folder, 'procrustes/%s/%s_vs_%s' % (pair, group1, group2))
-                job_folder3 = get_job_folder(i_datasets_folder, 'procrustes/chunks/%s/%s_vs_%s' % (pair, group1, group2))
+                odir = get_analysis_folder(i_datasets_folder,
+                                           'procrustes/%s/%s_vs_%s' % (pair, group1, group2))
+                job_folder3 = get_job_folder(i_datasets_folder,
+                                             'procrustes/chunks/%s/%s_vs_%s' % (pair, group1, group2))
                 for case_var, case_vals_list in cases_dict.items():
                     for case_vals in case_vals_list:
                         case_ = get_case(case_vals, case_var).replace(' ', '_')

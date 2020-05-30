@@ -394,7 +394,7 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list:
 
 def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversities: dict,
                                  p_perm_groups: str, force: bool, prjct_nm: str,
-                                 qiime_env: str, chmod: str, noloc: bool, As: tuple) -> None:
+                                 qiime_env: str, chmod: str, noloc: bool, As: tuple, split: bool) -> None:
     """
     Run alpha-group-significance: Alpha diversity comparisons.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-group-significance/

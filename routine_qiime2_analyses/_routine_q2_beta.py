@@ -142,8 +142,6 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                 written += 1
                                 main_written += 1
                             divs[metric][subset] = (meta, qza_subset, out_fp)
-                            # divs.append(out_fp)
-
                 betas[dat] = divs
             run_xpbs(out_sh, out_pbs, '%s.bt.%s' % (prjct_nm, dat),
                      qiime_env, '24', '1', '1', '10', 'gb',

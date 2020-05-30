@@ -8,12 +8,11 @@
 
 import os
 import pandas as pd
-from os.path import basename, isfile, splitext
-import multiprocessing
+from os.path import basename, isfile
 
 from routine_qiime2_analyses._routine_q2_xpbs import print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
-    get_metrics, get_job_folder,
+    get_job_folder,
     get_analysis_folder,
     get_main_cases_dict,
     write_main_sh,
@@ -26,14 +25,13 @@ from routine_qiime2_analyses._routine_q2_metadata import (
 from routine_qiime2_analyses._routine_q2_cmds import (
     get_new_meta_pd, get_case,
     write_diversity_beta_group_significance,
-    add_q2_types_to_meta, get_metric,
-    check_absence_mat
+    add_q2_types_to_meta
 )
 
 
-def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str, metric: str,
-                   case_: str, testing_group: str, mat_qza: str, case_var: str,
-                   case_vals: list, force: bool) -> None:
+def run_single_perm(odir: str, dat: str, subset: str, meta_pd: pd.DataFrame, cur_sh: str,
+                    metric: str, case_: str, testing_group: str, mat_qza: str,
+                    case_var: str, case_vals: list, force: bool) -> None:
     """
     Run beta-group-significance: Beta diversity group significance.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
@@ -51,70 +49,30 @@ def run_multi_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str, metr
     :param force: Force the re-writing of scripts for all commands.
     """
     remove = True
-    qza = '%s.qza' % splitext(tsv)[0]
     with open(cur_sh, 'w') as cur_sh_o:
         case = '%s__%s__%s' % (metric, case_, testing_group)
         case = case.replace(' ', '_')
-        cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
+        if subset:
+            cur_rad = '%s/perm_%s_%s_%s' % (odir, dat, subset, case)
+        else:
+            cur_rad = '%s/perm_%s_%s' % (odir, dat, case)
         new_meta = '%s.meta' % cur_rad
-        new_qza = '%s.qza' % cur_rad
-        new_qzv = '%s_permanova.qzv' % cur_rad
-        new_mat_qza = odir + '/' + basename(mat_qza).replace('.qza', '_%s.qza' % case)
-        if force or not isfile(new_qzv):
-            new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-            if new_meta_pd[testing_group].unique().size > 1:
-                add_q2_types_to_meta(new_meta_pd, new_meta)
-                write_diversity_beta_group_significance(new_meta, mat_qza, new_mat_qza,
-                                                        qza, new_qza, testing_group,
-                                                        new_qzv, cur_sh_o)
-                remove = False
-    if remove:
-        os.remove(cur_sh)
-
-
-def run_single_perm(odir: str, tsv: str, meta_pd: pd.DataFrame, cur_sh: str, metric: str,
-                    case_: str, testing_group: str, mat_qza: str, case_var: str,
-                    case_vals: list, force: bool) -> None:
-    """
-    Run beta-group-significance: Beta diversity group significance.
-    https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
-    (in-loop function).
-
-    :param odir: output analysis directory.
-    :param tsv: features table input to the beta diversity matrix.
-    :param meta_pd: metadata table.
-    :param cur_sh: input bash script file.
-    :param case_:
-    :param testing_group:
-    :param mat_qza:
-    :param case_var:
-    :param case_vals:
-    :param force: Force the re-writing of scripts for all commands.
-    """
-    remove = True
-    qza = '%s.qza' % splitext(tsv)[0]
-    with open(cur_sh, 'w') as cur_sh_o:
-        case = '%s__%s__%s' % (metric, case_, testing_group)
-        case = case.replace(' ', '_')
-        cur_rad = odir + '/' + basename(tsv).replace('.tsv', '_%s' % case)
-        new_meta = '%s.meta' % cur_rad
-        new_qza = '%s.qza' % cur_rad
         new_qzv = '%s_permanova.qzv' % cur_rad
         new_mat_qza = odir + '/' + basename(mat_qza).replace('.qza', '_%s_DM.qza' % case)
         new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
         add_q2_types_to_meta(new_meta_pd, new_meta)
         if force or not isfile(new_qzv):
-            if len([x for x in new_meta_pd[testing_group].unique() if str(x)!='nan']) > 1:
+            if len([x for x in new_meta_pd[testing_group].unique() if str(x) != 'nan']) > 1:
                 write_diversity_beta_group_significance(new_meta, mat_qza, new_mat_qza,
-                                                        qza, new_qza, testing_group,
-                                                        new_qzv, cur_sh_o)
+                                                        testing_group, new_qzv, cur_sh_o)
                 remove = False
     if remove:
         os.remove(cur_sh)
 
 
-def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_testing_groups: tuple,
-                  p_perm_groups: str, force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, Bs: tuple) -> None:
+def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tuple,
+                  p_perm_groups: str, force: bool, prjct_nm: str, qiime_env: str,
+                  chmod: str, noloc: bool, split: bool) -> None:
     """
     Run beta-group-significance: Beta diversity group significance.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
@@ -131,52 +89,48 @@ def run_permanova(i_datasets_folder: str, datasets: dict, betas: dict, main_test
     :param chmod: whether to change permission of output files (defalt: 775).
     """
     job_folder2 = get_job_folder(i_datasets_folder, 'permanova/chunks')
-    beta_metrics = get_metrics('beta_metrics', Bs)
 
     main_cases_dict = get_main_cases_dict(p_perm_groups)
 
-    jobs = []
+    metric_check = set()
     all_sh_pbs = {}
     first_print = 0
-    for dat, tsv_meta_pds in datasets.items():
-
-        tsv, meta = tsv_meta_pds
-        meta_pd = read_meta_pd(meta)
-        meta_pd = meta_pd.set_index('sample_name')
-        mat_qzas = betas[dat][meta]
-
-        cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'PERMANOVA')
-        testing_groups = check_metadata_testing_groups(meta, meta_pd, main_testing_groups, 'PERMANOVA')
-
-        absence_mat = check_absence_mat(mat_qzas, first_print, 'PERMANOVA')
-        if absence_mat:
-            continue
-
+    for dat in betas.keys():
         odir = get_analysis_folder(i_datasets_folder, 'permanova/%s' % dat)
-        out_sh = '%s/run_beta_group_significance_%s.sh' % (job_folder2, dat)
-        for mat_qza in mat_qzas:
-            metric = get_metric(beta_metrics, mat_qza)
-            for case_var, case_vals_list in cases_dict.items():
-                testing_groups_case_var = list(set(testing_groups + [case_var]))
-                for case_vals in case_vals_list:
-                    case_ = get_case(case_vals, case_var).replace(' ', '_')
-                    for testing_group in testing_groups_case_var:
-                        if testing_group == 'ALL':
-                            continue
-                        cur_sh = '%s/run_beta_group_significance_%s_%s_%s_%s.sh' % (
-                            job_folder2, dat, metric, case_, testing_group)
-                        cur_sh = cur_sh.replace(' ', '-')
-                        all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                        run_single_perm(odir, tsv, meta_pd, cur_sh, metric, case_, testing_group,
-                                        mat_qza, case_var, case_vals, force)
-                        # p = multiprocessing.Process(
-                        #     target=run_multi_perm,
-                        #     args=(odir, tsv, meta_pd, cur_sh, metric, case_, testing_group,
-                        #           mat_qza, case_var, case_vals, force))
-                        # p.start()
-                        # jobs.append(p)
-    # for j in jobs:
-    #     j.join()
+        if not split:
+            out_sh = '%s/run_beta_group_significance_%s.sh' % (job_folder2, dat)
+        for metric, subset_files in betas[dat].items():
+            if split:
+                out_sh = '%s/run_beta_group_significance_%s_%s.sh' % (job_folder2, dat, metric)
+            for subset, (meta, mat_qza, out_fp) in subset_files.items():
+
+                if not isfile(mat_qza):
+                    if not first_print:
+                        print('Beta diversity, distances matrices must be generated already to automatise PERMANOVA\n'
+                              '\t(re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)')
+                        first_print += 1
+                    continue
+
+                if (dat, subset) not in metric_check:
+                    meta_pd = read_meta_pd(meta)
+                    meta_pd = meta_pd.set_index('sample_name')
+                    cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'PERMANOVA')
+                    testing_groups = check_metadata_testing_groups(meta, meta_pd, main_testing_groups, 'PERMANOVA')
+                    metric_check.add((dat, subset))
+
+                for case_var, case_vals_list in cases_dict.items():
+                    testing_groups_case_var = list(set(testing_groups + [case_var]))
+                    for case_vals in case_vals_list:
+                        case_ = get_case(case_vals, case_var).replace(' ', '_')
+                        for testing_group in testing_groups_case_var:
+                            if testing_group == 'ALL':
+                                continue
+                            cur_sh = '%s/run_beta_group_significance_%s_%s_%s_%s_%s.sh' % (
+                                job_folder2, dat, metric, subset, case_, testing_group)
+                            cur_sh = cur_sh.replace(' ', '-')
+                            all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
+                            run_single_perm(odir, dat, subset, meta_pd, cur_sh, metric, case_,
+                                            testing_group, mat_qza, case_var, case_vals, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'permanova')
     main_sh = write_main_sh(job_folder, '3_run_beta_group_significance', all_sh_pbs,
