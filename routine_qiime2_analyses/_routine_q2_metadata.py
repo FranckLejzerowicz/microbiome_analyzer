@@ -112,8 +112,8 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                     continue
                 elif len(only_meta):
                     drop.extend(list(only_meta))
-                    print('Songbird formula "Diff" factors(s) incomplete for metadata "%s": %s' % (
-                        formula_split[0], list(only_meta)))
+                    print('Songbird formula "Diff" factors(s) incomplete for metadata "%s":\n'
+                          '  -> skipping samples with %s' % (formula_split[0], list(only_meta)))
             elif 'Treatment(' in formula:
                 levels = formula.split("Treatment('")[-1].split("')")[0]
                 if levels not in levels_set:
