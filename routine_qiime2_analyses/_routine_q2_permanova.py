@@ -89,7 +89,6 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
     :param chmod: whether to change permission of output files (defalt: 775).
     """
     job_folder2 = get_job_folder(i_datasets_folder, 'permanova/chunks')
-
     main_cases_dict = get_main_cases_dict(p_perm_groups)
 
     metric_check = set()

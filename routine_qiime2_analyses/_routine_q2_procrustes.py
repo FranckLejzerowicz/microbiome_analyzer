@@ -49,7 +49,6 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
 
     dms_tab = []
     all_sh_pbs = {}
-    run_pbs = '%s/4_run_procrustes.sh' % job_folder
     for pair, (dat1_, dat2_) in procrustes_pairs.items():
 
         if dat1_.endswith('__raref') and dat1_ not in datasets:
@@ -135,7 +134,7 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                                         dm_out1_tsv, dm_out2_tsv])
 
     job_folder = get_job_folder(i_datasets_folder, 'procrustes')
-    main_sh = write_main_sh(job_folder, 'run_procrustes', all_sh_pbs,
+    main_sh = write_main_sh(job_folder, '4_run_procrustes', all_sh_pbs,
                             '%s.prcst' % prjct_nm, '2', '1', '1', '1', 'gb',
                             qiime_env, chmod, noloc)
     if main_sh:
@@ -148,7 +147,7 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
         print_message('', 'sh', main_sh)
 
     dms_tab_pd = pd.DataFrame(
-        dms_tab, columns = [
+        dms_tab, columns=[
             'pair', 'dat1', 'dat2', 'metric',
             'group1', 'group2', 'case',
             'dm_out1', 'dm_out2',
