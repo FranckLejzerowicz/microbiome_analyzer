@@ -81,7 +81,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
     meta_pd_vars = [x.lower() for x in set(meta_pd.columns.tolist())]
     models = {}
     for model, formula_ in songbird_models.items():
-        drop = {}
+        drop = []
         formula = formula_.strip('"').strip("'")
         if formula.startswith('C('):
             formula_split = [formula.split('C(')[-1].split(',')[0].strip().strip()]
