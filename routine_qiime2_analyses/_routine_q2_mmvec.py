@@ -55,6 +55,8 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
         meta_col1 = [str(x) for x in meta_subset1[c]]
         meta_col2 = [str(x) for x in meta_subset2[c]]
         if c == 'collection_date':
+            print(meta_subset1[c])
+            print(meta_subset2[c])
             print(meta_col1)
             print(meta_col2)
             print(meta_col2ds)
