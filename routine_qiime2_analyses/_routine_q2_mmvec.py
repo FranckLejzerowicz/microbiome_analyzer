@@ -71,6 +71,7 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
         meta_col2 = meta_subset2[c].tolist()
         if meta_col1 != meta_col2:
             diff_cols.append(c)
+
     if len(diff_cols):
         meta_subset2.rename(columns=dict((c, '%s.copy' % c) for c in diff_cols), inplace=True)
     meta_subset = meta_subset1.merge(meta_subset2,
