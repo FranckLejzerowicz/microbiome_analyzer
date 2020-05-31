@@ -73,6 +73,7 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
     tensor_html = '%s/differentials-tensorboard.html' % odir
 
     formula, drop = formula_drop
+    print(formula, drop)
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor_html):
             if not isfile(new_meta):

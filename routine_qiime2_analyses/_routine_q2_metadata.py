@@ -83,6 +83,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
     for model, formula_ in songbird_models.items():
         drop = []
         formula = formula_.strip('"').strip("'")
+
         if formula.startswith('C('):
             formula_split = [formula.split('C(')[-1].split(',')[0].strip().strip()]
             formula = formula.replace('C(%s' % formula_split[0], 'C(%s' % formula_split[0].lower())
@@ -94,12 +95,14 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
             formula = formula.lower()
             formula_split = [x.lower() for x in re.split('[+/:*]', formula)]
             levels = []
+
         common_with_md = set(meta_pd_vars) & set(formula_split)
         if sorted(set(formula_split)) != sorted(common_with_md):
             only_formula = sorted(set(formula_split) ^ common_with_md)
             print('Songbird formula term(s) missing in metadata:\n  %s\n  [not used]: %s=%s' % (
                 ', '.join(sorted(only_formula)), model, formula))
             continue
+
         if len(levels):
             levels_set = sorted([x for x in meta_pd[formula_split[0]].unique() if str(x) != 'nan'])
             if 'Diff' in formula:
@@ -120,6 +123,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                     print('Songbird formula "Treatment" factors(s) missing in metadata "%s":\n  %s' % (
                         formula_split[0], levels))
                     continue
+
         models[model] = [formula, drop]
     return models
 
