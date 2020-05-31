@@ -51,11 +51,11 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
     diff_cols = []
     for c in common_cols:
         if c in meta_subset1.columns:
-            meta_col1 = meta_subset1[c].str.tolist()
+            meta_col1 = [str(x) for x in meta_subset1[c]]
         else:
             continue
         if c in meta_subset2.columns:
-            meta_col2 = meta_subset2[c].str.tolist()
+            meta_col2 = [str(x) for x in meta_subset2[c]]
         else:
             continue
         if meta_col1 != meta_col2:

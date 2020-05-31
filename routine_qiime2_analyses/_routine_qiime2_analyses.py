@@ -124,8 +124,9 @@ def routine_qiime2_analyses(
                     force, prjct_nm, qiime_env, chmod, noloc, run_params['import'])
     datasets_filt = {}
     if p_filt_threshs:
-        filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features, datasets_filt,
-                            datasets_phylo, prjct_nm, qiime_env, p_filt_threshs, chmod, noloc, run_params['filter'])
+        filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
+                            datasets_filt, datasets_phylo, prjct_nm, qiime_env,
+                            p_filt_threshs, chmod, noloc, run_params['filter'])
     if raref:
         run_rarefy(i_datasets_folder, datasets, datasets_read,
                    datasets_phylo, datasets_rarefs, force, prjct_nm,
@@ -162,8 +163,8 @@ def routine_qiime2_analyses(
                                 datasets_phylo, p_alpha_subsets, trees,
                                 force, prjct_nm, qiime_env, chmod, noloc, As, dropout)
         if 'merge_alpha' not in p_skip:
-            to_export = merge_meta_alpha(i_datasets_folder, datasets, diversities,
-                                         force, prjct_nm, qiime_env, chmod, noloc, dropout)
+            to_export = merge_meta_alpha(i_datasets_folder, datasets, diversities, force,
+                                         prjct_nm, qiime_env, chmod, noloc, dropout)
             if 'export_alpha' not in p_skip:
                 export_meta_alpha(datasets, datasets_rarefs, to_export, dropout)
         if 'alpha_correlations' not in p_skip:
@@ -175,7 +176,7 @@ def routine_qiime2_analyses(
                                force, prjct_nm, qiime_env, chmod, noloc)
     # ------------------------------------------------------------------
 
-    # BETA ----------------------------------------------------
+    # BETA ----------------------------------------------------------------------
     if 'beta' not in p_skip:
         betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
                          datasets_read, p_beta_subsets, trees, force,
@@ -193,9 +194,9 @@ def routine_qiime2_analyses(
                                   force, prjct_nm, qiime_env, chmod, noloc)
             run_emperor_biplot(i_datasets_folder, biplots, taxonomies,
                                prjct_nm, qiime_env, chmod, noloc)
-    # ---------------------------------------------------------
+    # ---------------------------------------------------------------------------
 
-    # STATS -----------------------------------------------------------------------
+    # STATS ------------------------------------------------------------------
     if 'beta' not in p_skip and 'deicode' not in p_skip:
         run_deicode(i_datasets_folder, datasets, p_perm_groups,
                     force, prjct_nm, qiime_env, chmod, noloc)
@@ -213,9 +214,9 @@ def routine_qiime2_analyses(
             run_adonis(p_formulas, i_datasets_folder, betas,
                        p_perm_groups, force, prjct_nm, qiime_env,
                        chmod, noloc, split)
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
 
-    # MMVEC AND SONGBIRD -----------------------------------------------------------
+    # MMVEC AND SONGBIRD --------------------------------------------------------
     mmvec_outputs = []
     if p_mmvec_pairs:
         if 'mmvec' not in p_skip:
