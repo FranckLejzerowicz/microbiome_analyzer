@@ -49,17 +49,26 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
     common_cols = [x for x in common_cols if x != 'sample_name']
     # get these columns that also have different contents
     diff_cols = []
-    print(meta_subset1.shape)
-    print(meta_subset2.shape)
     for c in common_cols:
-        meta_col1 = [str(x) for x in meta_subset1[c]]
-        meta_col2 = [str(x) for x in meta_subset2[c]]
-        if c == 'collection_date':
-            print(meta_subset1[c])
-            print(meta_subset2[c])
-            print(meta_col1)
-            print(meta_col2)
-            print(meta_col2ds)
+        meta_cols1 = meta_subset1[[c]]
+        if meta_cols1.shape[1] > 1:
+            meta_subset1.rename(
+                columns=dict((x, '%s.%s' % (x, idx)) for idx, x
+                             in enumerate(meta_cols1.columns) if idx),
+                inplace=True
+            )
+            continue
+        meta_col1 = meta_subset1[c].tolist()
+
+        meta_cols2 = meta_subset2[[c]]
+        if meta_cols2.shape[1] > 1:
+            meta_subset2.rename(
+                columns=dict((x, '%s.%s' % (x, idx)) for idx, x
+                             in enumerate(meta_cols2.columns) if idx),
+                inplace=True
+            )
+            continue
+        meta_col2 = meta_subset2[c].tolist()
         if meta_col1 != meta_col2:
             diff_cols.append(c)
     if len(diff_cols):
