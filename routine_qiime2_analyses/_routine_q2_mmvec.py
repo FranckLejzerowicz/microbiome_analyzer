@@ -46,6 +46,10 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
     """
     # get the columns present in both metadata
     common_cols = set(meta_subset1.columns) & set(meta_subset2.columns)
+    print("meta_subset1.columns.tolist()")
+    print(meta_subset1.columns.tolist())
+    print("meta_subset2.columns.tolist()")
+    print(meta_subset2.columns.tolist())
     common_cols = [x for x in common_cols if x != 'sample_name']
     # get these columns that also have different contents
     diff_cols = []
