@@ -27,6 +27,7 @@ from routine_qiime2_analyses._routine_q2_cmds import (
     write_mmvec_cmd
 )
 
+
 def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFrame:
     meta_subset = meta.loc[meta.sample_name.isin(common_sams),:].copy()
     meta_subset.columns = [x.lower() for x in meta_subset.columns]
@@ -137,51 +138,6 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
                  new_qza2, len(common_sams)]
             )
     return common_datasets, common_jobs
-
-
-# def run_multi_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, res_dir: str,
-#                     cur_sh: str, batch: str, learn: str, epoch: str, prior: str,
-#                     thresh_feat: str, latent_dim: str, train_column: str,
-#                     n_example: str, gpu: bool, force: bool, standalone: bool) -> None:
-#     """
-#     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
-#     https://github.com/biocore/mmvec
-#     (in-loop function).
-#
-#     :param odir:
-#     :param pair:
-#     :param meta_fp:
-#     :param qza1:
-#     :param qza2:
-#     :param res_dir:
-#     :param cur_sh:
-#     :param batch:
-#     :param learn:
-#     :param epoch:
-#     :param prior:
-#     :param thresh_feat:
-#     :param latent_dim:
-#     :param train_column:
-#     :param n_example:
-#     :param gpu:
-#     :param standalone:
-#     :return:
-#     """
-#     remove = True
-#     with open(cur_sh, 'w') as cur_sh_o:
-#         cur_rad = '%s/%s' % (odir, pair)
-#         ranks_tsv = '%s_ranks.tsv' % cur_rad
-#         ordination_tsv = '%s_ordination.tsv' % cur_rad
-#         if force or not isfile(conditionals_tsv):
-#             write_mmvec_cmd(meta_fp, qza1, qza2, res_dir,
-#                             conditionals_tsv, ordination_tsv,
-#                             batch, learn, epoch, prior,
-#                             thresh_feat, latent_dim, train_column,
-#                             n_example, gpu, standalone, cur_sh_o)
-#
-#             remove = False
-#     if remove:
-#         os.remove(cur_sh)
 
 
 def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, res_dir: str,
