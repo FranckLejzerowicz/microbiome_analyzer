@@ -8,7 +8,7 @@
 
 import os
 import pandas as pd
-from os.path import basename, isfile
+from os.path import basename, isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
@@ -29,8 +29,8 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 )
 
 
-def run_single_perm(odir: str, dat: str, subset: str, meta_pd: pd.DataFrame, cur_sh: str,
-                    metric: str, case_: str, testing_group: str, mat_qza: str,
+def run_single_perm(odir: str, subset: str, meta_pd: pd.DataFrame, cur_sh: str,
+                    metric: str, case_: str, testing_group: str, qza: str, mat_qza: str,
                     case_var: str, case_vals: list, force: bool) -> None:
     """
     Run beta-group-significance: Beta diversity group significance.
@@ -53,9 +53,9 @@ def run_single_perm(odir: str, dat: str, subset: str, meta_pd: pd.DataFrame, cur
         case = '%s__%s__%s' % (metric, case_, testing_group)
         case = case.replace(' ', '_')
         if subset:
-            cur_rad = '%s/perm_%s_%s_%s' % (odir, dat, subset, case)
+            cur_rad = '%s/%s_%s_%s' % (odir, splitext(basename(qza))[0], subset, case)
         else:
-            cur_rad = '%s/perm_%s_%s' % (odir, dat, case)
+            cur_rad = '%s/%s_%s' % (odir, splitext(basename(qza))[0], case)
         new_meta = '%s.meta' % cur_rad
         new_qzv = '%s_permanova.qzv' % cur_rad
         new_mat_qza = odir + '/' + basename(mat_qza).replace('.qza', '_%s_DM.qza' % case)
@@ -128,8 +128,8 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
                                 job_folder2, dat, metric, subset, case_, testing_group)
                             cur_sh = cur_sh.replace(' ', '-')
                             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                            run_single_perm(odir, dat, subset, meta_pd, cur_sh, metric, case_,
-                                            testing_group, mat_qza, case_var, case_vals, force)
+                            run_single_perm(odir, subset, meta_pd, cur_sh, metric, case_,
+                                            testing_group, qza, mat_qza, case_var, case_vals, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'permanova')
     main_sh = write_main_sh(job_folder, '3_run_beta_group_significance', all_sh_pbs,

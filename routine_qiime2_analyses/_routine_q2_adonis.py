@@ -8,7 +8,7 @@
 
 import os
 import pandas as pd
-from os.path import basename, isfile
+from os.path import basename, isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
@@ -29,8 +29,8 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 )
 
 
-def run_single_adonis(odir: str, dat: str, subset: str, case_vals_list: list,
-                      metric: str, case_var: str, form: str, formula: str, mat_qza: str,
+def run_single_adonis(odir: str, subset: str, case_vals_list: list, metric: str,
+                      case_var: str, form: str, formula: str, qza: str, mat_qza: str,
                       meta_pd: pd.DataFrame, cur_sh: str, force: bool) -> None:
     """
     Run adonis: adonis PERMANOVA test for beta group significance.
@@ -54,9 +54,9 @@ def run_single_adonis(odir: str, dat: str, subset: str, case_vals_list: list,
         for case_vals in case_vals_list:
             case = '%s__%s' % (metric, get_case(case_vals, case_var, form))
             if subset:
-                cur_rad = '%s/adonis_%s_%s_%s' % (odir, dat, subset, case)
+                cur_rad = '%s/%s_%s_%s' % (odir, splitext(basename(qza))[0], subset, case)
             else:
-                cur_rad = '%s/adonis_%s_%s' % (odir, dat, case)
+                cur_rad = '%s/%s_%s' % (odir, splitext(basename(qza))[0], case)
             new_meta = '%s.meta' % cur_rad
             new_qzv = '%s_adonis.qzv' % cur_rad
             new_mat_qza = '%s/%s' % (odir, basename(mat_qza).replace('.qza', '_%s.qza' % case))
@@ -127,8 +127,8 @@ def run_adonis(p_formulas: str, i_datasets_folder: str, betas: dict,
                             job_folder2, dat, metric, form, case_var)
                         cur_sh = cur_sh.replace(' ', '-')
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                        run_single_adonis(odir, dat, subset, case_vals_list, metric, case_var,
-                                          form, formula, mat_qza, meta_pd, cur_sh, force)
+                        run_single_adonis(odir, subset, case_vals_list, metric, case_var,
+                                          form, formula, qza, mat_qza, meta_pd, cur_sh, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'adonis')
     main_sh = write_main_sh(job_folder, '3_run_adonis', all_sh_pbs,
