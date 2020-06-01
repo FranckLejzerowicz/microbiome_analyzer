@@ -185,6 +185,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                 continue
 
             for model, formula_drop in models.items():
+                print(model, formula_drop)
                 for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
                                                            thresh_feats, thresh_samples, n_randoms)):
                     batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random = [str(x) for x in it]
