@@ -35,6 +35,17 @@ def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFram
     return meta_subset
 
 
+def rename_duplicate_columns(meta_subset):
+    meta_subset_cols = []
+    for col in meta_subset.columns:
+        if col in meta_subset1_cols:
+            meta_subset_cols.append('%s.%s' % (col, meta_subset_cols.count(col)))
+        else:
+            meta_subset_cols.append(col)
+    meta_subset.columns = meta_subset1_cols
+    return meta_subset
+
+
 def merge_and_write_metas(meta_subset1: pd.DataFrame,
                           meta_subset2: pd.DataFrame,
                           meta_fp: str) -> pd.DataFrame:
@@ -44,47 +55,23 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
     :param meta_fp:
     :return:
     """
+    meta_subset1 = rename_duplicate_columns(meta_subset1)
+    meta_subset2 = rename_duplicate_columns(meta_subset2)
+
     # get the columns present in both metadata
     common_cols = set(meta_subset1.columns) & set(meta_subset2.columns)
     common_cols = [x for x in common_cols if x != 'sample_name']
     # get these columns that also have different contents
     diff_cols = []
     for c in common_cols:
-        meta_cols = meta_subset1[[c]]
-        if meta_cols.shape[1] > 1:
-            print(pd.Series(meta_cols.columns).value_counts())
-            print(meta_cols.iloc[:3,:])
-            meta_subset1_cols = []
-            n = 0
-            for col in meta_subset1.columns:
-                if col == c:
-                    if n:
-                        meta_subset1_cols.append('%s.%s' % (c, n))
-                    else:
-                        meta_subset1_cols.append(c)
-                    n += 1
-                else:
-                    meta_subset1_cols.append(c)
-            meta_subset1.columns = meta_subset1_cols
-        print(pd.Series(meta_subset1.columns).value_counts())
-        print(meta_subset1[c])
-        meta_col1 = meta_subset1[c].tolist()
-
-        if meta_subset2[[c]].shape[1] > 1:
-            meta_subset2_cols = []
-            n = 0
-            for col in meta_subset2.columns:
-                if col == c:
-                    if n:
-                        meta_subset2_cols.append('%s.%s' % (c, n))
-                    else:
-                        meta_subset2_cols.append(c)
-                    n += 1
-                else:
-                    meta_subset2_cols.append(c)
-            meta_subset2.columns = meta_subset2_cols
+        try:
+            meta_col1 = meta_subset1[c].tolist()
+        except:
+            print(meta_subset1[c])
+            print(fkkj)
 
         meta_col2 = meta_subset2[c].tolist()
+
         if meta_col1 != meta_col2:
             diff_cols.append(c)
 
