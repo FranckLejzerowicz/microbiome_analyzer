@@ -38,11 +38,11 @@ def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFram
 def rename_duplicate_columns(meta_subset):
     meta_subset_cols = []
     for col in meta_subset.columns:
-        if col in meta_subset1_cols:
+        if col in meta_subset_cols:
             meta_subset_cols.append('%s.%s' % (col, meta_subset_cols.count(col)))
         else:
             meta_subset_cols.append(col)
-    meta_subset.columns = meta_subset1_cols
+    meta_subset.columns = meta_subset_cols
     return meta_subset
 
 
