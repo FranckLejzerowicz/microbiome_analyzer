@@ -82,10 +82,12 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
     models = {}
     for model, formula_ in songbird_models.items():
         drop = []
+        meta_var = ''
         formula = formula_.strip('"').strip("'")
 
         if formula.startswith('C('):
             formula_split = [formula.split('C(')[-1].split(',')[0].strip().strip()]
+            meta_var = formula_split[0]
             formula = formula.replace('C(%s' % formula_split[0], 'C(%s' % formula_split[0].lower())
             if 'Diff' in formula:
                 levels = [x.strip().strip('"').strip("'") for x in formula.split("levels=['")[-1].split("']")[0].split(",")]
@@ -114,7 +116,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                         formula_split[0], list(only_model)))
                     continue
                 if len(only_meta):
-                    drop.extend(list(only_meta))
+                    drop = list(only_meta)
                     print('Songbird formula "Diff" factors(s) incomplete for metadata "%s":\n'
                           '  -> skipping samples with %s' % (formula_split[0], list(only_meta)))
             elif 'Treatment(' in formula:
@@ -124,7 +126,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                         formula_split[0], levels))
                     continue
 
-        models[model] = [formula, drop]
+        models[model] = [formula, meta_var, drop]
     return models
 
 
