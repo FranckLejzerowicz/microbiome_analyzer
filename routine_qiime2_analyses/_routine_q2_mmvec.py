@@ -50,7 +50,9 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
     # get these columns that also have different contents
     diff_cols = []
     for c in common_cols:
-        if meta_subset1[[c]].shape[1] > 1:
+        meta_cols = meta_subset1[[c]]
+        if meta_cols.shape[1] > 1:
+            print(meta_cols.iloc[:3,:])
             meta_subset1_cols = []
             n = 0
             for col in meta_subset1.columns:
@@ -63,6 +65,7 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
                 else:
                     meta_subset1_cols.append(c)
             meta_subset1.columns = meta_subset1_cols
+        print(pd.Series(meta_subset1.columns).value_counts())
         meta_col1 = meta_subset1[c].tolist()
 
         if meta_subset2[[c]].shape[1] > 1:
