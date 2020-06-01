@@ -51,6 +51,7 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
     diff_cols = []
     for c in common_cols:
         meta_cols = meta_subset1[[c]]
+        print(pd.Series(meta_subset1.columns).value_counts())
         if meta_cols.shape[1] > 1:
             print(meta_cols.iloc[:3,:])
             meta_subset1_cols = []
