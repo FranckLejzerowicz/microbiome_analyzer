@@ -78,8 +78,8 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
                 else:
                     meta_subset2_cols.append(c)
             meta_subset2.columns = meta_subset2_cols
-        meta_col2 = meta_subset2[c].tolist()
 
+        meta_col2 = meta_subset2[c].tolist()
         if meta_col1 != meta_col2:
             diff_cols.append(c)
 
