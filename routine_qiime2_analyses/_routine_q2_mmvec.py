@@ -10,7 +10,6 @@ import os
 import itertools
 import pandas as pd
 from os.path import isfile, splitext
-import multiprocessing
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
@@ -21,6 +20,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_datasets_filtered
 
 )
+from routine_qiime2_analyses._routine_q2_metadata import rename_duplicate_columns
 from routine_qiime2_analyses._routine_q2_cmds import (
     filter_feature_table,
     run_export,
@@ -32,17 +32,6 @@ def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFram
     meta_subset = meta.loc[meta.sample_name.isin(common_sams),:].copy()
     meta_subset.columns = [x.lower() for x in meta_subset.columns]
     meta_subset.sort_values('sample_name', inplace=True)
-    return meta_subset
-
-
-def rename_duplicate_columns(meta_subset):
-    meta_subset_cols = []
-    for col in meta_subset.columns:
-        if col in meta_subset_cols:
-            meta_subset_cols.append('%s.%s' % (col, meta_subset_cols.count(col)))
-        else:
-            meta_subset_cols.append(col)
-    meta_subset.columns = meta_subset_cols
     return meta_subset
 
 
@@ -247,9 +236,10 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
     return filt_datasets, common_datasets
 
 
-def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict, datasets_filt: dict,
-              datasets_read: dict, force: bool, gpu: bool, standalone: bool,
-              prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, split: bool) -> list:
+def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
+              datasets_filt: dict, datasets_read: dict, force: bool,
+              gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
+              chmod: str, noloc: bool, split: bool) -> list:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
     https://github.com/biocore/mmvec
@@ -289,7 +279,6 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict, datase
             out_sh = '%s/chunks/run_mmvec_%s.sh' % (job_folder, pair)
 
         for (meta_fp, omic1, omic2, filt1, filt2, tsv1, tsv2, qza1, qza2, ncommon) in pair_data:
-
             train_columns = mmvec_params['train_column']
             n_examples = mmvec_params['n_examples']
             batches = mmvec_params['batches']

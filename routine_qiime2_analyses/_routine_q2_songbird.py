@@ -22,7 +22,8 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
 )
 from routine_qiime2_analyses._routine_q2_metadata import (
     check_metadata_cases_dict,
-    check_metadata_models
+    check_metadata_models,
+    rename_duplicate_columns
 )
 from routine_qiime2_analyses._routine_q2_cmds import (
     get_new_meta_pd, get_case,
@@ -173,8 +174,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
             qza = '%s.qza' % splitext(tsv)[0]
             meta_pd = read_meta_pd(meta)
+            meta_pd = rename_duplicate_columns(meta_pd)
             meta_pd = meta_pd.set_index('sample_name')
-
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
             if dat in songbird_models:
                 models = check_metadata_models(meta, meta_pd, songbird_models[dat], 'songbird')

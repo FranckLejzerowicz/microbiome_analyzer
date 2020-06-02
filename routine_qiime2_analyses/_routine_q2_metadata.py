@@ -145,3 +145,16 @@ def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame,
         if variable not in main_testing:
             print('  [%s] variable %s not in %s' % (analysis, variable, basename(meta)))
     return main_testing
+
+
+def rename_duplicate_columns(meta_subset):
+    meta_subset_cols = []
+    for col in meta_subset.columns:
+        if col in meta_subset_cols:
+            meta_subset_cols.append('%s.%s' % (col, meta_subset_cols.count(col)))
+        else:
+            meta_subset_cols.append(col)
+    meta_subset.columns = meta_subset_cols
+    return meta_subset
+
+
