@@ -829,9 +829,6 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
             datasets_read[dat] = [tsv_pd_, meta_pd_]
         else:
             tsv_pd_, meta_pd_ = datasets_read[dat]
-        print(meta_pd_.columns.value_counts()[:5])
-        meta_pd_ = rename_duplicate_columns(meta_pd_)
-        print(meta_pd_.columns.value_counts()[:5])
 
         dat_filts = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
@@ -860,9 +857,6 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                         meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
                                               dtype={'sample_name': str},
                                               low_memory=False)
-                        print(meta_pd.columns.value_counts()[:5])
-                        meta_pd = rename_duplicate_columns(meta_pd)
-                        print(meta_pd.columns.value_counts()[:5])
                     else:
                         meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
 
