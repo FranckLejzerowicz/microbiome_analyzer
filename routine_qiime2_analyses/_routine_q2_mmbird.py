@@ -96,30 +96,27 @@ def get_mmvec_res(mmvec_outputs_pd):
     mmvec_res = {}
     # for ech row of the main table that also contain the mmvec output folders
     for r, row in mmvec_outputs_pd.iterrows():
-        # get the omics
         pair = row['pair']
         omic1 = row['omic1']
         omic2 = row['omic2']
         omic_filt1 = row['omic_filt1']
         omic_filt2 = row['omic_filt2']
         omic1_common_fp = row['omic1_common_fp']
-        # print('get_mmvec_res - omic1_common_fp')
-        # print(omic1_common_fp)
         if str(omic1_common_fp) == 'nan':
             continue
         omic2_common_fp = row['omic2_common_fp']
-        # print('get_mmvec_res - omic2_common_fp')
-        # print(omic2_common_fp)
         n_common = row['n_common']
         meta_fp = row['meta_common_fp']
 
         # get the songbirds
         if len(all_omic1_sb):
-            omic1_songbird_common_fps = [(x, all_omic1_sb[idx].replace('_omic1_songbird_common_fp', '')) for idx, x in enumerate(row[all_omic1_sb])]
+            omic1_songbird_common_fps = [(x, all_omic1_sb[idx].replace('_omic1_songbird_common_fp', ''))
+                                         for idx, x in enumerate(row[all_omic1_sb])]
         else:
             omic1_songbird_common_fps = []
         if len(all_omic2_sb):
-            omic2_songbird_common_fps = [(x, all_omic2_sb[idx].replace('_omic2_songbird_common_fp', '')) for idx, x in enumerate(row[all_omic2_sb])]
+            omic2_songbird_common_fps = [(x, all_omic2_sb[idx].replace('_omic2_songbird_common_fp', ''))
+                                         for idx, x in enumerate(row[all_omic2_sb])]
         else:
             omic2_songbird_common_fps = []
 
@@ -173,7 +170,7 @@ def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
                 omic1_diff_pd = omic1_diff_pd[1:]
             omic1_diff_pd = omic1_diff_pd.rename(columns={omic1_diff_pd.columns.tolist()[0]: 'Feature ID'})
             omic1_diff_pd = omic1_diff_pd.set_index('Feature ID')
-            # omic1_diff_pd = omic1_diff_pd.drop(columns='Intercept')
+            omic1_diff_pd = omic1_diff_pd.drop(columns='Intercept')
             omic1_diff_pd.columns = ['%s__%s' % (model, x) for x in omic1_diff_pd.columns]
             all_omic1_diff_list.append(omic1_diff_pd)
     if len(all_omic1_diff_list):
@@ -456,6 +453,25 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             omic_microbe = order_omics[6]
             omic_metabolite = order_omics[7]
 
+            print()
+            print()
+            print()
+            print()
+            print('ordi_fp')
+            print('omic1_diff_fps')
+            print('omic2_diff_fps')
+            print('meta_fp')
+            print('omic1_common_fp')
+            print('omic2_common_fp')
+            print('omic1')
+            print('omic2')
+            print('omic_filt1')
+            print('omic_filt2')
+            print('omic_feature')
+            print('omic_sample')
+            print('omic_microbe')
+            print('omic_metabolite')
+
             # get differentials
             all_omic1_songbird_ranks, all_omic2_songbird_ranks = get_all_omics_songbirds(
                 omic1_diff_fps,
@@ -463,6 +479,11 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             )
             omic1_tax_fp = get_tax_fp(i_datasets_folder, omic1)
             omic2_tax_fp = get_tax_fp(i_datasets_folder, omic2)
+            print("omic1_tax_fp")
+            print(omic1_tax_fp)
+            print("omic2_tax_fp")
+            print(omic2_tax_fp)
+            # /projects/nutrition/analysis/tree_based/qiime/mmvec/paired/ssu_foods/16S_150nt_1554s__raref_0_0__vioscreen_foods_consumed_grams_per_day_1800s_noLiquids_0_0/b-250_l-1e-4_e-500_p-05_f-0_d-3_t-None_n-200_gpu-F/ordination_meta-16S_150nt_1554s__raref__0_0.tsv
 
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
                 omic_filt1, omic_filt2,
@@ -511,6 +532,9 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             n_mbAnnot_CLAs_in_file = 0
             ordi_edit_fp = ordi_fp
             qza, qzv = get_qzs(ordi_edit_fp)
+            print(ordi_edit_fp)
+            print(qza)
+            print(qzv)
             # if 1:
             cmd = ''
             if 1:
@@ -565,14 +589,6 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
     else:
         mmvec_songbird_pd = mmvec_outputs_pd.copy()
 
-    # print("mmvec_songbird_pd.index")
-    # print(mmvec_songbird_pd.index)
-    # print("mmvec_songbird_pd.columns")
-    # print(mmvec_songbird_pd.columns)
-    # print("mmvec_songbird_pd.values[:3]")
-    # print(mmvec_songbird_pd.values[:3])
-    # print("mmvec_songbird_pd[['omic_filt1', 'omic_filt2']]")
-    # print(mmvec_songbird_pd[['omic_filt1', 'omic_filt2']])
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
 
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
