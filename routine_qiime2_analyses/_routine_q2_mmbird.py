@@ -6,7 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import sys
+import sys, glob
 import pandas as pd
 from os.path import isfile, splitext
 
@@ -259,6 +259,9 @@ def get_tax_extended_fps(
             how='left'
         ).drop_duplicates()
     metatax_omic1_fp = '%s_meta-%s.tsv' % (splitext(ordi_fp)[0], omic_filt1)
+    print('metatax_omic1_fp', metatax_omic1_fp)
+    print('omic1_tax_pd')
+    print(omic1_tax_pd[:3])
     omic1_tax_pd.to_csv(metatax_omic1_fp, index=False, sep='\t')
 
     if isfile(omic2_tax_fp):
@@ -281,6 +284,9 @@ def get_tax_extended_fps(
             how='left'
         ).drop_duplicates()
     metatax_omic2_fp = '%s_meta-%s.tsv' % (splitext(ordi_fp)[0], omic_filt2)
+    print('metatax_omic2_fp', metatax_omic2_fp)
+    print('omic2_tax_pd')
+    print(omic2_tax_pd[:3])
     omic2_tax_pd.to_csv(metatax_omic2_fp, index=False, sep='\t')
 
     return metatax_omic1_fp, metatax_omic2_fp
@@ -410,7 +416,11 @@ def get_tax_fp(i_datasets_folder, omic):
         omic_tax = '__raref'.join(omic.split('__raref')[:-1])
     else:
         omic_tax = omic
-    omic_tax_fp = '%s/%s/tax_%s.tsv' % (tax_dir, omic_tax, omic_tax)
+    omic_tax_fps = glob.glob('%s/%s/tax_%s*.tsv' % (tax_dir, omic_tax, omic_tax))
+    if len(omic_tax_fps):
+        omic_tax_fp = omic_tax_fps[0]
+    else:
+        omic_tax_fp = ''
     return omic_tax_fp
 
 
