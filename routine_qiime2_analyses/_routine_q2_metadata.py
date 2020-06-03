@@ -149,12 +149,13 @@ def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame,
 
 def rename_duplicate_columns(meta_subset):
     meta_subset_cols = []
+    meta_subset_copy = meta_subset.copy()
     for col in meta_subset.columns:
         if col in meta_subset_cols:
             meta_subset_cols.append('%s.%s' % (col, meta_subset_cols.count(col)))
         else:
             meta_subset_cols.append(col)
-    meta_subset.columns = meta_subset_cols
-    return meta_subset
+    meta_subset_copy.columns = meta_subset_cols
+    return meta_subset_copy
 
 
