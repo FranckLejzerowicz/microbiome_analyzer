@@ -150,6 +150,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                     dat_filt.append('minFeat%s' % str(thresh_feat).replace('.', ''))
             dat_filt = '%s_%s' % (dat, '-'.join(dat_filt))
             datasets_filt[dat] = dat_filt
+            datasets_filt[dat_filt] = dat
             tab_filt_fp = '%s/data/tab_%s.tsv' % (i_datasets_folder, dat_filt)
             qza = tab_filt_fp.replace('.tsv', '.qza')
             meta_filt_fp = tab_filt_fp.replace(
