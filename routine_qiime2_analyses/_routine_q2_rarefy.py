@@ -64,7 +64,6 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 datasets_rarefs[dat] = 0
                 continue
 
-
             odir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat)
             depth = datasets_raref_depths[dat]
             dat_raref = '%s_raref%s' % (dat, depth)
