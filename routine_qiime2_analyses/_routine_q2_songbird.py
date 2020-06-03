@@ -9,8 +9,7 @@
 import os
 import itertools
 import pandas as pd
-from os.path import basename, isfile, splitext
-import multiprocessing
+from os.path import isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
@@ -106,7 +105,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     :param force: Force the re-writing of scripts for all commands.
     :param prjct_nm: Nick name for your project.
     :param qiime_env: qiime2-xxxx.xx conda environment.
-    :param chmod: whether to change permission of output files (defalt: 775).
+    :param chmod: whether to change permission of output files (default: 775).
     """
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
     job_folder2 = get_job_folder(i_datasets_folder, 'songbird/chunks')

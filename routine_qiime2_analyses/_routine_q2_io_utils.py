@@ -17,6 +17,7 @@ from os.path import basename, splitext, isfile, isdir, abspath
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_cmds import run_import, run_export
+from routine_qiime2_analyses._routine_q2_metadata import rename_duplicate_columns
 
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
@@ -828,6 +829,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
             datasets_read[dat] = [tsv_pd_, meta_pd_]
         else:
             tsv_pd_, meta_pd_ = datasets_read[dat]
+        meta_pd_ = rename_duplicate_columns(meta_pd_)
 
         dat_filts = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
@@ -856,6 +858,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                         meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
                                               dtype={'sample_name': str},
                                               low_memory=False)
+                        meta_pd = rename_duplicate_columns(meta_pd)
                     else:
                         meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
 
