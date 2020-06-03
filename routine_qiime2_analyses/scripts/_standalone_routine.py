@@ -54,7 +54,7 @@ from routine_qiime2_analyses import __version__
     help="name of your qiime2 conda environment (e.g. qiime2-2019.10) "
 )
 @click.option(
-    "-z", "--p-run-params", required=False, show_default=True,
+    "-u", "--p-run-params", required=False, show_default=True,
     help="server run paramters"
 )
 @click.option(
@@ -107,7 +107,7 @@ from routine_qiime2_analyses import __version__
          "Must be a yaml file, e.g. (see example in 'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
-    "-r", "--p-raref-depths", required=False, show_default=False,
+    "-rrf", "--p-raref-depths", required=False, show_default=False,
     help="rarefaction depth per dataset. Must be a yaml file, e.g. "
          "(see example in 'examples/permanova_subsets.yml' and README)."
 )
