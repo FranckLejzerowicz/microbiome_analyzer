@@ -124,13 +124,14 @@ def routine_qiime2_analyses(
     import_datasets(i_datasets_folder, datasets, datasets_phylo,
                     force, prjct_nm, qiime_env, chmod, noloc, run_params['import'])
     datasets_filt = {}
+    datasets_filt_map = {}
     if p_filt_threshs:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
-                            datasets_filt, datasets_phylo, prjct_nm, qiime_env,
-                            p_filt_threshs, chmod, noloc, run_params['filter'])
+                            datasets_filt, datasets_filt_map, datasets_phylo, prjct_nm,
+                            qiime_env, p_filt_threshs, chmod, noloc, run_params['filter'])
     if raref:
         run_rarefy(i_datasets_folder, datasets, datasets_read, datasets_phylo,
-                   datasets_filt, datasets_rarefs, p_raref_depths, force,
+                   datasets_filt_map, datasets_rarefs, p_raref_depths, force,
                    prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'])
     taxonomies = {}
     get_precomputed_taxonomies(i_datasets_folder, datasets, taxonomies)

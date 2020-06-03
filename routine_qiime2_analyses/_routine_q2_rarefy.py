@@ -26,7 +26,7 @@ def get_raref_depths(p_raref_depths):
 
 
 def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
-               datasets_phylo: dict, datasets_filt: dict, datasets_rarefs: dict,
+               datasets_phylo: dict, datasets_filt_map: dict, datasets_rarefs: dict,
                p_raref_depths: str, force: bool, prjct_nm: str, qiime_env: str,
                chmod: str, noloc: bool, run_params: dict) -> None:
     """
@@ -57,8 +57,8 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
 
-            if dat in datasets_filt:
-                datasets_raref_depths[dat] = datasets_raref_depths[datasets_filt[dat]]
+            if dat in datasets_filt_map:
+                datasets_raref_depths[dat] = datasets_raref_depths[datasets_filt_map[dat]]
 
             if dat not in datasets_raref_depths:
                 datasets_rarefs[dat] = 0

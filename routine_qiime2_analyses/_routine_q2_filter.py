@@ -65,8 +65,8 @@ def get_threshs(p_filt_threshs):
 
 
 def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: dict,
-                        datasets_features: dict, datasets_filt: dict, datasets_phylo: dict,
-                        prjct_nm: str, qiime_env: str, p_filt_threshs: str,
+                        datasets_features: dict, datasets_filt: dict, datasets_filt_map: dict,
+                        datasets_phylo: dict, prjct_nm: str, qiime_env: str, p_filt_threshs: str,
                         chmod: str, noloc: bool, run_params: dict) -> None:
     """
     Filter the rare features, keep samples with enough reads/features and import to Qiime2.
@@ -150,7 +150,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                     dat_filt.append('minFeat%s' % str(thresh_feat).replace('.', ''))
             dat_filt = '%s_%s' % (dat, '-'.join(dat_filt))
             datasets_filt[dat] = dat_filt
-            datasets_filt[dat_filt] = dat
+            datasets_filt_map[dat_filt] = dat
             tab_filt_fp = '%s/data/tab_%s.tsv' % (i_datasets_folder, dat_filt)
             qza = tab_filt_fp.replace('.tsv', '.qza')
             meta_filt_fp = tab_filt_fp.replace(
