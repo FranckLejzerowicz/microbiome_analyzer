@@ -54,7 +54,7 @@ from routine_qiime2_analyses import __version__
     help="name of your qiime2 conda environment (e.g. qiime2-2019.10) "
 )
 @click.option(
-    "-r", "--p-run-params", required=False, show_default=True,
+    "-z", "--p-run-params", required=False, show_default=True,
     help="server run paramters"
 )
 @click.option(
@@ -105,6 +105,11 @@ from routine_qiime2_analyses import __version__
     help="Minimum reads abundance per sample to be kept in the sample / per dataset"
          "(>1 = based on absolute reads, 0-1 = based on relative reads)."
          "Must be a yaml file, e.g. (see example in 'examples/permanova_subsets.yml' and README)."
+)
+@click.option(
+    "-r", "--p-raref-depths", required=False, show_default=False,
+    help="rarefaction depth per dataset. Must be a yaml file, e.g. "
+         "(see example in 'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
     "-c", "--p-chmod", default='664', show_default=True,
@@ -170,6 +175,7 @@ def standalone_routine(
         p_project_name,
         p_longi_column,
         p_filt_threshs,
+        p_raref_depths,
         p_alpha_subsets,
         p_beta_subsets,
         p_perm_tests,
@@ -202,6 +208,7 @@ def standalone_routine(
         p_project_name,
         p_longi_column,
         p_filt_threshs,
+        p_raref_depths,
         p_alpha_subsets,
         p_beta_subsets,
         p_perm_tests,

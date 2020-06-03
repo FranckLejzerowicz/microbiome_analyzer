@@ -6,12 +6,12 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os, glob
+import yaml
+import os, sys, glob
 import subprocess
 import numpy as np
-
 from scipy.stats import skew
-from os.path import splitext
+from os.path import isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder
@@ -19,9 +19,16 @@ from routine_qiime2_analyses._routine_q2_cmds import write_rarefy, run_export
 np.set_printoptions(precision=2, suppress=True)
 
 
+def get_raref_depths(p_raref_depths):
+    with open(p_raref_depths) as handle:
+        raref_depths = yaml.load(handle, Loader=yaml.FullLoader)
+        return raref_depths
+
+
 def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
-               datasets_phylo: dict, datasets_rarefs: dict, force: bool, prjct_nm: str,
-               qiime_env: str, chmod: str, noloc: bool, run_params: dict) -> None:
+               datasets_phylo: dict, datasets_rarefs: dict, p_raref_depths: str,
+               force: bool, prjct_nm: str, qiime_env: str, chmod: str,
+               noloc: bool, run_params: dict) -> None:
     """
     Run rarefy: Rarefy table.
     https://docs.qiime2.org/2019.10/plugins/available/feature-table/rarefy/
@@ -41,7 +48,10 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     job_folder = get_job_folder(i_datasets_folder, 'rarefy')
     job_folder2 = get_job_folder(i_datasets_folder, 'rarefy/chunks')
 
-    datasets_raref_depths = check_rarefy_need(i_datasets_folder, datasets_read)
+    if p_raref_depths:
+        datasets_raref_depths = get_raref_depths(p_raref_depths)
+    else:
+        datasets_raref_depths = check_rarefy_need(i_datasets_folder, datasets_read)
 
     written = 0
     run_pbs = '%s/1_run_rarefy.sh' % job_folder

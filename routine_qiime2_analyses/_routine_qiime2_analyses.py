@@ -37,6 +37,7 @@ def routine_qiime2_analyses(
         project_name: str,
         p_longi_column: str,
         p_filt_threshs: str,
+        p_raref_depths: str,
         p_alpha_subsets: str,
         p_beta_subsets: str,
         p_perm_tests: tuple,
@@ -128,9 +129,9 @@ def routine_qiime2_analyses(
                             datasets_filt, datasets_phylo, prjct_nm, qiime_env,
                             p_filt_threshs, chmod, noloc, run_params['filter'])
     if raref:
-        run_rarefy(i_datasets_folder, datasets, datasets_read,
-                   datasets_phylo, datasets_rarefs, force, prjct_nm,
-                   qiime_env, chmod, noloc, run_params['rarefy'])
+        run_rarefy(i_datasets_folder, datasets, datasets_read, datasets_phylo,
+                   datasets_rarefs, p_raref_depths, force, prjct_nm, qiime_env,
+                   chmod, noloc, run_params['rarefy'])
     taxonomies = {}
     get_precomputed_taxonomies(i_datasets_folder, datasets, taxonomies)
     if i_qemistree and 'qemistree' not in p_skip:
