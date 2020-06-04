@@ -125,97 +125,104 @@ def routine_qiime2_analyses(
                     force, prjct_nm, qiime_env, chmod, noloc, run_params['import'])
     datasets_filt = {}
     datasets_filt_map = {}
+
+    filt_raref = ''
     if p_filt_threshs:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
                             datasets_filt, datasets_filt_map, datasets_phylo, prjct_nm,
                             qiime_env, p_filt_threshs, chmod, noloc, run_params['filter'])
+        filt_raref += '_flt'
     if raref:
         run_rarefy(i_datasets_folder, datasets, datasets_read, datasets_phylo,
                    datasets_filt_map, datasets_rarefs, p_raref_depths, force,
                    prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'])
+        filt_raref += '_rrf'
+
     taxonomies = {}
     get_precomputed_taxonomies(i_datasets_folder, datasets, taxonomies)
     if i_qemistree and 'qemistree' not in p_skip:
         if isdir(i_qemistree):
             run_qemistree(i_datasets_folder, datasets, prjct_nm,
-                          i_qemistree, taxonomies, force, qiime_env, chmod, noloc)
+                          i_qemistree, taxonomies, force, qiime_env,
+                          chmod, noloc, filt_raref)
         else:
             print('[Warning] The Qemistree path %s is not a folder.')
     if 'taxonomy' not in p_skip:
         run_taxonomy(i_datasets_folder, datasets, datasets_read,
                      datasets_phylo, datasets_features, i_classifier,
-                     taxonomies, force, prjct_nm, qiime_env, chmod, noloc)
+                     taxonomies, force, prjct_nm, qiime_env, chmod, noloc, filt_raref)
         if 'barplot' not in p_skip:
             run_barplot(i_datasets_folder, datasets, taxonomies,
-                        force, prjct_nm, qiime_env, chmod, noloc)
+                        force, prjct_nm, qiime_env, chmod, noloc, filt_raref)
     trees = {}
     get_precomputed_trees(i_datasets_folder, datasets, datasets_phylo, trees)
     if 'wol' not in p_skip:
         shear_tree(i_datasets_folder, datasets_read, datasets_phylo,
                    datasets_features, prjct_nm, i_wol_tree, trees,
-                   force, qiime_env, chmod, noloc)
+                   force, qiime_env, chmod, noloc, filt_raref)
     if i_sepp_tree and 'sepp' not in p_skip:
         run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo,
-                 prjct_nm, i_sepp_tree, trees, force, qiime_env, chmod, noloc)
+                 prjct_nm, i_sepp_tree, trees, force, qiime_env, chmod, noloc, filt_raref)
     # ------------------------------------------------------------------------------------------
 
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
         diversities = run_alpha(i_datasets_folder, datasets, datasets_read,
                                 datasets_phylo, p_alpha_subsets, trees,
-                                force, prjct_nm, qiime_env, chmod, noloc, As, dropout)
+                                force, prjct_nm, qiime_env, chmod, noloc,
+                                As, dropout, filt_raref)
         if 'merge_alpha' not in p_skip:
             to_export = merge_meta_alpha(i_datasets_folder, datasets, diversities, force,
-                                         prjct_nm, qiime_env, chmod, noloc, dropout)
+                                         prjct_nm, qiime_env, chmod, noloc, dropout, filt_raref)
             if 'export_alpha' not in p_skip:
                 export_meta_alpha(datasets, datasets_rarefs, to_export, dropout)
         if 'alpha_correlations' not in p_skip:
             run_correlations(i_datasets_folder, datasets, diversities,
-                             force, prjct_nm, qiime_env, chmod, noloc)
+                             force, prjct_nm, qiime_env, chmod, noloc, filt_raref)
         if p_longi_column:
             if 'volatility' not in p_skip:
                 run_volatility(i_datasets_folder, datasets, p_longi_column,
-                               force, prjct_nm, qiime_env, chmod, noloc)
+                               force, prjct_nm, qiime_env, chmod, noloc, filt_raref)
     # ------------------------------------------------------------------
 
     # BETA ----------------------------------------------------------------------
     if 'beta' not in p_skip:
         betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
                          datasets_read, p_beta_subsets, trees, force,
-                         prjct_nm, qiime_env, chmod, noloc, Bs, dropout)
+                         prjct_nm, qiime_env, chmod, noloc, Bs, dropout, filt_raref)
         if 'export_beta' not in p_skip:
             export_beta(i_datasets_folder, betas,
-                        force, prjct_nm, qiime_env, chmod, noloc)
+                        force, prjct_nm, qiime_env, chmod, noloc, filt_raref)
         if 'emperor' not in p_skip:
             pcoas = run_pcoas(i_datasets_folder, betas, force,
-                              prjct_nm, qiime_env, chmod, noloc)
+                              prjct_nm, qiime_env, chmod, noloc, filt_raref)
             run_emperor(i_datasets_folder, pcoas,
-                        prjct_nm, qiime_env, chmod, noloc)
+                        prjct_nm, qiime_env, chmod, noloc, filt_raref)
         if 'emperor_biplot' not in p_skip:
             biplots = run_biplots(i_datasets_folder, datasets, betas, taxonomies,
-                                  force, prjct_nm, qiime_env, chmod, noloc)
+                                  force, prjct_nm, qiime_env, chmod, noloc, filt_raref)
             run_emperor_biplot(i_datasets_folder, biplots, taxonomies,
-                               prjct_nm, qiime_env, chmod, noloc)
+                               prjct_nm, qiime_env, chmod, noloc, filt_raref)
     # ---------------------------------------------------------------------------
 
     # STATS ------------------------------------------------------------------
     if 'beta' not in p_skip and 'deicode' not in p_skip:
         run_deicode(i_datasets_folder, datasets, p_perm_groups,
-                    force, prjct_nm, qiime_env, chmod, noloc)
+                    force, prjct_nm, qiime_env, chmod, noloc, filt_raref)
     if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
         run_alpha_group_significance(i_datasets_folder, datasets, diversities,
                                      p_perm_groups, force, prjct_nm,
-                                     qiime_env, chmod, noloc, As, split)
+                                     qiime_env, chmod, noloc, As, split, filt_raref)
     if p_perm_tests:
         if 'beta' not in p_skip and 'permanova' not in p_skip:
             run_permanova(i_datasets_folder, betas, p_perm_tests,
                           p_perm_groups, force, prjct_nm,
-                          qiime_env, chmod, noloc, split)
+                          qiime_env, chmod, noloc, split, filt_raref)
     if p_formulas:
         if 'beta' not in p_skip and 'adonis' not in p_skip:
             run_adonis(p_formulas, i_datasets_folder, betas,
                        p_perm_groups, force, prjct_nm, qiime_env,
-                       chmod, noloc, split)
+                       chmod, noloc, split, filt_raref)
     # ------------------------------------------------------------------------
 
     # MMVEC AND SONGBIRD --------------------------------------------------------
@@ -225,19 +232,19 @@ def routine_qiime2_analyses(
             mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
                                       datasets_filt, datasets_read, force, gpu,
                                       standalone, prjct_nm, qiime_env, chmod,
-                                      noloc, split)
+                                      noloc, split, filt_raref)
     if 'beta' not in p_skip and p_procrustes:
         if betas and 'procrustes' not in p_skip:
             run_procrustes(i_datasets_folder, datasets, datasets_filt,
                            p_procrustes, betas, force, prjct_nm,
-                           qiime_env, chmod, noloc, split)
+                           qiime_env, chmod, noloc, split, filt_raref)
     songbird_outputs = []
     if p_diff_models:
         if 'songbird' not in p_skip:
             songbird_outputs = run_songbird(p_diff_models, i_datasets_folder, datasets,
                                             datasets_read, mmvec_outputs, force,
-                                            prjct_nm, qiime_env, chmod, noloc, split)
+                                            prjct_nm, qiime_env, chmod, noloc, split, filt_raref)
     if p_diff_models and p_mmvec_pairs:
         run_mmbird(i_datasets_folder, songbird_outputs, mmvec_outputs,
-                   force, prjct_nm, qiime_env, chmod, noloc)
+                   force, prjct_nm, qiime_env, chmod, noloc, filt_raref)
     # ------------------------------------------------------------------------------

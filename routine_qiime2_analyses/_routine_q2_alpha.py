@@ -30,7 +30,7 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
               datasets_phylo: dict, p_alpha_subsets: str, trees: dict,
               force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-              noloc: bool, As: tuple, dropout: bool) -> dict:
+              noloc: bool, As: tuple, dropout: bool, filt_raref: str) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -53,7 +53,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     job_folder = get_job_folder(i_datasets_folder, 'alpha')
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha/chunks')
     diversities = {}
-    run_pbs = '%s/1_run_alpha.sh' % job_folder
+    run_pbs = '%s/1_run_alpha%s.sh' % (job_folder, filt_raref)
     main_written = 0
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
@@ -69,7 +69,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
             else:
                 tsv_pd, meta_pd = datasets_read[dat]
 
-            out_sh = '%s/run_alpha_%s.sh' % (job_folder2, dat)
+            out_sh = '%s/run_alpha_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 qza = '%s.qza' % splitext(tsv)[0]
@@ -137,7 +137,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                             divs.setdefault(subset, []).append(out_fp)
 
                 diversities[dat] = divs
-            run_xpbs(out_sh, out_pbs, '%s.mg.lph.%s' % (prjct_nm, dat),
+            run_xpbs(out_sh, out_pbs, '%s.mg.lph.%s%s' % (prjct_nm, dat, filt_raref),
                      qiime_env, '4', '1', '1', '1', 'gb',
                      chmod, written, 'single', o, noloc)
     if main_written:
@@ -147,7 +147,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
 def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
                      force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-                     noloc: bool, dropout: bool) -> dict:
+                     noloc: bool, dropout: bool, filt_raref: str) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -165,12 +165,12 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
     job_folder2 = get_job_folder(i_datasets_folder, 'tabulate/chunks')
     written = 0
     to_export = {}
-    run_pbs = '%s/2_run_merge_alphas.sh' % job_folder
+    run_pbs = '%s/2_run_merge_alphas%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, group_divs in diversities.items():
             tsv, meta = datasets[dat]
             base = basename(splitext(tsv)[0]).lstrip('tab_')
-            out_sh = '%s/run_merge_alpha_%s.sh' % (job_folder2, base)
+            out_sh = '%s/run_merge_alpha_%s%s.sh' % (job_folder2, base, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for group, divs in group_divs.items():
@@ -190,7 +190,7 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
                         cur_sh.write('echo "%s"\n' % cmd)
                         cur_sh.write('%s\n\n' % cmd)
                         written += 1
-            run_xpbs(out_sh, out_pbs, '%s.mrg.lph.%s' % (prjct_nm, base),
+            run_xpbs(out_sh, out_pbs, '%s.mrg.lph.%s%s' % (prjct_nm, base, filt_raref),
                      qiime_env, '2', '1', '1', '150', 'mb',
                      chmod, written, 'single', o, noloc)
     if written:
@@ -259,7 +259,8 @@ def export_meta_alpha(datasets: dict, datasets_rarefs: dict,
 
 
 def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
-                     force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
+                     force: bool, prjct_nm: str, qiime_env: str,
+                     chmod: str, noloc: bool, filt_raref: str) -> None:
     """
     Run alpha-correlation: Alpha diversity correlation
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-correlation/
@@ -275,7 +276,7 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
     job_folder = get_job_folder(i_datasets_folder, 'alpha_correlations')
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha_correlations/chunks')
     written = 0
-    run_pbs = '%s/4_run_alpha_correlation.sh' % job_folder
+    run_pbs = '%s/4_run_alpha_correlation%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
             if dat not in diversities:
@@ -283,11 +284,10 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
             tsv, meta = tsv_meta_pds
             base = basename(splitext(tsv)[0]).lstrip('tab_')
 
-            out_sh = '%s/run_alpha_correlation_%s.sh' % (job_folder2, base)
+            out_sh = '%s/run_alpha_correlation_%s%s.sh' % (job_folder2, base, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for method in ['spearman', 'pearson']:
-                # for method in ['spearman']:
                     for group, divs in diversities[dat].items():
                         if group:
                             odir = get_analysis_folder(i_datasets_folder, 'alpha_correlations/%s/%s' % (dat, group))
@@ -298,7 +298,7 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                             if force or not isfile(out_fp):
                                 write_diversity_alpha_correlation(out_fp, qza, method, meta, cur_sh)
                                 written += 1
-            run_xpbs(out_sh, out_pbs, '%s.lphcrr.%s' % (prjct_nm, dat),
+            run_xpbs(out_sh, out_pbs, '%s.lphcrr.%s%s' % (prjct_nm, dat, filt_raref),
                      qiime_env, '10', '1', '1', '1', 'gb',
                      chmod, written, 'single', o, noloc)
     if written:
@@ -306,7 +306,8 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
 
 
 def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
-                   force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
+                   force: bool, prjct_nm: str, qiime_env: str,
+                   chmod: str, noloc: bool, filt_raref: str) -> None:
     """
     Run volatility: Generate interactive volatility plot.
     https://docs.qiime2.org/2019.10/plugins/available/longitudinal/volatility/
@@ -324,7 +325,7 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
     written = 0
     first_print = 0
     first_print2 = 0
-    run_pbs = '%s/5_run_volatility.sh' % job_folder
+    run_pbs = '%s/5_run_volatility%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
             tsv, meta = tsv_meta_pds
@@ -344,7 +345,7 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
                     print('Variable %s not in metadata %s\n' % (p_longi_column, meta_alphas))
                     first_print2 += 1
                 continue
-            out_sh = '%s/run_volatility_%s.sh' % (job_folder2, dat)
+            out_sh = '%s/run_volatility_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 odir = get_analysis_folder(i_datasets_folder, 'longitudinal/%s' % dat)
@@ -352,7 +353,7 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
                 if force or not isfile(out_fp):
                     write_longitudinal_volatility(out_fp, meta_alphas, time_point, cur_sh)
                     written += 1
-            run_xpbs(out_sh, out_pbs, '%s.vltlt.%s' % (prjct_nm, dat),
+            run_xpbs(out_sh, out_pbs, '%s.vltlt.%s%s' % (prjct_nm, dat, filt_raref),
                      qiime_env, '2', '1', '1', '100', 'mb',
                      chmod, written, 'single', o, noloc)
     if written:
@@ -394,7 +395,8 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list:
 
 def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversities: dict,
                                  p_perm_groups: str, force: bool, prjct_nm: str,
-                                 qiime_env: str, chmod: str, noloc: bool, As: tuple, split: bool) -> None:
+                                 qiime_env: str, chmod: str, noloc: bool,
+                                 As: tuple, split: bool, filt_raref: str) -> None:
     """
     Run alpha-group-significance: Alpha diversity comparisons.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-group-significance/
@@ -438,10 +440,10 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
             if not isfile(div_tsv) or not isfile(div_tsv):
                 print('  [KRUSKAL-WALLIS] metric %s not calculated\nSkipping it...' % metric)
                 continue
-            out_sh = '%s/run_alpha_group_significance_%s_%s.sh' % (job_folder2, dat, metric)
+            out_sh = '%s/run_alpha_group_significance_%s_%s%s.sh' % (job_folder2, dat, metric, filt_raref)
             for case_var, case_vals_list in cases_dict.items():
-                cur_sh = '%s/run_adonis_%s_%s_%s.sh' % (
-                    job_folder2, dat, metric, case_var)
+                cur_sh = '%s/run_adonis_%s_%s_%s%s.sh' % (
+                    job_folder2, dat, metric, case_var, filt_raref)
                 cur_sh = cur_sh.replace(' ', '-')
                 all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                 p = multiprocessing.Process(
@@ -454,8 +456,8 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
         j.join()
 
     job_folder = get_job_folder(i_datasets_folder, 'alpha_group_significance')
-    main_sh = write_main_sh(job_folder, '6_run_alpha_group_significance', all_sh_pbs,
-                            '%s.kv' % prjct_nm, '2', '1', '1', '1', 'gb',
+    main_sh = write_main_sh(job_folder, '6_run_alpha_group_significance%s' % filt_raref, all_sh_pbs,
+                            '%s.kv%s' % (prjct_nm, filt_raref), '2', '1', '1', '1', 'gb',
                             qiime_env, chmod, noloc)
     if main_sh:
         if p_perm_groups:

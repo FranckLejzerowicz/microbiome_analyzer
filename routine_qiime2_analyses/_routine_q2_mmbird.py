@@ -581,7 +581,7 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
 
 def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
                mmvec_outputs: list, force: bool, prjct_nm: str,
-               qiime_env: str, chmod: str, noloc: bool) -> None:
+               qiime_env: str, chmod: str, noloc: bool, filt_raref: str) -> None:
 
     if not mmvec_outputs:
         print('No mmvec output detected...')
@@ -605,16 +605,16 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
     job_folder2 = get_job_folder(i_datasets_folder, 'mmbird/chunks')
 
     written = 0
-    run_pbs = '%s/run_mmbird.sh' % job_folder
+    run_pbs = '%s/run_mmbird%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for pair, cmds in pair_cmds.items():
-            out_sh = '%s/run_mmbird_%s.sh' % (job_folder2, pair)
+            out_sh = '%s/run_mmbird_%s%s.sh' % (job_folder2, pair, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for cmd in cmds:
                     cur_sh.write(cmd)
                     written += 1
-            run_xpbs(out_sh, out_pbs, '%s.mmbrd.%s' % (prjct_nm, pair),
+            run_xpbs(out_sh, out_pbs, '%s.mmbrd.%s%s' % (prjct_nm, pair, filt_raref),
                      qiime_env, '24', '1', '1', '10', 'gb',
                      chmod, written, 'single', o, noloc)
     if written:

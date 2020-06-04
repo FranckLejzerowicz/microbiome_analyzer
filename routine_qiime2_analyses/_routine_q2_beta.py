@@ -33,7 +33,7 @@ from routine_qiime2_analyses._routine_q2_cmds import run_export, run_import
 def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
              datasets_read: dict, p_beta_subsets: str, trees: dict, force: bool,
              prjct_nm: str, qiime_env: str, chmod: str,
-             noloc: bool, Bs: tuple, dropout: bool) -> dict:
+             noloc: bool, Bs: tuple, dropout: bool, filt_raref: str) -> dict:
     """
     Run beta: Beta diversity.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta/
@@ -57,7 +57,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
     betas = {}
     main_written = 0
-    run_pbs = '%s/2_run_beta.sh' % job_folder
+    run_pbs = '%s/2_run_beta%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
             written = 0
@@ -73,7 +73,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
             if dat not in betas:
                 betas[dat] = {}
-            out_sh = '%s/run_beta_%s.sh' % (job_folder2, dat)
+            out_sh = '%s/run_beta_%s5s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 divs = {}
@@ -143,7 +143,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                 main_written += 1
                             divs[metric][subset] = (meta, qza_subset, out_fp)
                 betas[dat] = divs
-            run_xpbs(out_sh, out_pbs, '%s.bt.%s' % (prjct_nm, dat),
+            run_xpbs(out_sh, out_pbs, '%s.bt.%s%s' % (prjct_nm, dat, filt_raref),
                      qiime_env, '24', '1', '1', '10', 'gb',
                      chmod, written, 'single', o, noloc)
     if main_written:
@@ -153,7 +153,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
 def export_beta(i_datasets_folder: str, betas: dict,
                 force: bool, prjct_nm: str, qiime_env: str,
-                chmod: str, noloc: bool) -> None:
+                chmod: str, noloc: bool, filt_raref: str) -> None:
     """
     Export beta diverity matrices.
 
@@ -166,7 +166,7 @@ def export_beta(i_datasets_folder: str, betas: dict,
     """
 
     job_folder = get_job_folder(i_datasets_folder, 'beta')
-    out_sh = '%s/2x_run_beta_export.sh' % job_folder
+    out_sh = '%s/2x_run_beta_export%s.sh' % (job_folder, filt_raref)
     out_pbs = '%s.pbs' % splitext(out_sh)[0]
     written = 0
     with open(out_sh, 'w') as sh:
@@ -179,14 +179,14 @@ def export_beta(i_datasets_folder: str, betas: dict,
                         sh.write('echo "%s"\n' % cmd)
                         sh.write('%s\n\n' % cmd)
                         written += 1
-    run_xpbs(out_sh, out_pbs, '%s.xprt.bt' % prjct_nm,
+    run_xpbs(out_sh, out_pbs, '%s.xprt.bt%s' % (prjct_nm, filt_raref),
              qiime_env, '2', '1', '1', '1', 'gb',
              chmod, written, '# Export beta diversity matrices', None, noloc)
 
 
 def run_pcoas(i_datasets_folder: str, betas: dict,
               force: bool, prjct_nm: str, qiime_env: str,
-              chmod: str, noloc: bool) -> dict:
+              chmod: str, noloc: bool, filt_raref: str) -> dict:
     """
     Run pcoa: Principal Coordinate Analysis.
     Run pcoa: Principal Coordinate Analysis Biplot¶
@@ -206,14 +206,14 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
 
     pcoas_d = {}
     main_written = 0
-    run_pbs = '%s/3_run_pcoa.sh' % job_folder
+    run_pbs = '%s/3_run_pcoa%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, metric_groups_metas_dms in betas.items():
             written = 0
             odir = get_analysis_folder(i_datasets_folder, 'pcoa/%s' % dat)
             if dat not in pcoas_d:
                 pcoas_d[dat] = []
-            out_sh = '%s/run_PCoA_%s.sh' % (job_folder2, dat)
+            out_sh = '%s/run_PCoA_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for metric, group_meta_dms in metric_groups_metas_dms.items():
@@ -228,7 +228,7 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
                             write_diversity_pcoa(dm, out, out_tsv, cur_sh)
                             written += 1
                             main_written += 1
-            run_xpbs(out_sh, out_pbs, '%s.pc.%s' % (prjct_nm, dat),
+            run_xpbs(out_sh, out_pbs, '%s.pc.%s%s' % (prjct_nm, dat, filt_raref),
                      qiime_env, '10', '1', '2', '2', 'gb',
                      chmod, written, 'single', o, noloc)
     if main_written:
@@ -237,7 +237,7 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
 
 
 def run_emperor(i_datasets_folder: str, pcoas_d: dict, prjct_nm: str,
-                qiime_env: str, chmod: str, noloc: bool) -> None:
+                qiime_env: str, chmod: str, noloc: bool, filt_raref: str) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -253,12 +253,12 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, prjct_nm: str,
 
     main_written = 0
     first_print = 0
-    run_pbs = '%s/4_run_emperor.sh' % job_folder
+    run_pbs = '%s/4_run_emperor%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, metas_pcoas in pcoas_d.items():
             written = 0
             odir = get_analysis_folder(i_datasets_folder, 'emperor/%s' % dat)
-            out_sh = '%s/run_emperor_%s.sh' % (job_folder2, dat)
+            out_sh = '%s/run_emperor_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for meta_, pcoa in metas_pcoas:
@@ -278,15 +278,16 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, prjct_nm: str,
                     write_emperor(meta, pcoa, out_plot, cur_sh)
                     written += 1
                     main_written += 1
-            run_xpbs(out_sh, out_pbs, '%s.mprr.%s' % (prjct_nm, dat),
+            run_xpbs(out_sh, out_pbs, '%s.mprr.%s%s' % (prjct_nm, dat, filt_raref),
                      qiime_env, '10', '1', '1', '1', 'gb',
                      chmod, written, 'single', o, noloc)
     if main_written:
         print_message('# Make EMPeror plots', 'sh', run_pbs)
 
 
-def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies: dict,
-                force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> dict:
+def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict,
+                taxonomies: dict, force: bool, prjct_nm: str, qiime_env: str,
+                chmod: str, noloc: bool, filt_raref: str) -> dict:
     """
     Run pcoa-biplot: Principal Coordinate Analysis Biplot¶
     https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa-biplot/
@@ -305,7 +306,7 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies:
 
     biplots_d = {}
     main_written = 0
-    run_pbs = '%s/3_run_biplot.sh' % job_folder
+    run_pbs = '%s/3_run_biplot%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, metric_groups_metas_dms in betas.items():
             written = 0
@@ -317,7 +318,7 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies:
             odir = get_analysis_folder(i_datasets_folder, 'biplot/%s' % dat)
             if dat not in biplots_d:
                 biplots_d[dat] = {}
-            out_sh = '%s/run_biplot_%s.sh' % (job_folder2, dat)
+            out_sh = '%s/run_biplot_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for metric, group_meta_dms in metric_groups_metas_dms.items():
@@ -335,7 +336,7 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies:
                             written += 1
                             main_written += 1
                         biplots_d[dat].setdefault(meta, []).append((out_biplot, tsv_tax))
-            run_xpbs(out_sh, out_pbs, '%s.bplt.%s' % (prjct_nm, dat),
+            run_xpbs(out_sh, out_pbs, '%s.bplt.%s%s' % (prjct_nm, dat, filt_raref),
                      qiime_env, '10', '1', '2', '2', 'gb',
                      chmod, written, 'single', o, noloc)
     if main_written:
@@ -344,7 +345,7 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict, taxonomies:
 
 
 def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict,
-                prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
+                prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, filt_raref: str) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -360,7 +361,7 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
 
     main_written = 0
     first_print = 0
-    run_pbs = '%s/4_run_emperor_biplot.sh' % job_folder
+    run_pbs = '%s/4_run_emperor_biplot%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, meta_biplots_taxs in biplots_d.items():
             written = 0
@@ -370,7 +371,7 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
             else:
                 tax_tsv = 'missing'
             odir = get_analysis_folder(i_datasets_folder, 'emperor_biplot/%s' % dat)
-            out_sh = '%s/run_emperor_biplot_%s.sh' % (job_folder2, dat)
+            out_sh = '%s/run_emperor_biplot_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for meta_, biplots_taxs in meta_biplots_taxs.items():
@@ -394,7 +395,7 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
                             write_emperor_biplot(meta, biplot, out_plot, cur_sh, tax_tsv)
                         written += 1
                         main_written += 1
-            run_xpbs(out_sh, out_pbs, '%s.mprr.bplt.%s' % (prjct_nm, dat),
+            run_xpbs(out_sh, out_pbs, '%s.mprr.bplt.%s%s' % (prjct_nm, dat, filt_raref),
                      qiime_env, '10', '1', '1', '1', 'gb',
                      chmod, written, 'single', o, noloc)
     if main_written:

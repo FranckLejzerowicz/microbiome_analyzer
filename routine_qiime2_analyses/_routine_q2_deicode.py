@@ -65,7 +65,8 @@ def run_single_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str
 
 
 def run_deicode(i_datasets_folder: str, datasets: dict, p_perm_groups: str,
-                force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool) -> None:
+                force: bool, prjct_nm: str, qiime_env: str,
+                chmod: str, noloc: bool, filt_raref: str) -> None:
     """
     Performs robust center log-ratio transform robust PCA and
     ranks the features by the loadings of the resulting SVD.
@@ -90,18 +91,18 @@ def run_deicode(i_datasets_folder: str, datasets: dict, p_perm_groups: str,
         meta_pd = read_meta_pd(meta)
         meta_pd = meta_pd.set_index('sample_name')
         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'DEICODE')
-        out_sh = '%s/run_deicode_%s.sh' % (job_folder2, dat)
+        out_sh = '%s/run_deicode_%s%s.sh' % (job_folder2, dat, filt_raref)
         odir = get_analysis_folder(i_datasets_folder, 'deicode/%s' % dat)
         for case_var, case_vals_list in cases_dict.items():
-            cur_sh = '%s/run_beta_deicode_%s_%s.sh' % (job_folder2, dat, case_var)
+            cur_sh = '%s/run_beta_deicode_%s_%s%s.sh' % (job_folder2, dat, case_var, filt_raref)
             cur_sh = cur_sh.replace(' ', '-')
             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
             run_single_deicode(odir, tsv, meta_pd, case_var,
                                case_vals_list, cur_sh, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'deicode')
-    main_sh = write_main_sh(job_folder, '3_run_beta_deicode', all_sh_pbs,
-                            '%s.dcd' % prjct_nm, '2', '1', '1', '200', 'mb',
+    main_sh = write_main_sh(job_folder, '3_run_beta_deicode%s' % filt_raref, all_sh_pbs,
+                            '%s.dcd%s' % (prjct_nm, filt_raref), '2', '1', '1', '200', 'mb',
                             qiime_env, chmod, noloc)
     if main_sh:
         if p_perm_groups:

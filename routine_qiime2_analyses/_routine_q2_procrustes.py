@@ -41,7 +41,7 @@ def run_single_procrustes(odir: str, dm1: str, dm2: str, meta_pd: pd.DataFrame,
 
 def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                    p_procrustes: str, betas: dict, force: bool, prjct_nm: str,
-                   qiime_env: str, chmod: str, noloc: bool, split: bool) -> None:
+                   qiime_env: str, chmod: str, noloc: bool, split: bool, filt_raref: str) -> None:
     """
     """
     job_folder = get_job_folder(i_datasets_folder, 'procrustes')
@@ -62,11 +62,11 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
 
         job_folder2 = get_job_folder(i_datasets_folder, 'procrustes/chunks/%s' % pair)
         if not split:
-            out_sh = '%s/run_procrustes_%s.sh' % (job_folder2, pair)
+            out_sh = '%s/run_procrustes_%s%s.sh' % (job_folder2, pair, filt_raref)
         metrics_groups_metas_qzas1 = betas[dat1]
         for metric, groups_metas_qzas1 in metrics_groups_metas_qzas1.items():
             if split:
-                out_sh = '%s/run_procrustes_%s_%s.sh' % (job_folder2, pair, metric)
+                out_sh = '%s/run_procrustes_%s_%s%s.sh' % (job_folder2, pair, metric, filt_raref)
             if metric not in betas[dat2] or metric not in betas[dat1]:
                 continue
             groups_metas_qzas2 = betas[dat2][metric]
@@ -118,7 +118,7 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                     for case_vals in case_vals_list:
                         case_ = get_case(case_vals, case_var).replace(' ', '_')
                         cur = '%s__%s' % (metric, case_)
-                        cur_sh = '%s/run_procrustes_%s.sh' % (job_folder3, cur)
+                        cur_sh = '%s/run_procrustes_%s%s.sh' % (job_folder3, cur, filt_raref)
                         cur_sh = cur_sh.replace(' ', '-')
                         all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
 
@@ -134,8 +134,8 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                                         dm_out1_tsv, dm_out2_tsv])
 
     job_folder = get_job_folder(i_datasets_folder, 'procrustes')
-    main_sh = write_main_sh(job_folder, '4_run_procrustes', all_sh_pbs,
-                            '%s.prcst' % prjct_nm, '2', '1', '1', '1', 'gb',
+    main_sh = write_main_sh(job_folder, '4_run_procrustes%s' % filt_raref, all_sh_pbs,
+                            '%s.prcst%s' % (prjct_nm, filt_raref), '2', '1', '1', '1', 'gb',
                             qiime_env, chmod, noloc)
     if main_sh:
         if p_procrustes:
@@ -160,7 +160,7 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
     out_R = '%s/pairs_proscrustes_results.tsv' % odir
     if not isfile(out_R):
         job_folder = get_job_folder(i_datasets_folder, 'procrustes/R')
-        R_script = '%s/4_run_procrustes.R' % job_folder
+        R_script = '%s/4_run_procrustes%s.R' % (job_folder, filt_raref)
         with open(R_script, 'w') as o:
             o.write("library(vegan)\n")
             o.write("dms_files <- read.table('%s', h=T)\n" % dms_tab_fp)
@@ -187,12 +187,12 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
             o.write("}\n")
             o.write("write.table(x = res, file = '%s')\n" % out_R)
 
-        out_sh = '%s/4_run_procrustes_R.sh' % job_folder
+        out_sh = '%s/4_run_procrustes_R%s.sh' % (job_folder, filt_raref)
         out_pbs = '%s.pbs' % splitext(out_sh)[0]
         with open(out_sh, 'w') as o:
             o.write('R -f %s --vanilla\n' % R_script)
 
-        run_xpbs(out_sh, out_pbs, '%s.prcrt.R' % prjct_nm,
+        run_xpbs(out_sh, out_pbs, '%s.prcrt.R%s' % (prjct_nm, filt_raref),
                  'renv', '48', '1', '1', '1', 'gb', chmod, 1,
                  '# Procrustes for stats in R (pairs and samples subsets config in %s)' % p_procrustes,
                  None, False)

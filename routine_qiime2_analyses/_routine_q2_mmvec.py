@@ -192,7 +192,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
                                      datasets_read: dict, unique_datasets: list,
                                      mmvec_pairs: dict, filtering: dict, job_folder: str,
                                      force: bool, prjct_nm: str, qiime_env: str,
-                                     chmod: str, noloc: bool, analysis: str) -> (dict, dict):
+                                     chmod: str, noloc: bool, analysis: str, filt_raref: str) -> (dict, dict):
     """
     :param i_datasets_folder:
     :param datasets: list of data_sets.
@@ -224,13 +224,13 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
 
     pre_jobs = filt_jobs + common_jobs
     if len(pre_jobs):
-        import_sh = '%s/2_run_%s_imports.sh' % (job_folder, analysis)
+        import_sh = '%s/2_run_%s_imports%s.sh' % (job_folder, analysis, filt_raref)
         import_pbs = '%s.pbs' % splitext(import_sh)[0]
         with open(import_sh, 'w') as import_o:
             for cmd in pre_jobs:
                 import_o.write('\necho "%s"\n' % cmd)
                 import_o.write('%s\n' % cmd)
-        run_xpbs(import_sh, import_pbs, '%s.mprt.mmsb.%s' % (prjct_nm, analysis),
+        run_xpbs(import_sh, import_pbs, '%s.mprt.mmsb.%s%s' % (prjct_nm, analysis, filt_raref),
                  qiime_env, '2', '1', '1', '150', 'mb', chmod, 1,
                  '# Import datasets for %s' % analysis, None, noloc)
     return filt_datasets, common_datasets
@@ -239,7 +239,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
 def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
               datasets_filt: dict, datasets_read: dict, force: bool,
               gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
-              chmod: str, noloc: bool, split: bool) -> list:
+              chmod: str, noloc: bool, split: bool, filt_raref: str) -> list:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
     https://github.com/biocore/mmvec
@@ -266,7 +266,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     filt_datasets, common_datasets = make_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_read, unique_datasets,
         mmvec_pairs, mmvec_filtering, job_folder, force,
-        prjct_nm, qiime_env, chmod, noloc, 'mmvec')
+        prjct_nm, qiime_env, chmod, noloc, 'mmvec', filt_raref)
 
     jobs = []
     all_sh_pbs = {}
@@ -276,7 +276,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
 
         job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
         if not split:
-            out_sh = '%s/chunks/run_mmvec_%s.sh' % (job_folder, pair)
+            out_sh = '%s/chunks/run_mmvec_%s%s.sh' % (job_folder, pair, filt_raref)
 
         for (meta_fp, omic1, omic2, filt1, filt2, tsv1, tsv2, qza1, qza2, ncommon) in pair_data:
             train_columns = mmvec_params['train_column']
@@ -288,7 +288,8 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
             thresh_feats = mmvec_params['thresh_feats']
             latent_dims = mmvec_params['latent_dims']
             if split:
-                out_sh = '%s/chunks/run_mmvec_%s_%s_%s_%s_%s.sh' % (job_folder, pair, omic1, filt1, omic2, filt2)
+                out_sh = '%s/chunks/run_mmvec_%s_%s_%s_%s_%s%s.sh' % (job_folder, pair, omic1, filt1,
+                                                                      omic2, filt2, filt_raref)
             for idx, it in enumerate(itertools.product(train_columns, n_examples, batches, learns,
                                                        epochs, priors, thresh_feats, latent_dims)):
                 train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = [str(x) for x in it]
@@ -305,7 +306,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                     ncommon, meta_fp, tsv1, tsv2, qza1, qza2,
                     'mmvec_out__%s' % res_dir, odir
                 ])
-                cur_sh = '%s/run_mmvec_%s_%s_%s_%s.sh' % (job_folder2, pair, filt1, filt2, res_dir)
+                cur_sh = '%s/run_mmvec_%s_%s_%s_%s%s.sh' % (job_folder2, pair, filt1, filt2, res_dir, filt_raref)
                 all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
                 run_single_mmvec(
                     odir, pair, meta_fp,
@@ -317,8 +318,8 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     if standalone:
         qiime_env = 'mmvec2'
 
-    main_sh = write_main_sh(job_folder, '3_mmvec', all_sh_pbs,
-                            '%s.mmvc' % prjct_nm, '150', '1', '1', '2', 'gb',
+    main_sh = write_main_sh(job_folder, '3_mmvec%s' % filt_raref, all_sh_pbs,
+                            '%s.mmvc%s' % (prjct_nm, filt_raref), '150', '1', '1', '2', 'gb',
                             qiime_env, chmod, noloc)
     if main_sh:
         if p_mmvec_pairs.startswith('/panfs'):

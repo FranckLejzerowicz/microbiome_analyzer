@@ -94,7 +94,8 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
 
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                  datasets_read: dict, mmvec_outputs: list, force: bool,
-                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, split: bool) -> list:
+                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
+                 split: bool, filt_raref: str) -> list:
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
@@ -129,7 +130,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
         i_datasets_folder, datasets, datasets_read,
         songbird_datasets, {}, songbird_filtering,
         job_folder, force, prjct_nm, qiime_env,
-        chmod, noloc, 'songbird')
+        chmod, noloc, 'songbird', filt_raref)
 
     songbirds = {}
     for dat, filts_files in filt_datasets.items():
@@ -156,11 +157,11 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     for dat, filts_tsvs_metas_pair in songbirds.items():
 
         if not split:
-            out_sh = '%s/run_songbird_%s.sh' % (job_folder2, dat)
+            out_sh = '%s/run_songbird_%s%s.sh' % (job_folder2, dat, filt_raref)
         for (filt, tsv, meta_, pair) in filts_tsvs_metas_pair:
 
             if split:
-                out_sh = '%s/run_songbird_%s_%s_%s.sh' % (job_folder2, dat, filt, pair)
+                out_sh = '%s/run_songbird_%s_%s_%s%s.sh' % (job_folder2, dat, filt, pair, filt_raref)
 
             meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
             if isfile(meta_alphas):
@@ -199,8 +200,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             else:
                                 res_dir = '%s/%s/%s/%s' % (dat, filt, case, params)
                             odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % res_dir)
-                            cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s.sh' % (
-                                job_folder2, dat, filt, model_rep, case, pair)
+                            cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s%s.sh' % (
+                                job_folder2, dat, filt, model_rep, case, pair, filt_raref)
                             cur_sh = cur_sh.replace(' ', '-')
                             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                             diffs, tensor_html = run_single_songbird(
@@ -214,8 +215,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                                          case, diffs, pair])
 
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
-    main_sh = write_main_sh(job_folder, '2_songbird', all_sh_pbs,
-                            '%s.sngbrd' % prjct_nm, '150', '1', '1', '25', 'gb',
+    main_sh = write_main_sh(job_folder, '2_songbird%s' % filt_raref, all_sh_pbs,
+                            '%s.sngbrd%s' % (prjct_nm, filt_raref), '150', '1', '1', '25', 'gb',
                             qiime_env, chmod, noloc)
     if main_sh:
         if p_diff_models.startswith('/panfs'):

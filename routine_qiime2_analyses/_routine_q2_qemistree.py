@@ -17,8 +17,9 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
 )
 
 
-def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str, i_qemistree: str,
-                  taxonomies: dict, force: bool, qiime_env: str, chmod: str, noloc: bool) -> None:
+def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str,
+                  i_qemistree: str, taxonomies: dict, force: bool,  qiime_env: str,
+                  chmod: str, noloc: bool, filt_raref: str) -> None:
     """
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets_read: dataset -> [tsv table, meta table]
@@ -34,14 +35,14 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str, i_qemis
     job_folder2 = get_job_folder(i_datasets_folder, 'qemistree/chunks')
 
     written = 0
-    run_pbs = '%s/1_run_qemistree.sh' % job_folder
+    run_pbs = '%s/1_run_qemistree%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
             feature_data = '%s/feature-data_%s.qza' % (i_qemistree, dat)
             qemistree = '%s/qemistree_%s.qza' % (i_qemistree, dat)
             if not isfile(feature_data) or not isfile(qemistree):
                 continue
-            out_sh = '%s/run_qemistree_%s.sh' % (job_folder2, dat)
+            out_sh = '%s/run_qemistree_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             odir = get_analysis_folder(i_datasets_folder, 'qemistree/%s' % dat)
             classyfire_qza = '%s/%s-classyfire.qza' % (odir, dat)
@@ -70,7 +71,8 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str, i_qemis
             else:
                 print('[Warning] Maybe run qemistree first and then re-run pipeline to '
                       'have the classyfire taxonomy include in the barplots!')
-            run_xpbs(out_sh, out_pbs, '%s.qmstr.%s' % (prjct_nm, dat), qiime_env,
+
+            run_xpbs(out_sh, out_pbs, '%s.qmstr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      '4', '1', '1', '200', 'mb', chmod, written, 'single', o, noloc)
     if written:
         print_message('# Make qemistree classyfire classifications', 'sh', run_pbs)

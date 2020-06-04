@@ -25,7 +25,7 @@ from routine_qiime2_analyses._routine_q2_cmds import run_import
 
 def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datasets_phylo: dict,
              prjct_nm: str, i_sepp_tree: str, trees: dict, force: bool,
-             qiime_env: str, chmod: str, noloc: bool) -> None:
+             qiime_env: str, chmod: str, noloc: bool, filt_raref: str) -> None:
     """
     Run SEPP on the datasets composed or 16S deblur sequences (e.g. from redbiom/Qiita).
 
@@ -49,7 +49,7 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
         job_folder2 = get_job_folder(i_datasets_folder, 'phylo/chunks')
 
         written = 0
-        main_sh = '%s/1_run_sepp.sh' % job_folder
+        main_sh = '%s/1_run_sepp%s.sh' % (job_folder, filt_raref)
         with open(main_sh, 'w') as main_o:
             for dat in sepp_datasets:
                 tsv, meta = datasets[dat]
@@ -89,7 +89,7 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                 trees[dat] = (qza_in, out_fp_sepp_tree)
                 out_fp_sepp_plac = '%s/plac_%s.qza' % (odir_sepp, dat)
 
-                out_sh = '%s/run_sepp_%s.sh' % (job_folder2, dat)
+                out_sh = '%s/run_sepp_%s%s.sh' % (job_folder2, dat, filt_raref)
                 out_pbs = '%s.pbs' % splitext(out_sh)[0]
                 with open(out_sh, 'w') as cur_sh:
                     if force or not isfile(out_fp_seqs_qza):
@@ -102,7 +102,7 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                                                  out_fp_sepp_tree, out_fp_sepp_plac,
                                                  qza, qza_in, qza_out, cur_sh)
                         written += 1
-                run_xpbs(out_sh, out_pbs, '%s.spp.%s' % (prjct_nm, dat),
+                run_xpbs(out_sh, out_pbs, '%s.spp.%s%s' % (prjct_nm, dat, filt_raref),
                          qiime_env, '100', '2', '12', '100', 'gb',
                          chmod, written, 'single', main_o, noloc)
         if written:
@@ -111,7 +111,7 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
 
 def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict,
                datasets_features: dict, prjct_nm: str, i_wol_tree: str, trees: dict,
-               force: bool, qiime_env: str, chmod: str, noloc: bool) -> None:
+               force: bool, qiime_env: str, chmod: str, noloc: bool, filt_raref: str) -> None:
     """
     Get the sub-tree from the Web of Life tree that corresponds to the gOTUs-labeled features.
 
@@ -137,7 +137,7 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
         wol = TreeNode.read(i_wol_tree)
 
         main_written = 0
-        main_sh = '%s/0_run_import_trees.sh' % job_folder
+        main_sh = '%s/0_run_import_trees%s.sh' % (job_folder, filt_raref)
         with open(main_sh, 'w') as main_o:
             for dat in wol_datasets:
                 written = 0
@@ -161,7 +161,7 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
                     for tip in wol_features.tips():
                         tip.name = cur_datasets_features[tip.name]
 
-                    out_sh = '%s/run_import_tree_%s.sh' % (job_folder2, dat)
+                    out_sh = '%s/run_import_tree_%s%s.sh' % (job_folder2, dat, filt_raref)
                     out_pbs = out_sh.replace('.sh', '.pbs')
                     wol_features.write(wol_features_fpo)
 
@@ -173,7 +173,7 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
                     written += 1
                     main_written += 1
                     main_written + 1
-                    run_xpbs(out_sh, out_pbs, '%s.shr.%s' % (prjct_nm, dat),
+                    run_xpbs(out_sh, out_pbs, '%s.shr.%s%s' % (prjct_nm, dat, filt_raref),
                              qiime_env,  '1', '1', '1', '200', 'mb',
                              chmod, written, 'single', main_o, noloc)
         if main_written:

@@ -72,7 +72,7 @@ def run_single_adonis(odir: str, subset: str, case_vals_list: list, metric: str,
 
 def run_adonis(p_formulas: str, i_datasets_folder: str, betas: dict,
                p_perm_groups: str, force: bool, prjct_nm: str, qiime_env: str,
-               chmod: str, noloc: bool, split: bool) -> None:
+               chmod: str, noloc: bool, split: bool, filt_raref: str) -> None:
     """
     Run beta-group-significance: Beta diversity group significance.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
@@ -103,10 +103,10 @@ def run_adonis(p_formulas: str, i_datasets_folder: str, betas: dict,
             continue
         odir = get_analysis_folder(i_datasets_folder, 'adonis/%s' % dat)
         if not split:
-            out_sh = '%s/run_adonis_%s.sh' % (job_folder2, dat)
+            out_sh = '%s/run_adonis_%s%s.sh' % (job_folder2, dat, filt_raref)
         for metric, subset_files in betas[dat].items():
             if split:
-                out_sh = '%s/run_adonis_%s_%s.sh' % (job_folder2, dat, metric)
+                out_sh = '%s/run_adonis_%s_%s%s.sh' % (job_folder2, dat, metric, filt_raref)
             for subset, (meta, qza, mat_qza) in subset_files.items():
                 if not isfile(mat_qza):
                     if not first_print:
@@ -123,16 +123,16 @@ def run_adonis(p_formulas: str, i_datasets_folder: str, betas: dict,
 
                 for form, formula in formulas[dat].items():
                     for case_var, case_vals_list in cases_dict.items():
-                        cur_sh = '%s/run_adonis_%s_%s_%s_%s.sh' % (
-                            job_folder2, dat, metric, form, case_var)
+                        cur_sh = '%s/run_adonis_%s_%s_%s_%s%s.sh' % (
+                            job_folder2, dat, metric, form, case_var, filt_raref)
                         cur_sh = cur_sh.replace(' ', '-')
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                         run_single_adonis(odir, subset, case_vals_list, metric, case_var,
                                           form, formula, qza, mat_qza, meta_pd, cur_sh, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'adonis')
-    main_sh = write_main_sh(job_folder, '3_run_adonis', all_sh_pbs,
-                            '%s.dns' % prjct_nm, '2', '1', '1', '1', 'gb',
+    main_sh = write_main_sh(job_folder, '3_run_adonis%s' % filt_raref, all_sh_pbs,
+                            '%s.dns%s' % (prjct_nm, filt_raref), '2', '1', '1', '1', 'gb',
                             qiime_env, chmod, noloc)
     if main_sh:
         if p_perm_groups:
