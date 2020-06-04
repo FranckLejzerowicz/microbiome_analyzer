@@ -213,10 +213,10 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
         unique_datasets, filtering, force, analysis
     )
     print('Done.')
-    common_datasets = {}
     common_jobs = []
+    common_datasets = {}
     if analysis == 'mmvec':
-        print('\t-> Get common datasets...', end = ' ')
+        print('\t-> Get common datasets...', end=' ')
         common_datasets, common_jobs = get_common_datasets(
             i_datasets_folder, mmvec_pairs, filt_datasets, force
         )

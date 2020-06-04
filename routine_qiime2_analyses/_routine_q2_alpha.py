@@ -220,8 +220,12 @@ def export_meta_alpha(datasets: dict, datasets_rarefs: dict,
 
         meta_alphas_pds = []
         for meta_alpha_fp in meta_alphas_fps_exist:
-            meta_alpha_pd = pd.read_csv(meta_alpha_fp, header=0, dtype=str, sep='\t')
-            meta_alpha_pd.rename(columns={meta_alpha_pd.columns[0]: 'sample_name'}, inplace=True)
+            with open(meta_alpha_fp) as f:
+                for line in f:
+                    break
+            meta_alpha_pd = pd.read_csv(meta_alpha_fp, header=0, sep='\t',
+                                        dtype={line.split('\t')[0]: str})
+            meta_alpha_pd.rename(columns={line.split('\t')[0]: 'sample_name'}, inplace=True)
             meta_alpha_pd.set_index('sample_name', inplace=True)
 
             if datasets_rarefs[dat]:

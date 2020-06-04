@@ -160,7 +160,11 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             if isfile(qza) and isfile(meta_filt_fp):
                 datasets_update[dat_filt] = [tab_filt_fp, meta_filt_fp]
                 tab_filt_pd = pd.read_csv(tab_filt_fp, index_col=0, header=0, sep='\t')
-                meta_filt_pd = pd.read_csv(meta_filt_fp, header=0, sep='\t', dtype={'sample_name': str})
+                with open(meta_filt_fp) as f:
+                    for line in f:
+                        break
+                meta_filt_pd = pd.read_csv(meta_filt_fp, header=0, sep='\t',
+                                           dtype={line.split('\t')[0]: str})
                 datasets_read_update[dat_filt] = [tab_filt_pd, meta_filt_pd]
                 datasets_phylo_update[dat_filt] = datasets_phylo[dat]
                 datasets_features_update[dat_filt] = dict(
