@@ -198,7 +198,7 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
     return to_export
 
 
-def export_meta_alpha(datasets: dict, datasets_rarefs: dict,
+def export_meta_alpha(datasets: dict, filt_raref: str,
                       to_export: dict, dropout: bool) -> None:
     """
     Export the alpha diversity vectors.
@@ -228,9 +228,9 @@ def export_meta_alpha(datasets: dict, datasets_rarefs: dict,
             meta_alpha_pd.rename(columns={line.split('\t')[0]: 'sample_name'}, inplace=True)
             meta_alpha_pd.set_index('sample_name', inplace=True)
 
-            if datasets_rarefs[dat]:
+            if filt_raref:
                 replace_cols = dict(
-                    (x, '%s__raref' % x) for x in meta_alpha_pd.columns)
+                    (x, '%s_%s' % filt_raref) for x in meta_alpha_pd.columns)
                 meta_alpha_pd.rename(columns=replace_cols, inplace=True)
 
             group = meta_alpha_fp.split('_alphas__')[-1].split('.tsv')[0]
