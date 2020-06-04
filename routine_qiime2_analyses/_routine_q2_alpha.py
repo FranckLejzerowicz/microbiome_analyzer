@@ -230,7 +230,7 @@ def export_meta_alpha(datasets: dict, filt_raref: str,
 
             if filt_raref:
                 replace_cols = dict(
-                    (x, '%s_%s' % filt_raref) for x in meta_alpha_pd.columns)
+                    (x, '%s_%s' % (x, filt_raref)) for x in meta_alpha_pd.columns)
                 meta_alpha_pd.rename(columns=replace_cols, inplace=True)
 
             group = meta_alpha_fp.split('_alphas__')[-1].split('.tsv')[0]
