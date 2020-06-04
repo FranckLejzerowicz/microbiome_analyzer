@@ -42,6 +42,7 @@ def routine_qiime2_analyses(
         p_beta_subsets: str,
         p_perm_tests: tuple,
         p_perm_groups: str,
+        p_beta_type: tuple,
         p_procrustes: str,
         p_formulas: str,
         force: bool,
@@ -215,7 +216,7 @@ def routine_qiime2_analyses(
                                      qiime_env, chmod, noloc, As, split, filt_raref)
     if p_perm_tests:
         if 'beta' not in p_skip and 'permanova' not in p_skip:
-            run_permanova(i_datasets_folder, betas, p_perm_tests,
+            run_permanova(i_datasets_folder, betas, p_perm_tests, p_beta_type,
                           p_perm_groups, force, prjct_nm,
                           qiime_env, chmod, noloc, split, filt_raref)
     if p_formulas:

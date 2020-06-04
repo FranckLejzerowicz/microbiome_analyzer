@@ -76,6 +76,12 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
+    "-bt", "--p-beta-type", required=False, show_default=True, multiple=True, default='permanova',
+    type=click.Choice(['permanova', 'anosim', 'permdisp']),
+    help="Type of beta group significance, one of"
+         " 'permanova', 'anosim', 'permdisp'"
+)
+@click.option(
     "-r", "--p-procrustes", required=False, show_default=True, default=False,
     help="Pairs and subsets for procrustes/protests. Must be a yaml file, e.g.\n"
          "(see example in 'examples/procrustes_subsets.yml' and README)."
@@ -180,6 +186,7 @@ def standalone_routine(
         p_beta_subsets,
         p_perm_tests,
         p_perm_groups,
+        p_beta_type,
         p_procrustes,
         p_adonis_formulas,
         force, i_classifier,
@@ -213,6 +220,7 @@ def standalone_routine(
         p_beta_subsets,
         p_perm_tests,
         p_perm_groups,
+        p_beta_type,
         p_procrustes,
         p_adonis_formulas,
         force, i_classifier,

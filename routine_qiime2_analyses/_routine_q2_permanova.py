@@ -57,20 +57,21 @@ def run_single_perm(odir: str, subset: str, meta_pd: pd.DataFrame, cur_sh: str,
         else:
             cur_rad = '%s/%s_%s' % (odir, splitext(basename(qza))[0], case)
         new_meta = '%s.meta' % cur_rad
-        new_qzv = '%s_permanova.qzv' % cur_rad
-        new_mat_qza = odir + '/' + basename(mat_qza).replace('.qza', '_%s_DM.qza' % case)
-        new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-        add_q2_types_to_meta(new_meta_pd, new_meta)
-        if force or not isfile(new_qzv):
-            if len([x for x in new_meta_pd[testing_group].unique() if str(x) != 'nan']) > 1:
-                write_diversity_beta_group_significance(new_meta, mat_qza, new_mat_qza,
-                                                        testing_group, new_qzv, cur_sh_o)
-                remove = False
+        for beta_type in p_beta_type:
+            new_qzv = '%s_%s.qzv' % (cur_rad, beta_type)
+            new_mat_qza = odir + '/' + basename(mat_qza).replace('.qza', '_%s_DM.qza' % case)
+            new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+            add_q2_types_to_meta(new_meta_pd, new_meta)
+            if force or not isfile(new_qzv):
+                if len([x for x in new_meta_pd[testing_group].unique() if str(x) != 'nan']) > 1:
+                    write_diversity_beta_group_significance(new_meta, mat_qza, new_mat_qza,
+                                                            testing_group, beta_type, new_qzv, cur_sh_o)
+                    remove = False
     if remove:
         os.remove(cur_sh)
 
 
-def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tuple,
+def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tuple, p_beta_type: tuple,
                   p_perm_groups: str, force: bool, prjct_nm: str, qiime_env: str,
                   chmod: str, noloc: bool, split: bool, filt_raref: str) -> None:
     """

@@ -753,7 +753,8 @@ def check_absence_mat(mat_qzas: list, first_print: int, analysis: str) -> bool:
 
 
 def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat_qza: str,
-                                            testing_group: str, new_qzv: str, cur_sh: TextIO) -> None:
+                                            testing_group: str, beta_type: str, new_qzv: str,
+                                            cur_sh: TextIO) -> None:
     """
     Determine whether groups of samples are significantly different from one
     another using a permutation-based statistical test.
@@ -780,6 +781,7 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
     cmd += 'qiime diversity beta-group-significance \\\n'
     cmd += '--i-distance-matrix %s \\\n' % new_mat_qza
+    cmd += '--p-method %s \\\n' % beta_type
     cmd += '--m-metadata-file %s \\\n' % new_meta
     cmd += '--m-metadata-column "%s" \\\n' % testing_group
     cmd += '--p-permutations 2999 \\\n'
