@@ -73,7 +73,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
             if dat not in betas:
                 betas[dat] = {}
-            out_sh = '%s/run_beta_%s5s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_beta_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 divs = {}
