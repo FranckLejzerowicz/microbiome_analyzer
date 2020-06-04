@@ -873,6 +873,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                     elif force or not isfile(tsv_qza):
                         cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
                         filt_jobs.append(cmd)
+                        print('<1>', cmd)
                 else:
                     meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
                     if force or not isfile(tsv_out):
@@ -880,6 +881,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                     if force or not isfile(tsv_qza):
                         cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
                         filt_jobs.append(cmd)
+                        print('<2>', cmd)
                 dat_filts[(preval_filt, str(abund_filter))] = [
                     tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()
                 ]
