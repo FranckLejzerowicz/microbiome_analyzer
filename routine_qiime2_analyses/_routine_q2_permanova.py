@@ -30,8 +30,8 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 
 
 def run_single_perm(odir: str, subset: str, meta_pd: pd.DataFrame, cur_sh: str,
-                    metric: str, case_: str, testing_group: str, qza: str, mat_qza: str,
-                    case_var: str, case_vals: list, force: bool) -> None:
+                    metric: str, case_: str, testing_group: str, p_beta_type: tuple,
+                    qza: str, mat_qza: str, case_var: str, case_vals: list, force: bool) -> None:
     """
     Run beta-group-significance: Beta diversity group significance.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
@@ -71,9 +71,9 @@ def run_single_perm(odir: str, subset: str, meta_pd: pd.DataFrame, cur_sh: str,
         os.remove(cur_sh)
 
 
-def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tuple, p_beta_type: tuple,
-                  p_perm_groups: str, force: bool, prjct_nm: str, qiime_env: str,
-                  chmod: str, noloc: bool, split: bool, filt_raref: str) -> None:
+def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tuple,
+                  p_beta_type: tuple, p_perm_groups: str, force: bool, prjct_nm: str,
+                  qiime_env: str, chmod: str, noloc: bool, split: bool, filt_raref: str) -> None:
     """
     Run beta-group-significance: Beta diversity group significance.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
@@ -130,7 +130,7 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
                             cur_sh = cur_sh.replace(' ', '-')
                             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                             run_single_perm(odir, subset, meta_pd, cur_sh, metric, case_,
-                                            testing_group, qza, mat_qza, case_var, case_vals, force)
+                                            testing_group, p_beta_type, qza, mat_qza, case_var, case_vals, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'permanova')
     main_sh = write_main_sh(job_folder, '3_run_beta_group_significance%s' % filt_raref, all_sh_pbs,
