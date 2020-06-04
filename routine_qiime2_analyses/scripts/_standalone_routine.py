@@ -82,7 +82,7 @@ from routine_qiime2_analyses import __version__
          " 'permanova', 'anosim', 'permdisp'"
 )
 @click.option(
-    "-r", "--p-procrustes", required=False, show_default=True, default=False,
+    "-prc", "--p-procrustes", required=False, show_default=True, default=False,
     help="Pairs and subsets for procrustes/protests. Must be a yaml file, e.g.\n"
          "(see example in 'examples/procrustes_subsets.yml' and README)."
 )
@@ -113,7 +113,7 @@ from routine_qiime2_analyses import __version__
          "Must be a yaml file, e.g. (see example in 'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
-    "-rrf", "--p-raref-depths", required=False, show_default=False,
+    "-r", "--p-raref-depths", required=False, show_default=False,
     help="rarefaction depth per dataset. Must be a yaml file, e.g. "
          "(see example in 'examples/permanova_subsets.yml' and README)."
 )
