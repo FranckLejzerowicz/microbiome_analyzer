@@ -361,7 +361,7 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
 
 
 def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list: list,
-                 metric: str, case_var: str, cur_sh: str, force: bool) -> None:
+                 case_var: str, cur_sh: str, force: bool) -> None:
     """
     Run alpha-group-significance: Alpha diversity comparisons.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-group-significance/
@@ -379,7 +379,7 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list:
     remove = True
     with open(cur_sh, 'w') as cur_sh_o:
         for case_vals in case_vals_list:
-            case = '%s__%s' % (metric, get_case(case_vals, case_var))
+            case = get_case(case_vals, case_var)
             cur_rad = odir + '/' + basename(div_qza).replace('.qza', '_%s' % case)
             new_qzv = '%s_kruskal-wallis.qzv' % cur_rad
             if force or not isfile(new_qzv):
@@ -449,7 +449,7 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
                 p = multiprocessing.Process(
                     target=run_multi_kw,
                     args=(odir, meta_pd, qza, case_vals_list,
-                          metric, case_var, cur_sh, force))
+                          case_var, cur_sh, force))
                 p.start()
                 jobs.append(p)
     for j in jobs:
