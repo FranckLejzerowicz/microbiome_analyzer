@@ -134,7 +134,7 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
 
     job_folder = get_job_folder(i_datasets_folder, 'permanova')
     main_sh = write_main_sh(job_folder, '3_run_beta_group_significance%s' % filt_raref, all_sh_pbs,
-                            '%s.prm%s' % (prjct_nm, filt_raref), '2', '1', '1', '1', 'gb',
+                            '%s.prm%s' % (prjct_nm, filt_raref), '48', '1', '1', '1', 'gb',
                             qiime_env, chmod, noloc)
     if main_sh:
         if p_perm_groups:
