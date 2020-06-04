@@ -207,7 +207,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
     :return:
     """
 
-    print('\t-> Get datasets filtered...', end = ' ')
+    print('\t-> [%s] Get datasets filtered...' % analysis, end=' ')
     filt_datasets, filt_jobs = get_datasets_filtered(
         i_datasets_folder, datasets, datasets_read,
         unique_datasets, filtering, force, analysis
