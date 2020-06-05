@@ -191,9 +191,8 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, r
 
 
 def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, datasets_filt_map: dict,
-                                     datasets_read: dict, unique_datasets: list,
-                                     mmvec_pairs: dict, filtering: dict, job_folder: str,
-                                     force: bool, prjct_nm: str, qiime_env: str,
+                                     datasets_read: dict, unique_datasets: list, mmvec_pairs: dict,
+                                     filtering: dict, job_folder: str, force: bool, prjct_nm: str, qiime_env: str,
                                      chmod: str, noloc: bool, analysis: str, filt_raref: str) -> (dict, dict):
     """
     :param i_datasets_folder:
@@ -230,6 +229,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
     if len(pre_jobs):
         import_sh = '%s/2_run_%s_imports%s.sh' % (job_folder, analysis, filt_raref)
         import_pbs = '%s.pbs' % splitext(import_sh)[0]
+        print(import_pbs)
         with open(import_sh, 'w') as import_o:
             for cmd in pre_jobs:
                 import_o.write('\necho "%s"\n' % cmd)
@@ -237,6 +237,7 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
         run_xpbs(import_sh, import_pbs, '%s.mprt.mmsb.%s%s' % (prjct_nm, analysis, filt_raref),
                  qiime_env, '2', '1', '1', '150', 'mb', chmod, 1,
                  '# Import datasets for %s' % analysis, None, noloc)
+
     return filt_datasets, common_datasets
 
 
