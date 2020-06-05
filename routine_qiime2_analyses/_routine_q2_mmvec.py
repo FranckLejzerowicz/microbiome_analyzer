@@ -85,8 +85,8 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
     common_jobs = []
     common_datasets = {}
     for pair, pair_datasets in mmvec_pairs.items():
-        print("pair, pair_datasets")
-        print(pair, pair_datasets)
+        # print("pair, pair_datasets")
+        # print(pair, pair_datasets)
 
         data_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s' % pair)
         meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
@@ -214,12 +214,11 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
         unique_datasets, filtering, force, analysis
     )
     print('Done.')
-    print("filt_jobs")
     print(filt_jobs)
     common_jobs = []
     common_datasets = {}
     if analysis == 'mmvec':
-        print('\t-> Get common datasets...', end=' ')
+        print('\t-> [mmvec] Get common datasets...', end=' ')
         common_datasets, common_jobs = get_common_datasets(
             i_datasets_folder, mmvec_pairs, filt_datasets, force
         )
@@ -229,7 +228,6 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
     if len(pre_jobs):
         import_sh = '%s/2_run_%s_imports%s.sh' % (job_folder, analysis, filt_raref)
         import_pbs = '%s.pbs' % splitext(import_sh)[0]
-        print(import_pbs)
         with open(import_sh, 'w') as import_o:
             for cmd in pre_jobs:
                 import_o.write('\necho "%s"\n' % cmd)
