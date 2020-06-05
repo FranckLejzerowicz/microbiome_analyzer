@@ -846,6 +846,13 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                 rad_out = '%s_%s_%s_%ss' % (dat, preval_filt, abund_filter, tsv_pd.shape[1])
                 tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
                 tsv_qza = '%s.qza' % splitext(tsv_out)[0]
+                print('-----------------------')
+                print('-----------------------')
+                print('-----------------------')
+                print('-----------------------')
+                print('tsv_out', tsv_out)
+                print('tsv_qza', tsv_qza)
+                print('-----------------------')
                 meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
 
                 if analysis == 'songbird':

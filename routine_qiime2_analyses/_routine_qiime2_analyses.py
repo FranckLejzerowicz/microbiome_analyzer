@@ -242,9 +242,10 @@ def routine_qiime2_analyses(
     songbird_outputs = []
     if p_diff_models:
         if 'songbird' not in p_skip:
-            songbird_outputs = run_songbird(p_diff_models, i_datasets_folder, datasets,
-                                            datasets_read, mmvec_outputs, force,
-                                            prjct_nm, qiime_env, chmod, noloc, split, filt_raref)
+            songbird_outputs = run_songbird(p_diff_models, i_datasets_folder,
+                                            datasets, datasets_read, mmvec_outputs,
+                                            force, prjct_nm, qiime_env, chmod,
+                                            noloc, split, filt_raref)
     if p_diff_models and p_mmvec_pairs:
         run_mmbird(i_datasets_folder, songbird_outputs, mmvec_outputs,
                    force, prjct_nm, qiime_env, chmod, noloc, filt_raref)
