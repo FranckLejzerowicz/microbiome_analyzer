@@ -796,7 +796,7 @@ def write_filtered_meta(meta_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFr
 
 
 def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
-                          datasets_read: dict, unique_datasets: list,
+                          datasets_read: dict, datasets_filt_map: dict, unique_datasets: list,
                           filtering: dict, force: bool, analysis: str) -> (dict, list):
     """
     Filter the datasets for use in mmvec.
@@ -811,7 +811,11 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
     """
     filt_jobs = []
     filt_datasets = {}
-    for (dat, mb) in unique_datasets:
+    for (dat_, mb) in unique_datasets:
+        if dat_ in datasets_filt_map:
+            dat = datasets_filt_map[dat_]
+        else:
+            dat = dat_
         if dat not in datasets:
             if dat.endswith('__raref'):
                 tsv_pd_, meta_pd_ = get_raref_table(dat, i_datasets_folder, analysis)

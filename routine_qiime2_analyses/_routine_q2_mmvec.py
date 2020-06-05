@@ -188,7 +188,7 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, r
         os.remove(cur_sh)
 
 
-def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
+def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, datasets_filt_map: dict,
                                      datasets_read: dict, unique_datasets: list,
                                      mmvec_pairs: dict, filtering: dict, job_folder: str,
                                      force: bool, prjct_nm: str, qiime_env: str,
@@ -209,10 +209,12 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict,
 
     print('\t-> [%s] Get datasets filtered...' % analysis, end=' ')
     filt_datasets, filt_jobs = get_datasets_filtered(
-        i_datasets_folder, datasets, datasets_read,
+        i_datasets_folder, datasets, datasets_read, datasets_filt_map,
         unique_datasets, filtering, force, analysis
     )
     print('Done.')
+    print("filt_jobs")
+    print(filt_jobs)
     common_jobs = []
     common_datasets = {}
     if analysis == 'mmvec':
