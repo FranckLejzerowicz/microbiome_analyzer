@@ -817,18 +817,22 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
             dat = datasets_filt_map[dat_]
         else:
             dat = dat_
+        print()
+        print()
+        print('>>>>>>>>>>>>>> get_datasets_filtered <<<<<<<<<<<<<')
+        print(analysis, dat_, dat)
         if dat not in datasets:
             if dat.endswith('__raref'):
                 tsv_pd_, meta_pd_ = get_raref_table(dat, i_datasets_folder, analysis)
                 if not tsv_pd_.shape[0]:
                     continue
             else:
-                print('%s dataset "%s" not found...' % (analysis, dat))
+                print(analysis, '%s dataset "%s" not found...' % (analysis, dat))
                 continue
         elif datasets_read[dat] == 'raref':
             tsv, meta = datasets[dat]
             if not isfile(tsv):
-                print('Must have run rarefaction to use it further...\nExiting')
+                print(analysis, 'Must have run rarefaction to use it further...\nExiting')
                 sys.exit(0)
             tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
             datasets_read[dat] = [tsv_pd_, meta_pd_]
@@ -851,13 +855,10 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                 rad_out = '%s_%s_%s_%ss' % (dat, preval_filt, abund_filter, tsv_pd.shape[1])
                 tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
                 tsv_qza = '%s.qza' % splitext(tsv_out)[0]
-                print('-----------------------')
-                print('-----------------------')
-                print('-----------------------')
-                print('-----------------------')
-                print('tsv_out', tsv_out)
-                print('tsv_qza', tsv_qza)
-                print('-----------------------')
+                print(analysis, '-----------------------')
+                print(analysis, 'tsv_out', tsv_out)
+                print(analysis, 'tsv_qza', tsv_qza)
+                print(analysis, '-----------------------')
                 meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
 
                 if analysis == 'songbird':
@@ -872,20 +873,24 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                         meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
                                               dtype={line.split('\t')[0]: str},
                                               low_memory=False)
+                        print(analysis, 'has mmvec', meta_out, meta_pd.shape)
                     else:
                         meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
 
                     if isfile(tsv_out_mmvec):
+                        print(analysis, 'is file: tsv_out_mmvec', tsv_out_mmvec)
                         tsv_out = tsv_out_mmvec
                     elif force or not isfile(tsv_out):
+                        print(analysis, 'write: tsv_out', tsv_out)
                         write_filtered_tsv(tsv_out, tsv_pd)
 
                     if isfile(tsv_qza_mmvec):
+                        print(analysis, 'is file: tsv_qza_mmvec', tsv_qza_mmvec)
                         tsv_qza = tsv_qza_mmvec
                     elif force or not isfile(tsv_qza):
                         cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
                         filt_jobs.append(cmd)
-                        print('<1>', cmd)
+                        print(analysis, 'write (job): tsv_qza', tsv_qza)
                 else:
                     meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
                     if force or not isfile(tsv_out):
@@ -893,7 +898,6 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                     if force or not isfile(tsv_qza):
                         cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
                         filt_jobs.append(cmd)
-                        print('<2>', cmd)
                 dat_filts[(preval_filt, str(abund_filter))] = [
                     tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()
                 ]
