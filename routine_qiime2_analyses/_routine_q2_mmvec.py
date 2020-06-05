@@ -85,6 +85,8 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
     common_jobs = []
     common_datasets = {}
     for pair, pair_datasets in mmvec_pairs.items():
+        print("pair, pair_datasets")
+        print(pair, pair_datasets)
 
         data_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s' % pair)
         meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
