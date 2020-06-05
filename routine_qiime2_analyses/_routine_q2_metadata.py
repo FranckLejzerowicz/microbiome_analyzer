@@ -81,6 +81,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
     meta_pd_vars = [x.lower() for x in set(meta_pd.columns.tolist())]
     models = {}
     for model, formula_ in songbird_models.items():
+        vars = set()
         drop = []
         meta_var = ''
         formula = formula_.strip('"').strip("'")
@@ -88,6 +89,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
         if formula.startswith('C('):
             formula_split = [formula.split('C(')[-1].split(',')[0].strip().strip()]
             meta_var = formula_split[0]
+            vars.add(meta_var.lower())
             formula = formula.replace('C(%s' % formula_split[0], 'C(%s' % formula_split[0].lower())
             if 'Diff' in formula:
                 levels = [x.strip().strip('"').strip("'") for x in formula.split("levels=['")[-1].split("']")[0].split(",")]
@@ -96,6 +98,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
         else:
             formula = formula.lower()
             formula_split = [x.lower() for x in re.split('[+/:*]', formula)]
+            vars.update(set(formula_split))
             levels = []
 
         common_with_md = set(meta_pd_vars) & set(formula_split)
@@ -126,7 +129,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                         formula_split[0], levels))
                     continue
 
-        models[model] = [formula, meta_var, drop]
+        models[model] = [formula, vars, meta_var, drop]
     return models
 
 

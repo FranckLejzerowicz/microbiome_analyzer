@@ -72,11 +72,13 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
     tensor = '%s/differentials-tensorboard.qzv' % odir
     tensor_html = '%s/differentials-tensorboard.html' % odir
 
-    formula, meta_var, drop = formula_meta_var_drop
+    formula, vars, meta_var, drop = formula_meta_var_drop
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor_html):
             new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
             new_meta_pd.columns = [x.lower() for x in new_meta_pd.columns]
+            meta_vars = list(set(list(vars) + list(meta_var)))
+            new_meta_pd = new_meta_pd[meta_vars]
             new_meta_pd = rename_duplicate_columns(new_meta_pd)
             if len(drop):
                 new_meta_pd = new_meta_pd.loc[(~new_meta_pd[meta_var.lower()].isin(drop)), :]
