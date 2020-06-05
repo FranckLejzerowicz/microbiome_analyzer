@@ -206,7 +206,7 @@ def get_mmvec_dicts(p_mmvec_pairs: str, datasets_filt: dict) -> (dict, dict, dic
     mmvec_filtering = get_filtering(p_mmvec_pairs, mmvec_dict)
     mmvec_params = get_mmvec_params(p_mmvec_pairs, mmvec_dict)
     mmvec_subsets = get_mmvec_subsets(p_mmvec_pairs, mmvec_dict)
-    return mmvec_pairs, mmvec_filtering, mmvec_params
+    return mmvec_pairs, mmvec_filtering, mmvec_params, mmvec_subsets
 
 
 def get_songbird_params(p_diff_models: str, diff_dict: dict) -> dict:
@@ -796,8 +796,9 @@ def write_filtered_meta(meta_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFr
 
 
 def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
-                          datasets_read: dict, datasets_filt_map: dict, unique_datasets: list,
-                          filtering: dict, force: bool, analysis: str) -> (dict, list):
+                          datasets_read: dict, datasets_filt_map: dict,
+                          unique_datasets: list, filtering: dict, force: bool,
+                          analysis: str) -> (dict, list):
     """
     Filter the datasets for use in mmvec.
 

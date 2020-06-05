@@ -241,8 +241,8 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
 
 
 def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
-              datasets_filt: dict, datasets_read: dict, force: bool,
-              gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
+              datasets_filt: dict, datasets_filt_map: dict, datasets_read: dict,
+              force: bool, gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
               chmod: str, noloc: bool, split: bool, filt_raref: str) -> list:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
@@ -262,14 +262,14 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     :param chmod: whether to change permission of output files (default: 644).
     """
 
-    mmvec_pairs, mmvec_filtering, mmvec_params = get_mmvec_dicts(p_mmvec_pairs, datasets_filt)
+    mmvec_pairs, mmvec_filtering, mmvec_params, mmvec_subsets = get_mmvec_dicts(p_mmvec_pairs, datasets_filt)
     unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
 
     job_folder = get_job_folder(i_datasets_folder, 'mmvec')
     print(' [mmvec] Make filtered and_common datasets:')
     filt_datasets, common_datasets = make_filtered_and_common_dataset(
-        i_datasets_folder, datasets, datasets_read, unique_datasets,
-        mmvec_pairs, mmvec_filtering, job_folder, force,
+        i_datasets_folder, datasets, datasets_filt_map, datasets_read,
+        unique_datasets, mmvec_pairs, mmvec_filtering, job_folder, force,
         prjct_nm, qiime_env, chmod, noloc, 'mmvec', filt_raref)
 
     jobs = []

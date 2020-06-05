@@ -231,9 +231,9 @@ def routine_qiime2_analyses(
     if p_mmvec_pairs:
         if 'mmvec' not in p_skip:
             mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
-                                      datasets_filt, datasets_read, force, gpu,
-                                      standalone, prjct_nm, qiime_env, chmod,
-                                      noloc, split, filt_raref)
+                                      datasets_filt, datasets_filt_map, datasets_read,
+                                      force, gpu, standalone, prjct_nm, qiime_env,
+                                      chmod, noloc, split, filt_raref)
     if 'beta' not in p_skip and p_procrustes:
         if betas and 'procrustes' not in p_skip:
             run_procrustes(i_datasets_folder, datasets, datasets_filt,
@@ -246,7 +246,7 @@ def routine_qiime2_analyses(
                                             datasets, datasets_read, datasets_filt_map,
                                             mmvec_outputs, force, prjct_nm, qiime_env, chmod,
                                             noloc, split, filt_raref)
-    if p_diff_models and p_mmvec_pairs:
+    if p_diff_models and p_mmvec_pairs and 'mmbird' not in p_skip:
         run_mmbird(i_datasets_folder, songbird_outputs, mmvec_outputs,
                    force, prjct_nm, qiime_env, chmod, noloc, filt_raref)
     # ------------------------------------------------------------------------------
