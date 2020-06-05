@@ -139,22 +139,14 @@ def get_mmvec_res(mmvec_outputs_pd):
             # collect the ranks + ordination + songbirds for each pair of omics and parameters
             mmvec_res[
                 (
-                    pair,
-                    omic1,
-                    omic2,
-                    omic_filt1,
-                    omic_filt2,
-                    n_common,
+                    pair, omic1, omic2,
+                    omic_filt1, omic_filt2, n_common,
                     mmvec_out_col.replace('mmvec_out__', '')
                 )
             ] = [
-                mmvec_out_ranks,
-                mmvec_out_ordi,
-                omic1_songbird_common_fps,
-                omic2_songbird_common_fps,
-                meta_fp,
-                omic1_common_fp,
-                omic2_common_fp
+                mmvec_out_ranks, mmvec_out_ordi,
+                omic1_songbird_common_fps, omic2_songbird_common_fps,
+                meta_fp, omic1_common_fp, omic2_common_fp
             ]
 
     return mmvec_res
@@ -463,10 +455,7 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             omic_microbe = order_omics[6]
             omic_metabolite = order_omics[7]
 
-            print()
-            print()
-            print()
-            print()
+            print('-------------------------------')
             print('ordi_fp', ordi_fp)
             print('omic1_diff_fps', omic1_diff_fps)
             print('omic2_diff_fps', omic2_diff_fps)
@@ -497,8 +486,7 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
                 omic_filt1, omic_filt2,
                 omic1_common_fp, omic2_common_fp,
                 omic1_tax_fp, omic2_tax_fp,
-                all_omic1_songbird_ranks,
-                all_omic2_songbird_ranks,
+                all_omic1_songbird_ranks, all_omic2_songbird_ranks,
                 ordi_fp
             )
 
@@ -510,14 +498,9 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             mmvec_tab.append([
                 omic_filt1, omic_filt2,
                 '%s-%s-%s' % (omic_filt1, omic_filt2, sams),
-                mmvec,
-                ranks_fp,
-                ordi_fp,
-                meta_fp,
-                omic1_tax_fp,
-                omic2_tax_fp,
-                omic1_common_fp,
-                omic2_common_fp
+                mmvec, ranks_fp, ordi_fp, meta_fp,
+                omic1_tax_fp, omic2_tax_fp,
+                omic1_common_fp, omic2_common_fp
             ])
 
             # if 'mbAnnot' in ordi_fp:
@@ -543,6 +526,7 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             print('ordi_edit_fp', ordi_edit_fp)
             print('qza', qza)
             print('qzv', qzv)
+            print('-------------------------------')
             # if 1:
             cmd = ''
             if 1:

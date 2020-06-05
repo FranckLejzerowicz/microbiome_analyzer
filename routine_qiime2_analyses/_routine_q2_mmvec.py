@@ -214,7 +214,6 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
         unique_datasets, filtering, force, analysis
     )
     print('Done.')
-    print(filt_jobs)
     common_jobs = []
     common_datasets = {}
     if analysis == 'mmvec':
@@ -265,7 +264,6 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
 
     job_folder = get_job_folder(i_datasets_folder, 'mmvec')
-    print(' [mmvec] Make filtered and_common datasets:')
     filt_datasets, common_datasets = make_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_filt_map, datasets_read,
         unique_datasets, mmvec_pairs, mmvec_filtering, job_folder, force,
@@ -329,4 +327,5 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
             p_mmvec_pairs = p_mmvec_pairs.replace(os.getcwd(), '')
         print_message("# MMVEC (datasets pairs in %s)" % p_mmvec_pairs, 'sh', main_sh)
 
+    print(mmvec_outputs)
     return mmvec_outputs
