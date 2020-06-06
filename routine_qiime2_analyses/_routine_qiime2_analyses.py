@@ -124,9 +124,9 @@ def routine_qiime2_analyses(
     # meta_pd : not indexed -> "sample_name" as first column
     import_datasets(i_datasets_folder, datasets, datasets_phylo,
                     force, prjct_nm, qiime_env, chmod, noloc, run_params['import'])
+
     datasets_filt = {}
     datasets_filt_map = {}
-
     filt_raref = ''
     if p_filt_threshs:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,

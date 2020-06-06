@@ -760,14 +760,13 @@ def filter_non_mb_table(preval_filt: int, abund_filt: int,
     return tsv_filt_pd
 
 
-def get_raref_table(dat: str, i_datasets_folder: str,
+def get_raref_table(dat_rt: str, i_datasets_folder: str,
                     analysis: str) -> (pd.DataFrame, pd.DataFrame):
-    dat_rt = dat.split('__raref')[0]
     raref_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat_rt)
     tsv_globbed = glob.glob('%s/tab_%s_raref*.tsv' % (raref_dir, dat_rt))
     if len(tsv_globbed) != 1:
-        print('Must have one rarefaction for "%s" to use it further in %s ("%s")...'
-              '\nExiting' % (dat_rt, analysis, dat))
+        print('Must have one rarefaction for "%s" to use it further in %s...'
+              '\nExiting' % (dat_rt, analysis))
         sys.exit(0)
     tsv = tsv_globbed[0]
     meta = glob.glob('%s/meta_%s_raref*_alphas.tsv' % (raref_dir, dat_rt))
@@ -796,9 +795,9 @@ def write_filtered_meta(meta_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFr
 
 
 def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
-                          datasets_read: dict, datasets_filt_map: dict,
-                          unique_datasets: list, filtering: dict, force: bool,
-                          analysis: str) -> (dict, list):
+                          datasets_read: dict, datasets_filt: dict,
+                          unique_datasets: list, filtering: dict,
+                          force: bool, analysis: str) -> (dict, list):
     """
     Filter the datasets for use in mmvec.
 
@@ -812,18 +811,18 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
     """
     filt_jobs = []
     filt_datasets = {}
-    for (dat_, mb) in unique_datasets:
-        if dat_ in datasets_filt_map:
-            dat = datasets_filt_map[dat_]
-        else:
-            dat = dat_
+    for (dat, mb) in unique_datasets:
         print()
         print()
         print('>>>>>>>>>>>>>> get_datasets_filtered <<<<<<<<<<<<<')
-        print(analysis, dat_, dat)
+        print(analysis, dat)
+        print('?IN', datasets.keys())
         if dat not in datasets:
             if dat.endswith('__raref'):
-                tsv_pd_, meta_pd_ = get_raref_table(dat, i_datasets_folder, analysis)
+                dat_rt = dat.split('__raref')[0]
+                if dat_rt in datasets_filt:
+                    dat_rt = datasets_filt[dat]
+                tsv_pd_, meta_pd_ = get_raref_table(dat_rt, i_datasets_folder, analysis)
                 if not tsv_pd_.shape[0]:
                     continue
             else:
