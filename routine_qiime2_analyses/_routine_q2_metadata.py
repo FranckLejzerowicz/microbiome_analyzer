@@ -104,8 +104,8 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
         common_with_md = set(meta_pd_vars) & set(formula_split)
         if sorted(set(formula_split)) != sorted(common_with_md):
             only_formula = sorted(set(formula_split) ^ common_with_md)
-            print('Songbird formula term(s) missing in metadata:\n  %s\n  [not used]: %s=%s' % (
-                ', '.join(sorted(only_formula)), model, formula))
+            print('Songbird formula term(s) missing in metadata:\n  %s\n  [not used]: %s=%s\n%s' % (
+                ', '.join(sorted(only_formula)), model, formula, meta))
             continue
 
         if len(levels):
@@ -115,18 +115,18 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                 only_meta = set(levels_set) ^ common_levels
                 only_model = set(levels) ^ common_levels
                 if len(only_model):
-                    print('Songbird formula "Diff" factors(s) missing in metadata "%s": %s' % (
-                        formula_split[0], list(only_model)))
+                    print('Songbird formula "Diff" factors(s) missing in metadata "%s": %s\n%s' % (
+                        formula_split[0], list(only_model), meta))
                     continue
                 if len(only_meta):
                     drop = list(only_meta)
                     print('Songbird formula "Diff" factors(s) incomplete for metadata "%s":\n'
-                          '  -> skipping samples with %s' % (formula_split[0], list(only_meta)))
+                          '  -> skipping samples with %s\n%s' % (formula_split[0], list(only_meta), meta))
             elif 'Treatment(' in formula:
                 levels = formula.split("Treatment('")[-1].split("')")[0]
                 if levels not in levels_set:
-                    print('Songbird formula "Treatment" factors(s) missing in metadata "%s":\n  %s' % (
-                        formula_split[0], levels))
+                    print('Songbird formula "Treatment" factors(s) missing in metadata "%s":\n  %s\n%s' % (
+                        formula_split[0], levels, meta))
                     continue
 
         models[model] = [formula, vars, meta_var, drop]
