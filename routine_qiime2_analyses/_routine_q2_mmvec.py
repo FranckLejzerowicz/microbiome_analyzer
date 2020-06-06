@@ -290,7 +290,8 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         print()
         print("pair")
         print(pair)
-        print(pair_data)
+        for i in pair_data:
+            print(' -', i)
 
         job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
         if not split:
