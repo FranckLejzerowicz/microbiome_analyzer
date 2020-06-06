@@ -251,9 +251,9 @@ def get_tax_extended_fps(
             how='left'
         ).drop_duplicates()
     metatax_omic1_fp = '%s_meta-%s.tsv' % (splitext(ordi_fp)[0], omic_filt1)
-    print('metatax_omic1_fp', metatax_omic1_fp)
-    print('omic1_tax_pd')
-    print(omic1_tax_pd[:3])
+    # print('metatax_omic1_fp', metatax_omic1_fp)
+    # print('omic1_tax_pd')
+    # print(omic1_tax_pd[:3])
     omic1_tax_pd.to_csv(metatax_omic1_fp, index=False, sep='\t')
 
     if isfile(omic2_tax_fp):
@@ -276,9 +276,9 @@ def get_tax_extended_fps(
             how='left'
         ).drop_duplicates()
     metatax_omic2_fp = '%s_meta-%s.tsv' % (splitext(ordi_fp)[0], omic_filt2)
-    print('metatax_omic2_fp', metatax_omic2_fp)
-    print('omic2_tax_pd')
-    print(omic2_tax_pd[:3])
+    # print('metatax_omic2_fp', metatax_omic2_fp)
+    # print('omic2_tax_pd')
+    # print(omic2_tax_pd[:3])
     omic2_tax_pd.to_csv(metatax_omic2_fp, index=False, sep='\t')
 
     return metatax_omic1_fp, metatax_omic2_fp
@@ -455,22 +455,6 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             omic_microbe = order_omics[6]
             omic_metabolite = order_omics[7]
 
-            print('-------------------------------')
-            print('ordi_fp', ordi_fp)
-            print('omic1_diff_fps', omic1_diff_fps)
-            print('omic2_diff_fps', omic2_diff_fps)
-            print('meta_fp', meta_fp)
-            print('omic1_common_fp', omic1_common_fp)
-            print('omic2_common_fp', omic2_common_fp)
-            print('omic1', omic1)
-            print('omic2', omic2)
-            print('omic_filt1', omic_filt1)
-            print('omic_filt2', omic_filt2)
-            print('omic_feature', omic_feature)
-            print('omic_sample', omic_sample)
-            print('omic_microbe', omic_microbe)
-            print('omic_metabolite', omic_metabolite)
-
             # get differentials
             all_omic1_songbird_ranks, all_omic2_songbird_ranks = get_all_omics_songbirds(
                 omic1_diff_fps,
@@ -478,9 +462,6 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             )
             omic1_tax_fp = get_tax_fp(i_datasets_folder, omic1)
             omic2_tax_fp = get_tax_fp(i_datasets_folder, omic2)
-            print("omic1_tax_fp", omic1_tax_fp)
-            print("omic2_tax_fp", omic2_tax_fp)
-            # /projects/nutrition/analysis/tree_based/qiime/mmvec/paired/ssu_foods/16S_150nt_1554s__raref_0_0__vioscreen_foods_consumed_grams_per_day_1800s_noLiquids_0_0/b-250_l-1e-4_e-500_p-05_f-0_d-3_t-None_n-200_gpu-F/ordination_meta-16S_150nt_1554s__raref__0_0.tsv
 
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
                 omic_filt1, omic_filt2,
@@ -523,10 +504,29 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             n_mbAnnot_CLAs_in_file = 0
             ordi_edit_fp = ordi_fp
             qza, qzv = get_qzs(ordi_edit_fp)
-            print('ordi_edit_fp', ordi_edit_fp)
-            print('qza', qza)
-            print('qzv', qzv)
-            print('-------------------------------')
+            # print('-------------------------------')
+            # print('ordi_fp', ordi_fp)
+            # print('omic1_diff_fps')
+            # for i in omic1_diff_fps:
+            #     print('\t\t', i)
+            # print('omic2_diff_fps:\t', omic2_diff_fps)
+            # print('meta_fp:\t', meta_fp)
+            # print('omic1_common_fp:\t', omic1_common_fp)
+            # print('omic2_common_fp:\t', omic2_common_fp)
+            # print('omic1:\t', omic1)
+            # print('omic2:\t', omic2)
+            # print('omic_filt1:\t', omic_filt1)
+            # print('omic_filt2:\t', omic_filt2)
+            # print('omic_feature:\t', omic_feature)
+            # print('omic_sample:\t', omic_sample)
+            # print('omic_microbe:\t', omic_microbe)
+            # print('omic_metabolite:\t', omic_metabolite)
+            # print("omic1_tax_fp:\t", omic1_tax_fp)
+            # print("omic2_tax_fp:\t", omic2_tax_fp)
+            # print('ordi_edit_fp', ordi_edit_fp)
+            # print('qza', qza)
+            # print('qzv', qzv)
+            # print('-------------------------------')
             # if 1:
             cmd = ''
             if 1:
