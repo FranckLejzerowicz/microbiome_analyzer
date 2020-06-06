@@ -339,7 +339,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         qiime_env = 'mmvec2'
 
     main_sh = write_main_sh(job_folder, '3_mmvec%s' % filt_raref, all_sh_pbs,
-                            '%s.mmvc%s' % (prjct_nm, filt_raref), '150', '1', '1', '2', 'gb',
+                            '%s.mmvc%s' % (prjct_nm, filt_raref), '24', '1', '1', '2', 'gb',
                             qiime_env, chmod, noloc)
     if main_sh:
         if p_mmvec_pairs.startswith('/panfs'):
