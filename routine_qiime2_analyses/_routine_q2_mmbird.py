@@ -599,7 +599,7 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
                     cur_sh.write(cmd)
                     written += 1
             run_xpbs(out_sh, out_pbs, '%s.mmbrd.%s%s' % (prjct_nm, pair, filt_raref),
-                     qiime_env, '24', '1', '1', '10', 'gb',
+                     qiime_env, '24', '1', '1', '1', 'gb',
                      chmod, written, 'single', o, noloc)
     if written:
         print_message('# Generate mmvec biplot with sopngbird models', 'sh', run_pbs)
