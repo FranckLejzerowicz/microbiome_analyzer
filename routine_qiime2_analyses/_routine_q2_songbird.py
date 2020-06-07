@@ -188,6 +188,10 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             meta_pd = rename_duplicate_columns(meta_pd)
             meta_pd = meta_pd.set_index('sample_name')
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
+            print("***************")
+            print("songbird_models")
+            print("***************")
+            print(songbird_models)
             if dat in songbird_models:
                 models = check_metadata_models(meta, meta_pd, songbird_models[dat], 'songbird')
             else:
@@ -195,6 +199,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
             baselines = {}
             for model, formula_meta_var_drop in models.items():
+                print(" ** model, formula_meta_var_drop")
+                print(model, formula_meta_var_drop)
                 for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
                                                            thresh_feats, thresh_samples, n_randoms)):
                     batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random = [str(x) for x in it]
