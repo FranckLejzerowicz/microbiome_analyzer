@@ -49,11 +49,12 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
     datasets_raref_depths = check_rarefy_need(i_datasets_folder, datasets_read, p_raref_depths)
 
-    written = 0
+    main_written = 0
     run_pbs = '%s/1_run_rarefy.sh' % job_folder
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
 
+            written = 0
             if dat in datasets_filt_map:
                 if dat not in datasets_raref_depths:
                     datasets_rarefs[dat] = 0
@@ -82,11 +83,13 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 tsv_out = '%s.tsv' % splitext(qza_out)[0]
                 if force or not os.path.isfile(qza_out):
                     write_rarefy(qza, qza_out, depth, cur_sh)
+                    main_written += 1
                     written += 1
                 if force or not os.path.isfile(tsv_out):
                     cmd = run_export(qza_out, tsv_out, 'FeatureTable[Frequency]')
                     cur_sh.write('echo "%s"\n' % cmd)
                     cur_sh.write('%s\n\n' % cmd)
+                    main_written += 1
                     written += 1
 
                 datasets[dat] = [tsv_out, meta_out]
@@ -98,7 +101,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc)
-    if written:
+    if main_written:
         print_message('# Calculate beta diversity indices', 'sh', run_pbs)
 
 

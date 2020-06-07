@@ -93,6 +93,9 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
         meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
         (omic1, bool1), (omic2, bool2) = pair_datasets
 
+        print()
+        print()
+        print()
         print('pair:', pair)
         print(' >', omic1)
         print(' >', omic2)
