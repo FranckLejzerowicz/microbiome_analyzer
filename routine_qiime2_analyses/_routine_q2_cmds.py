@@ -417,6 +417,8 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
             cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
         elif 'pcoa' in typ:
             cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
+        elif 'perms' in typ:
+            cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
         elif 'songbird' in typ:
             cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
         else:
@@ -754,7 +756,7 @@ def check_absence_mat(mat_qzas: list, first_print: int, analysis: str) -> bool:
 
 def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat_qza: str,
                                             testing_group: str, beta_type: str, new_qzv: str,
-                                            cur_sh: TextIO) -> None:
+                                            new_html: str, cur_sh: TextIO) -> None:
     """
     Determine whether groups of samples are significantly different from one
     another using a permutation-based statistical test.
@@ -775,19 +777,25 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     :param new_qzv: VISUALIZATION.
     :param cur_sh: writing file handle.
     """
-    cmd = 'qiime diversity filter-distance-matrix \\\n'
-    cmd += '--m-metadata-file %s \\\n' % new_meta
-    cmd += '--i-distance-matrix %s \\\n' % mat_qza
-    cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
-    cmd += 'qiime diversity beta-group-significance \\\n'
-    cmd += '--i-distance-matrix %s \\\n' % new_mat_qza
-    cmd += '--p-method %s \\\n' % beta_type
-    cmd += '--m-metadata-file %s \\\n' % new_meta
-    cmd += '--m-metadata-column "%s" \\\n' % testing_group
-    cmd += '--p-permutations 2999 \\\n'
-    cmd += '--o-visualization %s\n' % new_qzv
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write(cmd)
+    if not isfile(new_qzv):
+        cmd = 'qiime diversity filter-distance-matrix \\\n'
+        cmd += '--m-metadata-file %s \\\n' % new_meta
+        cmd += '--i-distance-matrix %s \\\n' % mat_qza
+        cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
+        cmd += 'qiime diversity beta-group-significance \\\n'
+        cmd += '--i-distance-matrix %s \\\n' % new_mat_qza
+        cmd += '--p-method %s \\\n' % beta_type
+        cmd += '--m-metadata-file %s \\\n' % new_meta
+        cmd += '--m-metadata-column "%s" \\\n' % testing_group
+        cmd += '--p-permutations 2999 \\\n'
+        cmd += '--o-visualization %s\n' % new_qzv
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write(cmd)
+    if not isfile(new_html):
+        cmd = run_export(new_qzv, new_html, 'perms')
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write(cmd)
+
 
 
 def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
