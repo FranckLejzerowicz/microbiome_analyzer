@@ -55,11 +55,15 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
         for dat, tsv_meta_pds in datasets.items():
 
             if dat in datasets_filt_map:
+                if dat not in datasets_raref_depths:
+                    datasets_rarefs[dat] = 0
+                    continue
                 datasets_raref_depths[dat] = datasets_raref_depths[datasets_filt_map[dat]]
 
             if dat not in datasets_raref_depths:
                 datasets_rarefs[dat] = 0
                 continue
+
 
             odir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat)
             depth = datasets_raref_depths[dat]
