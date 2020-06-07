@@ -833,11 +833,11 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
         else:
             tsv_pd_, meta_pd_ = datasets_read[dat]
 
-        print()
-        print()
-        print('>>>>>>>>>>>>>> get_datasets_filtered <<<<<<<<<<<<<')
-        print(analysis, dat)
-        print('?IN', datasets.keys())
+        # print()
+        # print()
+        # print('>>>>>>>>>>>>>> get_datasets_filtered <<<<<<<<<<<<<')
+        # print(analysis, dat)
+        # print('?IN', datasets.keys())
 
         dat_filts = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
@@ -865,8 +865,8 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                     tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
                     if isfile(meta_out_mmvec):
                         meta_out = meta_out_mmvec
-                        print('USE MMVECs meta')
-                        print(' - - -', meta_out)
+                        # print('USE MMVECs meta')
+                        # print(' - - -', meta_out)
                         with open(meta_out) as f:
                             for line in f:
                                 break
@@ -879,16 +879,16 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
 
                     if isfile(tsv_out_mmvec):
                         # print(analysis, 'is file: tsv_out_mmvec', tsv_out_mmvec)
-                        print('USE MMVECs tsv')
-                        print(' - - -', tsv_out_mmvec)
+                        # print('USE MMVECs tsv')
+                        # print(' - - -', tsv_out_mmvec)
                         tsv_out = tsv_out_mmvec
                     elif force or not isfile(tsv_out):
                         # print(analysis, 'write: tsv_out', tsv_out)
                         write_filtered_tsv(tsv_out, tsv_pd)
 
                     if isfile(tsv_qza_mmvec):
-                        print('USE MMVECs qza')
-                        print(' - - -', tsv_qza_mmvec)
+                        # print('USE MMVECs qza')
+                        # print(' - - -', tsv_qza_mmvec)
                         # print(analysis, 'is file: tsv_qza_mmvec', tsv_qza_mmvec)
                         tsv_qza = tsv_qza_mmvec
                     elif force or not isfile(tsv_qza):

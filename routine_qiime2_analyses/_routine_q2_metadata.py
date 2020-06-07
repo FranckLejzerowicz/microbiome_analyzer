@@ -69,8 +69,7 @@ def check_metadata_formulas(meta: str, meta_pd: pd.DataFrame,
     return formulas
 
 
-def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
-                          songbird_models: dict, analysis: str) -> dict:
+def check_metadata_models(meta: str, meta_pd: pd.DataFrame, songbird_models: dict) -> dict:
     """
     :param meta: metadata file name.
     :param meta_pd: metadata table.

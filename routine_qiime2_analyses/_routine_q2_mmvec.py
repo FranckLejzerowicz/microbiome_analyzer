@@ -291,7 +291,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         print()
         print("pair")
         for idx, i in enumerate(pair_data):
-            print(' -', i)
+            print(' -', idx)
             for j in i:
                 print('     -', j)
 
