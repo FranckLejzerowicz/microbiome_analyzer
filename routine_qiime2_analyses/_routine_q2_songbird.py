@@ -35,7 +35,8 @@ from routine_qiime2_analyses._routine_q2_mmvec import make_filtered_and_common_d
 def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
                         case: str, formula_meta_var_drop: list, case_var: str, case_vals: list, force: bool,
                         batch: str, learn: str, epoch: str, diff_prior: str,
-                        thresh_feat: str, thresh_sample: str, n_random: str) -> (str, str):
+                        thresh_feat: str, thresh_sample: str, n_random: str,
+                        baselines: dict, baseline: str) -> (str, str):
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
@@ -66,9 +67,15 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
     diffs_qza = '%s/differentials.qza' % odir
     stats = '%s/differentials-stats.qza' % odir
     plot = '%s/differentials-biplot.qza' % odir
-    base_diff_qza = '%s/differentials-baseline.qza' % odir
-    base_stats = '%s/differentials-baseline-stats.qza' % odir
-    base_plot = '%s/differentials-baseline-biplot.qza' % odir
+    if baseline in baselines:
+        base_diff_qza = ''
+        base_stats = baselines[baseline]
+        base_plot = ''
+    else:
+        base_diff_qza = '%s/differentials-baseline.qza' % odir
+        base_stats = '%s/differentials-baseline-stats.qza' % odir
+        base_plot = '%s/differentials-baseline-biplot.qza' % odir
+        baselines[baseline] = base_stats
     tensor = '%s/differentials-tensorboard.qzv' % odir
     tensor_html = '%s/differentials-tensorboard.html' % odir
 
@@ -91,7 +98,7 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
             remove = False
     if remove:
         os.remove(cur_sh)
-    return diffs, tensor_html
+    return diffs, tensor_html, baselines
 
 
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
@@ -185,11 +192,13 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             else:
                 continue
 
+            baselines = {}
             for model, formula_meta_var_drop in models.items():
                 for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
                                                            thresh_feats, thresh_samples, n_randoms)):
                     batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random = [str(x) for x in it]
                     model_rep = model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE')
+
                     params = '%s/filt_f%s_s%s/%s_%s_%s_%s' % (
                         model_rep, thresh_feat, thresh_sample,
                         batch, learn, epoch, diff_prior.replace('.', '')
@@ -197,6 +206,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     for case_var, case_vals_list in cases_dict.items():
                         for case_vals in case_vals_list:
                             case = get_case(case_vals, case_var, str(idx))
+                            baseline = '%s_%s' % ('_'.join([str(x) for x in it]), case)
                             if pair:
                                 res_dir = '%s/%s/%s/%s/%s' % (dat, pair, filt, case, params)
                             else:
@@ -210,7 +220,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                 odir, qza, meta_pd, cur_sh, case, formula_meta_var_drop,
                                 case_var, case_vals, force, batch, learn,
                                 epoch, diff_prior, thresh_feat,
-                                thresh_sample, n_random
+                                thresh_sample, n_random, baselines, baseline
                             )
                             if pair:
                                 songbird_outputs.append([dat, filt, params.replace('/', '__'),
