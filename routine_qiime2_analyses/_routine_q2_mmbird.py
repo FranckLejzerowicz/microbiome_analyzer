@@ -460,7 +460,7 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
                 omic1_diff_fps,
                 omic2_diff_fps
             )
-            if crowded and pair == 'gotus_foods' and omic_filt1 == 'gOTU_uniq_filt_3rm-minFeat00001_0_0' and omic_filt2 == 'vioscreen_foods_consumed_grams_per_day_0_0':
+            if crowded and pair == 'gotu_foods' and omic_filt1 == 'gOTU_uniq_filt_3rm-minFeat00001_0_0' and omic_filt2 == 'vioscreen_foods_consumed_grams_per_day_0_0':
                 print("all_omic1_songbird_ranks")
                 print(all_omic1_songbird_ranks[:4])
                 print("all_omic2_songbird_ranks")
