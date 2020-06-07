@@ -456,18 +456,23 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             omic_metabolite = order_omics[7]
 
             # get differentials
+            print('\t-> [mmbird] Get differentials...', end=' ')
             all_omic1_songbird_ranks, all_omic2_songbird_ranks = get_all_omics_songbirds(
                 omic1_diff_fps,
                 omic2_diff_fps
             )
+            print('Done.')
+
             # if crowded and pair == 'gotu_foods' and omic_filt1 == 'gOTU_uniq_filt_3rm-minFeat00001_0_0' and omic_filt2 == 'vioscreen_foods_consumed_grams_per_day_0_0':
-            #     print("all_omic1_songbird_ranks")
-            #     print(all_omic1_songbird_ranks[:4])
-            #     print("all_omic2_songbird_ranks")
-            #     print(all_omic2_songbird_ranks[:4])
+            print("all_omic1_songbird_ranks")
+            print(all_omic1_songbird_ranks[:4,:4])
+            print("all_omic2_songbird_ranks")
+            print(all_omic2_songbird_ranks[:4,:4])
+
             omic1_tax_fp = get_tax_fp(i_datasets_folder, omic1)
             omic2_tax_fp = get_tax_fp(i_datasets_folder, omic2)
 
+            print('\t-> [mmbird] Extend feat metas...', end=' ')
             metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
                 omic_filt1, omic_filt2,
                 omic1_common_fp, omic2_common_fp,
@@ -475,6 +480,7 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
                 all_omic1_songbird_ranks, all_omic2_songbird_ranks,
                 ordi_fp
             )
+            print('Done.')
 
             if all_omic1_songbird_ranks.shape[0]:
                 max_feats = all_omic1_songbird_ranks.shape[0]
@@ -509,19 +515,19 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             n_mbAnnot_CLAs_in_file = 0
             ordi_edit_fp = ordi_fp
             qza, qzv = get_qzs(ordi_edit_fp)
-            # print('-------------------------------')
-            # print('ordi_fp', ordi_fp)
-            # print('omic1_diff_fps')
-            # for i in omic1_diff_fps:
-            #     print('\t\t', i)
-            # print('omic2_diff_fps:\t', omic2_diff_fps)
+            print('-------------------------------')
+            print('omic_filt1:\t', omic_filt1)
+            print('omic_filt2:\t', omic_filt2)
+            print('ordi_fp', ordi_fp)
+            print('omic1_diff_fps')
+            for i in omic1_diff_fps:
+                print('\t\t', i)
+            print('omic2_diff_fps')
+            for i in omic2_diff_fps:
+                print('\t\t', i)
             # print('meta_fp:\t', meta_fp)
             # print('omic1_common_fp:\t', omic1_common_fp)
             # print('omic2_common_fp:\t', omic2_common_fp)
-            # print('omic1:\t', omic1)
-            # print('omic2:\t', omic2)
-            # print('omic_filt1:\t', omic_filt1)
-            # print('omic_filt2:\t', omic_filt2)
             # print('omic_feature:\t', omic_feature)
             # print('omic_sample:\t', omic_sample)
             # print('omic_microbe:\t', omic_microbe)
@@ -588,7 +594,9 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
 
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
 
+    print('\t-> [mmbird] Get res dict...', end=' ')
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
+    print('Done.')
     pair_cmds = get_pair_cmds(i_datasets_folder, mmvec_res, omics_pairs, force)
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
     job_folder2 = get_job_folder(i_datasets_folder, 'mmbird/chunks')

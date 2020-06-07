@@ -225,10 +225,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             if pair:
                                 songbird_outputs.append([dat, filt, params.replace('/', '__'),
                                                          case, diffs, pair])
-                            print("res_dir")
-                            print(res_dir)
-                            print("baselines")
-                            print(baselines)
 
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
     main_sh = write_main_sh(job_folder, '2_songbird%s' % filt_raref, all_sh_pbs,
