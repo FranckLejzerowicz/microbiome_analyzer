@@ -125,6 +125,10 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     job_folder2 = get_job_folder(i_datasets_folder, 'songbird/chunks')
     songbird_dicts = get_songbird_dicts(p_diff_models)
     songbird_models = songbird_dicts[0]
+    print("***************")
+    print("songbird_models")
+    print("***************")
+    print(songbird_models)
     songbird_filtering = songbird_dicts[1]
     params = songbird_dicts[2]
     songbird_datasets = songbird_dicts[3]
@@ -190,13 +194,12 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             meta_pd = rename_duplicate_columns(meta_pd)
             meta_pd = meta_pd.set_index('sample_name')
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
-            print("***************")
-            print("songbird_models")
-            print("***************")
-            print(songbird_models)
+            print(' --->', dat, end=' : ')
             if dat in songbird_models:
+                print(' IN !!!')
                 models = check_metadata_models(meta, meta_pd, songbird_models[dat])
             else:
+                print(' OUT...')
                 continue
 
             baselines = {}

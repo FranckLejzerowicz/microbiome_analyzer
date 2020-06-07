@@ -47,10 +47,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     job_folder = get_job_folder(i_datasets_folder, 'rarefy')
     job_folder2 = get_job_folder(i_datasets_folder, 'rarefy/chunks')
 
-    if p_raref_depths:
-        datasets_raref_depths = get_raref_depths(p_raref_depths)
-    else:
-        datasets_raref_depths = check_rarefy_need(i_datasets_folder, datasets_read)
+    datasets_raref_depths = check_rarefy_need(i_datasets_folder, datasets_read, p_raref_depths)
 
     written = 0
     run_pbs = '%s/1_run_rarefy.sh' % job_folder
@@ -101,7 +98,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
         print_message('# Calculate beta diversity indices', 'sh', run_pbs)
 
 
-def check_rarefy_need(i_datasets_folder: str, datasets_read: dict) -> dict:
+def check_rarefy_need(i_datasets_folder: str, datasets_read: dict, p_raref_depths: str) -> dict:
     """
     Check the distribution of reads per sample and its skewness to
     warn user for the need for rarefaction of the feature tables.
@@ -110,8 +107,14 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict) -> dict:
     :param datasets_read: dataset -> [tsv table, meta table]
     :return datasets_raref_depths: Rarefaction depths for eac dataset.
     """
+    if p_raref_depths:
+        datasets_raref_depths_yml = get_raref_depths(p_raref_depths)
+
     datasets_raref_depths = {}
     for dat, (tsv_pd, meta_pd) in datasets_read.items():
+        if dat in datasets_raref_depths_yml:
+            datasets_raref_depths[dat] = datasets_raref_depths_yml[dat]
+            continue
         raref_files = glob.glob('%s/qiime/rarefy/%s/tab_raref*.qza' % (i_datasets_folder, dat))
         if len(raref_files):
             datasets_raref_depths[dat] = raref_files[0].split('_raref')[-1].split('.tsv')[0]
