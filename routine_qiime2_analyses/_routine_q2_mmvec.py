@@ -262,19 +262,19 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
 
     mmvec_pairs, mmvec_filtering, mmvec_params, mmvec_subsets = get_mmvec_dicts(p_mmvec_pairs, datasets_filt)
 
-    # print("mmvec_pairs")
-    # print(mmvec_pairs)
-    # print("mmvec_filtering")
-    # print(mmvec_filtering)
-    # print("mmvec_params")
-    # print(mmvec_params)
-    # print("mmvec_subsets")
-    # print(mmvec_subsets)
+    print("mmvec_pairs")
+    print(mmvec_pairs)
+    print("mmvec_filtering")
+    print(mmvec_filtering)
+    print("mmvec_params")
+    print(mmvec_params)
+    print("mmvec_subsets")
+    print(mmvec_subsets)
 
     unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
 
-    # print("unique_datasets")
-    # print(unique_datasets)
+    print("unique_datasets")
+    print(unique_datasets)
 
     job_folder = get_job_folder(i_datasets_folder, 'mmvec')
     filt_datasets, common_datasets = make_filtered_and_common_dataset(
@@ -287,12 +287,13 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     mmvec_outputs = []
 
     for pair, pair_data in common_datasets.items():
-        # print()
-        # print("pair")
-        # for idx, i in enumerate(pair_data):
-        #     print(' -', i)
-        #     for j in i:
-        #         print('     -', j)
+
+        print()
+        print("pair")
+        for idx, i in enumerate(pair_data):
+            print(' -', i)
+            for j in i:
+                print('     -', j)
 
         job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
         if not split:

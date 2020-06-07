@@ -812,11 +812,11 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
     filt_jobs = []
     filt_datasets = {}
     for (dat, mb) in unique_datasets:
-        # print()
-        # print()
-        # print('>>>>>>>>>>>>>> get_datasets_filtered <<<<<<<<<<<<<')
-        # print(analysis, dat)
-        # print('?IN', datasets.keys())
+        print()
+        print()
+        print('>>>>>>>>>>>>>> get_datasets_filtered <<<<<<<<<<<<<')
+        print(analysis, dat)
+        print('?IN', datasets.keys())
         if dat not in datasets:
             if dat.endswith('__raref'):
                 dat_rt = dat.split('__raref')[0]
