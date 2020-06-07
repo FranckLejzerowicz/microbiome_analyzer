@@ -86,7 +86,7 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
             new_meta_pd.columns = [x.lower() for x in new_meta_pd.columns]
             if meta_var:
                 meta_vars = list(set(list(vars) + [meta_var]))
-            else
+            else:
                 meta_vars = list(vars)
             new_meta_pd = new_meta_pd[meta_vars]
             new_meta_pd = rename_duplicate_columns(new_meta_pd)
