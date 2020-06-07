@@ -795,7 +795,7 @@ def write_filtered_meta(meta_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFr
 
 
 def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
-                          datasets_read: dict, datasets_filt: dict,
+                          datasets_read: dict, datasets_filt: dict, datasets_filt_map: dict,
                           unique_datasets: list, filtering: dict,
                           force: bool, analysis: str) -> (dict, list):
     """
@@ -825,8 +825,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                 if not tsv_pd_.shape[0]:
                     continue
                 dat = '%s__raref' % dat
-                print(dat)
-                print(fjkjb)
+                datasets_filt_map[dat] = dat_
             else:
                 print(analysis, '%s dataset "%s" not found...' % (analysis, dat))
                 continue
