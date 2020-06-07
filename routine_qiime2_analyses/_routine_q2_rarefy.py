@@ -123,6 +123,8 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict, p_raref_depth
             count, division = np.histogram(tsv_sam_sum)
             skw = skew(count)
             if abs(skw) > 1:
+                print()
+                print(' ==> Consider rarefying <==')
                 print('[%s] Reads-per-sample distribution [skewness=%s] (>1!)' % (dat, round(abs(float(skw)), 3)))
                 division_std = np.interp(count, (min(count), max(count)), (0, 20))
                 print('\treadsbin\tsamples\thistogram')
@@ -133,7 +135,6 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict, p_raref_depth
                         print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], ''))
                     else:
                         print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], '-'))
-                print(' ==> Consider rarefying <==')
             second_quantile = tsv_sam_sum.quantile(0.2)
             if second_quantile < 1000:
                 print('[%s] Second quantile of the reads-per-sample distribution is <1000' % dat)

@@ -811,15 +811,20 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
     """
     filt_jobs = []
     filt_datasets = {}
-    for (dat, mb) in unique_datasets:
+    for (dat_, mb) in unique_datasets:
+        if dat_ in datasets_filt:
+            dat = datasets_filt[dat_]
+        else:
+            dat = dat_
         if dat not in datasets:
             if dat.endswith('__raref'):
                 dat_rt = dat.split('__raref')[0]
                 if dat_rt in datasets_filt:
-                    dat_rt = datasets_filt[dat]
-                tsv_pd_, meta_pd_ = get_raref_table(dat_rt, i_datasets_folder, analysis)
+                    dat = datasets_filt[dat_rt]
+                tsv_pd_, meta_pd_ = get_raref_table(dat, i_datasets_folder, analysis)
                 if not tsv_pd_.shape[0]:
                     continue
+                dat = '%s__raref' % dat
             else:
                 print(analysis, '%s dataset "%s" not found...' % (analysis, dat))
                 continue
@@ -905,6 +910,12 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                 dat_filts[(preval_filt, str(abund_filter))] = [
                     tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()
                 ]
+                # print('------')
+                # print(dat, preval_filt, str(abund_filter))
+                # print(' -', tsv_out)
+                # print(' -', tsv_qza)
+                # print(' -', meta_out)
+                # print('------')
         filt_datasets[dat] = dat_filts
     return filt_datasets, filt_jobs
 
