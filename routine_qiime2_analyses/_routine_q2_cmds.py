@@ -1155,6 +1155,7 @@ def extend_split_taxonomy(padded_new_rows_extended_pd: pd.DataFrame):
     to_concat = []
     for col in padded_new_rows_extended_pd.columns.tolist():
         split_taxonomy_col_dummy = padded_new_rows_extended_pd[col].str.get_dummies()
+        split_taxonomy_col_dummy.columns = ['%s__%s' % (x, col) for x in split_taxonomy_col_dummy.columns]
         to_concat.append(split_taxonomy_col_dummy)
     split_taxonomy_extended_pd = pd.concat(to_concat, axis=1)
     return split_taxonomy_extended_pd
