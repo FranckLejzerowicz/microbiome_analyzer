@@ -249,7 +249,6 @@ def routine_qiime2_analyses(
                                             input_to_filtered, mmvec_outputs, force, prjct_nm,
                                             qiime_env, chmod, noloc, split, filt_raref)
     if p_diff_models and p_mmvec_pairs and 'mmbird' not in p_skip:
-        print('RUN MMBIRD')
         run_mmbird(i_datasets_folder, songbird_outputs,
                    mmvec_outputs, force, prjct_nm, qiime_env,
                    chmod, noloc, filt_raref, input_to_filtered)

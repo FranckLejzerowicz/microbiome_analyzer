@@ -196,7 +196,6 @@ def get_mmvec_res(mmvec_outputs_pd):
 def get_all_omics_songbirds(omic_diff_fps):
     all_omic_diff_list = []
     for (omic_diff_fp, model) in omic_diff_fps:
-        print('  ->', omic_diff_fp, model)
         if str(omic_diff_fp) != 'nan' and isfile(omic_diff_fp):
             omic_diff_pd = pd.read_csv(omic_diff_fp, header=0, sep='\t', dtype=str)
             index_header = omic_diff_pd.columns.tolist()[0]
@@ -231,7 +230,11 @@ def get_heatmap_qzs(ranks_fp):
 #     return qza, qzv
 
 
-def get_order_omics(omic1, omic2, omic_filt1, omic_filt2, omics_pairs):
+def get_order_omics(
+        omic1, omic2,
+        omic_filt1, omic_filt2,
+        omics_pairs
+):
     omic_feature, omic_sample = ('feature', 'sample')
     omic_microbe, omic_metabolite = ('microbe', 'metabolite')
     if (omic_filt2, omic_filt1) not in omics_pairs:
@@ -331,28 +334,24 @@ def get_tax_extended_fps(
         ).drop_duplicates()
     metatax_omic_fp = '%s_meta-%s.tsv' % (splitext(ordi_fp)[0], omic_filt)
     omic_tax_pd.to_csv(metatax_omic_fp, index=False, sep='\t')
-    print("metatax_omic_fp")
-    print(metatax_omic_fp)
-    print(omic_tax_pd[:5])
     return metatax_omic_fp
 
 
-def get_biplot_commands(ordi_edit_fp, qza, qzv,
-                        omic_feature, omic_sample,
-                        metatax_omic1_fp, metatax_omic2_fp,
-                        edit, n_mbAnnot_CLAs, crowded, max_feats):
-
+def get_biplot_commands(
+        ordi_edit_fp, qza, qzv,
+        omic_feature, omic_sample,
+        metatax_omic1_fp, metatax_omic2_fp,
+        edit, n_mbAnnot_CLAs, crowded, max_feats
+):
     if max_feats == 0:
         ordi = OrdinationResults.read(ordi_edit_fp)
         max_feats = ordi.features.shape[0]
-
     cmd = '\n'
     if not isfile(qza):
         cmd += '\nqiime tools import'
         cmd += ' --input-path %s' % ordi_edit_fp
         cmd += ' --output-path %s' % qza
         cmd += ' --type "PCoAResults %s Properties([\'biplot\'])"\nsleep 3' % '%'
-
     cmd += '\nqiime emperor biplot'
     cmd += ' --i-biplot %s' % qza
     cmd += ' --m-%s-metadata-file %s' % (omic_feature, metatax_omic1_fp)
@@ -365,7 +364,6 @@ def get_biplot_commands(ordi_edit_fp, qza, qzv,
         cmd += ' --o-visualization %s\n' % qzv.replace('.qzv', '_crowded.qzv')
     else:
         cmd += ' --o-visualization %s\n' % qzv
-
     return cmd
 
 
@@ -467,7 +465,7 @@ def get_tax_fp(i_datasets_folder: str, omic: str, input_to_filtered: dict) -> st
         else:
             omic_tax = omic_tax_
     else:
-        print('No taxonomy file for "%s"' % omic)
+        print('\nNo taxonomy file for "%s"' % omic)
         return ''
 
     omic_tax_fps = glob.glob('%s/%s/tax_%s*.tsv' % (tax_dir, omic_tax, omic_tax))
@@ -516,17 +514,17 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict,
 
             # get differentials
             print('\t-> [mmbird] Get differentials...', end=' ')
-            print()
-            print('omic1_diff_fps')
-            print(omic1_diff_fps)
+            # print()
+            # print('omic1_diff_fps')
+            # print(omic1_diff_fps)
             all_omic1_songbird_ranks = get_all_omics_songbirds(omic1_diff_fps)
-            print("all_omic1_songbird_ranks")
-            print(all_omic1_songbird_ranks[:4])
-            print('omic2_diff_fps')
-            print(omic2_diff_fps)
+            # print("all_omic1_songbird_ranks")
+            # print(all_omic1_songbird_ranks[:4])
+            # print('omic2_diff_fps')
+            # print(omic2_diff_fps)
             all_omic2_songbird_ranks = get_all_omics_songbirds(omic2_diff_fps)
-            print("all_omic2_songbird_ranks")
-            print(all_omic2_songbird_ranks[:4])
+            # print("all_omic2_songbird_ranks")
+            # print(all_omic2_songbird_ranks[:4])
             print('Done.')
 
             print('\t-> [mmbird] Extend feat metas...', end=' ')
@@ -537,7 +535,6 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict,
             #     all_omic1_songbird_ranks, all_omic2_songbird_ranks,
             #     ordi_fp
             # )
-            print()
             omic1_tax_fp = get_tax_fp(i_datasets_folder, omic1, input_to_filtered)
             metatax_omic1_fp = get_tax_extended_fps(
                 omic_filt1,
@@ -589,16 +586,16 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict,
             n_mbAnnot_CLAs_in_file = 0
             ordi_edit_fp = ordi_fp
             qza, qzv = get_qzs(ordi_edit_fp)
-            print('-------------------------------')
-            print('omic_filt1:\t', omic_filt1)
-            print('omic_filt2:\t', omic_filt2)
-            print('ordi_fp', ordi_fp)
-            print('omic1_diff_fps')
-            for i in omic1_diff_fps:
-                print('\t\t', i)
-            print('omic2_diff_fps')
-            for i in omic2_diff_fps:
-                print('\t\t', i)
+            # print('-------------------------------')
+            # print('omic_filt1:\t', omic_filt1)
+            # print('omic_filt2:\t', omic_filt2)
+            # print('ordi_fp', ordi_fp)
+            # print('omic1_diff_fps')
+            # for i in omic1_diff_fps:
+            #     print('\t\t', i)
+            # print('omic2_diff_fps')
+            # for i in omic2_diff_fps:
+            #     print('\t\t', i)
             # print('meta_fp:\t', meta_fp)
             # print('omic1_common_fp:\t', omic1_common_fp)
             # print('omic2_common_fp:\t', omic2_common_fp)
@@ -624,7 +621,6 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict,
                     '', n_mbAnnot_CLAs_in_file,
                     crowded, max_feats
                 )
-
             # ranks_edit_fp = ranks_fp
             # if omic_metabolite == 'metabolite':
             #     metatax_omic2_pd = pd.read_csv(metatax_omic2_fp, header=0, sep='\t')
@@ -674,8 +670,8 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
     print('\t-> [mmbird] Get res dict...', end=' ')
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
     print('Done.')
-    print("len(mmvec_res.keys())")
-    print(len(mmvec_res.keys()))
+    # print("len(mmvec_res.keys())")
+    # print(len(mmvec_res.keys()))
     pair_cmds = get_pair_cmds(i_datasets_folder, mmvec_res, omics_pairs, force, input_to_filtered)
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
     job_folder2 = get_job_folder(i_datasets_folder, 'mmbird/chunks')
