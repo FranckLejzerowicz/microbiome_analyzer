@@ -152,46 +152,65 @@ def get_mmvec_res(mmvec_outputs_pd):
     return mmvec_res
 
 
-def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
+# def get_all_omics_songbirds(omic1_diff_fps, omic2_diff_fps):
+#
+#     all_omic1_diff_list = []
+#     for (omic1_diff_fp, model) in omic1_diff_fps:
+#         if str(omic1_diff_fp) != 'nan' and isfile(omic1_diff_fp):
+#             omic1_diff_pd = pd.read_csv(omic1_diff_fp, header=0, sep='\t', dtype=str)
+#             if omic1_diff_pd['featureid'][0] == '#q2:types':
+#                 omic1_diff_pd = omic1_diff_pd[1:]
+#             omic1_diff_pd = omic1_diff_pd.rename(columns={omic1_diff_pd.columns.tolist()[0]: 'Feature ID'})
+#             omic1_diff_pd = omic1_diff_pd.set_index('Feature ID')
+#             omic1_diff_pd = omic1_diff_pd.drop(columns='Intercept')
+#             omic1_diff_pd.columns = ['%s__%s' % (model, x) for x in omic1_diff_pd.columns]
+#             all_omic1_diff_list.append(omic1_diff_pd)
+#     if len(all_omic1_diff_list):
+#         all_omic1_diff_pd = pd.concat(all_omic1_diff_list, axis=1, sort=False)
+#         all_omic1_songbird_ranks = all_omic1_diff_pd.reset_index()
+#         all_omic1_songbird_ranks = all_omic1_songbird_ranks.rename(
+#             columns={all_omic1_songbird_ranks.columns.tolist()[0]: 'Feature ID'})
+#     else:
+#         all_omic1_songbird_ranks = pd.DataFrame()
+#
+#     all_omic2_diff_list = []
+#     all_omic2_songbird_ranks = pd.DataFrame()
+#     for (omic2_diff_fp, model) in omic2_diff_fps:
+#         if str(omic2_diff_fp)!='nan' and isfile(omic2_diff_fp):
+#             omic2_diff_pd = pd.read_csv(omic2_diff_fp, header=0, sep='\t', dtype=str)
+#             if omic2_diff_pd['featureid'][0] == '#q2:types':
+#                 omic2_diff_pd = omic2_diff_pd[1:]
+#             omic2_diff_pd = omic2_diff_pd.rename(columns={omic2_diff_pd.columns.tolist()[0]: 'Feature ID'})
+#             omic2_diff_pd = omic2_diff_pd.set_index('Feature ID')
+#             omic2_diff_pd = omic2_diff_pd.drop(columns='Intercept')
+#             omic2_diff_pd.columns = ['%s__%s' % (model, x) for x in omic2_diff_pd.columns]
+#             all_omic2_diff_list.append(omic2_diff_pd)
+#     if len(all_omic2_diff_list):
+#         all_omic2_diff_pd = pd.concat(all_omic2_diff_list, axis=1, sort=False)
+#         all_omic2_songbird_ranks = all_omic2_diff_pd.reset_index()
+#         all_omic2_songbird_ranks = all_omic2_songbird_ranks.rename(
+#             columns={all_omic2_songbird_ranks.columns.tolist()[0]: 'Feature ID'})
+#
+#     return all_omic1_songbird_ranks, all_omic2_songbird_ranks
 
-    all_omic1_diff_list = []
-    for (omic1_diff_fp, model) in omic1_diff_fps:
-        if str(omic1_diff_fp) != 'nan' and isfile(omic1_diff_fp):
-            omic1_diff_pd = pd.read_csv(omic1_diff_fp, header=0, sep='\t', dtype=str)
-            if omic1_diff_pd['featureid'][0] == '#q2:types':
-                omic1_diff_pd = omic1_diff_pd[1:]
-            omic1_diff_pd = omic1_diff_pd.rename(columns={omic1_diff_pd.columns.tolist()[0]: 'Feature ID'})
-            omic1_diff_pd = omic1_diff_pd.set_index('Feature ID')
-            omic1_diff_pd = omic1_diff_pd.drop(columns='Intercept')
-            omic1_diff_pd.columns = ['%s__%s' % (model, x) for x in omic1_diff_pd.columns]
-            all_omic1_diff_list.append(omic1_diff_pd)
-    if len(all_omic1_diff_list):
-        all_omic1_diff_pd = pd.concat(all_omic1_diff_list, axis=1, sort=False)
-        all_omic1_songbird_ranks = all_omic1_diff_pd.reset_index()
-        all_omic1_songbird_ranks = all_omic1_songbird_ranks.rename(
-            columns={all_omic1_songbird_ranks.columns.tolist()[0]: 'Feature ID'})
+def get_all_omics_songbirds(omic_diff_fps):
+    all_omic_diff_list = []
+    for (omic_diff_fp, model) in omic_diff_fps:
+        print('  ->', omic_diff_fp, model)
+        if str(omic_diff_fp) != 'nan' and isfile(omic_diff_fp):
+            omic_diff_pd = pd.read_csv(omic_diff_fp, header=0, sep='\t', dtype=str)
+            index_header = omic_diff_pd.columns.tolist()[0]
+            if omic_diff_pd[index_header][0] == '#q2:types':
+                omic_diff_pd = omic_diff_pd[1:]
+            omic_diff_pd = omic_diff_pd.rename(columns={index_header: 'Feature ID'}).set_index('Feature ID')
+            # omic_diff_pd = omic_diff_pd.drop(columns='Intercept')
+            omic_diff_pd.columns = ['%s__%s' % (model, x) for x in omic_diff_pd.columns]
+            all_omic_diff_list.append(omic_diff_pd)
+    if len(all_omic_diff_list):
+        all_omic_songbird_ranks = pd.concat(all_omic_diff_list, axis=1, sort=False).reset_index()
     else:
-        all_omic1_songbird_ranks = pd.DataFrame()
-
-    all_omic2_diff_list = []
-    all_omic2_songbird_ranks = pd.DataFrame()
-    for (omic2_diff_fp, model) in omic2_diff_fps:
-        if str(omic2_diff_fp)!='nan' and isfile(omic2_diff_fp):
-            omic2_diff_pd = pd.read_csv(omic2_diff_fp, header=0, sep='\t', dtype=str)
-            if omic2_diff_pd['featureid'][0] == '#q2:types':
-                omic2_diff_pd = omic2_diff_pd[1:]
-            omic2_diff_pd = omic2_diff_pd.rename(columns={omic2_diff_pd.columns.tolist()[0]: 'Feature ID'})
-            omic2_diff_pd = omic2_diff_pd.set_index('Feature ID')
-            omic2_diff_pd = omic2_diff_pd.drop(columns='Intercept')
-            omic2_diff_pd.columns = ['%s__%s' % (model, x) for x in omic2_diff_pd.columns]
-            all_omic2_diff_list.append(omic2_diff_pd)
-    if len(all_omic2_diff_list):
-        all_omic2_diff_pd = pd.concat(all_omic2_diff_list, axis=1, sort=False)
-        all_omic2_songbird_ranks = all_omic2_diff_pd.reset_index()
-        all_omic2_songbird_ranks = all_omic2_songbird_ranks.rename(
-            columns={all_omic2_songbird_ranks.columns.tolist()[0]: 'Feature ID'})
-
-    return all_omic1_songbird_ranks, all_omic2_songbird_ranks
+        all_omic_songbird_ranks = pd.DataFrame()
+    return all_omic_songbird_ranks
 
 
 def get_qzs(ordi_fp):
@@ -223,65 +242,99 @@ def get_order_omics(omic1, omic2, omic_filt1, omic_filt2, omics_pairs):
     return omic1, omic2, omic_filt1, omic_filt2, omic_feature, omic_sample, omic_microbe, omic_metabolite
 
 
+# def get_tax_extended_fps(
+#         omic_filt1, omic_filt2,
+#         omic1_common_fp, omic2_common_fp,
+#         omic1_tax_fp, omic2_tax_fp,
+#         all_omic1_songbird_ranks,
+#         all_omic2_songbird_ranks,
+#         ordi_fp
+# ):
+#     if isfile(omic1_tax_fp):
+#         omic1_tax_pd = pd.read_csv(omic1_tax_fp, header=0, sep='\t', dtype=str)
+#         if 'Taxon' in omic1_tax_pd.columns:
+#             omic1_split_taxo = get_split_taxonomy(omic1_tax_pd.Taxon.tolist())
+#             omic1_tax_pd = omic1_tax_pd.merge(omic1_split_taxo, on='Taxon', how='left').drop_duplicates()
+#     else:
+#         omic1_tax_list = []
+#         with open(omic1_common_fp) as f:
+#             for ldx, line in enumerate(f):
+#                 if ldx:
+#                     omic1_tax_list.append([line.split('\t')[0]])
+#         omic1_tax_pd = pd.DataFrame(omic1_tax_list, columns=['Feature ID'])
+#
+#     if all_omic1_songbird_ranks.shape[0]:
+#         omic1_tax_pd = omic1_tax_pd.merge(
+#             all_omic1_songbird_ranks,
+#             on='Feature ID',
+#             how='left'
+#         ).drop_duplicates()
+#     metatax_omic1_fp = '%s_meta-%s.tsv' % (splitext(ordi_fp)[0], omic_filt1)
+#     # print('metatax_omic1_fp', metatax_omic1_fp)
+#     # print('omic1_tax_pd')
+#     # print(omic1_tax_pd[:3])
+#     omic1_tax_pd.to_csv(metatax_omic1_fp, index=False, sep='\t')
+#
+#     if isfile(omic2_tax_fp):
+#         omic2_tax_pd = pd.read_csv(omic2_tax_fp, header=0, sep='\t', dtype=str)
+#         if 'Taxon' in omic2_tax_pd.columns:
+#             omic2_split_taxo = get_split_taxonomy(omic2_tax_pd.Taxon.tolist())
+#             omic2_tax_pd = omic2_tax_pd.merge(omic2_split_taxo, on='Taxon', how='left').drop_duplicates()
+#     else:
+#         omic2_tax_list = []
+#         with open(omic2_common_fp) as f:
+#             for ldx, line in enumerate(f):
+#                 if ldx:
+#                     omic2_tax_list.append([line.split('\t')[0]])
+#         omic2_tax_pd = pd.DataFrame(omic2_tax_list, columns=['Feature ID'])
+#
+#     if all_omic2_songbird_ranks.shape[0]:
+#         omic2_tax_pd = omic2_tax_pd.merge(
+#             all_omic2_songbird_ranks,
+#             on='Feature ID',
+#             how='left'
+#         ).drop_duplicates()
+#     metatax_omic2_fp = '%s_meta-%s.tsv' % (splitext(ordi_fp)[0], omic_filt2)
+#     # print('metatax_omic2_fp', metatax_omic2_fp)
+#     # print('omic2_tax_pd')
+#     # print(omic2_tax_pd[:3])
+#     omic2_tax_pd.to_csv(metatax_omic2_fp, index=False, sep='\t')
+#
+#     return metatax_omic1_fp, metatax_omic2_fp
+
+
 def get_tax_extended_fps(
-        omic_filt1, omic_filt2,
-        omic1_common_fp, omic2_common_fp,
-        omic1_tax_fp, omic2_tax_fp,
-        all_omic1_songbird_ranks,
-        all_omic2_songbird_ranks,
+        omic_filt,
+        omic_common_fp,
+        omic_tax_fp,
+        all_omic_songbird_ranks,
         ordi_fp
 ):
-    if isfile(omic1_tax_fp):
-        omic1_tax_pd = pd.read_csv(omic1_tax_fp, header=0, sep='\t', dtype=str)
-        if 'Taxon' in omic1_tax_pd:
-            omic1_split_taxo = get_split_taxonomy(omic1_tax_pd.Taxon.tolist())
-            omic1_tax_pd = omic1_tax_pd.merge(omic1_split_taxo, on='Taxon', how='left').drop_duplicates()
+    if isfile(omic_tax_fp):
+        omic_tax_pd = pd.read_csv(omic_tax_fp, header=0, sep='\t', dtype=str)
+        if 'Taxon' in omic_tax_pd.columns:
+            omic_split_taxo = get_split_taxonomy(omic_tax_pd.Taxon.tolist())
+            omic_tax_pd = omic_tax_pd.merge(omic_split_taxo, on='Taxon', how='left').drop_duplicates()
     else:
-        omic1_tax_list = []
-        with open(omic1_common_fp) as f:
+        omic_tax_list = []
+        with open(omic_common_fp) as f:
             for ldx, line in enumerate(f):
                 if ldx:
-                    omic1_tax_list.append([line.split('\t')[0]])
-        omic1_tax_pd = pd.DataFrame(omic1_tax_list, columns=['Feature ID'])
+                    omic_tax_list.append([line.split('\t')[0]])
+        omic_tax_pd = pd.DataFrame(omic_tax_list, columns=['Feature ID'])
 
-    if all_omic1_songbird_ranks.shape[0]:
-        omic1_tax_pd = omic1_tax_pd.merge(
-            all_omic1_songbird_ranks,
+    if all_omic_songbird_ranks.shape[0]:
+        omic_tax_pd = omic_tax_pd.merge(
+            all_omic_songbird_ranks,
             on='Feature ID',
             how='left'
         ).drop_duplicates()
-    metatax_omic1_fp = '%s_meta-%s.tsv' % (splitext(ordi_fp)[0], omic_filt1)
-    # print('metatax_omic1_fp', metatax_omic1_fp)
-    # print('omic1_tax_pd')
-    # print(omic1_tax_pd[:3])
-    omic1_tax_pd.to_csv(metatax_omic1_fp, index=False, sep='\t')
-
-    if isfile(omic2_tax_fp):
-        omic2_tax_pd = pd.read_csv(omic2_tax_fp, header=0, sep='\t', dtype=str)
-        if 'Taxon' in omic2_tax_pd:
-            omic2_split_taxo = get_split_taxonomy(omic2_tax_pd.Taxon.tolist())
-            omic2_tax_pd = omic2_tax_pd.merge(omic2_split_taxo, on='Taxon', how='left').drop_duplicates()
-    else:
-        omic2_tax_list = []
-        with open(omic2_common_fp) as f:
-            for ldx, line in enumerate(f):
-                if ldx:
-                    omic2_tax_list.append([line.split('\t')[0]])
-        omic2_tax_pd = pd.DataFrame(omic2_tax_list, columns=['Feature ID'])
-
-    if all_omic2_songbird_ranks.shape[0]:
-        omic2_tax_pd = omic2_tax_pd.merge(
-            all_omic2_songbird_ranks,
-            on='Feature ID',
-            how='left'
-        ).drop_duplicates()
-    metatax_omic2_fp = '%s_meta-%s.tsv' % (splitext(ordi_fp)[0], omic_filt2)
-    # print('metatax_omic2_fp', metatax_omic2_fp)
-    # print('omic2_tax_pd')
-    # print(omic2_tax_pd[:3])
-    omic2_tax_pd.to_csv(metatax_omic2_fp, index=False, sep='\t')
-
-    return metatax_omic1_fp, metatax_omic2_fp
+    metatax_omic_fp = '%s_meta-%s.tsv' % (splitext(ordi_fp)[0], omic_filt)
+    omic_tax_pd.to_csv(metatax_omic_fp, index=False, sep='\t')
+    print("metatax_omic_fp")
+    print(metatax_omic_fp)
+    print(omic_tax_pd[:5])
+    return metatax_omic_fp
 
 
 def get_biplot_commands(ordi_edit_fp, qza, qzv,
@@ -402,12 +455,21 @@ def get_biplot_commands(ordi_edit_fp, qza, qzv,
 #     return n_mbAnnot_CLAs_in_file, ordi_edit_fp
 
 
-def get_tax_fp(i_datasets_folder, omic):
+def get_tax_fp(i_datasets_folder: str, omic: str, input_to_filtered: dict) -> str:
+
     tax_dir = get_analysis_folder(i_datasets_folder, 'taxonomy')
-    if omic.endswith('__raref'):
-        omic_tax = '__raref'.join(omic.split('__raref')[:-1])
+
+    omic_taxs = [x for x, y in input_to_filtered.items() if y == omic]
+    if len(omic_taxs):
+        omic_tax_ = omic_taxs[0]
+        if omic_tax_.endswith('__raref'):
+            omic_tax = '__raref'.join(omic_tax_.split('__raref')[:-1])
+        else:
+            omic_tax = omic_tax_
     else:
-        omic_tax = omic
+        print('No taxonomy file for "%s"' % omic)
+        return ''
+
     omic_tax_fps = glob.glob('%s/%s/tax_%s*.tsv' % (tax_dir, omic_tax, omic_tax))
     if len(omic_tax_fps):
         omic_tax_fp = omic_tax_fps[0]
@@ -416,15 +478,13 @@ def get_tax_fp(i_datasets_folder, omic):
     return omic_tax_fp
 
 
-def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, force: bool):
-
+def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict,
+                  omics_pairs: list, force: bool, input_to_filtered: dict):
     crowdeds = [0, 1]
-
     mmvec_tab = []
     pair_cmds = {}
     for crowded in crowdeds:
         for keys, values in mmvec_res.items():
-
             # print()
             # print(keys)
             # print('-'*30)
@@ -434,7 +494,6 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
             #             print('      >', i)
             #     else:
             #         print('   -', i)
-
             pair, omic1, omic2, omic_filt1, omic_filt2, sams, mmvec = keys
 
             ranks_fp = values[0]
@@ -457,27 +516,42 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
 
             # get differentials
             print('\t-> [mmbird] Get differentials...', end=' ')
-            all_omic1_songbird_ranks, all_omic2_songbird_ranks = get_all_omics_songbirds(
-                omic1_diff_fps,
-                omic2_diff_fps
-            )
+            print()
+            print('omic1_diff_fps')
+            print(omic1_diff_fps)
+            all_omic1_songbird_ranks = get_all_omics_songbirds(omic1_diff_fps)
+            print("all_omic1_songbird_ranks")
+            print(all_omic1_songbird_ranks[:4])
+            print('omic2_diff_fps')
+            print(omic2_diff_fps)
+            all_omic2_songbird_ranks = get_all_omics_songbirds(omic2_diff_fps)
+            print("all_omic2_songbird_ranks")
+            print(all_omic2_songbird_ranks[:4])
             print('Done.')
 
-            # if crowded and pair == 'gotu_foods' and omic_filt1 == 'gOTU_uniq_filt_3rm-minFeat00001_0_0' and omic_filt2 == 'vioscreen_foods_consumed_grams_per_day_0_0':
-            print("all_omic1_songbird_ranks")
-            print(all_omic1_songbird_ranks[:4,:4])
-            print("all_omic2_songbird_ranks")
-            print(all_omic2_songbird_ranks[:4,:4])
-
-            omic1_tax_fp = get_tax_fp(i_datasets_folder, omic1)
-            omic2_tax_fp = get_tax_fp(i_datasets_folder, omic2)
-
             print('\t-> [mmbird] Extend feat metas...', end=' ')
-            metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
-                omic_filt1, omic_filt2,
-                omic1_common_fp, omic2_common_fp,
-                omic1_tax_fp, omic2_tax_fp,
-                all_omic1_songbird_ranks, all_omic2_songbird_ranks,
+            # metatax_omic1_fp, metatax_omic2_fp = get_tax_extended_fps(
+            #     omic_filt1, omic_filt2,
+            #     omic1_common_fp, omic2_common_fp,
+            #     omic1_tax_fp, omic2_tax_fp,
+            #     all_omic1_songbird_ranks, all_omic2_songbird_ranks,
+            #     ordi_fp
+            # )
+            print()
+            omic1_tax_fp = get_tax_fp(i_datasets_folder, omic1, input_to_filtered)
+            metatax_omic1_fp = get_tax_extended_fps(
+                omic_filt1,
+                omic1_common_fp,
+                omic1_tax_fp,
+                all_omic1_songbird_ranks,
+                ordi_fp
+            )
+            omic2_tax_fp = get_tax_fp(i_datasets_folder, omic2, input_to_filtered)
+            metatax_omic2_fp = get_tax_extended_fps(
+                omic_filt2,
+                omic2_common_fp,
+                omic2_tax_fp,
+                all_omic2_songbird_ranks,
                 ordi_fp
             )
             print('Done.')
@@ -545,8 +619,10 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
                 cmd = get_biplot_commands(
                     ordi_edit_fp, qza, qzv,
                     omic_feature, omic_sample,
-                    metatax_omic1_fp, metatax_omic2_fp,
-                    '', n_mbAnnot_CLAs_in_file, crowded, max_feats
+                    metatax_omic1_fp,
+                    metatax_omic2_fp,
+                    '', n_mbAnnot_CLAs_in_file,
+                    crowded, max_feats
                 )
 
             # ranks_edit_fp = ranks_fp
@@ -576,7 +652,8 @@ def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict, omics_pairs: list, fo
 
 def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
                mmvec_outputs: list, force: bool, prjct_nm: str,
-               qiime_env: str, chmod: str, noloc: bool, filt_raref: str) -> None:
+               qiime_env: str, chmod: str, noloc: bool,
+               filt_raref: str, input_to_filtered: dict) -> None:
 
     if not mmvec_outputs:
         print('No mmvec output detected...')
@@ -597,7 +674,9 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
     print('\t-> [mmbird] Get res dict...', end=' ')
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
     print('Done.')
-    pair_cmds = get_pair_cmds(i_datasets_folder, mmvec_res, omics_pairs, force)
+    print("len(mmvec_res.keys())")
+    print(len(mmvec_res.keys()))
+    pair_cmds = get_pair_cmds(i_datasets_folder, mmvec_res, omics_pairs, force, input_to_filtered)
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
     job_folder2 = get_job_folder(i_datasets_folder, 'mmbird/chunks')
 

@@ -105,7 +105,7 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
 
 
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
-                 datasets_read: dict, datasets_filt: dict, filt_datasets_map: dict,
+                 datasets_read: dict, datasets_filt: dict, input_to_filtered: dict,
                  mmvec_outputs: list, force: bool, prjct_nm: str, qiime_env: str,
                  chmod: str, noloc: bool, split: bool, filt_raref: str) -> list:
     """
@@ -125,10 +125,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     job_folder2 = get_job_folder(i_datasets_folder, 'songbird/chunks')
     songbird_dicts = get_songbird_dicts(p_diff_models)
     songbird_models = songbird_dicts[0]
-    print("***************")
-    print("songbird_models")
-    print("***************")
-    print(songbird_models)
     songbird_filtering = songbird_dicts[1]
     params = songbird_dicts[2]
     songbird_datasets = songbird_dicts[3]
@@ -143,10 +139,23 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     n_randoms = params['n_randoms']
 
     filt_datasets, common_datasets = make_filtered_and_common_dataset(
-        i_datasets_folder, datasets, datasets_filt, filt_datasets_map,
+        i_datasets_folder, datasets, datasets_filt,
         datasets_read, songbird_datasets, {}, songbird_filtering,
         job_folder, force, prjct_nm, qiime_env,
-        chmod, noloc, 'songbird', filt_raref)
+        chmod, noloc, 'songbird', filt_raref, input_to_filtered)
+
+    songbird_models.update(dict((input_to_filtered[x], y) for x,y in songbird_models.items() if x in input_to_filtered))
+    # print("***************")
+    # print("songbird_models")
+    # print("***************")
+    # print(songbird_models)
+    # print("---------------------------")
+    # print("filt_datasets")
+    # print(filt_datasets.keys())
+    # print("---------------------------")
+    # print("input_to_filtered")
+    # print(input_to_filtered)
+    # print("---------------------------")
 
     songbirds = {}
     for dat, filts_files in filt_datasets.items():
@@ -194,18 +203,18 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             meta_pd = rename_duplicate_columns(meta_pd)
             meta_pd = meta_pd.set_index('sample_name')
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
-            print(' --->', dat, end=' : ')
+            # print(' --->', dat, end=' : ')
             if dat in songbird_models:
-                print(' IN !!!')
+                # print(' IN !!!')
                 models = check_metadata_models(meta, meta_pd, songbird_models[dat])
             else:
-                print(' OUT...')
+                # print(' OUT...')
                 continue
 
             baselines = {}
             for model, formula_meta_var_drop in models.items():
-                print(" ** model, formula_meta_var_drop")
-                print(model, formula_meta_var_drop)
+                # print(" ** model, formula_meta_var_drop")
+                # print(model, formula_meta_var_drop)
                 for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
                                                            thresh_feats, thresh_samples, n_randoms)):
                     batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random = [str(x) for x in it]

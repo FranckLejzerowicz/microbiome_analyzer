@@ -157,7 +157,7 @@ def get_mmvec_subsets(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
     return mmvec_subsets
 
 
-def get_mmvec_pairs(p_mmvec_pairs: str, mmvec_dict: dict, datasets_filt: dict) -> dict:
+def get_mmvec_pairs(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
     """
     Get the parameters for mmvec pairs to process.
     :param p_mmvec_pairs: file containing the parameters.
@@ -175,16 +175,22 @@ def get_mmvec_pairs(p_mmvec_pairs: str, mmvec_dict: dict, datasets_filt: dict) -
                   'Exiting\n' % (n_dats, p_mmvec_pairs))
             sys.exit(0)
         paired = []
-        for dat_ in paired_datasets:
-            if dat_[-1] == '*':
-                dat_, mb = dat_[:-1], 1
+        for dat in paired_datasets:
+            if dat[-1] == '*':
+                paired.append((dat[:-1], 1))
             else:
-                mb = 0
-            if dat_ in datasets_filt:
-                dat = datasets_filt[dat_]
-            else:
-                dat = dat_
-            paired.append((dat, mb))
+                paired.append((dat, 0))
+
+        # for dat_ in paired_datasets:
+        #     if dat_[-1] == '*':
+        #         dat_, mb = dat_[:-1], 1
+        #     else:
+        #         mb = 0
+        #     if dat_ in datasets_filt:
+        #         dat = datasets_filt[dat_]
+        #     else:
+        #         dat = dat_
+        #     paired.append((dat, mb))
         mmvec_pairs[pair] = paired
     return mmvec_pairs
 
@@ -202,7 +208,7 @@ def get_mmvec_dicts(p_mmvec_pairs: str, datasets_filt: dict) -> (dict, dict, dic
     with open(p_mmvec_pairs) as handle:
         mmvec_dict = yaml.load(handle, Loader=yaml.FullLoader)
 
-    mmvec_pairs = get_mmvec_pairs(p_mmvec_pairs, mmvec_dict, datasets_filt)
+    mmvec_pairs = get_mmvec_pairs(p_mmvec_pairs, mmvec_dict)
     mmvec_filtering = get_filtering(p_mmvec_pairs, mmvec_dict)
     mmvec_params = get_mmvec_params(p_mmvec_pairs, mmvec_dict)
     mmvec_subsets = get_mmvec_subsets(p_mmvec_pairs, mmvec_dict)
@@ -795,9 +801,9 @@ def write_filtered_meta(meta_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFr
 
 
 def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
-                          datasets_read: dict, datasets_filt: dict, datasets_filt_map: dict,
+                          datasets_read: dict, datasets_filt: dict,
                           unique_datasets: list, filtering: dict,
-                          force: bool, analysis: str) -> (dict, list):
+                          force: bool, analysis: str, input_to_filtered: dict) -> (dict, dict, list):
     """
     Filter the datasets for use in mmvec.
 
@@ -825,7 +831,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                 if not tsv_pd_.shape[0]:
                     continue
                 dat = '%s__raref' % dat
-                datasets_filt_map[dat] = dat_
+                input_to_filtered[dat_] = dat
             else:
                 print(analysis, '%s dataset "%s" not found...' % (analysis, dat))
                 continue
@@ -836,14 +842,10 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                 sys.exit(0)
             tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
             datasets_read[dat] = [tsv_pd_, meta_pd_]
+            input_to_filtered[dat_] = dat
         else:
             tsv_pd_, meta_pd_ = datasets_read[dat]
-
-        # print()
-        # print()
-        # print('>>>>>>>>>>>>>> get_datasets_filtered <<<<<<<<<<<<<')
-        # print(analysis, dat)
-        # print('?IN', datasets.keys())
+            input_to_filtered[dat_] = dat
 
         dat_filts = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))

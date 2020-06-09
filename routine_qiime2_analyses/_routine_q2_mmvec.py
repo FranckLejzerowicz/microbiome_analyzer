@@ -74,7 +74,7 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
 
 
 def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
-                        filt_datasets: dict, datasets_filt_map: dict,
+                        filt_datasets: dict, input_to_filtered: dict,
                         force: bool) -> (dict, list):
     """
     :param i_datasets_folder:
@@ -91,24 +91,32 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
 
         data_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s' % pair)
         meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
-        (omic1, bool1), (omic2, bool2) = pair_datasets
-
-        print()
-        print()
-        print()
-        print('pair:', pair)
-        print(' >', omic1)
-        print(' >', omic2)
+        (omic1_, bool1), (omic2_, bool2) = pair_datasets
+        omic1 = input_to_filtered[omic1_]
+        omic2 = input_to_filtered[omic2_]
+        # print()
+        # print()
+        # print()
+        # print('pair:', pair)
+        # print(' >', omic1)
+        # print(' >', omic2)
         if omic1 not in filt_datasets or omic2 not in filt_datasets:
-            print('[NOT IN]', omic1)
-            print('[NOT IN]', omic2)
-            print('[NOT IN]', filt_datasets.keys())
-            print('[NOT IN]', datasets_filt_map)
+            # print('[NOT IN]', omic1)
+            # print('[NOT IN]', omic2)
+            # print('[NOT IN]', filt_datasets.keys())
+            # print('[NOT IN]', mmvec_pairs_filt)
             continue
 
         filts_1 = list(filt_datasets[omic1].keys())
         filts_2 = list(filt_datasets[omic2].keys())
-
+        # print()
+        # print()
+        # print("filts_1")
+        # print(filts_1)
+        # print()
+        # print()
+        # print("filts_2")
+        # print(filts_2)
         for fdx in range(len(filts_1)):
             preval_filt1, abund_filter1 = filts_1[fdx]
             preval_filt2, abund_filter2 = filts_2[fdx]
@@ -116,19 +124,18 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
             omic_filt2 = '_'.join([preval_filt2, abund_filter2])
             tsv1, qza1, meta1, meta_pd1, sams1 = filt_datasets[omic1][filts_1[fdx]]
             tsv2, qza2, meta2, meta_pd2, sams2 = filt_datasets[omic2][filts_2[fdx]]
-            print()
-            print()
-            print('omic_filt1', omic_filt1)
-            print('omic_filt2', omic_filt2)
-            print('tsv1, qza1, meta1')
-            print(' -', tsv1)
-            print(' -', qza1)
-            print(' -', meta1)
-            print('tsv2, qza2, meta2')
-            print(' -', tsv2)
-            print(' -', qza2)
-            print(' -', meta2)
-            print()
+            # print()
+            # print()
+            # print('omic_filt1', omic_filt1)
+            # print('omic_filt2', omic_filt2)
+            # print('tsv1, qza1, meta1')
+            # print(' -', tsv1)
+            # print(' -', qza1)
+            # print(' -', meta1)
+            # print('tsv2, qza2, meta2')
+            # print(' -', tsv2)
+            # print(' -', qza2)
+            # print(' -', meta2)
             common_sams = sorted(set(sams1) & set(sams2))
             if len(common_sams) < 10:
                 print('Not enough samples: %s (%s) vs %s (%s) -> skipping' % (omic1, omic_filt1, omic2, omic_filt2))
@@ -216,9 +223,10 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, r
 
 
 def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, datasets_filt: dict,
-                                     datasets_filt_map: dict, datasets_read: dict, unique_datasets: list,
-                                     mmvec_pairs: dict, filtering: dict, job_folder: str, force: bool, prjct_nm: str,
-                                     qiime_env: str, chmod: str, noloc: bool, analysis: str, filt_raref: str) -> (dict, dict):
+                                     datasets_read: dict, unique_datasets: list,
+                                     mmvec_pairs: dict, filtering: dict, job_folder: str, force: bool,
+                                     prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
+                                     analysis: str, filt_raref: str, input_to_filtered: dict) -> (dict, dict):
     """
     :param i_datasets_folder:
     :param datasets: list of data_sets.
@@ -235,17 +243,17 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
 
     print('\t-> [%s] Get datasets filtered...' % analysis, end=' ')
     filt_datasets, filt_jobs = get_datasets_filtered(
-        i_datasets_folder, datasets, datasets_read, datasets_filt, datasets_filt_map,
-        unique_datasets, filtering, force, analysis
+        i_datasets_folder, datasets, datasets_read, datasets_filt,
+        unique_datasets, filtering, force, analysis, input_to_filtered
     )
-
     print('Done.')
+
     common_jobs = []
     common_datasets = {}
     if analysis == 'mmvec':
         print('\t-> [mmvec] Get common datasets...', end=' ')
         common_datasets, common_jobs = get_common_datasets(
-            i_datasets_folder, mmvec_pairs, filt_datasets,  datasets_filt_map, force
+            i_datasets_folder, mmvec_pairs, filt_datasets,  input_to_filtered, force
         )
         print('Done.')
 
@@ -265,9 +273,9 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
 
 
 def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
-              datasets_filt: dict, datasets_filt_map: dict, datasets_read: dict, force: bool,
+              datasets_filt: dict, datasets_read: dict, force: bool,
               gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
-              chmod: str, noloc: bool, split: bool, filt_raref: str) -> list:
+              chmod: str, noloc: bool, split: bool, filt_raref: str, input_to_filtered: dict) -> list:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
     https://github.com/biocore/mmvec
@@ -288,8 +296,6 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
 
     mmvec_pairs, mmvec_filtering, mmvec_params, mmvec_subsets = get_mmvec_dicts(p_mmvec_pairs, datasets_filt)
 
-    # print("mmvec_pairs")
-    # print(mmvec_pairs)
     # print("mmvec_filtering")
     # print(mmvec_filtering)
     # print("mmvec_params")
@@ -299,14 +305,11 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
 
     unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
 
-    # print("unique_datasets")
-    # print(unique_datasets)
-
     job_folder = get_job_folder(i_datasets_folder, 'mmvec')
-    common_datasets = make_filtered_and_common_dataset(
-        i_datasets_folder, datasets, datasets_filt, datasets_filt_map, datasets_read,
+    filt_datasets, common_datasets = make_filtered_and_common_dataset(
+        i_datasets_folder, datasets, datasets_filt, datasets_read,
         unique_datasets, mmvec_pairs, mmvec_filtering, job_folder, force,
-        prjct_nm, qiime_env, chmod, noloc, 'mmvec', filt_raref)
+        prjct_nm, qiime_env, chmod, noloc, 'mmvec', filt_raref, input_to_filtered)
 
     jobs = []
     all_sh_pbs = {}
@@ -314,13 +317,13 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
 
     for pair, pair_data in common_datasets.items():
 
-        print()
-        print("pair")
-        print(pair)
-        for idx, i in enumerate(pair_data):
-            print(' -', idx)
-            for j in i:
-                print('     -', j)
+        # print()
+        # print("pair")
+        # print(pair)
+        # for idx, i in enumerate(pair_data):
+        #     print(' -', idx)
+        #     for j in i:
+        #         print('     -', j)
 
         job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
         if not split:

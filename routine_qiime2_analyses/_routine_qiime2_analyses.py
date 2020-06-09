@@ -139,11 +139,6 @@ def routine_qiime2_analyses(
                    prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'])
         filt_raref += '_rrf'
 
-    print("datasets_filt")
-    print(datasets_filt)
-    print("datasets_filt_map")
-    print(datasets_filt_map)
-
     taxonomies = {}
     get_precomputed_taxonomies(i_datasets_folder, datasets, taxonomies)
     if i_qemistree and 'qemistree' not in p_skip:
@@ -233,12 +228,14 @@ def routine_qiime2_analyses(
 
     # MMVEC AND SONGBIRD --------------------------------------------------------
     mmvec_outputs = []
+    input_to_filtered = {}
     if p_mmvec_pairs:
         if 'mmvec' not in p_skip:
             mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
-                                      datasets_filt, datasets_filt_map, datasets_read, force,
+                                      datasets_filt, datasets_read, force,
                                       gpu, standalone, prjct_nm, qiime_env,
-                                      chmod, noloc, split, filt_raref)
+                                      chmod, noloc, split, filt_raref,
+                                      input_to_filtered)
     if 'beta' not in p_skip and p_procrustes:
         if betas and 'procrustes' not in p_skip:
             run_procrustes(i_datasets_folder, datasets, datasets_filt,
@@ -249,10 +246,11 @@ def routine_qiime2_analyses(
         if 'songbird' not in p_skip:
             songbird_outputs = run_songbird(p_diff_models, i_datasets_folder,
                                             datasets, datasets_read, datasets_filt,
-                                            datasets_filt_map, mmvec_outputs, force, prjct_nm,
+                                            input_to_filtered, mmvec_outputs, force, prjct_nm,
                                             qiime_env, chmod, noloc, split, filt_raref)
     if p_diff_models and p_mmvec_pairs and 'mmbird' not in p_skip:
         print('RUN MMBIRD')
-        run_mmbird(i_datasets_folder, songbird_outputs, mmvec_outputs,
-                   force, prjct_nm, qiime_env, chmod, noloc, filt_raref)
+        run_mmbird(i_datasets_folder, songbird_outputs,
+                   mmvec_outputs, force, prjct_nm, qiime_env,
+                   chmod, noloc, filt_raref, input_to_filtered)
     # ------------------------------------------------------------------------------

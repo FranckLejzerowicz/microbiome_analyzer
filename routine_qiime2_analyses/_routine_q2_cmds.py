@@ -1148,8 +1148,16 @@ def add_alpha_level_label(taxa, padded_new_rows_list, max_new_rows):
         index = taxa,
         columns = cols
     )
-    split_taxonomy_pd = padded_new_rows_pd.reset_index()
-    return split_taxonomy_pd
+    return padded_new_rows_pd
+
+
+def extend_split_taxonomy(padded_new_rows_extended_pd: pd.DataFrame):
+    to_concat = []
+    for col in padded_new_rows_extended_pd.columns.tolist():
+        split_taxonomy_col_dummy = padded_new_rows_extended_pd[col].str.get_dummies().values.tolist()
+        to_concat.append(split_taxonomy_col_dummy)
+    split_taxonomy_extended_pd = pd.concat(to_concat, axis=1)
+    return split_taxonomy_extended_pd
 
 
 def get_split_taxonomy(taxa, taxo_sep=';'):
@@ -1158,5 +1166,9 @@ def get_split_taxonomy(taxa, taxo_sep=';'):
     # get the max number of fields
     max_new_rows = max([len(new_row) for new_row in new_rows])
     padded_new_rows_list = get_padded_new_rows_list(new_rows, max_new_rows)
-    split_taxonomy_pd = add_alpha_level_label(taxa, padded_new_rows_list, max_new_rows)
-    return split_taxonomy_pd.rename(columns={'index': 'Taxon'})
+    padded_new_rows_pd = add_alpha_level_label(taxa, padded_new_rows_list, max_new_rows)
+    padded_new_rows_extended_pd = extend_split_taxonomy(padded_new_rows_pd)
+    print(padded_new_rows_extended_pd.iloc[:3,:3])
+    print(padded_new_rows_extended_pgfds)
+    # split_taxonomy_pd.rename(columns={'index': 'Taxon'}, in)
+    return padded_new_rows_extended_pd
