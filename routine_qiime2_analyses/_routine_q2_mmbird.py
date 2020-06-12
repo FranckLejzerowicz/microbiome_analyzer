@@ -480,12 +480,17 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, features_spli
 
     omics_pairs_metas = {}
     for omicn in ['1', '2']:
+        print('omicn:', omicn)
         pair_omic_filt = ['pair', 'omic%s' % omicn, 'filt%s' % omicn]
         all_omic_sb = [x for x in mmvec_songbird_pd.columns if x.endswith('omic%s_songbird_common_fp' % omicn)]
         omicn_songbirds = mmvec_songbird_pd[
             (pair_omic_filt + all_omic_sb)
         ].set_index(pair_omic_filt).T.to_dict()
         for (pair, omic, filt), sb_head_diff_fp in omicn_songbirds.items():
+            print("pair, omic, filt")
+            print(pair, omic, filt)
+            print("sb_head_diff_fp")
+            print(sb_head_diff_fp)
             cur_mmvec_folder = get_analysis_folder(i_datasets_folder, 'mmvec/metadata/%s' % pair)
             all_omic_diff_list = []
             if len(sb_head_diff_fp):
@@ -508,7 +513,11 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, features_spli
                         all_omic_diff_list.append(diff_pd)
             if len(all_omic_diff_list):
                 all_omic_songbird_ranks = pd.concat(all_omic_diff_list, axis=1, sort=False).reset_index()
+                print('A', 'all_omic_songbird_ranks')
+                print(all_omic_songbird_ranks.shape)
+                print(all_omic_songbird_ranks.columns)
                 max_feats = all_omic_songbird_ranks.shape[0]
+                print('max_feats:', max_feats)
             else:
                 omic_common_fp = mmvec_songbird_pd.loc[
                     (mmvec_songbird_pd['pair'] == pair) &
@@ -523,14 +532,25 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, features_spli
                             omic_tax_list.append([line.split('\t')[0]])
                 all_omic_songbird_ranks = pd.DataFrame(omic_tax_list, columns=['Feature ID'])
                 max_feats = 0
+                print('B', 'all_omic_songbird_ranks')
+                print(all_omic_songbird_ranks.shape)
+                print(all_omic_songbird_ranks.columns)
+                print('max_feats:', max_feats)
             if omic in features_splits_pds:
                 features_splits_pd = features_splits_pds[omic]
+                print("features_splits_pd")
+                print(features_splits_pd.shape)
+                print(features_splits_pd.columns)
                 all_omic_songbird_ranks = all_omic_songbird_ranks.merge(
                     features_splits_pd,
                     on='Feature ID',
                     how='left'
                 ).drop_duplicates()
+                print(all_omic_songbird_ranks.shape)
+                print(all_omic_songbird_ranks.columns)
             meta_omic_fp = '%s/feature_metadata_%s__%s.tsv' % (cur_mmvec_folder, omic, filt)
+            print("meta_omic_fp")
+            print(meta_omic_fp)
             all_omic_songbird_ranks.to_csv(meta_omic_fp, index=False, sep='\t')
             omics_pairs_metas[(pair, omic, filt)] = (meta_omic_fp, max_feats)
     return omics_pairs_metas
