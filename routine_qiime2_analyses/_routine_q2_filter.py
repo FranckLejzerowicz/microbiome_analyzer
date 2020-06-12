@@ -32,7 +32,7 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
     """
     job_folder = get_job_folder(i_datasets_folder, 'import_tables')
 
-    out_sh = '%s/0_run_import_%s.sh' % (job_folder, filt_raref)
+    out_sh = '%s/0_run_import%s.sh' % (job_folder, filt_raref)
     out_pbs = '%s.pbs' % splitext(out_sh)[0]
     written = 0
     with open(out_sh, 'w') as sh:
@@ -49,7 +49,7 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
                 sh.write('echo "%s"\n' % cmd)
                 sh.write('%s\n' % cmd)
                 written += 1
-    run_xpbs(out_sh, out_pbs, '%s.mprt' % prjct_nm, qiime_env,
+    run_xpbs(out_sh, out_pbs, '%s.mprt%s' % (prjct_nm, filt_raref), qiime_env,
              run_params["time"], run_params["n_nodes"], run_params["n_procs"],
              run_params["mem_num"], run_params["mem_dim"],
              chmod, written, '# Import tables to qiime2', None, noloc)
@@ -89,7 +89,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
     datasets_features_update = {}
     datasets_phylo_update = {}
     job_folder = get_job_folder(i_datasets_folder, 'import_filtered')
-    out_sh = '%s/1_run_import_filtered_%s.sh' % (job_folder, filt_raref)
+    out_sh = '%s/1_run_import_filtered%s.sh' % (job_folder, filt_raref)
     out_pbs = '%s.pbs' % splitext(out_sh)[0]
     with open(out_sh, 'w') as sh:
         for dat, tab_meta_pds in datasets_read.items():
@@ -223,7 +223,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             sh.write('%s\n' % cmd)
             written += 1
     if written:
-        run_xpbs(out_sh, out_pbs, '%s.fltr.%s' % (prjct_nm, filt_raref), qiime_env,
+        run_xpbs(out_sh, out_pbs, '%s.fltr%s' % (prjct_nm, filt_raref), qiime_env,
                  run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                  run_params["mem_num"], run_params["mem_dim"], chmod, written,
                  '# Filter samples for a min number of %s reads' % p_filt_threshs, None, noloc)

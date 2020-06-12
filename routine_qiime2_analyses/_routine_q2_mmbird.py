@@ -96,8 +96,20 @@ def get_mmvec_res(mmvec_songbird_pd):
         pair = row['pair']
         omic1 = row['omic1']
         omic2 = row['omic2']
+        filt1 = row['filt1']
+        filt2 = row['filt2']
         omic_filt1 = row['omic_filt1']
         omic_filt2 = row['omic_filt2']
+        print()
+        print(omic1)
+        print(omic2)
+        print()
+        print(filt1)
+        print(filt2)
+        print()
+        print(omic_filt1)
+        print(omic_filt2)
+        print(fdsa)
         omic1_common_fp = row['omic1_common_fp']
         if str(omic1_common_fp) == 'nan':
             continue
@@ -345,78 +357,45 @@ def get_tax_fp(i_datasets_folder: str, omic: str, input_to_filtered: dict) -> st
 
 
 def get_pair_cmds(i_datasets_folder: str, mmvec_res: dict,
-                  omics_pairs_metas: dict,
-                  omics_pairs: list, force: bool):
+                  omics_pairs_metas: dict, omics_pairs: list,
+                  force: bool):
     crowdeds = [0, 1]
-    mmvec_tab = []
+    # mmvec_tab = []
     pair_cmds = {}
     for crowded in crowdeds:
         for keys, values in mmvec_res.items():
 
-            pair, omic1, omic2, omic_filt1, omic_filt2, sams, mmvec = keys
+            pair, omic1, omic2, filt1, filt2, omic_filt1, omic_filt2, sams, mmvec = keys
+            ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp = values
 
-            ranks_fp = values[0]
-            ordi_fp = values[1]
-            omic1_diff_fps = values[2]
-            omic2_diff_fps = values[3]
-            meta_fp = values[4]
-            omic1_common_fp = values[5]
-            omic2_common_fp = values[6]
-
-            order_omics = get_order_omics(omic1, omic2, omic_filt1, omic_filt2, omics_pairs)
+            order_omics = get_order_omics(omic1, omic2, filt1, filt2, omic_filt1, omic_filt2, omics_pairs)
             omic1 = order_omics[0]
             omic2 = order_omics[1]
-            omic_filt1 = order_omics[2]
-            omic_filt2 = order_omics[3]
-            omic_feature = order_omics[4]
-            omic_sample = order_omics[5]
-            omic_microbe = order_omics[6]
-            omic_metabolite = order_omics[7]
+            filt1 = order_omics[2]
+            filt2 = order_omics[3]
+            omic_filt1 = order_omics[4]
+            omic_filt2 = order_omics[5]
+            omic_feature = order_omics[6]
+            omic_sample = order_omics[7]
+            omic_microbe = order_omics[8]
+            omic_metabolite = order_omics[9]
 
             # get differentials
-            all_omic1_songbird_ranks = get_all_omics_songbirds(omic1_diff_fps)
-            # print()
-            # print()
-            # print("all_omic1_songbird_ranks")
-            # print(all_omic1_songbird_ranks.shape)
-            # for col1 in all_omic1_songbird_ranks.columns:
-            #     print(' -', col1)
-            # metatax_omic1_pd = get_tax_extended_fps(
-            #     omic_filt1
-            #     omic1_common_fp,
-            #     features_splits[omic1],
-            #     all_omic1_songbird_ranks,
-            #     ordi_fp
-            # )
-
-            all_omic2_songbird_ranks = get_all_omics_songbirds(omic2_diff_fps)
-            # print()
-            # print()
-            # print("all_omic2_songbird_ranks")
-            # print(all_omic2_songbird_ranks.shape)
-            # for col2 in all_omic2_songbird_ranks.columns:
-            #     print(' -', col2)
-            # print('Done.')
-            # metatax_omic2_fp = get_tax_extended_fps(
-            #     omic_filt2,
-            #     omic2_common_fp,
-            #     omic2_tax_fp,
-            #     all_omic2_songbird_ranks,
-            #     ordi_fp
-            # )
+            meta_omic1_fp = omics_pairs_metas[(pair, omic2, filt2)]
+            meta_omic2_fp = omics_pairs_metas[(pair, omic2, filt2)]
 
             if all_omic1_songbird_ranks.shape[0]:
                 max_feats = all_omic1_songbird_ranks.shape[0]
             else:
                 max_feats = 0
 
-            mmvec_tab.append([
-                omic_filt1, omic_filt2,
-                '%s-%s-%s' % (omic_filt1, omic_filt2, sams),
-                mmvec, ranks_fp, ordi_fp, meta_fp,
-                omic1_tax_fp, omic2_tax_fp,
-                omic1_common_fp, omic2_common_fp
-            ])
+            # mmvec_tab.append([
+            #     omic_filt1, omic_filt2,
+            #     '%s-%s-%s' % (omic_filt1, omic_filt2, sams),
+            #     mmvec, ranks_fp, ordi_fp, meta_fp,
+            #     omic1_tax_fp, omic2_tax_fp,
+            #     omic1_common_fp, omic2_common_fp
+            # ])
 
             # if 'mbAnnot' in ordi_fp:
             #     for edit in ['', '_CLAs']:
@@ -617,10 +596,6 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
     print('\t-> [mmbird] Get songbird diiferentials...', end=' ')
     omics_pairs_metas = get_omics_songbirds_taxa(
         i_datasets_folder, mmvec_songbird_pd, features_splits_pds)
-    print('Done.')
-    for i, j in omics_pairs_metas.items():
-        print()
-        print(i, j)
     print('Done.')
 
     print('\t-> [mmbird] Get res dict...', end=' ')
