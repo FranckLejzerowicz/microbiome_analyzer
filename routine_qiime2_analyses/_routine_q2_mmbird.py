@@ -573,6 +573,7 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
     print('\t-> [mmbird] Get features splits...', end=' ')
     features_splits_pds = get_features_splits(
         i_datasets_folder, mmvec_songbird_pd, input_to_filtered)
+    print('Done.')
 
     print('\t-> [mmbird] Get songbird diiferentials...', end=' ')
     omics_pairs_metas = get_omics_songbirds_taxa(
