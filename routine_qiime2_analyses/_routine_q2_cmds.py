@@ -1133,7 +1133,7 @@ def get_padded_new_rows_list(new_rows, max_new_rows):
         # update row if not of max length
         n_pad = max_new_rows - len(padded_row)
         if n_pad:
-            to_pad = ['Not available']*n_pad
+            to_pad = ['Not_available']*n_pad
             padded_row = padded_row + to_pad
         padded_new_rows_list.append(padded_row)
     return padded_new_rows_list
@@ -1151,24 +1151,38 @@ def add_alpha_level_label(taxa, padded_new_rows_list, max_new_rows):
     return padded_new_rows_pd
 
 
-def extend_split_taxonomy(padded_new_rows_extended_pd: pd.DataFrame):
+def extend_split_taxonomy(split_taxa_pd: pd.DataFrame):
     to_concat = []
-    for col in padded_new_rows_extended_pd.columns.tolist():
-        split_taxonomy_col_dummy = padded_new_rows_extended_pd[col].str.get_dummies()
-        split_taxonomy_col_dummy.columns = ['%s__%s' % (x, col) for x in split_taxonomy_col_dummy.columns]
-        to_concat.append(split_taxonomy_col_dummy)
-    split_taxonomy_extended_pd = pd.concat(to_concat, axis=1)
-    return split_taxonomy_extended_pd
+    for col in split_taxa_pd.columns.tolist():
+        if split_taxa_pd[col].unique().size > 200:
+            continue
+        split_taxa_dummy = split_taxa_pd[col].str.get_dummies()
+        split_taxa_dummy.columns = ['%s__%s' % (x, col) for x in split_taxa_dummy.columns]
+        to_concat.append(split_taxa_dummy)
+    if len(to_concat):
+        return pd.concat(to_concat, axis=1)
+    else:
+        return pd.DataFrame()
 
 
 def get_split_taxonomy(taxa, taxo_sep=';'):
-    # get the Node names split per "taxon" level
-    new_rows = [[x.strip() for x in node.split(taxo_sep) if len(x.strip()) and x[0]!='x'] for node in taxa]
+    # get the taxon name split per "taxon" level
+    split_taxa_pd = pd.DataFrame([
+        pd.Series(
+            [x.strip() for x in str(taxon).split(taxo_sep)
+             if len(x.strip()) and x[0] != 'x']
+        ) for taxon in taxa
+    ])
+    split_taxa_pd.index = taxa
+    ALPHA = 'ABCDEFGHIJKL'
+    split_taxa_pd.columns = ['Taxolevel_%s' % (ALPHA[idx]) for idx in range(split_taxa_pd.shape[1])]
     # get the max number of fields
-    max_new_rows = max([len(new_row) for new_row in new_rows])
-    padded_new_rows_list = get_padded_new_rows_list(new_rows, max_new_rows)
-    padded_new_rows_pd = add_alpha_level_label(taxa, padded_new_rows_list, max_new_rows)
-    padded_extended_pd = extend_split_taxonomy(padded_new_rows_pd)
-    padded_new_rows_extended_pd = pd.concat([padded_new_rows_pd, padded_extended_pd], axis=1)
-    padded_new_rows_extended_pd = padded_new_rows_extended_pd.reset_index().rename(columns={'index': 'Taxon'})
-    return padded_new_rows_extended_pd
+    # max_new_rows = max([len(new_row) for new_row in new_rows])
+    # padded_new_rows_list = get_padded_new_rows_list(new_rows, max_new_rows)
+    # padded_new_rows_pd = add_alpha_level_label(taxa, padded_new_rows_list, max_new_rows)
+    padded_extended_pd = extend_split_taxonomy(split_taxa_pd)
+    if padded_extended_pd.shape[0]:
+        split_taxa_pd = pd.concat([split_taxa_pd, padded_extended_pd], axis=1)
+    split_taxa_pd = split_taxa_pd.reset_index().rename(columns={'index': 'Taxon'})
+    return split_taxa_pd
+

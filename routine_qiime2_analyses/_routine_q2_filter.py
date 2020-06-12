@@ -18,7 +18,7 @@ from routine_qiime2_analyses._routine_q2_cmds import run_import
 
 def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                     force: bool, prjct_nm: str, qiime_env: str,  chmod: str,
-                    noloc: bool, run_params: dict) -> None:
+                    noloc: bool, run_params: dict, filt_raref: str) -> None:
     """
     Initial import of the .tsv datasets in to Qiime2 Artefact.
 
@@ -32,7 +32,7 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
     """
     job_folder = get_job_folder(i_datasets_folder, 'import_tables')
 
-    out_sh = '%s/0_run_import.sh' % job_folder
+    out_sh = '%s/0_run_import_%s.sh' % (job_folder, filt_raref)
     out_pbs = '%s.pbs' % splitext(out_sh)[0]
     written = 0
     with open(out_sh, 'w') as sh:
@@ -67,7 +67,7 @@ def get_threshs(p_filt_threshs):
 def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                         datasets_features: dict, datasets_filt: dict, datasets_filt_map: dict,
                         datasets_phylo: dict, prjct_nm: str, qiime_env: str, p_filt_threshs: str,
-                        chmod: str, noloc: bool, run_params: dict) -> None:
+                        chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
     """
     Filter the rare features, keep samples with enough reads/features and import to Qiime2.
 
@@ -89,7 +89,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
     datasets_features_update = {}
     datasets_phylo_update = {}
     job_folder = get_job_folder(i_datasets_folder, 'import_filtered')
-    out_sh = '%s/1_run_import_filtered.sh' % job_folder
+    out_sh = '%s/1_run_import_filtered_%s.sh' % (job_folder, filt_raref)
     out_pbs = '%s.pbs' % splitext(out_sh)[0]
     with open(out_sh, 'w') as sh:
         for dat, tab_meta_pds in datasets_read.items():
@@ -223,7 +223,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             sh.write('%s\n' % cmd)
             written += 1
     if written:
-        run_xpbs(out_sh, out_pbs, '%s.fltr' % prjct_nm, qiime_env,
+        run_xpbs(out_sh, out_pbs, '%s.fltr.%s' % (prjct_nm, filt_raref), qiime_env,
                  run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                  run_params["mem_num"], run_params["mem_dim"], chmod, written,
                  '# Filter samples for a min number of %s reads' % p_filt_threshs, None, noloc)

@@ -28,7 +28,7 @@ def get_raref_depths(p_raref_depths):
 def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                datasets_phylo: dict, datasets_filt_map: dict, datasets_rarefs: dict,
                p_raref_depths: str, force: bool, prjct_nm: str, qiime_env: str,
-               chmod: str, noloc: bool, run_params: dict) -> None:
+               chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
     """
     Run rarefy: Rarefy table.
     https://docs.qiime2.org/2019.10/plugins/available/feature-table/rarefy/
@@ -50,7 +50,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     datasets_raref_depths = check_rarefy_need(i_datasets_folder, datasets_read, p_raref_depths)
 
     main_written = 0
-    run_pbs = '%s/1_run_rarefy.sh' % job_folder
+    run_pbs = '%s/1_run_rarefy_%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
 
@@ -75,7 +75,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
             meta_out = '%s/meta_%s.tsv' % (odir, dat_raref)
             subprocess.call(['cp', meta, meta_out])
 
-            out_sh = '%s/run_rarefy_%s.sh' % (job_folder2, dat)
+            out_sh = '%s/run_rarefy_%s_%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 qza = tsv.replace('.tsv', '.qza')
@@ -97,7 +97,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 datasets_phylo[dat] = datasets_phylo[dat]
                 # datasets_features[dat] = 'raref'
 
-            run_xpbs(out_sh, out_pbs, '%s.bt.%s' % (prjct_nm, dat), qiime_env,
+            run_xpbs(out_sh, out_pbs, '%s.bt.%s.%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc)

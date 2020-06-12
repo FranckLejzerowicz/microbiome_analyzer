@@ -122,8 +122,15 @@ def routine_qiime2_analyses(
     # --> datasets_read <--
     # path_pd : indexed with feature name
     # meta_pd : not indexed -> "sample_name" as first column
+    filt_raref = ''
+    if p_filt_threshs:
+        filt_raref += '_flt'
+    if raref:
+        filt_raref += '_rrf'
+
     import_datasets(i_datasets_folder, datasets, datasets_phylo,
-                    force, prjct_nm, qiime_env, chmod, noloc, run_params['import'])
+                    force, prjct_nm, qiime_env, chmod, noloc,
+                    run_params['import'], filt_raref)
 
     datasets_filt = {}
     datasets_filt_map = {}
@@ -131,13 +138,13 @@ def routine_qiime2_analyses(
     if p_filt_threshs:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
                             datasets_filt, datasets_filt_map, datasets_phylo, prjct_nm,
-                            qiime_env, p_filt_threshs, chmod, noloc, run_params['filter'])
-        filt_raref += '_flt'
+                            qiime_env, p_filt_threshs, chmod, noloc, run_params['filter'],
+                            filt_raref)
     if raref:
         run_rarefy(i_datasets_folder, datasets, datasets_read, datasets_phylo,
                    datasets_filt_map, datasets_rarefs, p_raref_depths, force,
-                   prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'])
-        filt_raref += '_rrf'
+                   prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'],
+                   filt_raref)
 
     taxonomies = {}
     get_precomputed_taxonomies(i_datasets_folder, datasets, taxonomies)
