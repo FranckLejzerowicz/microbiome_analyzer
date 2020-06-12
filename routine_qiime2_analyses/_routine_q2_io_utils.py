@@ -803,7 +803,8 @@ def write_filtered_meta(meta_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFr
 def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                           datasets_read: dict, datasets_filt: dict,
                           unique_datasets: list, filtering: dict,
-                          force: bool, analysis: str, input_to_filtered: dict) -> (dict, dict, list):
+                          force: bool, analysis: str,
+                          input_to_filtered: dict) -> (dict, dict, list):
     """
     Filter the datasets for use in mmvec.
 
@@ -863,8 +864,6 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                 rad_out = '%s_%s_%s_%ss' % (dat, preval_filt, abund_filter, tsv_pd.shape[1])
                 tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
                 tsv_qza = '%s.qza' % splitext(tsv_out)[0]
-                # print(analysis, '------ tsv_out', tsv_out)
-                # print(analysis, '--->>> tsv_qza', tsv_qza)
                 meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
 
                 if analysis == 'songbird':
@@ -922,6 +921,83 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                 # print('------')
         filt_datasets[dat] = dat_filts
     return filt_datasets, filt_jobs
+
+
+def check_datasets_filtered(i_datasets_folder: str, datasets: dict,
+                            datasets_filt: dict, unique_datasets: list,
+                            filtering: dict, analysis: str,
+                            input_to_filtered: dict) -> (dict, dict, list):
+    """
+    Filter the datasets for use in mmvec.
+
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param datasets: list of data_sets.
+    :param datasets_read: dataset -> [tsv table, meta table] (here it updates tsv table after features correction)
+    :param datasets: datasets names from the yaml pairs.
+    :param filtering: validated filtering thersholds.
+    :param force: Force the re-writing of scripts for all commands.
+    :return: list of datasets from filtered threshold.
+    """
+    filt_datasets_pass = {}
+    for (dat_, mb) in unique_datasets:
+        if dat_ in datasets_filt:
+            dat = datasets_filt[dat_]
+        else:
+            dat = dat_
+        if dat not in datasets:
+            if dat.endswith('__raref'):
+                dat = dat.split('__raref')[0]
+                if dat in datasets_filt:
+                    dat = datasets_filt[dat]
+                dat = '%s__raref' % dat
+                input_to_filtered[dat_] = dat
+            else:
+                print('%s dataset "%s" not found...' % (analysis, dat))
+                continue
+        else:
+            input_to_filtered[dat_] = dat
+
+        dat_filts_pass = {}
+        dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
+        for preval_filt in filtering['prevalence']:
+            for abund_filt in filtering['abundance']:
+                # make sure there's no empty row / column
+                if mb:
+                    abund_filter = int(abund_filt[1])
+                else:
+                    abund_filter = int(abund_filt[0])
+                rad_out = '%s_%s_%s_*s' % (dat, preval_filt, abund_filter)
+                tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
+                tsv_qza = '%s.qza' % splitext(tsv_out)[0]
+                meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
+
+                if analysis == 'songbird':
+                    meta_outs = glob.glob(meta_out.replace('/songbird/', '/mmvec/'))
+                    tsv_outs = glob.glob(tsv_out.replace('/songbird/', '/mmvec/'))
+                    tsv_qzas = glob.glob(tsv_qza.replace('/songbird/', '/mmvec/'))
+                else:
+                    meta_outs = glob.glob(meta_out)
+                    tsv_outs = glob.glob(tsv_out)
+                    tsv_qzas = glob.glob(tsv_qza)
+
+                if len(meta_outs) == 1 and len(tsv_outs) == 1 and len(tsv_qzas) == 1:
+                    meta_out = meta_outs[0]
+                    tsv_out = tsv_outs[0]
+                    tsv_qza = tsv_qzas[0]
+                    with open(meta_out) as f:
+                        for line in f:
+                            sample_name = line.split('\t')[0]
+                            break
+                    meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
+                                          dtype={sample_name: str},
+                                          low_memory=False)
+                    dat_filts_pass[(preval_filt, str(abund_filter))] = [
+                        tsv_out, tsv_qza, meta_out, meta_pd, meta_pd[sample_name].tolist()
+                    ]
+                else:
+                    dat_filts_pass[(preval_filt, str(abund_filter))] = []
+        filt_datasets_pass[dat] = dat_filts_pass
+    return filt_datasets_pass
 
 
 def get_procrustes_dicts(p_procrustes):
