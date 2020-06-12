@@ -20,9 +20,11 @@ np.set_printoptions(precision=2, suppress=True)
 
 
 def get_raref_depths(p_raref_depths):
-    with open(p_raref_depths) as handle:
-        raref_depths = yaml.load(handle, Loader=yaml.FullLoader)
-        return raref_depths
+    raref_depths = {}
+    if p_raref_depths:
+        with open(p_raref_depths) as handle:
+            raref_depths = yaml.load(handle, Loader=yaml.FullLoader)
+    return raref_depths
 
 
 def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
@@ -64,7 +66,6 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
             if dat not in datasets_raref_depths:
                 datasets_rarefs[dat] = 0
                 continue
-
 
             odir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat)
             depth = datasets_raref_depths[dat]
@@ -114,9 +115,7 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict, p_raref_depth
     :param datasets_read: dataset -> [tsv table, meta table]
     :return datasets_raref_depths: Rarefaction depths for eac dataset.
     """
-    if p_raref_depths:
-        datasets_raref_depths_yml = get_raref_depths(p_raref_depths)
-
+    datasets_raref_depths_yml = get_raref_depths(p_raref_depths)
     datasets_raref_depths = {}
     for dat, (tsv_pd, meta_pd) in datasets_read.items():
         if dat in datasets_raref_depths_yml:

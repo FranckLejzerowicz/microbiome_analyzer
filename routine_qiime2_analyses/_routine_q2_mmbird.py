@@ -623,12 +623,9 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
         print(i, j)
     print('Done.')
 
-    print(hfkjskj)
-
     print('\t-> [mmbird] Get res dict...', end=' ')
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
     print('Done.')
-
 
     pair_cmds = get_pair_cmds(i_datasets_folder, mmvec_res, omics_pairs_metas, omics_pairs, force)
 
