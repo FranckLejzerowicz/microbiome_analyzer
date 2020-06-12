@@ -66,6 +66,9 @@ def get_songbird_outputs(songbird_outputs: list):
     songbird_outputs_pd = songbird_outputs_pd.pivot(columns='case_params', index='pair_omic_filt')
     songbird_outputs_pd.columns = songbird_outputs_pd.columns.droplevel()
     songbird_outputs_pd = songbird_outputs_pd.reset_index()
+    print('0 - songbird_outputs_pd')
+    print(songbird_outputs_pd.shape)
+    print(songbird_outputs_pd.columns)
     return songbird_outputs_pd
 
 
@@ -78,6 +81,9 @@ def merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd):
         on='pair_omic_filt1',
         how='left'
     )
+    print('A - mmvec_songbird_pd')
+    print(mmvec_songbird_pd.shape)
+    print(mmvec_songbird_pd.columns)
     rename_dic2 = dict((x, '%s_omic2_songbird_common_fp' % x) for x in songbird_outputs_pd.columns)
     rename_dic2.update({'pair_omic_filt': 'pair_omic_filt2'})
     mmvec_songbird_pd = mmvec_songbird_pd.merge(
@@ -85,6 +91,9 @@ def merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd):
         on='pair_omic_filt2',
         how='left'
     )
+    print('B - mmvec_songbird_pd')
+    print(mmvec_songbird_pd.shape)
+    print(mmvec_songbird_pd.columns)
     return mmvec_songbird_pd
 
 
