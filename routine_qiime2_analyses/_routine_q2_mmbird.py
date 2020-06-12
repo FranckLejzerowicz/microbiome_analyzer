@@ -492,12 +492,19 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, features_spli
                 for sb_head, diff_fp in sb_head_diff_fp.items():
                     model = sb_head.replace('_omic%s_songbird_common_fp' % omicn, '')
                     if str(diff_fp) != 'nan' and isfile(diff_fp):
+                        diff_html = '%s.html' % splitext(diff_fp)[0]
+                        if isfile(diff_html):
+                            with open(diff_html) as f:
+                                for line in f:
+                                    if 'Pseudo Q-squared' in line:
+                                        q2 = line.split('Pseudo Q-squared:</a></strong> ')[-1].split('<')[0]
+                                        break
                         diff_pd = pd.read_csv(diff_fp, header=0, sep='\t', dtype=str)
                         index_header = diff_pd.columns[0]
                         if diff_pd[index_header][0] == '#q2:types':
                             diff_pd = diff_pd[1:]
                         diff_pd = diff_pd.rename(columns={index_header: 'Feature ID'}).set_index('Feature ID')
-                        diff_pd.columns = ['%s__%s' % (model, x) for x in diff_pd.columns]
+                        diff_pd.columns = ['%s__%s__Q2-%s' % (model, x, q2) for x in diff_pd.columns]
                         all_omic_diff_list.append(diff_pd)
             if len(all_omic_diff_list):
                 all_omic_songbird_ranks = pd.concat(all_omic_diff_list, axis=1, sort=False).reset_index()
@@ -565,9 +572,6 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
     else:
         mmvec_songbird_pd = mmvec_outputs_pd.copy()
 
-    mmvec_songbird_pd.to_csv("/Users/franck/Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/mmvec_songbird_pd.tsv",
-                             index=False, sep='\t')
-
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
 
     print('\t-> [mmbird] Get features splits...', end=' ')
@@ -604,5 +608,5 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
                      qiime_env, '24', '1', '1', '1', 'gb',
                      chmod, written, 'single', o, noloc)
     if written:
-        print_message('# Generate mmvec biplot with sopngbird models', 'sh', run_pbs)
+        print_message('# Generate mmvec biplot with songbird models', 'sh', run_pbs)
 
