@@ -770,8 +770,6 @@ def get_raref_table(dat_rt: str, i_datasets_folder: str,
                     analysis: str) -> (pd.DataFrame, pd.DataFrame):
     raref_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat_rt)
     tsv_globbed = glob.glob('%s/tab_%s_raref*.tsv' % (raref_dir, dat_rt))
-    print("tsv_globbed")
-    print(tsv_globbed)
     if len(tsv_globbed) != 1:
         print('Must have one rarefaction for "%s" to use it further in %s...'
               '\nExiting' % (dat_rt, analysis))
