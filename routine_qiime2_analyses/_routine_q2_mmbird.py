@@ -565,12 +565,17 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
         print('No songbird output detected...')
         sys.exit(0)
 
+    print('\t-> [mmbird] Get mmvec output...', end=' ')
     mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
+    print('Done.')
+
+    print('\t-> [mmbird] Get songbird output...', end=' ')
     if len(songbird_outputs):
         songbird_outputs_pd = get_songbird_outputs(songbird_outputs)
         mmvec_songbird_pd = merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd)
     else:
         mmvec_songbird_pd = mmvec_outputs_pd.copy()
+    print('Done.')
 
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
 
