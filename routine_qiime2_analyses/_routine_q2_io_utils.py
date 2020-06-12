@@ -832,6 +832,8 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
             if dat.endswith('__raref'):
                 dat_rt = dat.split('__raref')[0]
                 print('1', dat)
+                print("datasets_filt")
+                print(datasets_filt)
                 if dat_rt in datasets_filt:
                     dat = datasets_filt[dat_rt]
                 print('1.1', dat)
