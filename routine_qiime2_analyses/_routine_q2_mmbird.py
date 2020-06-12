@@ -367,7 +367,7 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
             omic_metabolite = order_omics[7]
 
             # get differentials
-            meta1, max_feats1 = omics_pairs_metas[(pair, omic2, filt2)]
+            meta1, max_feats1 = omics_pairs_metas[(pair, omic1, filt1)]
             meta2, max_feats2 = omics_pairs_metas[(pair, omic2, filt2)]
 
             # mmvec_tab.append([
