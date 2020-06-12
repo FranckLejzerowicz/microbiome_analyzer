@@ -822,18 +822,25 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
             dat = datasets_filt[dat_]
         else:
             dat = dat_
+        print()
+        print("datasets")
+        print(datasets)
         if dat not in datasets:
+            print('0', dat)
             if dat.endswith('__raref'):
                 dat_rt = dat.split('__raref')[0]
+                print('1', dat)
                 if dat_rt in datasets_filt:
                     dat = datasets_filt[dat_rt]
                 tsv_pd_, meta_pd_ = get_raref_table(dat, i_datasets_folder, analysis)
                 if not tsv_pd_.shape[0]:
                     continue
+                print('2', dat)
                 dat = '%s__raref' % dat
+                print('3', dat)
                 input_to_filtered[dat_] = dat
             else:
-                print(analysis, '%s dataset "%s" not found...' % (analysis, dat))
+                print('%s dataset "%s" not found...' % (analysis, dat))
                 continue
         elif datasets_read[dat] == 'raref':
             tsv, meta = datasets[dat]
