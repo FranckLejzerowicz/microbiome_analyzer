@@ -1154,7 +1154,7 @@ def add_alpha_level_label(taxa, padded_new_rows_list, max_new_rows):
 def extend_split_taxonomy(split_taxa_pd: pd.DataFrame):
     to_concat = []
     for col in split_taxa_pd.columns.tolist():
-        if split_taxa_pd[col].unique().size > 200:
+        if split_taxa_pd[col].unique().size > 50:
             continue
         split_taxa_dummy = split_taxa_pd[col].str.get_dummies()
         split_taxa_dummy.columns = ['%s__%s' % (x, col) for x in split_taxa_dummy.columns]
