@@ -96,7 +96,6 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
         omic2 = input_to_filtered[omic2_]
         # print()
         # print()
-        # print()
         # print('pair:', pair)
         # print(' >', omic1)
         # print(' >', omic2)
@@ -120,8 +119,8 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
         for fdx in range(len(filts_1)):
             preval_filt1, abund_filter1 = filts_1[fdx]
             preval_filt2, abund_filter2 = filts_2[fdx]
-            omic_filt1 = '_'.join([preval_filt1, abund_filter1])
-            omic_filt2 = '_'.join([preval_filt2, abund_filter2])
+            filt1 = '_'.join([preval_filt1, abund_filter1])
+            filt2 = '_'.join([preval_filt2, abund_filter2])
             tsv1, qza1, meta1, meta_pd1, sams1 = filt_datasets[omic1][filts_1[fdx]]
             tsv2, qza2, meta2, meta_pd2, sams2 = filt_datasets[omic2][filts_2[fdx]]
             # print()
@@ -138,7 +137,7 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
             # print(' -', meta2)
             common_sams = sorted(set(sams1) & set(sams2))
             if len(common_sams) < 10:
-                print('Not enough samples: %s (%s) vs %s (%s) -> skipping' % (omic1, omic_filt1, omic2, omic_filt2))
+                print('Not enough samples: %s (%s) vs %s (%s) -> skipping' % (omic1, filt1, omic2, filt2))
                 continue
             meta_subset1 = get_meta_common_sorted(meta_pd1, common_sams)
             meta_subset2 = get_meta_common_sorted(meta_pd2, common_sams)
@@ -170,8 +169,13 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
             if force or not isfile(new_tsv2):
                 cmd = run_export(new_qza2, new_tsv2, 'FeatureTable')
                 common_jobs.append(cmd)
+            print(
+                '\t\t\t*', pair, ':',
+                omic1, '[%s: %s]' % (filt1, meta_subset1.shape[0]),
+                omic2, '[%s: %s]' % (filt2, meta_subset2.shape[0])
+            )
             common_datasets.setdefault(pair, []).append(
-                [meta_fp, omic1, omic2, omic_filt1, omic_filt2,
+                [meta_fp, omic1, omic2, filt1, filt2,
                  new_tsv1, new_tsv2, new_qza1,
                  new_qza2, len(common_sams)]
             )
@@ -241,21 +245,19 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
     :return:
     """
 
-    print('\t-> [%s] Get datasets filtered...' % analysis, end=' ')
+    print('\t-> [%s] Get datasets filtered...' % analysis)
     filt_datasets, filt_jobs = get_datasets_filtered(
         i_datasets_folder, datasets, datasets_read, datasets_filt,
         unique_datasets, filtering, force, analysis, input_to_filtered
     )
-    print('Done.')
 
     common_jobs = []
     common_datasets = {}
     if analysis == 'mmvec':
-        print('\t-> [mmvec] Get common datasets...', end=' ')
+        print('\t-> [mmvec] Get common datasets...')
         common_datasets, common_jobs = get_common_datasets(
             i_datasets_folder, mmvec_pairs, filt_datasets,  input_to_filtered, force
         )
-        print('Done.')
 
     pre_jobs = filt_jobs + common_jobs
     if len(pre_jobs):
