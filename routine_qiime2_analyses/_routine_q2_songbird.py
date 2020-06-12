@@ -195,6 +195,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             else:
                 meta = meta_
                 if not first_print:
+                    print(meta_alphas)
                     print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
                           '\t(if you have alpha diversity as a factors in the models)!')
                     first_print += 1
