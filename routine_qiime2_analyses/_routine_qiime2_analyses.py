@@ -116,12 +116,9 @@ def routine_qiime2_analyses(
     prjct_nm = get_prjct_nm(project_name)
     run_params = get_run_params(p_run_params)
 
-    # INIT -------------------------------------------------------------------------------------
     datasets, datasets_read, datasets_features, datasets_phylo, datasets_rarefs = get_datasets(
         i_datasets, i_datasets_folder)
-    # --> datasets_read <--
-    # path_pd : indexed with feature name
-    # meta_pd : not indexed -> "sample_name" as first column
+
     filt_raref = ''
     if p_filt_threshs:
         filt_raref += '_flt'
@@ -134,7 +131,6 @@ def routine_qiime2_analyses(
 
     datasets_filt = {}
     datasets_filt_map = {}
-    filt_raref = ''
     if p_filt_threshs:
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
                             datasets_filt, datasets_filt_map, datasets_phylo, prjct_nm,
