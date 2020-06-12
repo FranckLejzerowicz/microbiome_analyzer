@@ -197,8 +197,8 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
         cmd += '--learning-rate %s \\\n' % learn
         cmd += '--beta1 0.85 \\\n'
         cmd += '--beta2 0.90 \\\n'
-        cmd += '--checkpoint-interval 10 \\\n'
-        cmd += '--summary-interval 10 \\\n'
+        cmd += '--checkpoint-interval 30 \\\n'
+        cmd += '--summary-interval 30 \\\n'
         cmd += '--summary-dir %s \\\n' % res_dir
         cmd += '--ranks-file %s\n' % ranks_tsv
     else:
@@ -220,7 +220,7 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
             cmd += '--p-latent-dim %s \\\n' % latent_dim
             cmd += '--p-input-prior %s \\\n' % prior
             cmd += '--p-learning-rate %s \\\n' % learn
-            cmd += '--p-summary-interval 10 \\\n'
+            cmd += '--p-summary-interval 30 \\\n'
             if qiime_env == 'qiime2-2020.2':
                 cmd += '--p-equalize-biplot \\\n'
             cmd += '--o-conditionals %s \\\n' % ranks_qza
