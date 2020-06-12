@@ -25,7 +25,7 @@ from routine_qiime2_analyses._routine_q2_cmds import run_import
 
 def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datasets_phylo: dict,
              prjct_nm: str, i_sepp_tree: str, trees: dict, force: bool,
-             qiime_env: str, chmod: str, noloc: bool, filt_raref: str) -> None:
+             qiime_env: str, chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
     """
     Run SEPP on the datasets composed or 16S deblur sequences (e.g. from redbiom/Qiita).
 
@@ -102,8 +102,9 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                                                  out_fp_sepp_tree, out_fp_sepp_plac,
                                                  qza, qza_in, qza_out, cur_sh)
                         written += 1
-                run_xpbs(out_sh, out_pbs, '%s.spp.%s%s' % (prjct_nm, dat, filt_raref),
-                         qiime_env, '100', '2', '12', '100', 'gb',
+                run_xpbs(out_sh, out_pbs, '%s.spp.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                         run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                         run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', main_o, noloc)
         if written:
             print_message("# Fragment insertion using SEPP (%s)" % ', '.join(sepp_datasets), 'sh', main_sh)
@@ -111,7 +112,8 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
 
 def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict,
                datasets_features: dict, prjct_nm: str, i_wol_tree: str, trees: dict,
-               force: bool, qiime_env: str, chmod: str, noloc: bool, filt_raref: str) -> None:
+               force: bool, qiime_env: str, chmod: str, noloc: bool, run_params: dict,
+               filt_raref: str) -> None:
     """
     Get the sub-tree from the Web of Life tree that corresponds to the gOTUs-labeled features.
 
@@ -173,8 +175,9 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
                     written += 1
                     main_written += 1
                     main_written + 1
-                    run_xpbs(out_sh, out_pbs, '%s.shr.%s%s' % (prjct_nm, dat, filt_raref),
-                             qiime_env,  '1', '1', '1', '200', 'mb',
+                    run_xpbs(out_sh, out_pbs, '%s.shr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                             run_params["mem_num"], run_params["mem_dim"],
                              chmod, written, 'single', main_o, noloc)
         if main_written:
             print_message("# Shear Web of Life tree to features' genome IDs (%s)" % ', '.join(wol_datasets), 'sh', main_sh)

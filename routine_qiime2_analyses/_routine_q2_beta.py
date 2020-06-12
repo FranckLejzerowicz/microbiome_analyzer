@@ -33,7 +33,8 @@ from routine_qiime2_analyses._routine_q2_cmds import run_export, run_import
 def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
              datasets_read: dict, p_beta_subsets: str, trees: dict, force: bool,
              prjct_nm: str, qiime_env: str, chmod: str,
-             noloc: bool, Bs: tuple, dropout: bool, filt_raref: str) -> dict:
+             noloc: bool, Bs: tuple, dropout: bool, run_params: dict,
+             filt_raref: str) -> dict:
     """
     Run beta: Beta diversity.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta/
@@ -143,8 +144,9 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                 main_written += 1
                             divs[metric][subset] = (meta, qza_subset, out_fp)
                 betas[dat] = divs
-            run_xpbs(out_sh, out_pbs, '%s.bt.%s%s' % (prjct_nm, dat, filt_raref),
-                     qiime_env, '24', '1', '1', '10', 'gb',
+            run_xpbs(out_sh, out_pbs, '%s.bt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                     run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc)
     if main_written:
         print_message('# Calculate beta diversity indices', 'sh', run_pbs)
@@ -153,7 +155,8 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
 def export_beta(i_datasets_folder: str, betas: dict,
                 force: bool, prjct_nm: str, qiime_env: str,
-                chmod: str, noloc: bool, filt_raref: str) -> None:
+                chmod: str, noloc: bool, run_params: dict,
+                filt_raref: str) -> None:
     """
     Export beta diverity matrices.
 
@@ -179,14 +182,16 @@ def export_beta(i_datasets_folder: str, betas: dict,
                         sh.write('echo "%s"\n' % cmd)
                         sh.write('%s\n\n' % cmd)
                         written += 1
-    run_xpbs(out_sh, out_pbs, '%s.xprt.bt%s' % (prjct_nm, filt_raref),
-             qiime_env, '2', '1', '1', '1', 'gb',
+    run_xpbs(out_sh, out_pbs, '%s.xprt.bt%s' % (prjct_nm, filt_raref), qiime_env,
+             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+             run_params["mem_num"], run_params["mem_dim"],
              chmod, written, '# Export beta diversity matrices', None, noloc)
 
 
 def run_pcoas(i_datasets_folder: str, betas: dict,
               force: bool, prjct_nm: str, qiime_env: str,
-              chmod: str, noloc: bool, filt_raref: str) -> dict:
+              chmod: str, noloc: bool, run_params: dict,
+              filt_raref: str) -> dict:
     """
     Run pcoa: Principal Coordinate Analysis.
     Run pcoa: Principal Coordinate Analysis Biplot¶
@@ -228,8 +233,9 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
                             write_diversity_pcoa(dm, out, out_tsv, cur_sh)
                             written += 1
                             main_written += 1
-            run_xpbs(out_sh, out_pbs, '%s.pc.%s%s' % (prjct_nm, dat, filt_raref),
-                     qiime_env, '10', '1', '2', '2', 'gb',
+            run_xpbs(out_sh, out_pbs, '%s.pc.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                     run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc)
     if main_written:
         print_message('# Calculate principal coordinates', 'sh', run_pbs)
@@ -237,7 +243,8 @@ def run_pcoas(i_datasets_folder: str, betas: dict,
 
 
 def run_emperor(i_datasets_folder: str, pcoas_d: dict, prjct_nm: str,
-                qiime_env: str, chmod: str, noloc: bool, filt_raref: str) -> None:
+                qiime_env: str, chmod: str, noloc: bool, run_params: dict,
+                filt_raref: str) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -278,8 +285,9 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, prjct_nm: str,
                     write_emperor(meta, pcoa, out_plot, cur_sh)
                     written += 1
                     main_written += 1
-            run_xpbs(out_sh, out_pbs, '%s.mprr.%s%s' % (prjct_nm, dat, filt_raref),
-                     qiime_env, '10', '1', '1', '1', 'gb',
+            run_xpbs(out_sh, out_pbs, '%s.mprr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                     run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc)
     if main_written:
         print_message('# Make EMPeror plots', 'sh', run_pbs)
@@ -287,7 +295,7 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, prjct_nm: str,
 
 def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict,
                 taxonomies: dict, force: bool, prjct_nm: str, qiime_env: str,
-                chmod: str, noloc: bool, filt_raref: str) -> dict:
+                chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> dict:
     """
     Run pcoa-biplot: Principal Coordinate Analysis Biplot¶
     https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa-biplot/
@@ -336,8 +344,9 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict,
                             written += 1
                             main_written += 1
                         biplots_d[dat].setdefault(meta, []).append((out_biplot, tsv_tax))
-            run_xpbs(out_sh, out_pbs, '%s.bplt.%s%s' % (prjct_nm, dat, filt_raref),
-                     qiime_env, '10', '1', '2', '2', 'gb',
+            run_xpbs(out_sh, out_pbs, '%s.bplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                     run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc)
     if main_written:
         print_message('# Calculate principal coordinates (biplot)', 'sh', run_pbs)
@@ -345,7 +354,8 @@ def run_biplots(i_datasets_folder: str, datasets: dict, betas: dict,
 
 
 def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict,
-                prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, filt_raref: str) -> None:
+                       prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
+                       run_params: dict, filt_raref: str) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -395,8 +405,9 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
                             write_emperor_biplot(meta, biplot, out_plot, cur_sh, tax_tsv)
                         written += 1
                         main_written += 1
-            run_xpbs(out_sh, out_pbs, '%s.mprr.bplt.%s%s' % (prjct_nm, dat, filt_raref),
-                     qiime_env, '10', '1', '1', '1', 'gb',
+            run_xpbs(out_sh, out_pbs, '%s.mprr.bplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                     run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc)
     if main_written:
         print_message('# Make EMPeror biplots', 'sh', run_pbs)

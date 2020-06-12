@@ -275,7 +275,8 @@ def make_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, data
 def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
               datasets_filt: dict, datasets_read: dict, force: bool,
               gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
-              chmod: str, noloc: bool, split: bool, filt_raref: str, input_to_filtered: dict) -> list:
+              chmod: str, noloc: bool, split: bool, filt_raref: str,
+              run_params: dict, input_to_filtered: dict) -> list:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
     https://github.com/biocore/mmvec
@@ -370,7 +371,9 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         qiime_env = 'mmvec2'
 
     main_sh = write_main_sh(job_folder, '3_mmvec%s' % filt_raref, all_sh_pbs,
-                            '%s.mmvc%s' % (prjct_nm, filt_raref), '24', '1', '1', '2', 'gb',
+                            '%s.mmvc%s' % (prjct_nm, filt_raref),
+                            run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                            run_params["mem_num"], run_params["mem_dim"],
                             qiime_env, chmod, noloc)
     if main_sh:
         if p_mmvec_pairs.startswith('/panfs'):

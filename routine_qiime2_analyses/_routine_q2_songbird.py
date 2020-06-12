@@ -107,7 +107,8 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                  datasets_read: dict, datasets_filt: dict, input_to_filtered: dict,
                  mmvec_outputs: list, force: bool, prjct_nm: str, qiime_env: str,
-                 chmod: str, noloc: bool, split: bool, filt_raref: str) -> list:
+                 chmod: str, noloc: bool, split: bool,
+                 run_params: dict, filt_raref: str) -> list:
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
@@ -249,7 +250,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
     main_sh = write_main_sh(job_folder, '2_songbird%s' % filt_raref, all_sh_pbs,
-                            '%s.sngbrd%s' % (prjct_nm, filt_raref), '48', '1', '1', '2', 'gb',
+                            '%s.sngbrd%s' % (prjct_nm, filt_raref),
+                            run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                            run_params["mem_num"], run_params["mem_dim"],
                             qiime_env, chmod, noloc)
     if main_sh:
         if p_diff_models.startswith('/panfs'):

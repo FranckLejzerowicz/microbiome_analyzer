@@ -41,7 +41,8 @@ def run_single_procrustes(odir: str, dm1: str, dm2: str, meta_pd: pd.DataFrame,
 
 def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                    p_procrustes: str, betas: dict, force: bool, prjct_nm: str,
-                   qiime_env: str, chmod: str, noloc: bool, split: bool, filt_raref: str) -> None:
+                   qiime_env: str, chmod: str, noloc: bool, split: bool,
+                   run_params: dict, filt_raref: str) -> None:
     """
     """
     job_folder = get_job_folder(i_datasets_folder, 'procrustes')
@@ -135,7 +136,9 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
 
     job_folder = get_job_folder(i_datasets_folder, 'procrustes')
     main_sh = write_main_sh(job_folder, '4_run_procrustes%s' % filt_raref, all_sh_pbs,
-                            '%s.prcst%s' % (prjct_nm, filt_raref), '2', '1', '1', '1', 'gb',
+                            '%s.prcst%s' % (prjct_nm, filt_raref),
+                            run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                            run_params["mem_num"], run_params["mem_dim"],
                             qiime_env, chmod, noloc)
     if main_sh:
         if p_procrustes:
@@ -192,8 +195,9 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
         with open(out_sh, 'w') as o:
             o.write('R -f %s --vanilla\n' % R_script)
 
-        run_xpbs(out_sh, out_pbs, '%s.prcrt.R%s' % (prjct_nm, filt_raref),
-                 'renv', '48', '1', '1', '1', 'gb', chmod, 1,
+        run_xpbs(out_sh, out_pbs, '%s.prcrt.R%s' % (prjct_nm, filt_raref), 'renv',
+                 run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                 run_params["mem_num"], run_params["mem_dim"], chmod, 1,
                  '# Procrustes for stats in R (pairs and samples subsets config in %s)' % p_procrustes,
                  None, False)
 

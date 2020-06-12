@@ -555,8 +555,8 @@ def get_features_splits(i_datasets_folder, mmvec_songbird_pd, input_to_filtered)
 
 def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
                mmvec_outputs: list, force: bool, prjct_nm: str,
-               qiime_env: str, chmod: str, noloc: bool,
-               filt_raref: str, input_to_filtered: dict) -> None:
+               qiime_env: str, chmod: str, noloc: bool, filt_raref: str,
+               run_params: dict, input_to_filtered: dict) -> None:
 
     if not mmvec_outputs:
         print('No mmvec output detected...')
@@ -604,8 +604,9 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
                 for cmd in cmds:
                     cur_sh.write(cmd)
                     written += 1
-            run_xpbs(out_sh, out_pbs, '%s.mmbrd.%s%s' % (prjct_nm, pair, filt_raref),
-                     qiime_env, '24', '1', '1', '5', 'gb',
+            run_xpbs(out_sh, out_pbs, '%s.mmbrd.%s%s' % (prjct_nm, pair, filt_raref), qiime_env,
+                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                     run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc)
     if written:
         print_message('# Generate mmvec biplot with songbird models', 'sh', run_pbs)

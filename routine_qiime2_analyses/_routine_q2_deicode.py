@@ -66,7 +66,8 @@ def run_single_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str
 
 def run_deicode(i_datasets_folder: str, datasets: dict, p_perm_groups: str,
                 force: bool, prjct_nm: str, qiime_env: str,
-                chmod: str, noloc: bool, filt_raref: str) -> None:
+                chmod: str, noloc: bool, run_params: dict,
+                filt_raref: str) -> None:
     """
     Performs robust center log-ratio transform robust PCA and
     ranks the features by the loadings of the resulting SVD.
@@ -102,7 +103,9 @@ def run_deicode(i_datasets_folder: str, datasets: dict, p_perm_groups: str,
 
     job_folder = get_job_folder(i_datasets_folder, 'deicode')
     main_sh = write_main_sh(job_folder, '3_run_beta_deicode%s' % filt_raref, all_sh_pbs,
-                            '%s.dcd%s' % (prjct_nm, filt_raref), '2', '1', '1', '200', 'mb',
+                            '%s.dcd%s' % (prjct_nm, filt_raref),
+                            run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                            run_params["mem_num"], run_params["mem_dim"],
                             qiime_env, chmod, noloc)
     if main_sh:
         if p_perm_groups:
