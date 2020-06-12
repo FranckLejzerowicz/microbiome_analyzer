@@ -183,7 +183,8 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
 
 
 def check_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
-                          filt_datasets_pass: dict, input_to_filtered: dict) -> (dict, list):
+                          filt_datasets_pass: dict,
+                          input_to_filtered: dict) -> (dict, list):
     """
     :param i_datasets_folder:
     :param mmvec_pairs:
@@ -199,6 +200,8 @@ def check_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
         omic1 = input_to_filtered[omic1_]
         omic2 = input_to_filtered[omic2_]
         if omic1 not in filt_datasets_pass or omic2 not in filt_datasets_pass:
+            continue
+        if not filt_datasets_pass[omic1] or not filt_datasets_pass[omic2]:
             continue
         filts_1 = list(filt_datasets_pass[omic1].keys())
         filts_2 = list(filt_datasets_pass[omic2].keys())
@@ -299,7 +302,11 @@ def check_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, dat
         i_datasets_folder, datasets, datasets_filt,
         unique_datasets, filtering, analysis, input_to_filtered
     )
-    print('\t\t--> %s dataset(s) to prepare' % sum([1 for x,y in filt_datasets_pass.items() if len(y)]))
+    filt_datasets_todo = [x for x, y in filt_datasets_pass.items() if not len(y)]
+    if len(filt_datasets_todo):
+        print('\t\t--> %s dataset(s) to prepare:' % len(filt_datasets_todo))
+        for filt_datasets_td in filt_datasets_todo:
+            print('\t\t\t*', filt_datasets_td)
 
     common_datasets_pass = {}
     if analysis == 'mmvec':
@@ -308,6 +315,12 @@ def check_filtered_and_common_dataset(i_datasets_folder:str, datasets: dict, dat
             i_datasets_folder, mmvec_pairs,
             filt_datasets_pass, input_to_filtered
         )
+        common_datasets_todo = [x for x, y in common_datasets_pass.items() if not len(y)]
+        if len(common_datasets_todo):
+            print('\t\t--> %s common dataset(s) to prepare:' % len(common_datasets_todo))
+            for common_datasets_td in common_datasets_todo:
+                print('\t\t\t*', common_datasets_td)
+
     return filt_datasets_pass, common_datasets_pass
 
 
@@ -389,7 +402,6 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         i_datasets_folder, datasets, datasets_filt,
         unique_datasets, mmvec_pairs, mmvec_filtering,
         'mmvec', input_to_filtered)
-
 
     print("filt_datasets_done")
     print(filt_datasets_done)
