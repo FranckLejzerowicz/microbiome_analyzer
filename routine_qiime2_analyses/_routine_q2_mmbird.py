@@ -537,7 +537,7 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, features_spli
                 print(all_omic_songbird_ranks.columns)
                 print('max_feats:', max_feats)
             if omic in features_splits_pds:
-                features_splits_pd = features_splits_pds[omic]
+                features_splits_pd, last_taxolevel = features_splits_pds[omic]
                 print("features_splits_pd")
                 print(features_splits_pd.shape)
                 print(features_splits_pd.columns)
@@ -546,6 +546,14 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, features_spli
                     on='Feature ID',
                     how='left'
                 ).drop_duplicates()
+                features_splits_rm_cols = [
+                    x for x, y in (
+                            all_omic_songbird_ranks.iloc[
+                                :, all_omic_songbird_ranks.columns.tolist().index(last_taxolevel):
+                            ].sum() > 0
+                    ).to_dict().items() if not y
+                ]
+                all_omic_songbird_ranks.drop(columns=features_splits_rm_cols, inplace=True)
                 print(all_omic_songbird_ranks.shape)
                 print(all_omic_songbird_ranks.columns)
             meta_omic_fp = '%s/feature_metadata_%s__%s.tsv' % (cur_mmvec_folder, omic, filt)
@@ -561,15 +569,16 @@ def get_features_splits(i_datasets_folder, mmvec_songbird_pd, input_to_filtered)
     for omicn in ['1', '2']:
         for omic in mmvec_songbird_pd['omic%s' % omicn].unique():
             omic_tax_fp = get_tax_fp(i_datasets_folder, omic, input_to_filtered)
+            last_taxolevel = 0
             if isfile(omic_tax_fp):
                 omic_tax_pd = pd.read_csv(omic_tax_fp, header=0, sep='\t', dtype=str)
                 if 'Taxon' in omic_tax_pd.columns:
-                    omic_split_taxa_pd = get_split_taxonomy(omic_tax_pd.Taxon.tolist())
+                    omic_split_taxa_pd, last_taxolevel = get_split_taxonomy(omic_tax_pd.Taxon.tolist())
                     omic_tax_pd = omic_tax_pd.merge(
                         omic_split_taxa_pd, on='Taxon', how='left').drop_duplicates()
             else:
                 omic_tax_pd = pd.DataFrame()
-            features_splits[omic] = omic_tax_pd
+            features_splits[omic] = (omic_tax_pd, last_taxolevel)
     return features_splits
 
 
