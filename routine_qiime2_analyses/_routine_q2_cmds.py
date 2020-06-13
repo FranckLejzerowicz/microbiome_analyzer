@@ -1173,11 +1173,9 @@ def get_split_taxonomy(taxa, taxo_sep=';'):
              if len(x.strip()) and x[0] != 'x']
         ) for taxon in taxa
     ])
-    split_taxa_pd.index = taxa
     ALPHA = 'ABCDEFGHIJKL'
     split_taxa_pd_cols =['Taxolevel_%s' % (ALPHA[idx]) for idx in range(split_taxa_pd.shape[1])]
     split_taxa_pd.columns = split_taxa_pd_cols
-    last_taxolevel = split_taxa_pd_cols[-1]
     # get the max number of fields
     # max_new_rows = max([len(new_row) for new_row in new_rows])
     # padded_new_rows_list = get_padded_new_rows_list(new_rows, max_new_rows)
@@ -1185,6 +1183,6 @@ def get_split_taxonomy(taxa, taxo_sep=';'):
     padded_extended_pd = extend_split_taxonomy(split_taxa_pd)
     if padded_extended_pd.shape[0]:
         split_taxa_pd = pd.concat([split_taxa_pd, padded_extended_pd], axis=1)
-    split_taxa_pd = split_taxa_pd.reset_index().rename(columns={'index': 'Taxon'})
-    return split_taxa_pd, last_taxolevel
+    # split_taxa_pd = split_taxa_pd.reset_index().rename(columns={'index': 'Taxon'})
+    return split_taxa_pd
 

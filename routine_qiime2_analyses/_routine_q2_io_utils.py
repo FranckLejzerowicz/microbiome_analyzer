@@ -803,7 +803,7 @@ def write_filtered_meta(meta_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFr
 def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                           datasets_read: dict, datasets_filt: dict,
                           unique_datasets: list, filtering: dict,
-                          force: bool, analysis: str,
+                          force: bool, analysis: str, filt_datasets_done: dict,
                           input_to_filtered: dict) -> (dict, dict, list):
     """
     Filter the datasets for use in mmvec.
@@ -852,14 +852,21 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
         for preval_filt in filtering['prevalence']:
             for abund_filt in filtering['abundance']:
+                if mb:
+                    abund_filter = int(abund_filt[1])
+                else:
+                    abund_filter = int(abund_filt[0])
+                if len(filt_datasets_done[(dat, mb)][(preval_filt, str(abund_filter))]):
+                    print('\t\t\t*', '[DONE]', dat, mb, preval_filt, str(abund_filter))
+                    dat_filts[(preval_filt, str(abund_filter))] = \
+                        filt_datasets_done[(dat, mb)][(preval_filt, str(abund_filter))]
+                    continue
                 # make sure there's no empty row / column
                 tsv_pd = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :].copy()
                 tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
                 if mb:
-                    abund_filter = int(abund_filt[1])
                     tsv_pd = filter_mb_table(int(preval_filt), abund_filter, tsv_pd)
                 else:
-                    abund_filter = int(abund_filt[0])
                     tsv_pd = filter_non_mb_table(int(preval_filt), abund_filter, tsv_pd)
                 rad_out = '%s_%s_%s_%ss' % (dat, preval_filt, abund_filter, tsv_pd.shape[1])
                 tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
@@ -909,7 +916,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                     if force or not isfile(tsv_qza):
                         cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
                         filt_jobs.append(cmd)
-                print('\t\t\t*', dat, preval_filt, str(abund_filter), ':', tsv_pd.shape)
+                print('\t\t\t*', '[TODO]', dat, mb, preval_filt, str(abund_filter), ':', tsv_pd.shape)
                 dat_filts[(preval_filt, str(abund_filter))] = [
                     tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()
                 ]
@@ -919,7 +926,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                 # print(' -', tsv_qza)
                 # print(' -', meta_out)
                 # print('------')
-        filt_datasets[dat] = dat_filts
+        filt_datasets[(dat, mb)] = dat_filts
     return filt_datasets, filt_jobs
 
 
@@ -996,7 +1003,7 @@ def check_datasets_filtered(i_datasets_folder: str, datasets: dict,
                     ]
                 else:
                     dat_filts_pass[(preval_filt, str(abund_filter))] = []
-        filt_datasets_pass[dat] = dat_filts_pass
+        filt_datasets_pass[(dat, mb)] = dat_filts_pass
     return filt_datasets_pass
 
 

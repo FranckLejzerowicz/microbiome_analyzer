@@ -29,7 +29,10 @@ from routine_qiime2_analyses._routine_q2_cmds import (
     write_songbird_cmd
 )
 from routine_qiime2_analyses._routine_q2_mmbird import get_mmvec_outputs
-from routine_qiime2_analyses._routine_q2_mmvec import make_filtered_and_common_dataset
+from routine_qiime2_analyses._routine_q2_mmvec import (
+    make_filtered_and_common_dataset,
+    check_filtered_and_common_dataset
+)
 
 
 def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
@@ -139,13 +142,24 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     diff_priors = params['diff_priors']
     n_randoms = params['n_randoms']
 
+    filt_datasets_done, common_datasets_done = check_filtered_and_common_dataset(
+        i_datasets_folder, datasets, datasets_filt,
+        songbird_datasets, {}, songbird_filtering,
+        'songbird', input_to_filtered)
+
+    # print('-----')
+    # for i in filt_datasets_done:
+    #     print(i)
+    #     print(' -', filt_datasets_done[i].keys())
+
     filt_datasets, common_datasets = make_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_filt,
         datasets_read, songbird_datasets, {}, songbird_filtering,
         job_folder, force, prjct_nm, qiime_env,
-        chmod, noloc, 'songbird', filt_raref, input_to_filtered)
+        chmod, noloc, 'songbird', filt_raref, filt_datasets_done,
+        common_datasets_done, input_to_filtered)
 
-    songbird_models.update(dict((input_to_filtered[x], y) for x,y in songbird_models.items() if x in input_to_filtered))
+    songbird_models.update(dict((input_to_filtered[x], y) for x, y in songbird_models.items() if x in input_to_filtered))
     # print("***************")
     # print("songbird_models")
     # print("***************")
@@ -195,7 +209,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             else:
                 meta = meta_
                 if not first_print:
-                    print(meta_alphas)
                     print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
                           '\t(if you have alpha diversity as a factors in the models)!')
                     first_print += 1

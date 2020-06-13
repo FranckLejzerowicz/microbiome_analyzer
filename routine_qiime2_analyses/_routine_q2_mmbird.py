@@ -66,9 +66,6 @@ def get_songbird_outputs(songbird_outputs: list):
     songbird_outputs_pd = songbird_outputs_pd.pivot(columns='case_params', index='pair_omic_filt')
     songbird_outputs_pd.columns = songbird_outputs_pd.columns.droplevel()
     songbird_outputs_pd = songbird_outputs_pd.reset_index()
-    print('0 - songbird_outputs_pd')
-    print(songbird_outputs_pd.shape)
-    print(songbird_outputs_pd.columns)
     return songbird_outputs_pd
 
 
@@ -81,9 +78,6 @@ def merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd):
         on='pair_omic_filt1',
         how='left'
     )
-    print('A - mmvec_songbird_pd')
-    print(mmvec_songbird_pd.shape)
-    print(mmvec_songbird_pd.columns)
     rename_dic2 = dict((x, '%s_omic2_songbird_common_fp' % x) for x in songbird_outputs_pd.columns)
     rename_dic2.update({'pair_omic_filt': 'pair_omic_filt2'})
     mmvec_songbird_pd = mmvec_songbird_pd.merge(
@@ -91,9 +85,6 @@ def merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd):
         on='pair_omic_filt2',
         how='left'
     )
-    print('B - mmvec_songbird_pd')
-    print(mmvec_songbird_pd.shape)
-    print(mmvec_songbird_pd.columns)
     return mmvec_songbird_pd
 
 
@@ -485,11 +476,11 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
 #     return all_omic_songbird_ranks
 
 
-def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, features_splits_pds):
+def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
 
     omics_pairs_metas = {}
     for omicn in ['1', '2']:
-        print('omicn:', omicn)
+        # print('omicn:', omicn)
         pair_omic_filt = ['pair', 'omic%s' % omicn, 'filt%s' % omicn]
         all_omic_sb = [x for x in mmvec_songbird_pd.columns if x.endswith('omic%s_songbird_common_fp' % omicn)]
         omicn_songbirds = mmvec_songbird_pd[
@@ -501,94 +492,87 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, features_spli
             print("sb_head_diff_fp")
             print(sb_head_diff_fp)
             cur_mmvec_folder = get_analysis_folder(i_datasets_folder, 'mmvec/metadata/%s' % pair)
-            all_omic_diff_list = []
+            omic_diff_list = []
             if len(sb_head_diff_fp):
                 for sb_head, diff_fp in sb_head_diff_fp.items():
                     model = sb_head.replace('_omic%s_songbird_common_fp' % omicn, '')
                     if str(diff_fp) != 'nan' and isfile(diff_fp):
-                        diff_html = '%s.html' % splitext(diff_fp)[0]
+                        diff_html = '%s-tensorboard.html' % splitext(diff_fp)[0]
                         if isfile(diff_html):
                             with open(diff_html) as f:
                                 for line in f:
                                     if 'Pseudo Q-squared' in line:
                                         q2 = line.split('Pseudo Q-squared:</a></strong> ')[-1].split('<')[0]
                                         break
+                        else:
+                            q2 = 'Not_found'
                         diff_pd = pd.read_csv(diff_fp, header=0, sep='\t', dtype=str)
                         index_header = diff_pd.columns[0]
                         if diff_pd[index_header][0] == '#q2:types':
                             diff_pd = diff_pd[1:]
                         diff_pd = diff_pd.rename(columns={index_header: 'Feature ID'}).set_index('Feature ID')
-                        diff_pd.columns = ['%s__%s__Q2-%s' % (model, x, q2) for x in diff_pd.columns]
-                        all_omic_diff_list.append(diff_pd)
-            if len(all_omic_diff_list):
-                all_omic_songbird_ranks = pd.concat(all_omic_diff_list, axis=1, sort=False).reset_index()
-                print('A', 'all_omic_songbird_ranks')
-                print(all_omic_songbird_ranks.shape)
-                print(all_omic_songbird_ranks.columns)
-                max_feats = all_omic_songbird_ranks.shape[0]
-                print('max_feats:', max_feats)
+                        diff_pd.columns = ['%s__%s__Q2=%s' % (model, x, q2) for x in diff_pd.columns]
+                        omic_diff_list.append(diff_pd)
+            if len(omic_diff_list):
+                omic_songbird_ranks = pd.concat(omic_diff_list, axis=1, sort=False).reset_index()
+                max_feats = omic_songbird_ranks.shape[0]
+                # print('A', 'omic_songbird_ranks')
+                # print(omic_songbird_ranks.shape)
+                # print(omic_songbird_ranks.columns)
+                # print('max_feats:', max_feats)
             else:
                 omic_common_fp = mmvec_songbird_pd.loc[
                     (mmvec_songbird_pd['pair'] == pair) &
                     (mmvec_songbird_pd['omic%s' % omicn] == omic) &
                     (mmvec_songbird_pd['filt%s' % omicn] == filt),
                     'omic%s_common_fp' % omicn
-                ]
+                ].tolist()[0]
                 omic_tax_list = []
                 with open(omic_common_fp) as f:
                     for ldx, line in enumerate(f):
                         if ldx:
                             omic_tax_list.append([line.split('\t')[0]])
-                all_omic_songbird_ranks = pd.DataFrame(omic_tax_list, columns=['Feature ID'])
+                omic_songbird_ranks = pd.DataFrame(omic_tax_list, columns=['Feature ID'])
                 max_feats = 0
-                print('B', 'all_omic_songbird_ranks')
-                print(all_omic_songbird_ranks.shape)
-                print(all_omic_songbird_ranks.columns)
-                print('max_feats:', max_feats)
-            if omic in features_splits_pds:
-                features_splits_pd, last_taxolevel = features_splits_pds[omic]
-                print("features_splits_pd")
-                print(features_splits_pd.shape)
-                print(features_splits_pd.columns)
-                all_omic_songbird_ranks = all_omic_songbird_ranks.merge(
-                    features_splits_pd,
-                    on='Feature ID',
-                    how='left'
-                ).drop_duplicates()
-                features_splits_rm_cols = [
-                    x for x, y in (
-                            all_omic_songbird_ranks.iloc[
-                                :, all_omic_songbird_ranks.columns.tolist().index(last_taxolevel):
-                            ].sum() > 0
-                    ).to_dict().items() if not y
-                ]
-                all_omic_songbird_ranks.drop(columns=features_splits_rm_cols, inplace=True)
-                print(all_omic_songbird_ranks.shape)
-                print(all_omic_songbird_ranks.columns)
+                # print('B', 'all_omic_songbird_ranks')
+                # print(omic_songbird_ranks.shape)
+                # print(omic_songbird_ranks.columns)
+                # print('max_feats:', max_feats)
+            if omic in taxo_pds:
+                omic_tax_pd = taxo_pds[omic]
+                if 'Taxon' in omic_tax_pd.columns:
+                    # print('merge songbird %s with taxonomy %s' % (omic_songbird_ranks.shape, omic_tax_pd.shape))
+                    omic_split_taxa_pd = get_split_taxonomy(omic_tax_pd.Taxon.tolist())
+                    # print(omic_tax_pd.shape)
+                    # print(omic_tax_pd[:3])
+                    # print(omic_split_taxa_pd.shape)
+                    # print(omic_split_taxa_pd[:3])
+                    omic_tax_pd = pd.concat([omic_tax_pd, omic_split_taxa_pd], axis=1, sort=False)
+                # print(omic_tax_pd.shape)
+                # print(omic_tax_pd[:3])
+                omic_songbird_ranks = omic_songbird_ranks.merge(
+                    omic_tax_pd, on='Feature ID', how='left').drop_duplicates()
+
             meta_omic_fp = '%s/feature_metadata_%s__%s.tsv' % (cur_mmvec_folder, omic, filt)
-            print("meta_omic_fp")
-            print(meta_omic_fp)
-            all_omic_songbird_ranks.to_csv(meta_omic_fp, index=False, sep='\t')
+            # print("meta_omic_fp")
+            # print(meta_omic_fp)
+            omic_songbird_ranks.to_csv(meta_omic_fp, index=False, sep='\t')
             omics_pairs_metas[(pair, omic, filt)] = (meta_omic_fp, max_feats)
     return omics_pairs_metas
 
 
-def get_features_splits(i_datasets_folder, mmvec_songbird_pd, input_to_filtered):
-    features_splits = {}
+def get_taxo_pds(i_datasets_folder, mmvec_songbird_pd, input_to_filtered):
+    taxo_pds = {}
     for omicn in ['1', '2']:
         for omic in mmvec_songbird_pd['omic%s' % omicn].unique():
             omic_tax_fp = get_tax_fp(i_datasets_folder, omic, input_to_filtered)
-            last_taxolevel = 0
             if isfile(omic_tax_fp):
                 omic_tax_pd = pd.read_csv(omic_tax_fp, header=0, sep='\t', dtype=str)
-                if 'Taxon' in omic_tax_pd.columns:
-                    omic_split_taxa_pd, last_taxolevel = get_split_taxonomy(omic_tax_pd.Taxon.tolist())
-                    omic_tax_pd = omic_tax_pd.merge(
-                        omic_split_taxa_pd, on='Taxon', how='left').drop_duplicates()
+                omic_tax_pd.rename(columns={omic_tax_pd.columns[0]: 'Feature ID'}, inplace=True)
             else:
                 omic_tax_pd = pd.DataFrame()
-            features_splits[omic] = (omic_tax_pd, last_taxolevel)
-    return features_splits
+            taxo_pds[omic] = omic_tax_pd
+    return taxo_pds
 
 
 def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
@@ -617,14 +601,14 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
 
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
 
-    print('\t-> [mmbird] Get features splits...', end=' ')
-    features_splits_pds = get_features_splits(
+    print('\t-> [mmbird] Get taxonomy (feature metadata)...', end=' ')
+    taxo_pds = get_taxo_pds(
         i_datasets_folder, mmvec_songbird_pd, input_to_filtered)
     print('Done.')
 
-    print('\t-> [mmbird] Get songbird diiferentials...', end=' ')
+    print('\t-> [mmbird] Get songbird differentials + taxonomy...', end=' ')
     omics_pairs_metas = get_omics_songbirds_taxa(
-        i_datasets_folder, mmvec_songbird_pd, features_splits_pds)
+        i_datasets_folder, mmvec_songbird_pd, taxo_pds)
     print('Done.')
 
     print('\t-> [mmbird] Get res dict...', end=' ')
