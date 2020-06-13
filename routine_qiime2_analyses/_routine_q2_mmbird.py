@@ -550,6 +550,10 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                     omic_tax_pd = pd.concat([omic_tax_pd, omic_split_taxa_pd], axis=1, sort=False)
                 # print(omic_tax_pd.shape)
                 # print(omic_tax_pd[:3])
+                print("omic_songbird_ranks[:3]")
+                print(omic_songbird_ranks[:3])
+                print("omic_tax_pd[:3]")
+                print(omic_tax_pd[:3])
                 omic_songbird_ranks = omic_songbird_ranks.merge(
                     omic_tax_pd, on='Feature ID', how='left').drop_duplicates()
 
