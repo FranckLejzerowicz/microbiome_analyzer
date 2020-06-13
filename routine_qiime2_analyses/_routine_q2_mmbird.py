@@ -487,10 +487,10 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
             (pair_omic_filt + all_omic_sb)
         ].set_index(pair_omic_filt).T.to_dict()
         for (pair, omic, filt), sb_head_diff_fp in omicn_songbirds.items():
-            print("pair, omic, filt")
-            print(pair, omic, filt)
-            print("sb_head_diff_fp")
-            print(sb_head_diff_fp)
+            # print("pair, omic, filt")
+            # print(pair, omic, filt)
+            # print("sb_head_diff_fp")
+            # print(sb_head_diff_fp)
             cur_mmvec_folder = get_analysis_folder(i_datasets_folder, 'mmvec/metadata/%s' % pair)
             omic_diff_list = []
             if len(sb_head_diff_fp):
