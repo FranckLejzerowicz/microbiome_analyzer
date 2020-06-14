@@ -21,6 +21,7 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
     :return: checked cases.
     """
     to_pop = set()
+    print('meta:', meta)
     meta_pd_vars = set(meta_pd.columns.tolist())
     for variable, factors_lists in cases_dict.items():
         if variable == 'ALL':
@@ -84,7 +85,6 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame, songbird_models: dic
         drop = []
         meta_var = ''
         formula = formula_.strip('"').strip("'")
-
         if formula.startswith('C('):
             formula_split = [formula.split('C(')[-1].split(',')[0].strip().strip()]
             meta_var = formula_split[0]

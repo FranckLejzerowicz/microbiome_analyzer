@@ -147,11 +147,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
         songbird_datasets, {}, songbird_filtering,
         'songbird', input_to_filtered)
 
-    # print('-----')
-    # for i in filt_datasets_done:
-    #     print(i)
-    #     print(' -', filt_datasets_done[i].keys())
-
     filt_datasets, common_datasets = make_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_filt,
         datasets_read, songbird_datasets, {}, songbird_filtering,
@@ -225,7 +220,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             else:
                 # print(' OUT...')
                 continue
-
             baselines = {}
             for model, formula_meta_var_drop in models.items():
                 # print(" ** model, formula_meta_var_drop")

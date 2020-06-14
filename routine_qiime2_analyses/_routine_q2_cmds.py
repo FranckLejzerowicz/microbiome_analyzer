@@ -206,7 +206,7 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
         ordination_qza = '%s.qza' % splitext(ordination_tsv)[0]
         if not isfile(ranks_qza) or not isfile(ordination_qza):
             cmd += 'current_time=$(date "+%y%m%d_%H%M%S")\n'
-            cmd += '\ncd %s \\\n' % odir
+            cmd += '\ncd %s\n' % odir
             cmd += '\nqiime mmvec paired-omics \\\n'
             cmd += '--i-microbes %s \\\n' % qza1
             cmd += '--i-metabolites %s \\\n' % qza2

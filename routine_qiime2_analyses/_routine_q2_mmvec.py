@@ -242,10 +242,11 @@ def check_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
     return common_datasets_pass
 
 
-def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, res_dir: str,
-                     cur_sh: str, batch: str, learn: str, epoch: str, prior: str,
-                     thresh_feat: str, latent_dim: str, train_column: str,
-                     n_example: str, gpu: bool, force: bool, standalone: bool, qiime_env: str) -> None:
+def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str,
+                     qza2: str,  res_dir: str, cur_sh: str, batch: str,
+                     learn: str, epoch: str,  prior: str, thresh_feat: str,
+                     latent_dim: str, train_column: str, n_example: str,
+                     gpu: bool, force: bool, standalone: bool, qiime_env: str) -> None:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
     https://github.com/biocore/mmvec
@@ -272,8 +273,8 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str, qza2: str, r
     """
     remove = True
     with open(cur_sh, 'w') as cur_sh_o:
-        ranks_tsv = '%s/ranks.tsv' % odir
-        ordination_tsv = '%s/ordination.txt' % odir
+        ranks_tsv = '%s/%s_ranks.tsv' % (pair, odir)
+        ordination_tsv = '%s/%s_ordination.txt' % (pair, odir)
         if force or not isfile(ordination_tsv) or not isfile(ranks_tsv):
             write_mmvec_cmd(meta_fp, qza1, qza2, res_dir, odir,
                             ranks_tsv, ordination_tsv,
