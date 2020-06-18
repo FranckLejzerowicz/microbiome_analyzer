@@ -638,4 +638,3 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
                      chmod, written, 'single', o, noloc)
     if written:
         print_message('# Generate mmvec biplot with songbird models', 'sh', run_pbs)
-
