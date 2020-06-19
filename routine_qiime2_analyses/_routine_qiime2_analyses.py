@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import sys
+import pandas as pd
 import subprocess
 from os.path import abspath, exists, isdir, isfile
 
@@ -299,9 +300,19 @@ def routine_qiime2_analyses(
                                             input_to_filtered, mmvec_outputs, force, prjct_nm,
                                             qiime_env, chmod, noloc, split,
                                             run_params['songbird'], filt_raref)
+
+    pc_sb_correlations_pd = pd.DataFrame()
     if p_diff_models and p_mmvec_pairs and 'mmbird' not in p_skip:
         print('run_mmbird')
-        run_mmbird(i_datasets_folder, songbird_outputs, mmvec_outputs,
-                   force, prjct_nm, qiime_env, chmod, noloc, filt_raref,
-                   run_params['mmbird'], input_to_filtered)
+        pc_sb_correlations_pd = run_mmbird(
+            i_datasets_folder, songbird_outputs,
+            mmvec_outputs, force, prjct_nm, qiime_env, chmod,
+            noloc, filt_raref, run_params['mmbird'],
+            input_to_filtered)
+
+    # if pc_sb_correlations_pd.shape[0] and 'mmpc' not in p_skip:
+    #     run_mmpc(
+    #         i_datasets_folder, datasets_read,
+    #         force, prjct_nm, qiime_env, chmod, noloc,
+    #         input_to_filtered)
     # ------------------------------------------------------------------------------

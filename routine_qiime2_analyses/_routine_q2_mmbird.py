@@ -10,6 +10,7 @@ import sys, glob
 import pandas as pd
 from os.path import isfile, splitext
 
+from scipy.stats import spearmanr, pearsonr
 from skbio.stats.ordination import OrdinationResults
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
@@ -207,15 +208,15 @@ def get_order_omics(
 
 
 def get_biplot_commands(
-        ordi_edit_fp, qza, qzv,
+        ordi_edit_fp, ordi, qza, qzv,
         omic_feature, omic_sample,
         metatax_omic1_fp, metatax_omic2_fp,
         edit, n_mbAnnot_CLAs, crowded, max_feats
 ):
+    cmd = ''
     if max_feats == 0:
-        ordi = OrdinationResults.read(ordi_edit_fp)
         max_feats = ordi.features.shape[0]
-    cmd = '\n'
+    cmd += '\n'
     if not isfile(qza):
         cmd += '\nqiime tools import'
         cmd += ' --input-path %s' % ordi_edit_fp
@@ -348,90 +349,95 @@ def get_tax_fp(i_datasets_folder: str, omic: str, input_to_filtered: dict) -> st
 def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
                   omics_pairs: list, force: bool):
     crowdeds = [0, 1]
+    pc_sb_correlations = []
     # mmvec_tab = []
     pair_cmds = {}
-    for crowded in crowdeds:
-        for keys, values in mmvec_res.items():
+    for keys, values in mmvec_res.items():
 
-            pair, omic1, omic2, filt1, filt2, sams, mmvec = keys
-            ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp = values
+        pair, omic1, omic2, filt1, filt2, sams, mmvec = keys
+        ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp = values
 
-            order_omics = get_order_omics(omic1, omic2, filt1, filt2, omics_pairs)
-            omic1 = order_omics[0]
-            omic2 = order_omics[1]
-            filt1 = order_omics[2]
-            filt2 = order_omics[3]
-            omic_feature = order_omics[4]
-            omic_sample = order_omics[5]
-            omic_microbe = order_omics[6]
-            omic_metabolite = order_omics[7]
+        order_omics = get_order_omics(omic1, omic2, filt1, filt2, omics_pairs)
+        omic1 = order_omics[0]
+        omic2 = order_omics[1]
+        filt1 = order_omics[2]
+        filt2 = order_omics[3]
+        omic_feature = order_omics[4]
+        omic_sample = order_omics[5]
+        omic_microbe = order_omics[6]
+        omic_metabolite = order_omics[7]
 
-            # get differentials
-            meta1, max_feats1 = omics_pairs_metas[(pair, omic1, filt1)]
-            meta2, max_feats2 = omics_pairs_metas[(pair, omic2, filt2)]
+        # get differentials
+        meta1, max_feats1, diff_pd1 = omics_pairs_metas[(pair, omic1, filt1)]
+        meta2, max_feats2, diff_pd2 = omics_pairs_metas[(pair, omic2, filt2)]
 
-            # mmvec_tab.append([
-            #     omic_filt1, omic_filt2,
-            #     '%s-%s-%s' % (omic_filt1, omic_filt2, sams),
-            #     mmvec, ranks_fp, ordi_fp, meta_fp,
-            #     omic1_tax_fp, omic2_tax_fp,
-            #     omic1_common_fp, omic2_common_fp
-            # ])
+        ordi = OrdinationResults.read(ordi_fp)
+        cur_pc_sb_correlations = get_pc_sb_correlations(pair, ordi, omic1, omic2,
+                                                        filt1, filt2, diff_pd1, diff_pd2,
+                                                        meta_fp,  omic1_common_fp,
+                                                        omic2_common_fp, ranks_fp)
+        pc_sb_correlations.append(cur_pc_sb_correlations)
 
-            # if 'mbAnnot' in ordi_fp:
-            #     for edit in ['', '_CLAs']:
-            #         n_mbAnnot_CLAs_in_file, ordi_edit_fp = get_ordi_edit_qzv_fp(
-            #             ordi_fp, edit,
-            #             omic1_common_fp,
-            #             omic2_common_fp
-            #         )
-            #         qza, qzv = get_qzs(ordi_edit_fp)
-            #         if not isfile(qzv):
-            #             cmd_import, cmd_biplot = get_biplot_commands(
-            #                 ordi_edit_fp, qza, qzv,
-            #                 omic_feature, omic_sample,
-            #                 metatax_omic1_fp, metatax_omic2_fp,
-            #                 edit, n_mbAnnot_CLAs_in_file
-            #             )
-            #             all_cmds.setdefault(key, []).extend([cmd_import, cmd_biplot])
-            # else:
-            n_mbAnnot_CLAs_in_file = 0
-            ordi_edit_fp = ordi_fp
-            qza, qzv = get_qzs(ordi_edit_fp)
-            # print('-------------------------------')
-            # print('omic_filt1:\t', omic_filt1)
-            # print('omic_filt2:\t', omic_filt2)
-            # print('ordi_fp', ordi_fp)
-            # print('omic1_diff_fps')
-            # for i in omic1_diff_fps:
-            #     print('\t\t', i)
-            # print('omic2_diff_fps')
-            # for i in omic2_diff_fps:
-            #     print('\t\t', i)
-            # print('meta_fp:\t', meta_fp)
-            # print('omic1_common_fp:\t', omic1_common_fp)
-            # print('omic2_common_fp:\t', omic2_common_fp)
-            # print('omic_feature:\t', omic_feature)
-            # print('omic_sample:\t', omic_sample)
-            # print('omic_microbe:\t', omic_microbe)
-            # print('omic_metabolite:\t', omic_metabolite)
-            # print("omic1_tax_fp:\t", omic1_tax_fp)
-            # print("omic2_tax_fp:\t", omic2_tax_fp)
-            # print('ordi_edit_fp', ordi_edit_fp)
-            # print('qza', qza)
-            # print('qzv', qzv)
-            # print('-------------------------------')
+        # mmvec_tab.append([
+        #     omic_filt1, omic_filt2,
+        #     '%s-%s-%s' % (omic_filt1, omic_filt2, sams),
+        #     mmvec, ranks_fp, ordi_fp, meta_fp,
+        #     omic1_tax_fp, omic2_tax_fp,
+        #     omic1_common_fp, omic2_common_fp
+        # ])
+
+        # if 'mbAnnot' in ordi_fp:
+        #     for edit in ['', '_CLAs']:
+        #         n_mbAnnot_CLAs_in_file, ordi_edit_fp = get_ordi_edit_qzv_fp(
+        #             ordi_fp, edit,
+        #             omic1_common_fp,
+        #             omic2_common_fp
+        #         )
+        #         qza, qzv = get_qzs(ordi_edit_fp)
+        #         if not isfile(qzv):
+        #             cmd_import, cmd_biplot = get_biplot_commands(
+        #                 ordi_edit_fp, qza, qzv,
+        #                 omic_feature, omic_sample,
+        #                 metatax_omic1_fp, metatax_omic2_fp,
+        #                 edit, n_mbAnnot_CLAs_in_file
+        #             )
+        #             all_cmds.setdefault(key, []).extend([cmd_import, cmd_biplot])
+        # else:
+        n_mbAnnot_CLAs_in_file = 0
+        ordi_edit_fp = ordi_fp
+        qza, qzv = get_qzs(ordi_edit_fp)
+        # print('-------------------------------')
+        # print('omic_filt1:\t', omic_filt1)
+        # print('omic_filt2:\t', omic_filt2)
+        # print('ordi_fp', ordi_fp)
+        # print('omic1_diff_fps')
+        # for i in omic1_diff_fps:
+        #     print('\t\t', i)
+        # print('omic2_diff_fps')
+        # for i in omic2_diff_fps:
+        #     print('\t\t', i)
+        # print('meta_fp:\t', meta_fp)
+        # print('omic1_common_fp:\t', omic1_common_fp)
+        # print('omic2_common_fp:\t', omic2_common_fp)
+        # print('omic_feature:\t', omic_feature)
+        # print('omic_sample:\t', omic_sample)
+        # print('omic_microbe:\t', omic_microbe)
+        # print('omic_metabolite:\t', omic_metabolite)
+        # print("omic1_tax_fp:\t", omic1_tax_fp)
+        # print("omic2_tax_fp:\t", omic2_tax_fp)
+        # print('ordi_edit_fp', ordi_edit_fp)
+        # print('qza', qza)
+        # print('qzv', qzv)
+        # print('-------------------------------')
+        for crowded in crowdeds:
             # if 1:
-            cmd = ''
-            if 1:
-            # if force or not isfile(qzv):
-                cmd = get_biplot_commands(
-                    ordi_edit_fp, qza, qzv,
-                    omic_feature, omic_sample,
-                    meta1, meta2,
-                    '', n_mbAnnot_CLAs_in_file,
-                    crowded, max_feats1
-                )
+            cmd = get_biplot_commands(
+                ordi_edit_fp, ordi, qza, qzv,
+                omic_feature, omic_sample,
+                meta1, meta2,
+                '', n_mbAnnot_CLAs_in_file,
+                crowded, max_feats1
+            )
             # ranks_edit_fp = ranks_fp
             # if omic_metabolite == 'metabolite':
             #     metatax_omic2_pd = pd.read_csv(metatax_omic2_fp, header=0, sep='\t')
@@ -454,43 +460,22 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
 
             if cmd:
                 pair_cmds.setdefault(pair, []).append(cmd)
-    return pair_cmds
 
-
-# def get_all_omics_songbirds(omic_diff_fps):
-#     all_omic_diff_list = []
-#     for (omic_diff_fp, model) in omic_diff_fps:
-#         if str(omic_diff_fp) != 'nan' and isfile(omic_diff_fp):
-#             omic_diff_pd = pd.read_csv(omic_diff_fp, header=0, sep='\t', dtype=str)
-#             index_header = omic_diff_pd.columns.tolist()[0]
-#             if omic_diff_pd[index_header][0] == '#q2:types':
-#                 omic_diff_pd = omic_diff_pd[1:]
-#             omic_diff_pd = omic_diff_pd.rename(columns={index_header: 'Feature ID'}).set_index('Feature ID')
-#             # omic_diff_pd = omic_diff_pd.drop(columns='Intercept')
-#             omic_diff_pd.columns = ['%s__%s' % (model, x) for x in omic_diff_pd.columns]
-#             all_omic_diff_list.append(omic_diff_pd)
-#     if len(all_omic_diff_list):
-#         all_omic_songbird_ranks = pd.concat(all_omic_diff_list, axis=1, sort=False).reset_index()
-#     else:
-#         all_omic_songbird_ranks = pd.DataFrame()
-#     return all_omic_songbird_ranks
+    pc_sb_correlations_pd = pd.concat(pc_sb_correlations)
+    return pair_cmds, pc_sb_correlations_pd
 
 
 def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
 
     omics_pairs_metas = {}
     for omicn in ['1', '2']:
-        # print('omicn:', omicn)
         pair_omic_filt = ['pair', 'omic%s' % omicn, 'filt%s' % omicn]
         all_omic_sb = [x for x in mmvec_songbird_pd.columns if x.endswith('omic%s_songbird_common_fp' % omicn)]
         omicn_songbirds = mmvec_songbird_pd[
             (pair_omic_filt + all_omic_sb)
         ].set_index(pair_omic_filt).T.to_dict()
         for (pair, omic, filt), sb_head_diff_fp in omicn_songbirds.items():
-            # print("pair, omic, filt")
-            # print(pair, omic, filt)
-            # print("sb_head_diff_fp")
-            # print(sb_head_diff_fp)
+            feats_diff_cols = ['Feature ID']
             cur_mmvec_folder = get_analysis_folder(i_datasets_folder, 'mmvec/metadata/%s' % pair)
             omic_diff_list = []
             if len(sb_head_diff_fp):
@@ -511,16 +496,14 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                         if diff_pd[index_header][0] == '#q2:types':
                             diff_pd = diff_pd[1:]
                         diff_pd = diff_pd.rename(columns={index_header: 'Feature ID'}).set_index('Feature ID')
-                        diff_pd.columns = ['%s__%s__Q2=%s' % (model, x, q2) for x in diff_pd.columns]
+                        diff_cols = ['%s__%s__Q2=%s' % (model, x, q2) for x in diff_pd.columns]
+                        diff_pd.columns = diff_cols
+                        feats_diff_cols.extend(diff_cols)
                         omic_diff_list.append(diff_pd)
             if len(omic_diff_list):
                 omic_songbird_ranks = pd.concat(omic_diff_list, axis=1, sort=False).reset_index()
                 omic_songbird_ranks.rename(columns={omic_songbird_ranks.columns[0]: 'Feature ID'}, inplace=True)
                 max_feats = omic_songbird_ranks.shape[0]
-                # print('A', 'omic_songbird_ranks')
-                # print(omic_songbird_ranks.shape)
-                # print(omic_songbird_ranks.columns)
-                # print('max_feats:', max_feats)
             else:
                 omic_common_fp = mmvec_songbird_pd.loc[
                     (mmvec_songbird_pd['pair'] == pair) &
@@ -535,30 +518,22 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                             omic_tax_list.append([line.split('\t')[0]])
                 omic_songbird_ranks = pd.DataFrame(omic_tax_list, columns=['Feature ID'])
                 max_feats = 0
-                # print('B', 'all_omic_songbird_ranks')
-                # print(omic_songbird_ranks.shape)
-                # print(omic_songbird_ranks.columns)
-                # print('max_feats:', max_feats)
             if omic in taxo_pds:
                 omic_tax_pd = taxo_pds[omic]
                 if 'Taxon' in omic_tax_pd.columns:
                     # print('merge songbird %s with taxonomy %s' % (omic_songbird_ranks.shape, omic_tax_pd.shape))
                     omic_split_taxa_pd = get_split_taxonomy(omic_tax_pd.Taxon.tolist())
-                    # print(omic_tax_pd.shape)
-                    # print(omic_tax_pd[:3])
-                    # print(omic_split_taxa_pd.shape)
-                    # print(omic_split_taxa_pd[:3])
                     omic_tax_pd = pd.concat([omic_tax_pd, omic_split_taxa_pd], axis=1, sort=False)
-                # print(omic_tax_pd.shape)
-                # print(omic_tax_pd[:3])
                 omic_songbird_ranks = omic_songbird_ranks.merge(
                     omic_tax_pd, on='Feature ID', how='left').drop_duplicates()
 
             meta_omic_fp = '%s/feature_metadata_%s__%s.tsv' % (cur_mmvec_folder, omic, filt)
-            # print("meta_omic_fp")
-            # print(meta_omic_fp)
             omic_songbird_ranks.to_csv(meta_omic_fp, index=False, sep='\t')
-            omics_pairs_metas[(pair, omic, filt)] = (meta_omic_fp, max_feats)
+            if len(feats_diff_cols) > 1:
+                diff_cols_pd = omic_songbird_ranks[feats_diff_cols].set_index('Feature ID')
+            else:
+                diff_cols_pd = pd.DataFrame()
+            omics_pairs_metas[(pair, omic, filt)] = (meta_omic_fp, max_feats, diff_cols_pd)
     return omics_pairs_metas
 
 
@@ -576,10 +551,69 @@ def get_taxo_pds(i_datasets_folder, mmvec_songbird_pd, input_to_filtered):
     return taxo_pds
 
 
+def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2, diff_pd1, diff_pd2,
+                           meta_fp, omic1_common_fp, omic2_common_fp, ranks_fp):
+
+    corrs = []
+    for r in range(3):
+        x = ordi.features[r].values.tolist()
+        for model in diff_pd1.columns:
+            y = [float(x) for x in diff_pd1.loc[ordi.features.index, model].values.tolist()]
+            r1, p1 = pearsonr(x, y)
+            r2, p2 = spearmanr(x, y)
+            corrs.append([pair, omic1, filt1, 'PC%s' % (r+1), model, r1, p1, 'pearson',
+                         meta_fp, omic1_common_fp, ranks_fp])
+            corrs.append([pair, omic1, filt1, 'PC%s' % (r + 1), model, r1, p2, 'spearman',
+                          meta_fp,  omic1_common_fp, ranks_fp])
+        x = ordi.samples[r].values.tolist()
+        for model in diff_pd2.columns:
+            y = [float(x) for x in diff_pd2.loc[ordi.samples.index, model].values.tolist()]
+            r1, p1 = pearsonr(x, y)
+            r2, p2 = spearmanr(x, y)
+            corrs.append([pair, omic2, filt2, 'PC%s' % (r+1), model, r1, p1, 'pearson',
+                          meta_fp, omic2_common_fp, ranks_fp])
+            corrs.append([pair, omic2, filt2, 'PC%s' % (r + 1), model, r1, p2, 'spearman',
+                          meta_fp, omic2_common_fp, ranks_fp])
+
+    corrs_pd = pd.DataFrame(corrs, columns=[
+        'pair',
+        'omic',
+        'filt',
+        'mmvec_pc',
+        'model',
+        'correlation_coefficient',
+        'pvalue',
+        'correlation_method',
+        'meta_fp',
+        'features_fp',
+        'ranks_fp'
+    ])
+    return corrs_pd
+
+
+def get_log_ratios(pc_sb_correlations_pd, correlation_threshold = 0.75):
+    print(' - Checking log_ratio bins for features correlating to mmvec PCs')
+    pc_sb_correlations_thresh_pd = pc_sb_correlations_pd.loc[
+        ((pc_sb_correlations_pd['correlation_coefficient']).apply(abs) > correlation_threshold) &
+        (pc_sb_correlations_pd['pvalue'] < 0.05)
+    ]
+    if pc_sb_correlations_thresh_pd.shape[0]:
+        print('    > found:')
+        for i in [['pair'], ['omic', 'filt'], ['model']]:
+            print('       * %s for %s' % (pc_sb_correlations_thresh_pd.groupby(i).count().shape[0], i))
+        for pair, pair_pd in pc_sb_correlations_thresh_pd.groupby('pair'):
+            print()
+            print(pair)
+            for row in pair_pd.values:
+                pair, omic, filt, mmvec_pc, model = row[:5]
+                correlation_coefficient, pvalue, correlation_method, = row[5:8]
+                meta_fp, features_fp, ranks_fp = row[-3:]
+
+
 def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
                mmvec_outputs: list, force: bool, prjct_nm: str,
                qiime_env: str, chmod: str, noloc: bool, filt_raref: str,
-               run_params: dict, input_to_filtered: dict) -> None:
+               run_params: dict, input_to_filtered: dict) -> pd.DataFrame:
 
     if not mmvec_outputs:
         print('No mmvec output detected...')
@@ -617,8 +651,15 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
     print('Done.')
 
     print('\t-> [mmbird] Get commands...', end=' ')
-    pair_cmds = get_pair_cmds(mmvec_res, omics_pairs_metas, omics_pairs, force)
+    pair_cmds, pc_sb_correlations_pd = get_pair_cmds(mmvec_res, omics_pairs_metas, omics_pairs, force)
     print('Done.')
+
+    out_folder = get_analysis_folder(i_datasets_folder, 'mmbird')
+    out_correlations = '%s/pc_vs_songbird_correlations.tsv' % out_folder
+    pc_sb_correlations_pd.to_csv(out_correlations, index=False, sep='\t')
+    print(' --> Written:', out_correlations)
+
+    # get_log_ratios(pc_sb_correlations_pd)
 
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
     job_folder2 = get_job_folder(i_datasets_folder, 'mmbird/chunks')
@@ -638,3 +679,4 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
                      chmod, written, 'single', o, noloc)
     if written:
         print_message('# Generate mmvec biplot with songbird models', 'sh', run_pbs)
+    return pc_sb_correlations_pd
