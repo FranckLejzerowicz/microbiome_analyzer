@@ -558,6 +558,13 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2, diff_pd1, dif
     for r in range(3):
         x = ordi.features[r].values.tolist()
         for model in diff_pd1.columns:
+            if diff_pd1.loc[ordi.features.index, model].isna().sum():
+                print("")
+                print("diff_pd1.index[:4]")
+                print(diff_pd1.index[:4])
+                print("ordi.features.index[:4]")
+                print(ordi.features.index[:4])
+                continue
             y = [float(x) for x in diff_pd1.loc[ordi.features.index, model].values.tolist()]
             r1, p1 = pearsonr(x, y)
             r2, p2 = spearmanr(x, y)
@@ -567,6 +574,13 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2, diff_pd1, dif
                           meta_fp,  omic1_common_fp, ranks_fp])
         x = ordi.samples[r].values.tolist()
         for model in diff_pd2.columns:
+            if diff_pd2.loc[ordi.samples.index, model].isna().sum():
+                print("")
+                print("diff_pd2.index[:4]")
+                print(diff_pd2.index[:4])
+                print("ordi.samples.index[:4]")
+                print(ordi.samples.index[:4])
+                continue
             y = [float(x) for x in diff_pd2.loc[ordi.samples.index, model].values.tolist()]
             r1, p1 = pearsonr(x, y)
             r2, p2 = spearmanr(x, y)
