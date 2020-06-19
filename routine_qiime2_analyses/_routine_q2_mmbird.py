@@ -6,7 +6,9 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import sys, glob
+import os
+import sys
+import glob
 import pandas as pd
 from os.path import isfile, splitext
 
@@ -560,6 +562,8 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2, diff_pd1, dif
         for model in diff_pd1.columns:
             if diff_pd1.loc[ordi.features.index, model].isna().sum():
                 print("")
+                print("diff_pd1.loc[ordi.samples.index, model].isna().sum()")
+                print(diff_pd1.loc[ordi.samples.index, model].isna().sum())
                 print("diff_pd1.index[:4]")
                 print(diff_pd1.index[:4])
                 print("ordi.features.index[:4]")
@@ -576,6 +580,8 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2, diff_pd1, dif
         for model in diff_pd2.columns:
             if diff_pd2.loc[ordi.samples.index, model].isna().sum():
                 print("")
+                print("diff_pd2.loc[ordi.samples.index, model].isna().sum()")
+                print(diff_pd2.loc[ordi.samples.index, model].isna().sum())
                 print("diff_pd2.index[:4]")
                 print(diff_pd2.index[:4])
                 print("ordi.samples.index[:4]")
@@ -624,6 +630,33 @@ def get_log_ratios(pc_sb_correlations_pd, correlation_threshold = 0.75):
                 meta_fp, features_fp, ranks_fp = row[-3:]
 
 
+def summarize_songbirds(i_datasets_folder) -> pd.DataFrame:
+    q2s = []
+    songbird_folder = get_analysis_folder(i_datasets_folder, 'songbird')
+    for root, dirs, files in os.walk(songbird_folder):
+        for fil in files:
+            if fil.endswith('.html'):
+                path = root + '/' + fil
+                root_split = root.split('%s/' % songbird_folder)[-1].split('/')
+                dat = root_split[0]
+                if len(root_split) == 7:
+                    pair, dataset_filter, subset, model, songbird_filter, parameters = root_split[1:]
+                else:
+                    pair = 'no_pair'
+                    dataset_filter, subset, model, songbird_filter, parameters = root_split[1:]
+                with open(path) as f:
+                    for line in f:
+                        if 'Pseudo Q-squared' in line:
+                            q2s.append([
+                                pair, dat, dataset_filter, subset, model, songbird_filter, parameters,
+                                float(line.split('Pseudo Q-squared:</a></strong> ')[-1].split('<')[0])
+                            ])
+    q2s_pd = pd.DataFrame(q2s, columns=['pair', 'dat', 'dataset_filter', 'subset',
+                                        'model', 'songbird_filter', 'parameters',
+                                        'Pseudo_Q_squared'])
+    return q2s_pd
+
+
 def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
                mmvec_outputs: list, force: bool, prjct_nm: str,
                qiime_env: str, chmod: str, noloc: bool, filt_raref: str,
@@ -647,6 +680,11 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list,
     else:
         mmvec_songbird_pd = mmvec_outputs_pd.copy()
     print('Done.')
+
+    q2s_pd = summarize_songbirds(i_datasets_folder)
+    out_folder = get_analysis_folder(i_datasets_folder, 'songbird')
+    q2s_fp = '%s/songbird_q2.tsv' % out_folder
+    q2s_pd.to_csv(q2s_fp, index=False, sep='\t')
 
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
 
