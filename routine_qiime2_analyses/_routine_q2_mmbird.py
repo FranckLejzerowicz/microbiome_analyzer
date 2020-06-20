@@ -148,15 +148,9 @@ def get_qzs(ordi_fp):
 
 
 def get_heatmap_qzs(ranks_fp):
-    qza = ranks_fp.replace('.csv', '.qza')
-    qzv = ranks_fp.replace('.csv', '_heatmap.qzv')
+    qza = ranks_fp.replace('.tsv', '.qza')
+    qzv = ranks_fp.replace('.tsv', '_heatmap.qzv')
     return qza, qzv
-
-
-# def get_heatmap_qzs(ranks_fp, metatax_omic2_pd_col):
-#     qza = ranks_fp.replace('.csv', '_%s.qza' % metatax_omic2_pd_col)
-#     qzv = ranks_fp.replace('.csv', '_%s_heatmap.qzv' % metatax_omic2_pd_col)
-#     return qza, qzv
 
 
 def get_order_omics(
@@ -210,14 +204,10 @@ def get_order_omics(
 
 
 def get_biplot_commands(
-        ordi_edit_fp, ordi, qza, qzv,
-        omic_feature, omic_sample,
-        metatax_omic1_fp, metatax_omic2_fp,
-        edit, n_mbAnnot_CLAs, crowded, max_feats
+        ordi_edit_fp, ordi, qza, qzv, omic_feature, omic_sample,
+        meta1_fp, meta2_fp, n_edit=0, crowded=0
 ):
     cmd = ''
-    if max_feats == 0:
-        max_feats = ordi.features.shape[0]
     cmd += '\n'
     if not isfile(qza):
         cmd += '\nqiime tools import'
@@ -226,103 +216,81 @@ def get_biplot_commands(
         cmd += ' --type "PCoAResults %s Properties([\'biplot\'])"\nsleep 3' % '%'
     cmd += '\nqiime emperor biplot'
     cmd += ' --i-biplot %s' % qza
-    cmd += ' --m-%s-metadata-file %s' % (omic_feature, metatax_omic1_fp)
-    cmd += ' --m-%s-metadata-file %s' % (omic_sample, metatax_omic2_fp)
-    if edit:
-        cmd += ' --p-number-of-features %s' % n_mbAnnot_CLAs
-        cmd += ' --o-visualization %s\n' % qzv
+    cmd += ' --m-%s-metadata-file %s' % (omic_feature, meta1_fp)
+    cmd += ' --m-%s-metadata-file %s' % (omic_sample, meta2_fp)
+    if n_edit:
+        cmd += ' --p-number-of-features %s' % n_edit
     elif crowded:
+        max_feats = ordi.features.shape[0]
         cmd += ' --p-number-of-features %s' % max_feats
-        cmd += ' --o-visualization %s\n' % qzv.replace('.qzv', '_crowded.qzv')
-    else:
-        cmd += ' --o-visualization %s\n' % qzv
+    cmd += ' --o-visualization %s\n' % qzv
     return cmd
 
 
-# def get_heatmap_commands(ranks_edit_fp, qza, qzv,
-#                          omic_microbe, omic_metabolite,
-#                          # metatax_omic2_pd_col,
-#                          metatax_omic1_fp, metatax_omic2_fp):
-#     cmd = '\n\nqiime tools import'
-#     cmd += ' --input-path %s' % ranks_edit_fp
-#     cmd += ' --output-path %s' % qza
-#     cmd += ' --type FeatureData[Conditional]'
-#     cmd += ' --input-format ConditionalFormat\n'
-#
-#     cmd += '\nqiime mmvec heatmap'
-#     cmd += ' --i-ranks %s' % qza
-#     if omic_microbe == 'metabolite':
-#         cmd += ' --m-%s-metadata-file %s' % (omic_microbe, metatax_omic2_fp)
-#         cmd += ' --m-%s-metadata-column Node_level_D' % omic_microbe
-#         # cmd += ' --m-%s-metadata-file %s \\ \n' % (omic_metabolite, metatax_omic2_fp)
-#         # cmd += ' --m-%s-metadata-column "" \\ \n' % omic_metabolite
-#         # cmd += ' --m-%s-metadata-column "%s" \\ \n' % (omic_metabolite, metatax_omic2_pd_col)
-#     else:
-#         # cmd += ' --m-%s-metadata-file %s \\ \n' % (omic_microbe, metatax_omic1_fp)
-#         # cmd += ' --m-%s-metadata-column "%s" \\ \n' % omic_microbe
-#         # cmd += ' --m-%s-metadata-column "%s" \\ \n' % (omic_microbe, metatax_omic2_pd_col)
-#         cmd += ' --m-%s-metadata-file %s' % (omic_metabolite, metatax_omic1_fp)
-#         cmd += ' --m-%s-metadata-column Node_level_D' % omic_metabolite
-#     # cmd += ' --p-level 5 \\ \n'
-#     cmd += ' --o-visualization %s\n' % qzv
-#     return cmd
+def get_heatmap_commands(
+        ranks_fp, qza, qzv, omic_microbe,
+        omic_metabolite, meta1, meta2,
+        meta_pd1, meta_pd2):
+
+    cmd = '\n\nqiime tools import'
+    cmd += ' --input-path %s' % ranks_fp
+    cmd += ' --output-path %s' % qza
+    cmd += ' --type FeatureData[Conditional]'
+    cmd += ' --input-format ConditionalFormat\n'
+
+    cmd += '\nqiime mmvec heatmap'
+    cmd += ' --i-ranks %s' % qza
+
+    for level in 'DCB':
+        taxolevel1 = 'Taxolevel_%s' % level
+        if taxolevel1 in meta_pd1.columns:
+            break
+    else:
+        taxolevel1 = ''
+
+    for level in 'DCB':
+        taxolevel2 = 'Taxolevel_%s' % level
+        if taxolevel2 in meta_pd2.columns:
+            break
+    else:
+        taxolevel2 = ''
+
+    if taxolevel1:
+        cmd += ' --m-%s-metadata-file %s' % (omic_microbe, meta1)
+        cmd += ' --m-%s-metadata-column %s' % (omic_microbe, taxolevel1)
+    if taxolevel2:
+        cmd += ' --m-%s-metadata-file %s' % (omic_microbe, meta2)
+        cmd += ' --m-%s-metadata-column %s' % (omic_microbe, taxolevel2)
+
+    cmd += ' --o-visualization %s\n' % qzv
+    return cmd
 
 
-# def get_n_mbAnnot_CLAs_in_file(ordi_fp, mbAnnot_CLAs):
-#     n_mbAnnot_CLAs_in_file = 0
-#     with open(ordi_fp) as ordi_f:
-#         is_mb = 0
-#         for line in ordi_f:
-#             if line.startswith('Species'):
-#                 is_mb = 1
-#                 continue
-#             if line.startswith('Site'):
-#                 is_mb = 0
-#                 continue
-#             if is_mb:
-#                 for mbAnnot_CLA in mbAnnot_CLAs:
-#                     if mbAnnot_CLA in line:
-#                         n_mbAnnot_CLAs_in_file += 1
-#                         break
-#     return n_mbAnnot_CLAs_in_file
-#
-#
-# def write_edit_ordi(edit_fp, ordi_edit_fp, n_mbAnnot_CLAs_in_file, mbAnnot_CLAs):
-#     with open(ordi_edit_fp, 'w') as ordi_fo, open(ordi_fp) as ordi_f:
-#         is_mb = 0
-#         for line in ordi_f:
-#             if line.startswith('Site\t'):
-#                 ordi_fo.write('\n')
-#                 is_mb = 0
-#             if line.startswith('Species'):
-#                 ordi_fo.write('Species\t%s\t%s\n' % (
-#                     n_mbAnnot_CLAs_in_file,
-#                     line.strip().split('\t')[-1]
-#                 ))
-#                 is_mb = 1
-#                 continue
-#             if is_mb:
-#                 for mbAnnot_CLA in mbAnnot_CLAs:
-#                     if mbAnnot_CLA in line:
-#                         ordi_fo.write(line)
-#                         break
-#             else:
-#                 ordi_fo.write(line)
-#
-#
-# def get_ordi_edit_qzv_fp(ordi_fp, edit, omic1_common_fp, omic2_common_fp):
-#     ordi_edit_fp = '%s%s%s' % (
-#         splitext(ordi_fp)[0], edit,
-#         splitext(ordi_fp)[1]
-#     )
-#     n_mbAnnot_CLAs_in_file = 0
-#     if len(edit):
-#         mbAnnot_fp = [x for x in [omic1_common_fp, omic2_common_fp] if 'mbAnnot' in x][0]
-#         mbAnnot_pd = pd.read_csv(mbAnnot_fp, header=0, index_col=0, sep='\t')
-#         mbAnnot_CLAs = [x for x in mbAnnot_pd.index if 'inoleic' in x]
-#         n_mbAnnot_CLAs_in_file = get_n_mbAnnot_CLAs_in_file(ordi_fp, mbAnnot_CLAs)
-#         write_edit_ordi(ordi_fp, ordi_edit_fp, n_mbAnnot_CLAs_in_file, mbAnnot_CLAs)
-#     return n_mbAnnot_CLAs_in_file, ordi_edit_fp
+def edit_ordi_qzv(ordi, ordi_fp, highlight, regexes_list, meta, meta_pd):
+
+    to_keep_feats = {}
+    for regex in regexes_list:
+        to_keep_feats[regex.lower()] = ordi.features.index.str.lower().str.contains(regex.lower())
+    to_keep_feats_pd = pd.DataFrame(to_keep_feats)
+    to_keep_feats = to_keep_feats_pd.any(axis=1)
+    feats_subset_list = ordi.features.index[to_keep_feats].tolist()
+
+    if feats_subset_list:
+        ordi_edit = '%s_%s%s' % (
+            splitext(ordi_fp)[0], highlight, splitext(ordi_fp)[1])
+        ordi.features = ordi.features.loc[feats_subset_list, :].copy()
+        ordi.write(ordi_edit)
+        n_edit = ordi.features.shape[0]
+
+        meta_edit = '%s_%s%s' % (
+            splitext(meta)[0], highlight, splitext(meta)[1])
+        meta_edit_pd = meta_pd.loc[feats_subset_list, :].copy()
+        meta_edit_pd.to_csv(meta_edit, index=True, sep='\t')
+    else:
+        ordi_edit = ''
+        meta_edit = ''
+        n_edit = 0
+    return n_edit, meta_edit, ordi_edit
 
 
 def get_tax_fp(i_datasets_folder: str, omic: str, input_to_filtered: dict) -> str:
@@ -370,96 +338,51 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         omic_metabolite = order_omics[7]
 
         # get differentials
-        meta1, max_feats1, diff_pd1 = omics_pairs_metas[(pair, omic1, filt1)]
-        meta2, max_feats2, diff_pd2 = omics_pairs_metas[(pair, omic2, filt2)]
+        meta1, meta_pd1, diff_cols1 = omics_pairs_metas[(pair, omic1, filt1)]
+        meta2, meta_pd2, diff_cols2 = omics_pairs_metas[(pair, omic2, filt2)]
 
-        ordi = OrdinationResults.read(ordi_fp)
         # features are biplot, samples are dots
-        print(pair, omic1, omic2)
-        print(ordi.features.iloc[:4, :4])
-        print(ordi.samples.iloc[:4, :4])
-        print(ordigfd)
+        ordi = OrdinationResults.read(ordi_fp)
+
         cur_pc_sb_correlations = get_pc_sb_correlations(
-            pair, ordi, omic1, omic2, filt1, filt2, diff_pd1, diff_pd2,
-            meta_fp,  omic1_common_fp, omic2_common_fp, ranks_fp
-        )
+            pair, ordi, omic1, omic2, filt1, filt2,
+            diff_cols1, meta_pd1, diff_cols2, meta_pd2,
+            meta_fp,  omic1_common_fp, omic2_common_fp, ranks_fp)
         pc_sb_correlations.append(cur_pc_sb_correlations)
 
+        cmd = ''
         if pair in highlights:
             pair_highlights = highlights[pair]
+            for highlight, regexes_list in pair_highlights.items():
+                n_edit, meta_edit, ordi_edit = edit_ordi_qzv(
+                    ordi, ordi_fp, highlight, regexes_list, meta1, meta_pd1)
+                if n_edit:
+                    qza, qzv = get_qzs(ordi_edit)
+                    cmd += get_biplot_commands(
+                        ordi_edit, qza, qzv,
+                        omic_feature, omic_sample,
+                        meta_edit, meta2, n_edit, 0
+                    )
+                    pair_cmds.setdefault(pair, []).append(cmd)
 
-        # if 'mbAnnot' in ordi_fp:
-        #     for edit in ['', '_CLAs']:
-        #         n_mbAnnot_CLAs_in_file, ordi_edit_fp = get_ordi_edit_qzv_fp(
-        #             ordi_fp, edit,
-        #             omic1_common_fp,
-        #             omic2_common_fp
-        #         )
-        #         qza, qzv = get_qzs(ordi_edit_fp)
-        #         if not isfile(qzv):
-        #             cmd_import, cmd_biplot = get_biplot_commands(
-        #                 ordi_edit_fp, qza, qzv,
-        #                 omic_feature, omic_sample,
-        #                 metatax_omic1_fp, metatax_omic2_fp,
-        #                 edit, n_mbAnnot_CLAs_in_file
-        #             )
-        #             all_cmds.setdefault(key, []).extend([cmd_import, cmd_biplot])
-        # else:
-
-        n_mbAnnot_CLAs_in_file = 0
         ordi_edit_fp = ordi_fp
         qza, qzv = get_qzs(ordi_edit_fp)
-
-        # print('-------------------------------')
-        # print('omic_filt1:\t', omic_filt1)
-        # print('omic_filt2:\t', omic_filt2)
-        # print('ordi_fp', ordi_fp)
-        # print('omic1_diff_fps')
-        # for i in omic1_diff_fps:
-        #     print('\t\t', i)
-        # print('omic2_diff_fps')
-        # for i in omic2_diff_fps:
-        #     print('\t\t', i)
-        # print('meta_fp:\t', meta_fp)
-        # print('omic1_common_fp:\t', omic1_common_fp)
-        # print('omic2_common_fp:\t', omic2_common_fp)
-        # print('omic_feature:\t', omic_feature)
-        # print('omic_sample:\t', omic_sample)
-        # print('omic_microbe:\t', omic_microbe)
-        # print('omic_metabolite:\t', omic_metabolite)
-        # print("omic1_tax_fp:\t", omic1_tax_fp)
-        # print("omic2_tax_fp:\t", omic2_tax_fp)
-        # print('ordi_edit_fp', ordi_edit_fp)
-        # print('qza', qza)
-        # print('qzv', qzv)
-        # print('-------------------------------')
         for crowded in crowdeds:
-            cmd = get_biplot_commands(
-                ordi_edit_fp, ordi, qza, qzv, omic_feature, omic_sample,
-                meta1, meta2, '', n_mbAnnot_CLAs_in_file, crowded, max_feats1
-            )
-            # ranks_edit_fp = ranks_fp
-            # if omic_metabolite == 'metabolite':
-            #     metatax_omic2_pd = pd.read_csv(metatax_omic2_fp, header=0, sep='\t')
-            #     metatax_omic2_pd_cols = metatax_omic2_pd.columns.tolist()[(metatax_omic2_pd.columns.tolist().index('Intercept')+1):]
-            # for metatax_omic2_pd_col in metatax_omic2_pd_cols:
-            #     metatax_omic2_col = ''.join([x for x in metatax_omic2_pd_col if x not in ["'", '(', ')', ' ', ',', '[', ']', '=', '"']])
-            # qza, qzv = get_heatmap_qzs(ranks_edit_fp, metatax_omic2_col)
-            # qza, qzv = get_heatmap_qzs(ranks_edit_fp)
-            # if not crowded:
-            #     cmd_heat = get_heatmap_commands(
-            #         ranks_edit_fp, qza, qzv,
-            #         omic_microbe, omic_metabolite,
-            #         # metatax_omic2_pd_col,
-            #         metatax_omic1_fp, metatax_omic2_fp
-            #     )
-            #     if cmd:
-            #         cmd += cmd_heat
-            #     else:
-            #         cmd = cmd_heat
+            if crowded:
+                qzv = qzv.replace('.qzv', '_crowded.qzv')
+            else:
+                qza, qzv = get_heatmap_qzs(ranks_fp)
+                cmd += get_heatmap_commands(
+                    ranks_fp, qza, qzv, omic_microbe,
+                    omic_metabolite, meta1, meta2,
+                    meta_pd1, meta_pd2)
 
-            if cmd:
-                pair_cmds.setdefault(pair, []).append(cmd)
+            cmd += get_biplot_commands(
+                ordi_edit_fp, ordi, qza, qzv,
+                omic_feature, omic_sample,
+                meta1, meta2, 0, crowded)
+
+            pair_cmds.setdefault(pair, []).append(cmd)
 
     pc_sb_correlations_pd = pd.concat(pc_sb_correlations)
     return pair_cmds, pc_sb_correlations_pd
@@ -475,7 +398,7 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
             (pair_omic_filt + all_omic_sb)
         ].set_index(pair_omic_filt).T.to_dict()
         for (pair, omic, filt), sb_head_diff_fp in omicn_songbirds.items():
-            feats_diff_cols = ['Feature ID']
+            feats_diff_cols = []
             cur_mmvec_folder = get_analysis_folder(i_datasets_folder, 'mmvec/metadata/%s' % pair)
             omic_diff_list = []
             if len(sb_head_diff_fp):
@@ -504,7 +427,6 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
             if len(omic_diff_list):
                 omic_songbird_ranks = pd.concat(omic_diff_list, axis=1, sort=False).reset_index()
                 omic_songbird_ranks.rename(columns={omic_songbird_ranks.columns[0]: 'Feature ID'}, inplace=True)
-                max_feats = omic_songbird_ranks.shape[0]
             else:
                 omic_common_fp = mmvec_songbird_pd.loc[
                     (mmvec_songbird_pd['pair'] == pair) &
@@ -518,7 +440,6 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                         if ldx:
                             omic_tax_list.append([line.split('\t')[0]])
                 omic_songbird_ranks = pd.DataFrame(omic_tax_list, columns=['Feature ID'])
-                max_feats = 0
             if omic in taxo_pds:
                 omic_tax_pd = taxo_pds[omic]
                 if 'Taxon' in omic_tax_pd.columns:
@@ -529,27 +450,15 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                     omic_tax_pd, on='Feature ID', how='left').drop_duplicates()
 
             meta_omic_fp = '%s/feature_metadata_%s__%s.tsv' % (cur_mmvec_folder, omic, filt)
-            print()
-            print()
-            print()
-            print()
-            print()
-            print()
-            print(meta_omic_fp)
-            print()
-            print()
-            print()
-            print()
-            print()
-            print()
+            # print()
+            # print('-'*100)
+            # print(meta_omic_fp)
+            # print('-'*100)
             drop_columns = [col for col in omic_songbird_ranks.columns if omic_songbird_ranks[col].unique().size == 1]
-            omic_songbird_ranks.drop(columns=drop_columns, inplace=True)
-            omic_songbird_ranks.to_csv(meta_omic_fp, index=False, sep='\t')
-            if len(feats_diff_cols) > 1:
-                diff_cols_pd = omic_songbird_ranks[feats_diff_cols].set_index('Feature ID')
-            else:
-                diff_cols_pd = pd.DataFrame()
-            omics_pairs_metas[(pair, omic, filt)] = (meta_omic_fp, max_feats, diff_cols_pd)
+            meta_omic_pd = omic_songbird_ranks.drop(columns=drop_columns)
+            meta_omic_pd.to_csv(meta_omic_fp, index=False, sep='\t')
+            meta_omic_pd.set_index('Feature ID', inplace=True)
+            omics_pairs_metas[(pair, omic, filt)] = (meta_omic_fp, meta_omic_pd, feats_diff_cols)
     return omics_pairs_metas
 
 
@@ -567,34 +476,36 @@ def get_taxo_pds(i_datasets_folder, mmvec_songbird_pd, input_to_filtered):
     return taxo_pds
 
 
-def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2, diff_pd1, diff_pd2,
+def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
+                           diff_cols1, meta_pd1, diff_cols2, meta_pd2,
                            meta_fp, omic1_common_fp, omic2_common_fp, ranks_fp):
 
     corrs = []
     for r in range(3):
         feats = ordi.features[r]
-        for model in diff_pd1.columns:
-            x = diff_pd1.loc[ordi.features.index, model].astype(float)
-            x = x[x.notnull()]
-            y = feats[x.index]
-            r1, p1 = pearsonr(x, y)
-            r2, p2 = spearmanr(x, y)
-            corrs.append([pair, omic1, filt1, 'PC%s' % (r+1), model, r1, p1, 'pearson',
-                         meta_fp, omic1_common_fp, ranks_fp])
-            corrs.append([pair, omic1, filt1, 'PC%s' % (r + 1), model, r1, p2, 'spearman',
-                          meta_fp,  omic1_common_fp, ranks_fp])
+        if len(diff_cols1) > 1:
+            for model in diff_cols1:
+                x = meta_pd1.loc[ordi.features.index, model].astype(float)
+                x = x[x.notnull()]
+                y = feats[x.index]
+                r1, p1 = pearsonr(x, y)
+                r2, p2 = spearmanr(x, y)
+                # corrs.append([pair, omic1, filt1, 'PC%s' % (r+1), model, r1, p1, 'pearson',
+                #              meta_fp, omic1_common_fp, ranks_fp])
+                corrs.append([pair, omic1, filt1, 'PC%s' % (r + 1), model, r1, p2, 'spearman',
+                              meta_fp,  omic1_common_fp, ranks_fp])
         sams = ordi.samples[r]
-        for model in diff_pd2.columns:
-            x = diff_pd2.loc[ordi.samples.index, model].astype(float)
-            x = x[x.notnull()]
-            y = sams[x.index]
-            r1, p1 = pearsonr(x, y)
-            r2, p2 = spearmanr(x, y)
-            corrs.append([pair, omic2, filt2, 'PC%s' % (r+1), model, r1, p1, 'pearson',
-                          meta_fp, omic2_common_fp, ranks_fp])
-            corrs.append([pair, omic2, filt2, 'PC%s' % (r + 1), model, r1, p2, 'spearman',
-                          meta_fp, omic2_common_fp, ranks_fp])
-
+        if len(diff_cols2) > 1:
+            for model in diff_cols2:
+                x = meta_pd2.loc[ordi.samples.index, model].astype(float)
+                x = x[x.notnull()]
+                y = sams[x.index]
+                r1, p1 = pearsonr(x, y)
+                r2, p2 = spearmanr(x, y)
+                # corrs.append([pair, omic2, filt2, 'PC%s' % (r+1), model, r1, p1, 'pearson',
+                #               meta_fp, omic2_common_fp, ranks_fp])
+                corrs.append([pair, omic2, filt2, 'PC%s' % (r + 1), model, r1, p2, 'spearman',
+                              meta_fp, omic2_common_fp, ranks_fp])
     corrs_pd = pd.DataFrame(corrs, columns=[
         'pair',
         'omic',
@@ -669,8 +580,6 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
         print('No songbird output detected...')
         sys.exit(0)
 
-    highlights = get_highlights(p_mmvec_highlights)
-    print(highlights)
 
     print('\t-> [mmbird] Get mmvec output...', end=' ')
     mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
@@ -688,6 +597,7 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
     out_folder = get_analysis_folder(i_datasets_folder, 'songbird')
     q2s_fp = '%s/songbird_q2.tsv' % out_folder
     q2s_pd.to_csv(q2s_fp, index=False, sep='\t')
+    print(' --> Written:', q2s_fp)
 
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
 
@@ -706,6 +616,7 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
     print('Done.')
 
     print('\t-> [mmbird] Get commands...', end=' ')
+    highlights = get_highlights(p_mmvec_highlights)
     pair_cmds, pc_sb_correlations_pd = get_pair_cmds(
         mmvec_res, omics_pairs_metas, omics_pairs, force, highlights)
     print('Done.')

@@ -155,17 +155,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
         common_datasets_done, input_to_filtered)
 
     songbird_models.update(dict((input_to_filtered[x], y) for x, y in songbird_models.items() if x in input_to_filtered))
-    # print("***************")
-    # print("songbird_models")
-    # print("***************")
-    # print(songbird_models)
-    # print("---------------------------")
-    # print("filt_datasets")
-    # print(filt_datasets.keys())
-    # print("---------------------------")
-    # print("input_to_filtered")
-    # print(input_to_filtered)
-    # print("---------------------------")
 
     songbirds = {}
     for dat, filts_files in filt_datasets.items():

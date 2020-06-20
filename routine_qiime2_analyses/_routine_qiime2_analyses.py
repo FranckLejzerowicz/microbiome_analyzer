@@ -92,6 +92,8 @@ def routine_qiime2_analyses(
     :param standalone:
     :param raref: Whether to only perform the routine analyses on the rarefied datasets.
     """
+
+    # INITIALIZATION ------------------------------------------------------------
     # check input
     if not exists(i_datasets_folder):
         print('%s is not an existing folder\nExiting...' % i_datasets_folder)
@@ -118,6 +120,7 @@ def routine_qiime2_analyses(
     prjct_nm = get_prjct_nm(project_name)
     run_params = get_run_params(p_run_params)
 
+    # READ ------------------------------------------------------------
     print('(get_datasets)')
     datasets, datasets_read, datasets_features, datasets_phylo, datasets_rarefs = get_datasets(
         i_datasets, i_datasets_folder)
@@ -128,6 +131,7 @@ def routine_qiime2_analyses(
     if raref:
         filt_raref += '_rrf'
 
+    # PREPROCESSING ------------------------------------------------------------
     print('(import_datasets)')
     import_datasets(i_datasets_folder, datasets, datasets_phylo,
                     force, prjct_nm, qiime_env, chmod, noloc,
@@ -148,6 +152,7 @@ def routine_qiime2_analyses(
                    prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'],
                    filt_raref)
 
+    # TAXONOMY ------------------------------------------------------------
     taxonomies = {}
     print('(get_precomputed_taxonomies)')
     get_precomputed_taxonomies(i_datasets_folder, datasets, taxonomies)
@@ -159,6 +164,7 @@ def routine_qiime2_analyses(
                           chmod, noloc, run_params['qemistree'], filt_raref)
         else:
             print('[Warning] The Qemistree path %s is not a folder.')
+
     if 'taxonomy' not in p_skip:
         print('(run_taxonomy)')
         run_taxonomy(i_datasets_folder, datasets, datasets_read,
@@ -170,6 +176,7 @@ def routine_qiime2_analyses(
             run_barplot(i_datasets_folder, datasets, taxonomies,
                         force, prjct_nm, qiime_env, chmod, noloc,
                         run_params['barplot'], filt_raref)
+    # TREES ------------------------------------------------------------
     trees = {}
     print('(get_precomputed_trees)')
     get_precomputed_trees(i_datasets_folder, datasets, datasets_phylo, trees)
@@ -183,7 +190,6 @@ def routine_qiime2_analyses(
         run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo,
                  prjct_nm, i_sepp_tree, trees, force, qiime_env, chmod, noloc,
                  run_params['sepp'], filt_raref)
-    # ------------------------------------------------------------------------------------------
 
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
@@ -211,7 +217,6 @@ def routine_qiime2_analyses(
                 run_volatility(i_datasets_folder, datasets, p_longi_column,
                                force, prjct_nm, qiime_env, chmod, noloc,
                                run_params['volatility'], filt_raref)
-    # ------------------------------------------------------------------
 
     # BETA ----------------------------------------------------------------------
     if 'beta' not in p_skip:
@@ -243,7 +248,6 @@ def routine_qiime2_analyses(
             run_emperor_biplot(i_datasets_folder, biplots, taxonomies,
                                prjct_nm, qiime_env, chmod, noloc,
                                run_params['emperor_biplot'], filt_raref)
-    # ---------------------------------------------------------------------------
 
     # STATS ------------------------------------------------------------------
     if 'beta' not in p_skip and 'deicode' not in p_skip:
@@ -271,7 +275,6 @@ def routine_qiime2_analyses(
                        p_perm_groups, force, prjct_nm, qiime_env,
                        chmod, noloc, split,
                        run_params['adonis'], filt_raref)
-    # ------------------------------------------------------------------------
 
     # MMVEC AND SONGBIRD --------------------------------------------------------
     mmvec_outputs = []
@@ -301,19 +304,10 @@ def routine_qiime2_analyses(
                                             input_to_filtered, mmvec_outputs, force, prjct_nm,
                                             qiime_env, chmod, noloc, split,
                                             run_params['songbird'], filt_raref)
-
-    pc_sb_correlations_pd = pd.DataFrame()
     if p_diff_models and p_mmvec_pairs and 'mmbird' not in p_skip:
         print('run_mmbird')
-        pc_sb_correlations_pd = run_mmbird(
+        run_mmbird(
             i_datasets_folder, songbird_outputs, p_mmvec_highlights,
             mmvec_outputs, force, prjct_nm, qiime_env, chmod,
             noloc, filt_raref, run_params['mmbird'],
             input_to_filtered)
-
-    # if pc_sb_correlations_pd.shape[0] and 'mmpc' not in p_skip:
-    #     run_mmpc(
-    #         i_datasets_folder, datasets_read,
-    #         force, prjct_nm, qiime_env, chmod, noloc,
-    #         input_to_filtered)
-    # ------------------------------------------------------------------------------
