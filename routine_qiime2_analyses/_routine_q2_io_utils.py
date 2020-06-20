@@ -256,6 +256,16 @@ def get_songbird_models(p_diff_models: str, diff_dict: dict) -> dict:
     return diff_dict['models']
 
 
+def get_highlights(highlights_fp: str) -> dict:
+    highlights = {}
+    if not isfile(highlights_fp):
+        print('yaml file containing mmbird highlights does not exist:\n%s\nNo highlights...' % highlights_fp)
+    else:
+        with open(highlights_fp) as handle:
+            highlights = yaml.load(handle, Loader=yaml.FullLoader)
+    return highlights
+
+
 def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict):
     """
     Collect from on the passed yaml file:

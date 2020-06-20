@@ -21,7 +21,6 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
     :return: checked cases.
     """
     to_pop = set()
-    print('meta:', meta)
     meta_pd_vars = set(meta_pd.columns.tolist())
     for variable, factors_lists in cases_dict.items():
         if variable == 'ALL':

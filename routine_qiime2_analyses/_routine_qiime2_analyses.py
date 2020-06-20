@@ -53,6 +53,7 @@ def routine_qiime2_analyses(
         i_qemistree: str,
         p_diff_models: str,
         p_mmvec_pairs: str,
+        p_mmvec_highlights: str,
         qiime_env: str,
         p_run_params: str,
         chmod: str,
@@ -218,7 +219,7 @@ def routine_qiime2_analyses(
         betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
                          datasets_read, p_beta_subsets, trees, force,
                          prjct_nm, qiime_env, chmod, noloc, Bs, dropout,
-                         run_params['betas'], filt_raref)
+                         run_params['beta'], filt_raref)
         if 'export_beta' not in p_skip:
             print('(export_beta)')
             export_beta(i_datasets_folder, betas,
@@ -228,7 +229,7 @@ def routine_qiime2_analyses(
             print('(run_pcoas)')
             pcoas = run_pcoas(i_datasets_folder, betas, force,
                               prjct_nm, qiime_env, chmod, noloc,
-                              run_params['pcoas'], filt_raref)
+                              run_params['pcoa'], filt_raref)
             print('(run_emperor)')
             run_emperor(i_datasets_folder, pcoas,
                         prjct_nm, qiime_env, chmod, noloc,
@@ -237,7 +238,7 @@ def routine_qiime2_analyses(
             print('(run_biplots)')
             biplots = run_biplots(i_datasets_folder, datasets, betas, taxonomies,
                                   force, prjct_nm, qiime_env, chmod, noloc,
-                                  run_params['biplots'], filt_raref)
+                                  run_params['biplot'], filt_raref)
             print('(run_emperor_biplot)')
             run_emperor_biplot(i_datasets_folder, biplots, taxonomies,
                                prjct_nm, qiime_env, chmod, noloc,
@@ -305,7 +306,7 @@ def routine_qiime2_analyses(
     if p_diff_models and p_mmvec_pairs and 'mmbird' not in p_skip:
         print('run_mmbird')
         pc_sb_correlations_pd = run_mmbird(
-            i_datasets_folder, songbird_outputs,
+            i_datasets_folder, songbird_outputs, p_mmvec_highlights,
             mmvec_outputs, force, prjct_nm, qiime_env, chmod,
             noloc, filt_raref, run_params['mmbird'],
             input_to_filtered)

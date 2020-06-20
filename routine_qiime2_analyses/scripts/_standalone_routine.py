@@ -102,6 +102,11 @@ from routine_qiime2_analyses import __version__
          "MUST BE YAML FILE, see 'examples/mmvec_pairs.yml' and README."
 )
 @click.option(
+    "-h", "--p-mmvec-highlights", required=False, default=False, show_default=True,
+    help="Features to highlights on mmvec biplot (per dataset).\n"
+         "MUST BE YAML FILE, see 'examples/mmvec_highlights.yml' and README."
+)
+@click.option(
     "-l", "--p-longi-column", required=False, default=False, show_default=True,
     help="If data is longitudinal; provide the time metadata column"
          "for volatility analysis."
@@ -189,12 +194,14 @@ def standalone_routine(
         p_beta_type,
         p_procrustes,
         p_adonis_formulas,
-        force, i_classifier,
+        force,
+        i_classifier,
         i_wol_tree,
         i_sepp_tree,
         i_qemistree,
         p_diff_models,
         p_mmvec_pairs,
+        p_mmvec_highlights,
         p_qiime2_env,
         p_run_params,
         p_chmod,
@@ -223,12 +230,14 @@ def standalone_routine(
         p_beta_type,
         p_procrustes,
         p_adonis_formulas,
-        force, i_classifier,
+        force,
+        i_classifier,
         i_wol_tree,
         i_sepp_tree,
         i_qemistree,
         p_diff_models,
         p_mmvec_pairs,
+        p_mmvec_highlights,
         p_qiime2_env,
         p_run_params,
         p_chmod,
