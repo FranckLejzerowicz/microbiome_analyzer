@@ -206,8 +206,7 @@ def get_biplot_commands(
         ordi_edit_fp, qza, qzv, omic_feature, omic_sample,
         meta1_fp, meta2_fp, n_edit
 ):
-    cmd = ''
-    cmd += '\n'
+    cmd = '\n'
     if not isfile(qza):
         cmd += '\nqiime tools import'
         cmd += ' --input-path %s' % ordi_edit_fp
@@ -223,8 +222,7 @@ def get_biplot_commands(
 
 
 def get_heatmap_commands(
-        ranks_fp, qza, qzv, omic_microbe,
-        omic_metabolite, meta1, meta2,
+        ranks_fp, qza, qzv, meta1, meta2,
         meta_pd1, meta_pd2):
 
     cmd = '\n'
@@ -372,8 +370,7 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
                 n_ordi_feats = 25
                 qza, qzv = get_heatmap_qzs(ranks_fp)
                 cmd += get_heatmap_commands(
-                    ranks_fp, qza, qzv, omic_microbe,
-                    omic_metabolite, meta1, meta2,
+                    ranks_fp, qza, qzv, meta1, meta2,
                     meta_pd1, meta_pd2)
 
             cmd += get_biplot_commands(
