@@ -202,10 +202,9 @@ def get_order_omics(
 #
 #     return metatax_omic_fp
 
-
 def get_biplot_commands(
-        ordi_edit_fp, ordi, qza, qzv, omic_feature, omic_sample,
-        meta1_fp, meta2_fp, n_edit=0, crowded=0
+        ordi_edit_fp, qza, qzv, omic_feature, omic_sample,
+        meta1_fp, meta2_fp, n_edit
 ):
     cmd = ''
     cmd += '\n'
@@ -218,11 +217,7 @@ def get_biplot_commands(
     cmd += ' --i-biplot %s' % qza
     cmd += ' --m-%s-metadata-file %s' % (omic_feature, meta1_fp)
     cmd += ' --m-%s-metadata-file %s' % (omic_sample, meta2_fp)
-    if n_edit:
-        cmd += ' --p-number-of-features %s' % n_edit
-    elif crowded:
-        max_feats = ordi.features.shape[0]
-        cmd += ' --p-number-of-features %s' % max_feats
+    cmd += ' --p-number-of-features %s' % n_edit
     cmd += ' --o-visualization %s\n' % qzv
     return cmd
 
@@ -232,35 +227,37 @@ def get_heatmap_commands(
         omic_metabolite, meta1, meta2,
         meta_pd1, meta_pd2):
 
-    cmd = '\n\nqiime tools import'
-    cmd += ' --input-path %s' % ranks_fp
-    cmd += ' --output-path %s' % qza
-    cmd += ' --type FeatureData[Conditional]'
-    cmd += ' --input-format ConditionalFormat\n'
+    cmd = '\n'
+    if not isfile(qza):
+        cmd += '\nqiime tools import'
+        cmd += ' --input-path %s' % ranks_fp
+        cmd += ' --output-path %s' % qza
+        cmd += ' --type FeatureData[Conditional]'
+        cmd += ' --input-format ConditionalFormat\n'
 
     cmd += '\nqiime mmvec heatmap'
     cmd += ' --i-ranks %s' % qza
 
     for level in 'DCB':
-        taxolevel1 = 'Taxolevel_%s' % level
-        if taxolevel1 in meta_pd1.columns:
+        taxolevel_microbe = 'Taxolevel_%s' % level
+        if taxolevel_microbe in meta_pd1.columns:
             break
     else:
-        taxolevel1 = ''
+        taxolevel_microbe = ''
 
     for level in 'DCB':
-        taxolevel2 = 'Taxolevel_%s' % level
-        if taxolevel2 in meta_pd2.columns:
+        taxolevel_metabolite = 'Taxolevel_%s' % level
+        if taxolevel_metabolite in meta_pd2.columns:
             break
     else:
-        taxolevel2 = ''
+        taxolevel_metabolite = ''
 
-    if taxolevel1:
-        cmd += ' --m-%s-metadata-file %s' % (omic_microbe, meta1)
-        cmd += ' --m-%s-metadata-column %s' % (omic_microbe, taxolevel1)
-    if taxolevel2:
-        cmd += ' --m-%s-metadata-file %s' % (omic_microbe, meta2)
-        cmd += ' --m-%s-metadata-column %s' % (omic_microbe, taxolevel2)
+    if taxolevel_microbe:
+        cmd += ' --m-microbe-metadata-file %s' % meta1
+        cmd += ' --m-microbe-metadata-column %s' % taxolevel_microbe
+    if taxolevel_metabolite:
+        cmd += ' --m-metabolite-metadata-file %s' % meta2
+        cmd += ' --m-metabolite-metadata-column %s' % taxolevel_metabolite
 
     cmd += ' --o-visualization %s\n' % qzv
     return cmd
@@ -354,14 +351,14 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         if pair in highlights:
             pair_highlights = highlights[pair]
             for highlight, regexes_list in pair_highlights.items():
-                n_edit, meta_edit, ordi_edit = edit_ordi_qzv(
+                n_edit, meta_edit, ordi_edit_fp = edit_ordi_qzv(
                     ordi, ordi_fp, highlight, regexes_list, meta1, meta_pd1)
                 if n_edit:
-                    qza, qzv = get_qzs(ordi_edit)
+                    qza, qzv = get_qzs(ordi_edit_fp)
                     cmd += get_biplot_commands(
-                        ordi_edit, qza, qzv,
+                        ordi_edit_fp, qza, qzv,
                         omic_feature, omic_sample,
-                        meta_edit, meta2, n_edit, 0
+                        meta_edit, meta2, n_edit
                     )
                     pair_cmds.setdefault(pair, []).append(cmd)
 
@@ -369,8 +366,10 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         qza, qzv = get_qzs(ordi_edit_fp)
         for crowded in crowdeds:
             if crowded:
+                n_ordi_feats = ordi.features.shape[0]
                 qzv = qzv.replace('.qzv', '_crowded.qzv')
             else:
+                n_ordi_feats = 25
                 qza, qzv = get_heatmap_qzs(ranks_fp)
                 cmd += get_heatmap_commands(
                     ranks_fp, qza, qzv, omic_microbe,
@@ -378,9 +377,9 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
                     meta_pd1, meta_pd2)
 
             cmd += get_biplot_commands(
-                ordi_edit_fp, ordi, qza, qzv,
+                ordi_edit_fp, qza, qzv,
                 omic_feature, omic_sample,
-                meta1, meta2, 0, crowded)
+                meta1, meta2, n_ordi_feats)
 
             pair_cmds.setdefault(pair, []).append(cmd)
 
@@ -579,7 +578,6 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
     if not songbird_outputs:
         print('No songbird output detected...')
         sys.exit(0)
-
 
     print('\t-> [mmbird] Get mmvec output...', end=' ')
     mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
