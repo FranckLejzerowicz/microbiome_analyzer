@@ -356,9 +356,7 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
                     cmd += get_biplot_commands(
                         ordi_edit_fp, qza, qzv,
                         omic_feature, omic_sample,
-                        meta_edit, meta2, n_edit
-                    )
-
+                        meta_edit, meta2, n_edit)
         ordi_edit_fp = ordi_fp
         qza, qzv = get_qzs(ordi_edit_fp)
         for crowded in crowdeds:
@@ -371,7 +369,6 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
                 cmd += get_heatmap_commands(
                     ranks_fp, heat_qza, heat_qzv, meta1,
                     meta2, meta_pd1, meta_pd2)
-
             cmd += get_biplot_commands(
                 ordi_edit_fp, qza, qzv,
                 omic_feature, omic_sample,
