@@ -367,10 +367,10 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
                 qzv = qzv.replace('.qzv', '_crowded.qzv')
             else:
                 n_ordi_feats = 25
-                qza, qzv = get_heatmap_qzs(ranks_fp)
+                heat_qza, heat_qzv = get_heatmap_qzs(ranks_fp)
                 cmd += get_heatmap_commands(
-                    ranks_fp, qza, qzv, meta1, meta2,
-                    meta_pd1, meta_pd2)
+                    ranks_fp, heat_qza, heat_qzv, meta1,
+                    meta2, meta_pd1, meta_pd2)
 
             cmd += get_biplot_commands(
                 ordi_edit_fp, qza, qzv,
