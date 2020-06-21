@@ -236,7 +236,7 @@ def get_heatmap_commands(
     cmd += '\nqiime mmvec heatmap'
     cmd += ' --i-ranks %s' % qza
 
-    for level in 'DCB':
+    for level in 'CB':
         taxolevel_microbe = 'Taxolevel_%s' % level
         if taxolevel_microbe in meta_pd1.columns:
             break
