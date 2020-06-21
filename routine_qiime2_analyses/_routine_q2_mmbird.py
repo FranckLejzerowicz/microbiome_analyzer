@@ -358,7 +358,6 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
                         omic_feature, omic_sample,
                         meta_edit, meta2, n_edit
                     )
-                    pair_cmds.setdefault(pair, []).append(cmd)
 
         ordi_edit_fp = ordi_fp
         qza, qzv = get_qzs(ordi_edit_fp)
@@ -378,6 +377,7 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
                 omic_feature, omic_sample,
                 meta1, meta2, n_ordi_feats)
 
+        if cmd:
             pair_cmds.setdefault(pair, []).append(cmd)
 
     pc_sb_correlations_pd = pd.concat(pc_sb_correlations)
