@@ -258,9 +258,7 @@ def get_songbird_models(p_diff_models: str, diff_dict: dict) -> dict:
 
 def get_highlights(highlights_fp: str) -> dict:
     highlights = {}
-    if not isfile(highlights_fp):
-        print('yaml file containing mmbird highlights does not exist:\n%s\nNo highlights...' % highlights_fp)
-    else:
+    if isfile(highlights_fp):
         with open(highlights_fp) as handle:
             highlights = yaml.load(handle, Loader=yaml.FullLoader)
     return highlights
@@ -712,7 +710,7 @@ def parse_g2lineage() -> dict:
     """
     g2lineage_fp = '%s/g2lineage.txt' % RESOURCES
     g2lineage = {}
-    for line in open(g2lineage_fp).readlines()[1:]:
+    for line in open(g2lineage_fp).readlines():
         line_split = line.strip().split('\t')
         g2lineage[line_split[0]] = line_split[1]
     return g2lineage
