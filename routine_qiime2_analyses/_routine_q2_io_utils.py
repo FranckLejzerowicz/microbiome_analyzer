@@ -13,7 +13,10 @@ import yaml
 import glob
 import pkg_resources
 import pandas as pd
+
+from pandas.util import hash_pandas_object
 from os.path import basename, splitext, isfile, isdir, abspath
+
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_cmds import run_import, run_export
@@ -89,30 +92,59 @@ def update_filtering_prevalence(filtering_dict: dict, p_yml: str, filtering: dic
     return {}
 
 
-def get_filtering(p_yml: str, filtering_dict: dict) -> dict:
+def get_filtering(p_yml: str, filtering_dict: dict,
+                  songbird_mmvec: dict, analysis: str) -> dict:
     """
     Get the parameters for songbird passed by the user.
     :param p_mmvec_pairs: file containing the parameters.
     :param mmvec_dict: parsed content of the file containing the parameters.
     :return: parameters.
     """
-    filtering = {
-        'prevalence': [
-            '0'
-        ],
-        'abundance': [
-            ['0', '0']
-        ]
-    }
-    if 'filtering' not in filtering_dict:
-        print('No filtering thresholds set in %s:\nUsing defaults:' % p_yml)
-        for k, v in filtering.items():
-            print(k, v)
-        return filtering
+    dats = []
+    filtering = {}
+    if analysis == 'mmvec':
+        for pair, dats_pair in songbird_mmvec.items():
+            if pair not in filtering:
+                filtering[pair] = {'0_0': {}}
+            dats.extend(dats_pair)
+            for dat in dats_pair:
+                filtering[pair]['0_0'][dat] = ['0', '0']
     else:
-        filtering_dict.update(update_filtering_prevalence(filtering_dict, p_yml, filtering))
-        filtering_dict.update(update_filtering_abundance(filtering_dict, p_yml, filtering))
-        return filtering_dict['filtering']
+        filtering[''] = {'0_0': {}}
+        for dat_ in songbird_mmvec.keys():
+            if dat_[-1] == '*':
+                dat = (dat_[:-1], 1)
+            else:
+                dat = (dat_, 0)
+            dats.append(dat)
+            filtering['']['0_0'][dat] = ['0', '0']
+
+    if 'filtering' not in filtering_dict:
+        print('No filtering thresholds set in %s\n:' % p_yml)
+    elif analysis == 'mmvec':
+        for pair, pair_d in filtering_dict['filtering'].items():
+            filtering[pair] = {}
+            for filt_name, dats_d in pair_d.items():
+                filtering[pair][filt_name] = {}
+                for dat_, prev_abund in dats_d.items():
+                    if dat_[-1] == '*':
+                        dat = (dat_, 1)
+                    else:
+                        dat = (dat_, 0)
+                    if dat in dats:
+                        filtering[pair][filt_name][dat] = prev_abund
+
+    elif analysis == 'songbird':
+        for dat_, filts in filtering_dict['filtering'].items():
+            if dat_[-1] == '*':
+                dat = (dat_, 1)
+            else:
+                dat = (dat_, 0)
+            for filt_name, prev_abund in filts.items():
+                filtering[''][filt_name] = {}
+                if dat in dats:
+                    filtering[''][filt_name][dat] = prev_abund
+    return filtering
 
 
 def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
@@ -180,22 +212,11 @@ def get_mmvec_pairs(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
                 paired.append((dat[:-1], 1))
             else:
                 paired.append((dat, 0))
-
-        # for dat_ in paired_datasets:
-        #     if dat_[-1] == '*':
-        #         dat_, mb = dat_[:-1], 1
-        #     else:
-        #         mb = 0
-        #     if dat_ in datasets_filt:
-        #         dat = datasets_filt[dat_]
-        #     else:
-        #         dat = dat_
-        #     paired.append((dat, mb))
         mmvec_pairs[pair] = paired
     return mmvec_pairs
 
 
-def get_mmvec_dicts(p_mmvec_pairs: str, datasets_filt: dict) -> (dict, dict, dict):
+def get_mmvec_dicts(p_mmvec_pairs: str) -> (dict, dict, dict, dict):
     """
     Collect pairs of datasets from the passed yaml file:
     :param p_mmvec_pairs: Pairs of datasets for which to compute co-occurrences probabilities.
@@ -209,7 +230,7 @@ def get_mmvec_dicts(p_mmvec_pairs: str, datasets_filt: dict) -> (dict, dict, dic
         mmvec_dict = yaml.load(handle, Loader=yaml.FullLoader)
 
     mmvec_pairs = get_mmvec_pairs(p_mmvec_pairs, mmvec_dict)
-    mmvec_filtering = get_filtering(p_mmvec_pairs, mmvec_dict)
+    mmvec_filtering = get_filtering(p_mmvec_pairs, mmvec_dict, mmvec_pairs, 'mmvec')
     mmvec_params = get_mmvec_params(p_mmvec_pairs, mmvec_dict)
     mmvec_subsets = get_mmvec_subsets(p_mmvec_pairs, mmvec_dict)
     return mmvec_pairs, mmvec_filtering, mmvec_params, mmvec_subsets
@@ -264,7 +285,7 @@ def get_highlights(highlights_fp: str) -> dict:
     return highlights
 
 
-def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict):
+def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict):
     """
     Collect from on the passed yaml file:
     - subsets to perform songbird on
@@ -285,7 +306,7 @@ def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict):
 
     models = get_songbird_models(p_diff_models, diff_dict)
     params = get_songbird_params(p_diff_models, diff_dict)
-    filtering = get_filtering(p_diff_models, diff_dict)
+    filtering = get_filtering(p_diff_models, diff_dict,  models, 'songbird')
     datasets = [(dat[:-1], 1) if dat[-1] == '*' else (dat, 0) for dat in models]
     return models, filtering, params, datasets, main_cases_dict
 
@@ -733,45 +754,76 @@ def get_run_params(p_run_params: str) -> dict:
     return run_params_default
 
 
-def filter_mb_table(preval_filt: int, abund_filt: int,
-                    tsv_pd: pd.DataFrame) -> pd.DataFrame:
-    if preval_filt or abund_filt:
-        new_cols = []
+def filter_mb_table(preval: str, abund: str,
+                    tsv_pd: pd.DataFrame,
+                    do_res: bool=False) -> (pd.DataFrame, list):
+    preval = float(preval)
+    abund = float(abund)
+    if abund:
+        new_cols = {}
         cur_index = tsv_pd.index.tolist()
         cur_columns = tsv_pd.columns.tolist()
-        for r, row in tsv_pd.iterrows():
-            if sum(row == 0):
-                min_thresh = min([x for x in row if x > 0]) * abund_filt
-                cur_row = [x if x >= min_thresh else 0 for x in row]
-                new_cols.append(cur_row)
-            else:
-                new_cols.append(row.tolist())
-        tsv_pd = pd.DataFrame(
-            new_cols,
-            index=cur_index,
-            columns=cur_columns
-        )
+        for col in cur_columns:
+            cur_col = tsv_pd[col]
+            min_thresh = min([x for x in cur_col if x > 0]) * abund
+            new_col = [x if x > min_thresh else 0 for x in cur_col]
+            new_cols[col] = new_col
+        tsv_pd = pd.DataFrame(new_cols, index=cur_index, columns = cur_columns)
         tsv_pd = tsv_pd[tsv_pd.sum(1) > 1]
-        n_perc = (preval_filt / tsv_pd.shape[1]) * 100
-        if preval_filt and abund_filt:
-            tsv_pd = tsv_pd.loc[tsv_pd.astype(bool).sum(1) >= n_perc, :]
-        tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
-    return tsv_pd
+    if preval:
+        if preval < 1:
+            n_perc = tsv_pd.shape[1] * preval
+        else:
+            n_perc = preval
+        tsv_pd = tsv_pd.loc[tsv_pd.astype(bool).sum(1) >= n_perc, :]
+    tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
+    res = []
+    if do_res:
+        res = [preval, abund, tsv_pd.shape[0], tsv_pd.shape[1]]
+    return tsv_pd, res
 
 
-def filter_non_mb_table(preval_filt: int, abund_filt: int,
-                        tsv_pd: pd.DataFrame) -> pd.DataFrame:
-    n_perc = (preval_filt / tsv_pd.shape[1]) * 100
-    if preval_filt and abund_filt:
-        tsv_filt_pd = tsv_pd.loc[(tsv_pd.values >= abund_filt).sum(1) >= n_perc, :].copy()
-    elif preval_filt:
-        tsv_filt_pd = tsv_pd.loc[tsv_pd.values.astype(bool).sum(1) >= n_perc, :].copy()
-    elif abund_filt:
-        tsv_filt_pd = tsv_pd.loc[tsv_pd.sum(1) > abund_filt, :].copy()
+def filter_non_mb_table(preval: str, abund: str,
+                        tsv_pd: pd.DataFrame,
+                        do_res: bool=False) -> (pd.DataFrame, list):
+    res = []
+    preval = float(preval)
+    abund = float(abund)
+    if preval + abund == 0:
+        if do_res:
+            res = [0, 0, tsv_pd.shape[0], tsv_pd.shape[1]]
+        return tsv_pd, res
+    tsv_filt_pd = tsv_pd.copy()
+    # get the min number of samples based on prevalence percent
+    if preval < 1:
+        n_perc = tsv_pd.shape[1] * preval
     else:
-        tsv_filt_pd = tsv_pd.copy()
-    tsv_filt_pd = tsv_filt_pd.loc[:, tsv_filt_pd.sum(0) > 0]
-    return tsv_filt_pd
+        n_perc = preval
+    # abundance filter in terms of min reads counts
+    tsv_pd_perc = tsv_filt_pd.copy()
+    tsv_pd_perc_sum = tsv_filt_pd.sum(1)
+    if abund < 1:
+        tsv_pd_perc = tsv_filt_pd / tsv_filt_pd.sum()
+        tsv_pd_perc_sum = tsv_filt_pd.sum(1) / tsv_filt_pd.sum(1).sum()
+    abund_mode = 'sample'
+    # remove features from feature table that are not present
+    # in enough samples with the minimum number/percent of reads in these samples
+    if abund_mode == 'sample':
+        tsv_filt_pd = tsv_filt_pd.loc[(tsv_pd_perc > abund).sum(1) > n_perc, :]
+    elif abund_mode == 'dataset':
+        tsv_filt_pd = tsv_filt_pd.loc[tsv_pd_perc_sum > abund, :]
+    elif abund_mode == 'both':
+        tsv_filt_pd = tsv_filt_pd.loc[(tsv_pd_perc > abund).sum(1) > n_perc, :]
+        fil_pd_perc_sum = tsv_filt_pd.sum(1)
+        if abund < 1:
+            fil_pd_perc_sum = tsv_filt_pd.sum(1) / tsv_filt_pd.sum(1).sum()
+        tsv_filt_pd = tsv_filt_pd.loc[fil_pd_perc_sum > abund, :]
+    else:
+        raise Exception('"%s" mode not recognized' % abund_mode)
+    tsv_filt_pd = tsv_filt_pd.loc[tsv_filt_pd.sum(1) > 0, tsv_filt_pd.sum(0) > 0]
+    if do_res:
+        res = [preval, abund, tsv_filt_pd.shape[0], tsv_filt_pd.shape[1]]
+    return tsv_filt_pd, res
 
 
 def get_raref_table(dat_rt: str, i_datasets_folder: str,
@@ -808,11 +860,13 @@ def write_filtered_meta(meta_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFr
     return meta_filt_pd
 
 
-def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
-                          datasets_read: dict, datasets_filt: dict,
-                          unique_datasets: list, filtering: dict,
-                          force: bool, analysis: str, filt_datasets_done: dict,
-                          input_to_filtered: dict) -> (dict, dict, list):
+def get_datasets_filtered(
+        i_datasets_folder: str, datasets: dict,
+        datasets_read: dict, datasets_filt: dict,
+        unique_datasets: list, filtering: dict, force: bool,
+        analysis: str, filt_datasets_done: dict,
+        input_to_filtered: dict,
+        already_computed: dict) -> (dict, dict, list):
     """
     Filter the datasets for use in mmvec.
 
@@ -824,6 +878,7 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
     :param force: Force the re-writing of scripts for all commands.
     :return: list of datasets from filtered threshold.
     """
+
     filt_jobs = []
     filt_datasets = {}
     for (dat_, mb) in unique_datasets:
@@ -858,47 +913,54 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
 
         dat_filts = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
-        for preval_filt in filtering['prevalence']:
-            for abund_filt in filtering['abundance']:
-                if mb:
-                    abund_filter = int(abund_filt[1])
-                else:
-                    abund_filter = int(abund_filt[0])
-                if len(filt_datasets_done[(dat, mb)][(preval_filt, str(abund_filter))]):
-                    print('\t\t\t*', '[DONE]', dat, mb, preval_filt, str(abund_filter))
-                    dat_filts[(preval_filt, str(abund_filter))] = \
-                        filt_datasets_done[(dat, mb)][(preval_filt, str(abund_filter))]
-                    continue
-                # make sure there's no empty row / column
-                tsv_pd = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :].copy()
-                tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
-                if mb:
-                    tsv_pd = filter_mb_table(int(preval_filt), abund_filter, tsv_pd)
-                else:
-                    tsv_pd = filter_non_mb_table(int(preval_filt), abund_filter, tsv_pd)
-                rad_out = '%s_%s_%s_%ss' % (dat, preval_filt, abund_filter, tsv_pd.shape[1])
-                tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
-                tsv_qza = '%s.qza' % splitext(tsv_out)[0]
-                meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
+        prevals_abunds = filtering[(dat_, mb)]
+        for preval_abund, (preval, abund) in prevals_abunds:
+            if len(filt_datasets_done[(dat, mb)][preval_abund]):
+                print('\t\t\t*', '[DONE]', dat, mb, preval_abund)
+                dat_filts[preval_abund] = filt_datasets_done[(dat, mb)][preval_abund]
+                continue
+            # make sure there's no empty row / column
+            tsv_pd = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :].copy()
+            tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
+            if mb:
+                tsv_pd, res = filter_mb_table(preval, abund, tsv_pd)
+            else:
+                tsv_pd, res = filter_non_mb_table(preval, abund, tsv_pd)
 
-                if analysis == 'songbird':
-                    meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
-                    tsv_out_mmvec = tsv_out.replace('/songbird/', '/mmvec/')
-                    tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
-                    if isfile(meta_out_mmvec):
-                        meta_out = meta_out_mmvec
-                        # print('USE MMVECs meta')
-                        # print(' - - -', meta_out)
-                        with open(meta_out) as f:
-                            for line in f:
-                                break
-                        meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
-                                              dtype={line.split('\t')[0]: str},
-                                              low_memory=False)
-                        # print(analysis, 'has mmvec', meta_out, meta_pd.shape)
-                    else:
-                        meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
+            rad_out = '%s_%s_%ss' % (dat, preval_abund, tsv_pd.shape[1])
+            tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
+            tsv_qza = '%s.qza' % splitext(tsv_out)[0]
+            meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
 
+            tsv_hash = hash_pandas_object(tsv_pd).sum()
+
+            if analysis == 'songbird':
+                meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
+                tsv_out_mmvec = tsv_out.replace('/songbird/', '/mmvec/')
+                tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
+                if isfile(meta_out_mmvec):
+                    meta_out = meta_out_mmvec
+                    # print('USE MMVECs meta')
+                    # print(' - - -', meta_out)
+                    with open(meta_out) as f:
+                        for line in f:
+                            break
+                    meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
+                                          dtype={line.split('\t')[0]: str},
+                                          low_memory=False)
+                    # print(analysis, 'has mmvec', meta_out, meta_pd.shape)
+                else:
+                    meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
+
+                if tsv_hash in already_computed:
+                    already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
+                    tsv_out_src = already_computed[tsv_hash][0][0]
+                    tsv_qza_src = already_computed[tsv_hash][0][1]
+                    meta_out_src = already_computed[tsv_hash][0][2]
+                    cmd = '\nln -s %s %s\nln -s %s %s\nln -s %s %s\n' % (
+                        tsv_out_src, tsv_out, tsv_qza_src, tsv_qza, meta_out_src, meta_out)
+                    filt_jobs.append(cmd)
+                else:
                     if isfile(tsv_out_mmvec):
                         # print(analysis, 'is file: tsv_out_mmvec', tsv_out_mmvec)
                         # print('USE MMVECs tsv')
@@ -917,31 +979,43 @@ def get_datasets_filtered(i_datasets_folder: str, datasets: dict,
                         cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
                         filt_jobs.append(cmd)
                         # print(analysis, 'write (job): tsv_qza', tsv_qza)
+                    already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
+            else:
+                meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
+                if tsv_hash in already_computed:
+                    already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
+                    tsv_out_src = already_computed[tsv_hash][0][0]
+                    tsv_qza_src = already_computed[tsv_hash][0][1]
+                    meta_out_src = already_computed[tsv_hash][0][2]
+                    cmd = '\nln -s %s %s\nln -s %s %s\nln -s %s %s\n' % (
+                        tsv_out_src, tsv_out, tsv_qza_src, tsv_qza, meta_out_src, meta_out)
+                    filt_jobs.append(cmd)
                 else:
-                    meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
                     if force or not isfile(tsv_out):
                         write_filtered_tsv(tsv_out, tsv_pd)
                     if force or not isfile(tsv_qza):
                         cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
                         filt_jobs.append(cmd)
-                print('\t\t\t*', '[TODO]', dat, mb, preval_filt, str(abund_filter), ':', tsv_pd.shape)
-                dat_filts[(preval_filt, str(abund_filter))] = [
-                    tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()
-                ]
-                # print('------')
-                # print(dat, preval_filt, str(abund_filter))
-                # print(' -', tsv_out)
-                # print(' -', tsv_qza)
-                # print(' -', meta_out)
-                # print('------')
+                    already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
+            print('\t\t\t*', '[TODO]', dat, mb, preval_abund, ':', tsv_pd.shape)
+            dat_filts[preval_abund] = [
+                tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()
+            ]
+            # print('------')
+            # print(dat, preval_filt, str(abund_filter))
+            # print(' -', tsv_out)
+            # print(' -', tsv_qza)
+            # print(' -', meta_out)
+            # print('------')
         filt_datasets[(dat, mb)] = dat_filts
     return filt_datasets, filt_jobs
 
 
-def check_datasets_filtered(i_datasets_folder: str, datasets: dict,
-                            datasets_filt: dict, unique_datasets: list,
-                            filtering: dict, analysis: str,
-                            input_to_filtered: dict) -> (dict, dict, list):
+def check_datasets_filtered(
+        i_datasets_folder: str, datasets: dict,
+        datasets_filt: dict, unique_datasets: list,
+        unique_filterings: dict, analysis: str,
+        input_to_filtered: dict) -> (dict, dict, list):
     """
     Filter the datasets for use in mmvec.
 
@@ -953,6 +1027,7 @@ def check_datasets_filtered(i_datasets_folder: str, datasets: dict,
     :param force: Force the re-writing of scripts for all commands.
     :return: list of datasets from filtered threshold.
     """
+
     filt_datasets_pass = {}
     for (dat_, mb) in unique_datasets:
         if dat_ in datasets_filt:
@@ -974,43 +1049,42 @@ def check_datasets_filtered(i_datasets_folder: str, datasets: dict,
 
         dat_filts_pass = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
-        for preval_filt in filtering['prevalence']:
-            for abund_filt in filtering['abundance']:
-                # make sure there's no empty row / column
-                if mb:
-                    abund_filter = int(abund_filt[1])
-                else:
-                    abund_filter = int(abund_filt[0])
-                rad_out = '%s_%s_%s_*s' % (dat, preval_filt, abund_filter)
-                tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
-                tsv_qza = '%s.qza' % splitext(tsv_out)[0]
-                meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
+        print(unique_filterings)
+        prevals_abunds = unique_filterings[(dat_, mb)]
+        for preval_abund, (preval, abund) in prevals_abunds:
+            # make sure there's no empty row / column
+            rad_out = '%s_%s_*s' % (dat, preval_abund)
+            tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
+            tsv_qza = '%s.qza' % splitext(tsv_out)[0]
+            meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
 
-                if analysis == 'songbird':
-                    meta_outs = glob.glob(meta_out.replace('/songbird/', '/mmvec/'))
-                    tsv_outs = glob.glob(tsv_out.replace('/songbird/', '/mmvec/'))
-                    tsv_qzas = glob.glob(tsv_qza.replace('/songbird/', '/mmvec/'))
-                else:
-                    meta_outs = glob.glob(meta_out)
-                    tsv_outs = glob.glob(tsv_out)
-                    tsv_qzas = glob.glob(tsv_qza)
+            if analysis == 'songbird':
+                meta_outs = glob.glob(meta_out.replace('/songbird/', '/mmvec/'))
+                tsv_outs = glob.glob(tsv_out.replace('/songbird/', '/mmvec/'))
+                tsv_qzas = glob.glob(tsv_qza.replace('/songbird/', '/mmvec/'))
+            else:
+                meta_outs = glob.glob(meta_out)
+                tsv_outs = glob.glob(tsv_out)
+                tsv_qzas = glob.glob(tsv_qza)
 
-                if len(meta_outs) == 1 and len(tsv_outs) == 1 and len(tsv_qzas) == 1:
-                    meta_out = meta_outs[0]
-                    tsv_out = tsv_outs[0]
-                    tsv_qza = tsv_qzas[0]
-                    with open(meta_out) as f:
-                        for line in f:
-                            sample_name = line.split('\t')[0]
-                            break
-                    meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
-                                          dtype={sample_name: str},
-                                          low_memory=False)
-                    dat_filts_pass[(preval_filt, str(abund_filter))] = [
-                        tsv_out, tsv_qza, meta_out, meta_pd, meta_pd[sample_name].tolist()
-                    ]
-                else:
-                    dat_filts_pass[(preval_filt, str(abund_filter))] = []
+            if len(meta_outs) == 1 and len(tsv_outs) == 1 and len(tsv_qzas) == 1:
+                meta_out = meta_outs[0]
+                tsv_out = tsv_outs[0]
+                tsv_qza = tsv_qzas[0]
+                with open(meta_out) as f:
+                    for line in f:
+                        sample_name = line.split('\t')[0]
+                        break
+                meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
+                                      dtype={sample_name: str},
+                                      low_memory=False)
+                dat_filts_pass[preval_abund] = [
+                # dat_filts_pass[(preval, abund)] = [
+                    tsv_out, tsv_qza, meta_out,
+                    meta_pd, meta_pd[sample_name].tolist()]
+            else:
+                dat_filts_pass[preval_abund] = []
+                # dat_filts_pass[(preval, abund)] = []
         filt_datasets_pass[(dat, mb)] = dat_filts_pass
     return filt_datasets_pass
 

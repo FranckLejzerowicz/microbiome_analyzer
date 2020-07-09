@@ -57,7 +57,8 @@ setup(
         "pandas",
         "numpy",
         "scikit-bio",
-        "pyyaml"
+        "pyyaml",
+        "plotly"
     ],
     classifiers=classifiers,
     entry_points={'console_scripts': standalone},

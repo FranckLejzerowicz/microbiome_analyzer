@@ -177,6 +177,15 @@ from routine_qiime2_analyses import __version__
     "--dropout/--no-dropout", default=True, show_default=True,
     help="Allow samples dropouts for the features subsetting (alpha and beta)."
 )
+@click.option(
+    "--filt3d/--no-filt3d", default=False, show_default=True,
+    help="Only check the effect of filtering thresholds passed to songbird "
+         "and mmvec instead of running all of them."
+)
+@click.option(
+    "-filt3d_config", "--p-filt3d-config", required=False, show_default=False,
+    help="Levels for the exploration of filtering. Must be a yaml file."
+)
 @click.version_option(__version__, prog_name="routine_qiime2_analyses")
 
 
@@ -213,7 +222,9 @@ def standalone_routine(
         p_alphas,
         p_betas,
         split,
-        dropout
+        dropout,
+        filt3d,
+        p_filt3d_config
 ):
 
     routine_qiime2_analyses(
@@ -249,7 +260,9 @@ def standalone_routine(
         p_alphas,
         p_betas,
         split,
-        dropout
+        dropout,
+        filt3d,
+        p_filt3d_config
     )
 
 

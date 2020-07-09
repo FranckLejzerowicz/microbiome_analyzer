@@ -7,12 +7,12 @@
 # ----------------------------------------------------------------------------
 
 import sys
-import pandas as pd
 import subprocess
 from os.path import abspath, exists, isdir, isfile
 
 from routine_qiime2_analyses._routine_q2_io_utils import get_prjct_nm, get_datasets, get_run_params
-from routine_qiime2_analyses._routine_q2_filter import import_datasets, filter_rare_samples
+from routine_qiime2_analyses._routine_q2_filter import (import_datasets, filter_rare_samples,
+                                                        get_filt3d_params, explore_filtering)
 from routine_qiime2_analyses._routine_q2_rarefy import run_rarefy
 from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp, get_precomputed_trees
 from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
@@ -65,7 +65,9 @@ def routine_qiime2_analyses(
         As: tuple,
         Bs: tuple,
         split: bool,
-        dropout: bool) -> None:
+        dropout: bool,
+        filt3d: bool,
+        p_filt3d_config: str) -> None:
     """
     Main qiime2 functions writer.
 
@@ -276,18 +278,6 @@ def routine_qiime2_analyses(
                        chmod, noloc, split,
                        run_params['adonis'], filt_raref)
 
-    # MMVEC AND SONGBIRD --------------------------------------------------------
-    mmvec_outputs = []
-    input_to_filtered = {}
-    if p_mmvec_pairs:
-        if 'mmvec' not in p_skip:
-            print('(run_mmvec)')
-            mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
-                                      datasets_filt, datasets_read, force,
-                                      gpu, standalone, prjct_nm, qiime_env,
-                                      chmod, noloc, split, filt_raref,
-                                      run_params['mmvec'],
-                                      input_to_filtered)
     if 'beta' not in p_skip and p_procrustes:
         if betas and 'procrustes' not in p_skip:
             print('run_procrustes')
@@ -295,16 +285,37 @@ def routine_qiime2_analyses(
                            p_procrustes, betas, force, prjct_nm,
                            qiime_env, chmod, noloc, split,
                            run_params['procrustes'], filt_raref)
+
+    # MMVEC AND SONGBIRD --------------------------------------------------------
+    filts = {}
+    mmvec_outputs = []
+    input_to_filtered = {}
+    if p_mmvec_pairs:
+        if filt3d:
+            filts.update(get_filt3d_params(p_mmvec_pairs, 'mmvec'))
+        elif 'mmvec' not in p_skip:
+            print('(run_mmvec)')
+            mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
+                                      datasets_filt, datasets_read, force,
+                                      gpu, standalone, prjct_nm, qiime_env,
+                                      chmod, noloc, split, filt_raref,
+                                      run_params['mmvec'], input_to_filtered)
     songbird_outputs = []
     if p_diff_models:
-        if 'songbird' not in p_skip:
+        if filt3d:
+            filts.update(get_filt3d_params(p_diff_models, 'songbird'))
+        elif 'songbird' not in p_skip:
             print('run_songbird')
             songbird_outputs = run_songbird(p_diff_models, i_datasets_folder,
                                             datasets, datasets_read, datasets_filt,
                                             input_to_filtered, mmvec_outputs, force, prjct_nm,
                                             qiime_env, chmod, noloc, split,
                                             run_params['songbird'], filt_raref)
-    if p_diff_models and p_mmvec_pairs and 'mmbird' not in p_skip:
+    if filt3d:
+        explore_filtering(i_datasets_folder, datasets,
+                          datasets_read, datasets_filt,
+                          filts, p_filt3d_config)
+    elif p_diff_models and p_mmvec_pairs and 'mmbird' not in p_skip:
         print('run_mmbird')
         run_mmbird(
             i_datasets_folder, songbird_outputs, p_mmvec_highlights,

@@ -107,6 +107,14 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
     return diffs, tensor_html
 
 
+def get_unique_filterings(songbird_filtering):
+    unique_filterings = {}
+    for filt_name, dat_d in songbird_filtering[''].items():
+        for dat, prev_abund in dat_d.items():
+            unique_filterings.setdefault(dat, []).append((filt_name, prev_abund))
+    return unique_filterings
+
+
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                  datasets_read: dict, datasets_filt: dict, input_to_filtered: dict,
                  mmvec_outputs: list, force: bool, prjct_nm: str, qiime_env: str,
@@ -130,6 +138,15 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     songbird_dicts = get_songbird_dicts(p_diff_models)
     songbird_models = songbird_dicts[0]
     songbird_filtering = songbird_dicts[1]
+    unique_filtering = get_unique_filterings(songbird_filtering)
+
+    print()
+    print("songbird_filtering")
+    print(songbird_filtering)
+    print()
+    print("unique_filtering")
+    print(unique_filtering)
+
     params = songbird_dicts[2]
     songbird_datasets = songbird_dicts[3]
     main_cases_dict = songbird_dicts[4]
@@ -143,18 +160,20 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     n_randoms = params['n_randoms']
 
     filt_datasets_done, common_datasets_done = check_filtered_and_common_dataset(
-        i_datasets_folder, datasets, datasets_filt,
-        songbird_datasets, {}, songbird_filtering,
+        i_datasets_folder, datasets, datasets_filt, songbird_datasets,
+        {}, songbird_filtering, unique_filtering,
         'songbird', input_to_filtered)
 
+    already_computed = {}
     filt_datasets, common_datasets = make_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_filt,
         datasets_read, songbird_datasets, {}, songbird_filtering,
-        job_folder, force, prjct_nm, qiime_env,
+        unique_filtering, job_folder, force, prjct_nm, qiime_env,
         chmod, noloc, 'songbird', filt_raref, filt_datasets_done,
-        common_datasets_done, input_to_filtered)
+        common_datasets_done, input_to_filtered, already_computed)
 
-    songbird_models.update(dict((input_to_filtered[x], y) for x, y in songbird_models.items() if x in input_to_filtered))
+    songbird_models.update(dict((input_to_filtered[x], y)
+                                for x, y in songbird_models.items() if x in input_to_filtered))
 
     songbirds = {}
     for dat, filts_files in filt_datasets.items():

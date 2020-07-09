@@ -8,12 +8,21 @@
 
 import sys
 import yaml
+import itertools
+import numpy as np
 import pandas as pd
 from os.path import isfile, splitext
 
+import plotly
+import plotly.graph_objs as go
+
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
-from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_raref_tab_meta_pds
+from routine_qiime2_analyses._routine_q2_io_utils import (
+    get_job_folder, get_raref_tab_meta_pds, get_raref_table,
+    get_analysis_folder, filter_mb_table, filter_non_mb_table)
 from routine_qiime2_analyses._routine_q2_cmds import run_import
+from routine_qiime2_analyses._routine_q2_mmvec import get_mmvec_dicts
+from routine_qiime2_analyses._routine_q2_songbird import get_songbird_dicts
 
 
 def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
@@ -232,3 +241,144 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
     datasets_read.update(datasets_read_update)
     datasets_features.update(datasets_features_update)
     datasets_phylo.update(datasets_phylo_update)
+
+
+def get_filt3d_params(p_config, analysis):
+    if analysis == 'mmvec':
+        mmvec_dicts = get_mmvec_dicts(p_config)
+        filtering = mmvec_dicts[1]
+    else:
+        songbird_dicts = get_songbird_dicts(p_config)
+        filtering = songbird_dicts[1]
+    return filtering
+
+
+def explore_filtering(i_datasets_folder, datasets, datasets_read,
+                      datasets_filt, filtering, p_filt3d_config):
+
+    if p_filt3d_config and isfile(p_filt3d_config):
+        with open(p_filt3d_config) as handle:
+            explor = yaml.load(handle, Loader=yaml.FullLoader)
+        defaults = (
+            {'prevalCount': set(explor['prevalCount']),
+             'prevalPercent': set(explor['prevalPercent'])},
+            {'abundCount': set(explor['abundCount']),
+             'abundPercent': set(explor['abundPercent'])})
+    else:
+        defaults = (
+            {'prevalCount': {0, 1, 2, 3, 5, 10, 20, 30},
+             'prevalPercent': {0, 0.01, 0.02, 0.05, 0.1}},
+            {'abundCount': {0, 1, 2, 5, 10, 100, 1000},
+             'abundPercent': {0, .001, .01, .02, .03, .05, .1}})
+
+    scales = {}
+    currents = {}
+    for pair, filt_d in filtering.items():
+        for filt, dat_preval_abund in filt_d.items():
+            for dat, preval_abund in dat_preval_abund.items():
+                preval, abund = map(float, preval_abund)
+                if preval != 0 and preval < 1:
+                    preval_label = 'prevalPercent'
+                else:
+                    preval_label = 'prevalCount'
+                if abund != 0 and abund < 1:
+                    abund_label = 'abundPercent'
+                else:
+                    abund_label = 'abundCount'
+                if (preval_label, abund_label) not in scales:
+                    scales[(preval_label, abund_label)] = {}
+                if dat not in scales[(preval_label, abund_label)]:
+                    currents.setdefault(dat, []).append((preval, abund))
+                    scales[(preval_label, abund_label)][dat] = (
+                        defaults[0][preval_label], defaults[1][abund_label])
+                scales[(preval_label, abund_label)][dat][0].add(preval)
+                scales[(preval_label, abund_label)][dat][1].add(abund)
+
+    for (preval_label, abund_label), dats_d in scales.items():
+        out_dir = get_analysis_folder(
+            i_datasets_folder, 'filter3D/scale_%s_%s' % (preval_label, abund_label))
+        for (dat_, mb), prevals_abunds in dats_d.items():
+            if dat_ in datasets_filt:
+                dat = datasets_filt[dat_]
+            else:
+                dat = dat_
+            if dat not in datasets:
+                if dat.endswith('__raref'):
+                    dat = dat.split('__raref')[0]
+                    if dat in datasets_filt:
+                        dat = datasets_filt[dat]
+                    tsv_pd_, meta_pd_ = get_raref_table(dat, i_datasets_folder, 'filter3D')
+                    if not tsv_pd_.shape[0]:
+                        continue
+                    dat = '%s__raref' % dat
+                else:
+                    print('dataset "%s" not found...' % dat)
+                    continue
+            elif datasets_read[dat] == 'raref':
+                tsv, meta = datasets[dat]
+                if not isfile(tsv):
+                    print('Must have run rarefaction to use it further...\nExiting')
+                    sys.exit(0)
+                tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
+                datasets_read[dat] = [tsv_pd_, meta_pd_]
+            else:
+                tsv_pd_, meta_pd_ = datasets_read[dat]
+
+            res = []
+            rdx = 0
+            prevals, abunds = prevals_abunds
+            for (preval, abund) in itertools.product(*[sorted(prevals), sorted(abunds)]):
+                rdx += 1
+                tsv_pd = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :].copy()
+                tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
+                if mb:
+                    tsv_pd, cur_res = filter_mb_table(preval, abund, tsv_pd, True)
+                else:
+                    tsv_pd, cur_res = filter_non_mb_table(preval, abund, tsv_pd, True)
+                if (preval, abund) in currents[(dat, mb)]:
+                    cur_res.append(1)
+                else:
+                    cur_res.append(0)
+                res.append(cur_res)
+            res_pd = pd.DataFrame(res, columns=['preval_filt', 'abund_filt', 'features',
+                                                'samples', 'data'])
+            res_pd['features'] = np.log10(res_pd['features']+1)
+            x = res_pd.preval_filt.unique()
+            y = res_pd.abund_filt.unique()
+            X, Y = np.meshgrid(x, y)
+            Z = res_pd.features.values.reshape(X.shape, order='f')
+
+            layout = go.Layout(
+                scene=dict(
+                    xaxis=dict(title=abund_label),
+                    yaxis=dict(title=preval_label),
+                    zaxis=dict(title='log10(features)')),
+                autosize=True,
+                width=700, height=700,
+                title="Filtering process",
+                margin=dict(l=65, r=50, b=65, t=90))
+            fig = go.Figure(
+                data=[
+                    go.Surface(
+                        x=Y, y=X, z=Z,
+                        colorscale='Viridis',
+                        reversescale=True)
+                ],
+                layout=layout
+            )
+            fig.update_traces(contours_z=dict(show=True, usecolormap=True,
+                                              highlightcolor="limegreen", project_z=True))
+            fig.add_scatter3d(
+                y=X.flatten(), x=Y.flatten(), z=Z.flatten(),
+                mode='markers', marker=dict(size=4, color='black'))
+            res_data_pd = res_pd.loc[(res_pd.data == 1)].copy()
+            x = res_data_pd.preval_filt.unique()
+            y = res_data_pd.abund_filt.unique()
+            X, Y = np.meshgrid(x, y)
+            Z = res_data_pd.features.values.reshape(X.shape, order='f')
+            fig.add_scatter3d(
+                y=X.flatten(), x=Y.flatten(), z=Z.flatten(),
+                mode='markers', marker=dict(size=6, color='red'))
+            html_fo = '%s/%s_%s.html' % (out_dir, dat, mb)
+            print(' -> Written:', html_fo)
+            plotly.offline.plot(fig, filename=html_fo, auto_open=False)
