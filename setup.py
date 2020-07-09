@@ -58,7 +58,7 @@ setup(
         "numpy",
         "scikit-bio",
         "pyyaml",
-        "plotly"
+        "plotly==4.8.2"
     ],
     classifiers=classifiers,
     entry_points={'console_scripts': standalone},
