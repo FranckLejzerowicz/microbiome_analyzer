@@ -109,7 +109,7 @@ def get_filtering(p_yml: str, filtering_dict: dict,
             dats.extend(dats_pair)
             for dat in dats_pair:
                 filtering[pair]['0_0'][dat] = ['0', '0']
-    else:
+    elif analysis == 'songbird':
         filtering[''] = {'0_0': {}}
         for dat_ in songbird_mmvec.keys():
             if dat_[-1] == '*':
@@ -1028,8 +1028,18 @@ def check_datasets_filtered(
     :return: list of datasets from filtered threshold.
     """
 
+    print("unique_filterings.keys()")
+    print(unique_filterings.keys())
+
+    print("unique_datasets")
+    print(unique_datasets)
+
+    print("datasets_filt")
+    print(datasets_filt)
+
     filt_datasets_pass = {}
     for (dat_, mb) in unique_datasets:
+        print(dat_, mb)
         if dat_ in datasets_filt:
             dat = datasets_filt[dat_]
         else:
@@ -1047,9 +1057,9 @@ def check_datasets_filtered(
         else:
             input_to_filtered[dat_] = dat
 
+        print(dat, mb)
         dat_filts_pass = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
-        print(unique_filterings)
         prevals_abunds = unique_filterings[(dat_, mb)]
         for preval_abund, (preval, abund) in prevals_abunds:
             # make sure there's no empty row / column
