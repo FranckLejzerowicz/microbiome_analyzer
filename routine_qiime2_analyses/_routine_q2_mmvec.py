@@ -413,7 +413,6 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
     unique_filterings = get_unique_mmvec_filtering(mmvec_filtering)
 
-
     print("mmvec_filtering")
     print(mmvec_filtering)
 
