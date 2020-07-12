@@ -981,11 +981,23 @@ def get_datasets_filtered(
                     already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
             else:
                 meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
+                print()
+                print(dat, mb)
+                print(preval_abund, (preval, abund))
                 if tsv_hash in already_computed:
+                    print()
+                    print(dat, mb)
+                    print(preval_abund, (preval, abund))
+                    print(tsv_out)
+                    print(tsv_qza)
+                    print(meta_out)
                     already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
                     tsv_out_src = already_computed[tsv_hash][0][0]
                     tsv_qza_src = already_computed[tsv_hash][0][1]
                     meta_out_src = already_computed[tsv_hash][0][2]
+                    print(tsv_out_src)
+                    print(tsv_qza_src)
+                    print(meta_out_src)
                     cmd = '\nln -s %s %s\nln -s %s %s\nln -s %s %s\n' % (
                         tsv_out_src, tsv_out, tsv_qza_src, tsv_qza, meta_out_src, meta_out)
                     filt_jobs.append(cmd)
