@@ -413,6 +413,17 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
     unique_filterings = get_unique_mmvec_filtering(mmvec_filtering)
 
+    print("unique_filterings.keys()")
+    print(unique_filterings.keys())
+
+    print("unique_datasets")
+    print(unique_datasets)
+
+    print("datasets_filt")
+    print(datasets_filt)
+    print(datasets_filtds)
+
+
     filt_datasets_done, common_datasets_done = check_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_filt,
         unique_datasets, mmvec_pairs, mmvec_filtering,
