@@ -932,6 +932,7 @@ def get_datasets_filtered(
             meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
 
             tsv_hash = hash_pandas_object(tsv_pd).sum()
+            print(tsv_hash)
 
             if analysis == 'songbird':
                 meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
