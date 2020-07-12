@@ -118,7 +118,8 @@ def get_filtering(p_yml: str, filtering_dict: dict,
                 filtering[pair]['0_0'][dat] = ['0', '0']
     elif analysis == 'songbird':
         filtering[''] = {'0_0': {}}
-        for dat in songbird_mmvec.keys():
+        for dat_ in songbird_mmvec.keys():
+            dat = get_dat_mb_or_not(dat_)
             dats.append(dat)
             filtering['']['0_0'][dat] = ['0', '0']
 
