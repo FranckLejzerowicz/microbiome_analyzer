@@ -421,8 +421,6 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
 
     print("unique_datasets")
     print(unique_datasets)
-    print(datasets_filtds)
-
 
     filt_datasets_done, common_datasets_done = check_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_filt,

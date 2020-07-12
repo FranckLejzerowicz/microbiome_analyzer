@@ -113,23 +113,14 @@ def get_filtering(p_yml: str, filtering_dict: dict,
         for pair, dats_pair in songbird_mmvec.items():
             if pair not in filtering:
                 filtering[pair] = {'0_0': {}}
-            for dat_ in dats_pair:
-                dat = get_dat_mb_or_not(dat_)
+            for dat in dats_pair:
                 dats.append(dat)
                 filtering[pair]['0_0'][dat] = ['0', '0']
     elif analysis == 'songbird':
         filtering[''] = {'0_0': {}}
-        for dat_ in songbird_mmvec.keys():
-            dat = get_dat_mb_or_not(dat_)
+        for dat in songbird_mmvec.keys():
             dats.append(dat)
             filtering['']['0_0'][dat] = ['0', '0']
-
-
-    print('1. filtering')
-    print(filtering)
-
-    print("dats")
-    print(dats)
 
     if 'filtering' not in filtering_dict:
         print('No filtering thresholds set in %s\n:' % p_yml)
@@ -140,7 +131,6 @@ def get_filtering(p_yml: str, filtering_dict: dict,
                 filtering[pair][filt_name] = {}
                 for dat_, prev_abund in dats_d.items():
                     dat = get_dat_mb_or_not(dat_)
-                    print('dat_:', dat_, 'dat:', dat)
                     if dat in dats:
                         filtering[pair][filt_name][dat] = prev_abund
 
@@ -151,10 +141,6 @@ def get_filtering(p_yml: str, filtering_dict: dict,
                 filtering[''][filt_name] = {}
                 if dat in dats:
                     filtering[''][filt_name][dat] = prev_abund
-
-    print('2. filtering')
-    print(filtering)
-    print(gfds)
 
     return filtering
 
