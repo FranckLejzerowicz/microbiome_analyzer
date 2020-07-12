@@ -914,6 +914,8 @@ def get_datasets_filtered(
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
         prevals_abunds = filtering[(dat_, mb)]
         for preval_abund, (preval, abund) in prevals_abunds:
+            print(dat, mb, preval_abund, (preval, abund))
+            continue
             if len(filt_datasets_done[(dat, mb)][preval_abund]):
                 print('\t\t\t*', '[DONE]', dat, mb, preval_abund)
                 dat_filts[preval_abund] = filt_datasets_done[(dat, mb)][preval_abund]
