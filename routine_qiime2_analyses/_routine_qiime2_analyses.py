@@ -149,7 +149,7 @@ def routine_qiime2_analyses(
                             filt_raref)
     if raref:
         print('(run_rarefy)')
-        run_rarefy(i_datasets_folder, datasets, datasets_read, datasets_phylo,
+        datasets_rarefs = run_rarefy(i_datasets_folder, datasets, datasets_read, datasets_phylo,
                    datasets_filt_map, datasets_rarefs, p_raref_depths, force,
                    prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'],
                    filt_raref)

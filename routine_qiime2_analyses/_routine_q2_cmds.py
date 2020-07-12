@@ -578,7 +578,7 @@ def write_emperor_biplot(meta: str, biplot: str, out_plot: str,
         tax_pd = pd.read_csv(taxonomy, header=0, sep='\t')
         if 'Taxon' in tax_pd:
             tax_split_pd = get_split_taxonomy(tax_pd.Taxon.tolist())
-            tax_pd = tax_pd.merge(tax_split_pd, on='Taxon', how='left').drop_duplicates()
+            tax_pd = pd.concat([tax_pd, tax_split_pd], axis=1, sort=False)
             tax_pd.to_csv(tax_tmp, index=False, sep='\t')
         else:
             tax_tmp = taxonomy

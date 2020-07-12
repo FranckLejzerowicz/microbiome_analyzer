@@ -30,7 +30,7 @@ def get_raref_depths(p_raref_depths):
 def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                datasets_phylo: dict, datasets_filt_map: dict, datasets_rarefs: dict,
                p_raref_depths: str, force: bool, prjct_nm: str, qiime_env: str,
-               chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
+               chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> dict:
     """
     Run rarefy: Rarefy table.
     https://docs.qiime2.org/2019.10/plugins/available/feature-table/rarefy/
@@ -104,6 +104,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                      chmod, written, 'single', o, noloc)
     if main_written:
         print_message('# Calculate beta diversity indices', 'sh', run_pbs)
+    return datasets_raref_depths
 
 
 def check_rarefy_need(i_datasets_folder: str, datasets_read: dict, p_raref_depths: str) -> dict:
