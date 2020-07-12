@@ -878,6 +878,14 @@ def get_datasets_filtered(
     :return: list of datasets from filtered threshold.
     """
 
+    print("unique_datasets")
+    print(unique_datasets)
+
+    print("filtering")
+    print(filtering)
+
+    print(filteringfds)
+
     filt_jobs = []
     filt_datasets = {}
     for (dat_, mb) in unique_datasets:
