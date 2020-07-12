@@ -276,15 +276,23 @@ def explore_filtering(i_datasets_folder, datasets, datasets_read,
     for pair, filt_d in filtering.items():
         for filt, dat_preval_abund in filt_d.items():
             for dat, preval_abund in dat_preval_abund.items():
+
                 preval, abund = map(float, preval_abund)
-                if preval != 0 and preval < 1:
+
+                if preval == 0:
+                    continue
+                if preval < 1:
                     preval_label = 'prevalPercent'
                 else:
                     preval_label = 'prevalCount'
-                if abund != 0 and abund < 1:
+
+                if abund == 0:
+                    continue
+                if abund < 1:
                     abund_label = 'abundPercent'
                 else:
                     abund_label = 'abundCount'
+
                 if (preval_label, abund_label) not in scales:
                     scales[(preval_label, abund_label)] = {}
                 if dat not in scales[(preval_label, abund_label)]:
