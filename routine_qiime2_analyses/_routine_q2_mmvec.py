@@ -377,8 +377,8 @@ def get_unique_mmvec_filtering(mmvec_filtering):
     unique_filterings = {}
     for pair, filt_name_d in mmvec_filtering.items():
         for filt_name, dat_d in filt_name_d.items():
-            for dat, prev_abund in dat_d.items():
-                unique_filterings.setdefault(dat, set()).add((filt_name, prev_abund))
+            for dat, (preval, abund) in dat_d.items():
+                unique_filterings.setdefault(dat, set()).add((filt_name, preval, abund))
     return unique_filterings
 
 

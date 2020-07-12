@@ -913,7 +913,7 @@ def get_datasets_filtered(
         dat_filts = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
         prevals_abunds = filtering[(dat_, mb)]
-        for preval_abund, (preval, abund) in prevals_abunds:
+        for (preval_abund, preval, abund) in prevals_abunds:
             if len(filt_datasets_done[(dat, mb)][preval_abund]):
                 print('\t\t\t*', '[DONE]', dat, mb, preval_abund)
                 dat_filts[preval_abund] = filt_datasets_done[(dat, mb)][preval_abund]
@@ -1062,7 +1062,7 @@ def check_datasets_filtered(
         dat_filts_pass = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
         prevals_abunds = unique_filterings[(dat, mb)]
-        for preval_abund, (preval, abund) in prevals_abunds:
+        for (preval_abund, preval, abund) in prevals_abunds:
             # make sure there's no empty row / column
             rad_out = '%s_%s_*s' % (dat, preval_abund)
             tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)

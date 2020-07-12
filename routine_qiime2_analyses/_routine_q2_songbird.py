@@ -110,8 +110,8 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
 def get_unique_filterings(songbird_filtering):
     unique_filterings = {}
     for filt_name, dat_d in songbird_filtering[''].items():
-        for dat, prev_abund in dat_d.items():
-            unique_filterings.setdefault(dat, []).append((filt_name, prev_abund))
+        for dat, (preval, abund) in dat_d.items():
+            unique_filterings.setdefault(dat, set()).add((filt_name, preval, abund))
     return unique_filterings
 
 
@@ -173,7 +173,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
         common_datasets_done, input_to_filtered, already_computed)
 
     songbird_models.update(dict((input_to_filtered[x], y)
-                                for x, y in songbird_models.items() if x in input_to_filtered))
+        for x, y in songbird_models.items() if x in input_to_filtered))
 
     songbirds = {}
     for dat, filts_files in filt_datasets.items():
