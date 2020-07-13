@@ -932,7 +932,6 @@ def get_datasets_filtered(
             meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
 
             tsv_hash = hash_pandas_object(tsv_pd).sum()
-            print(tsv_hash)
 
             if analysis == 'songbird':
                 meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
@@ -983,23 +982,11 @@ def get_datasets_filtered(
                     already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
             else:
                 meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
-                print()
-                print(dat, mb)
-                print(preval_abund, (preval, abund))
                 if tsv_hash in already_computed:
-                    print()
-                    print(dat, mb)
-                    print(preval_abund, (preval, abund))
-                    print(tsv_out)
-                    print(tsv_qza)
-                    print(meta_out)
                     already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
                     tsv_out_src = already_computed[tsv_hash][0][0]
                     tsv_qza_src = already_computed[tsv_hash][0][1]
                     meta_out_src = already_computed[tsv_hash][0][2]
-                    print(tsv_out_src)
-                    print(tsv_qza_src)
-                    print(meta_out_src)
                     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
                     cmd += '\nrm %s\nln -s %s %s\n' % (tsv_qza, tsv_qza_src, tsv_qza)
                     cmd += '\nrm %s\nln -s %s %s\n' % (meta_out, meta_out_src, meta_out)
@@ -1013,14 +1000,7 @@ def get_datasets_filtered(
                     already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
             print('\t\t\t*', '[TODO]', dat, mb, preval_abund, ':', tsv_pd.shape)
             dat_filts[preval_abund] = [
-                tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()
-            ]
-            # print('------')
-            # print(dat, preval_filt, str(abund_filter))
-            # print(' -', tsv_out)
-            # print(' -', tsv_qza)
-            # print(' -', meta_out)
-            # print('------')
+                tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()]
         filt_datasets[(dat, mb)] = dat_filts
     return filt_datasets, filt_jobs
 
