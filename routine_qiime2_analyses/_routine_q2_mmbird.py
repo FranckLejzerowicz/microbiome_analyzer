@@ -428,19 +428,22 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                     'omic%s_common_fp' % omicn
                 ].tolist()[0]
                 omic_tax_list = []
-                with open(omic_common_fp) as f:
-                    for ldx, line in enumerate(f):
-                        if ldx:
-                            omic_tax_list.append([line.split('\t')[0]])
-                omic_songbird_ranks = pd.DataFrame(omic_tax_list, columns=['Feature ID'])
+                if isfile(omic_common_fp):
+                    with open(omic_common_fp) as f:
+                        for ldx, line in enumerate(f):
+                            if ldx:
+                                omic_tax_list.append([line.split('\t')[0]])
+                    omic_songbird_ranks = pd.DataFrame(omic_tax_list, columns=['Feature ID'])
+                else:
+                    omic_songbird_ranks = pd.DataFrame()
             if omic in taxo_pds:
                 omic_tax_pd = taxo_pds[omic]
                 if 'Taxon' in omic_tax_pd.columns:
-                    # print('merge songbird %s with taxonomy %s' % (omic_songbird_ranks.shape, omic_tax_pd.shape))
                     omic_split_taxa_pd = get_split_taxonomy(omic_tax_pd.Taxon.tolist())
                     omic_tax_pd = pd.concat([omic_tax_pd, omic_split_taxa_pd], axis=1, sort=False)
-                omic_songbird_ranks = omic_songbird_ranks.merge(
-                    omic_tax_pd, on='Feature ID', how='left').drop_duplicates()
+                if omic_songbird_ranks.shape[0]:
+                    omic_songbird_ranks = omic_songbird_ranks.merge(
+                        omic_tax_pd, on='Feature ID', how='left').drop_duplicates()
 
             meta_omic_fp = '%s/feature_metadata_%s__%s.tsv' % (cur_mmvec_folder, omic, filt)
             # print()
