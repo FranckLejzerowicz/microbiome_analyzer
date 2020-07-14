@@ -445,16 +445,17 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                     omic_songbird_ranks = omic_songbird_ranks.merge(
                         omic_tax_pd, on='Feature ID', how='left').drop_duplicates()
 
-            meta_omic_fp = '%s/feature_metadata_%s__%s.tsv' % (cur_mmvec_folder, omic, filt)
-            # print()
-            # print('-'*100)
-            # print(meta_omic_fp)
-            # print('-'*100)
-            drop_columns = [col for col in omic_songbird_ranks.columns if omic_songbird_ranks[col].unique().size == 1]
-            meta_omic_pd = omic_songbird_ranks.drop(columns=drop_columns)
-            meta_omic_pd.to_csv(meta_omic_fp, index=False, sep='\t')
-            meta_omic_pd.set_index('Feature ID', inplace=True)
-            omics_pairs_metas[(pair, omic, filt)] = (meta_omic_fp, meta_omic_pd, feats_diff_cols)
+            if omic_songbird_ranks.shape[0]:
+                meta_omic_fp = '%s/feature_metadata_%s__%s.tsv' % (cur_mmvec_folder, omic, filt)
+                # print()
+                # print('-'*100)
+                # print(meta_omic_fp)
+                # print('-'*100)
+                drop_columns = [col for col in omic_songbird_ranks.columns if omic_songbird_ranks[col].unique().size == 1]
+                meta_omic_pd = omic_songbird_ranks.drop(columns=drop_columns)
+                meta_omic_pd.to_csv(meta_omic_fp, index=False, sep='\t')
+                meta_omic_pd.set_index('Feature ID', inplace=True)
+                omics_pairs_metas[(pair, omic, filt)] = (meta_omic_fp, meta_omic_pd, feats_diff_cols)
     return omics_pairs_metas
 
 
