@@ -956,10 +956,15 @@ def get_datasets_filtered(
                     tsv_out_src = already_computed[tsv_hash][0][0]
                     tsv_qza_src = already_computed[tsv_hash][0][1]
                     meta_out_src = already_computed[tsv_hash][0][2]
-                    cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
-                    cmd += '\nrm %s\nln -s %s %s\n' % (tsv_qza, tsv_qza_src, tsv_qza)
-                    cmd += '\nrm %s\nln -s %s %s\n' % (meta_out, meta_out_src, meta_out)
-                    filt_jobs.append(cmd)
+                    if isfile(tsv_out):
+                        cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
+                        filt_jobs.append(cmd)
+                    # if isfile(tsv_qza):
+                    #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_qza, tsv_qza_src, tsv_qza)
+                    #     filt_jobs.append(cmd)
+                    if isfile(meta_out):
+                        cmd = '\nrm %s\nln -s %s %s\n' % (meta_out, meta_out_src, meta_out)
+                        filt_jobs.append(cmd)
                 else:
                     if isfile(tsv_out_mmvec):
                         # print(analysis, 'is file: tsv_out_mmvec', tsv_out_mmvec)
@@ -987,10 +992,15 @@ def get_datasets_filtered(
                     tsv_out_src = already_computed[tsv_hash][0][0]
                     tsv_qza_src = already_computed[tsv_hash][0][1]
                     meta_out_src = already_computed[tsv_hash][0][2]
-                    cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
-                    cmd += '\nrm %s\nln -s %s %s\n' % (tsv_qza, tsv_qza_src, tsv_qza)
-                    cmd += '\nrm %s\nln -s %s %s\n' % (meta_out, meta_out_src, meta_out)
-                    filt_jobs.append(cmd)
+                    if isfile(tsv_out):
+                        cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
+                        filt_jobs.append(cmd)
+                    # if isfile(tsv_qza):
+                    #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_qza, tsv_qza_src, tsv_qza)
+                    #     filt_jobs.append(cmd)
+                    if isfile(meta_out):
+                        cmd = '\nrm %s\nln -s %s %s\n' % (meta_out, meta_out_src, meta_out)
+                        filt_jobs.append(cmd)
                 else:
                     if force or not isfile(tsv_out):
                         write_filtered_tsv(tsv_out, tsv_pd)
