@@ -541,7 +541,7 @@ def summarize_songbirds(i_datasets_folder) -> pd.DataFrame:
         for fil in files:
             if fil.endswith('.html'):
                 path = root + '/' + fil
-                diff = '%s.tsv' % splitext(fil)[0]
+                diff = fil.replace('-tensorboard.html', '.tsv')
                 root_split = root.split('%s/' % songbird_folder)[-1].split('/')
                 dat = root_split[0]
                 if len(root_split) == 7:
@@ -558,7 +558,7 @@ def summarize_songbirds(i_datasets_folder) -> pd.DataFrame:
                             ])
     q2s_pd = pd.DataFrame(q2s, columns=['pair', 'dat', 'dataset_filter', 'subset',
                                         'model', 'songbird_filter', 'parameters',
-                                        'Pseudo_Q_squared', 'differentials'])
+                                        'differentials', 'Pseudo_Q_squared'])
     return q2s_pd
 
 

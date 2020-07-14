@@ -190,7 +190,6 @@ def check_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
     common_datasets_pass = {}
     for pair, pair_datasets in mmvec_pairs.items():
         pair_filtering = mmvec_filtering[pair]
-        print(pair_filtering)
         common_datasets_pass[pair] = []
         data_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s' % pair)
         meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
