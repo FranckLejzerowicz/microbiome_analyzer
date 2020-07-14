@@ -544,7 +544,7 @@ def summarize_songbirds(i_datasets_folder) -> pd.DataFrame:
         for fil in files:
             if fil.endswith('.html'):
                 path = root + '/' + fil
-                diff = fil.replace('-tensorboard.html', '.tsv')
+                diff = path.replace('-tensorboard.html', '.tsv')
                 root_split = root.split('%s/' % songbird_folder)[-1].split('/')
                 dat = root_split[0]
                 if len(root_split) == 7:
