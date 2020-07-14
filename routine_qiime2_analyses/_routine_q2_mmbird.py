@@ -59,7 +59,7 @@ def get_songbird_outputs(songbird_outputs: list):
             'songbird_case',
             'songbird_fp',
             'pair'
-         ])
+        ])
     songbird_outputs_pd['pair_omic_filt'] = songbird_outputs_pd['pair'] + '__' + songbird_outputs_pd[
         'songbird_dat'] + '__' + songbird_outputs_pd['songbird_filt']
     songbird_outputs_pd['case_params'] = songbird_outputs_pd['songbird_case'] + '__' + songbird_outputs_pd[
@@ -541,6 +541,7 @@ def summarize_songbirds(i_datasets_folder) -> pd.DataFrame:
         for fil in files:
             if fil.endswith('.html'):
                 path = root + '/' + fil
+                diff = '%s.tsv' % splitext(fil)[0]
                 root_split = root.split('%s/' % songbird_folder)[-1].split('/')
                 dat = root_split[0]
                 if len(root_split) == 7:
@@ -552,12 +553,12 @@ def summarize_songbirds(i_datasets_folder) -> pd.DataFrame:
                     for line in f:
                         if 'Pseudo Q-squared' in line:
                             q2s.append([
-                                pair, dat, dataset_filter, subset, model, songbird_filter, parameters,
+                                pair, dat, dataset_filter, subset, model, songbird_filter, parameters, diff,
                                 float(line.split('Pseudo Q-squared:</a></strong> ')[-1].split('<')[0])
                             ])
     q2s_pd = pd.DataFrame(q2s, columns=['pair', 'dat', 'dataset_filter', 'subset',
                                         'model', 'songbird_filter', 'parameters',
-                                        'Pseudo_Q_squared'])
+                                        'Pseudo_Q_squared', 'differentials'])
     return q2s_pd
 
 
