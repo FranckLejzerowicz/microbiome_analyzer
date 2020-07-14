@@ -606,6 +606,8 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
     print('\t-> [mmbird] Get songbird differentials + taxonomy...', end=' ')
     omics_pairs_metas = get_omics_songbirds_taxa(
         i_datasets_folder, mmvec_songbird_pd, taxo_pds)
+    print(omics_pairs_metas)
+    print(omics_pairs_metasgfd)
     print('Done.')
 
     print('\t-> [mmbird] Get res dict...', end=' ')
