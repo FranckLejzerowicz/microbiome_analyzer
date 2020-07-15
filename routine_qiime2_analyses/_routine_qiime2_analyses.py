@@ -312,6 +312,7 @@ def routine_qiime2_analyses(
                                             qiime_env, chmod, noloc, split,
                                             run_params['songbird'], filt_raref)
     if filt3d:
+        print('run_filt3d')
         explore_filtering(i_datasets_folder, datasets,
                           datasets_read, datasets_filt,
                           filts, p_filt3d_config)
