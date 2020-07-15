@@ -1167,11 +1167,14 @@ def extend_split_taxonomy(split_taxa_pd: pd.DataFrame):
 
 
 def get_split_taxonomy(taxa, taxo_sep=';'):
+
     # get the taxon name split per "taxon" level
+    split_chars = taxo_sep
     if len([1 for x in taxa if '|' in x]) > (0.5 * len(taxa)):
-        split_chars = "\|;|"
-    else:
-        split_chars = ";"
+        split_chars += "|\|"
+    if len([1 for x in taxa if '.' in x]) > (0.5 * len(taxa)):
+        split_chars += "|\."
+
     split_taxa_pd = pd.DataFrame([
         pd.Series(
             [x.strip() for x in re.split(split_chars, str(taxon))

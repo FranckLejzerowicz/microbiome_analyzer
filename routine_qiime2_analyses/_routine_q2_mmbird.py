@@ -417,6 +417,8 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
         ].set_index(pair_omic_filt).T.to_dict()
         for (pair, omic, filt), sb_head_diff_fp in omicn_songbirds.items():
             print()
+            print()
+            print('-' *50)
             print(pair, omic, filt)
             print(sb_head_diff_fp)
             feats_diff_cols = []
@@ -464,6 +466,10 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                             omic_tax_list.append([line.split('\t')[0]])
                 omic_songbird_ranks = pd.DataFrame(omic_tax_list, columns=['Feature ID'])
                 print('2.', omic_songbird_ranks.shape)
+            print("omic")
+            print(omic)
+            print("taxo_pds.keys()")
+            print(taxo_pds.keys())
             if omic in taxo_pds:
                 omic_tax_pd = taxo_pds[omic]
                 if 'Taxon' in omic_tax_pd.columns:
@@ -477,6 +483,7 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
             meta_omic_pd = omic_songbird_ranks.drop(columns=drop_columns)
             meta_omic_pd.to_csv(meta_omic_fp, index=False, sep='\t')
             print('<< written: %s >>' % meta_omic_fp)
+            print('-' *50)
             meta_omic_pd.set_index('Feature ID', inplace=True)
             omics_pairs_metas[(pair, omic, filt)] = (meta_omic_fp, meta_omic_pd, feats_diff_cols)
     return omics_pairs_metas
