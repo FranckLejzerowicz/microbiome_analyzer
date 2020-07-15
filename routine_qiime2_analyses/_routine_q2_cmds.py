@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import re
 import pandas as pd
 from typing import TextIO
 from os.path import dirname, isdir, isfile, splitext
@@ -1167,9 +1168,13 @@ def extend_split_taxonomy(split_taxa_pd: pd.DataFrame):
 
 def get_split_taxonomy(taxa, taxo_sep=';'):
     # get the taxon name split per "taxon" level
+    if len([1 for x in taxa if '|' in x]) > (0.5 * len(taxa)):
+        split_chars = "\|;|"
+    else:
+        split_chars = ";"
     split_taxa_pd = pd.DataFrame([
         pd.Series(
-            [x.strip() for x in str(taxon).split(taxo_sep)
+            [x.strip() for x in re.split(split_chars, str(taxon))
              if len(x.strip()) and x[0] != 'x']
         ) for taxon in taxa
     ])
