@@ -413,7 +413,7 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                             diff_pd = diff_pd[1:]
                         diff_pd = diff_pd.rename(columns={index_header: 'Feature ID'}).set_index('Feature ID')
                         diff_pd = diff_pd.drop(columns=[x for x in diff_pd.columns if 'Intercept' in x])
-                        diff_cols = ['%s\n%s\nQ2=%s' % (model, x, q2) for x in diff_pd.columns]
+                        diff_cols = ['%s__%s__Q2=%s' % (model, x, q2) for x in diff_pd.columns]
                         diff_pd.columns = diff_cols
                         feats_diff_cols.extend(diff_cols)
                         omic_diff_list.append(diff_pd)
