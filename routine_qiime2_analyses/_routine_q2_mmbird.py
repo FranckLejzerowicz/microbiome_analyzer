@@ -320,7 +320,22 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
     for keys, values in mmvec_res.items():
 
         pair, omic1, omic2, filt1, filt2, sams, mmvec = keys
+        print('pair, omic1, omic2, filt1, filt2, sams, mmvec')
+        print(pair)
+        print(omic1)
+        print(omic2)
+        print(filt1)
+        print(filt2)
+        print(sams)
+        print(mmvec)
+
         ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp = values
+        print('ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp')
+        print(ranks_fp)
+        print(ordi_fp)
+        print(meta_fp)
+        print(omic1_common_fp)
+        print(omic2_common_fp)
 
         order_omics = get_order_omics(omic1, omic2, filt1, filt2, omics_pairs)
         omic1 = order_omics[0]
@@ -335,6 +350,14 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         # get differentials
         meta1, meta_pd1, diff_cols1 = omics_pairs_metas[(pair, omic1, filt1)]
         meta2, meta_pd2, diff_cols2 = omics_pairs_metas[(pair, omic2, filt2)]
+        print('meta1')
+        print(meta1)
+        print('meta_pd1')
+        print(meta_pd1.iloc[:3,:3])
+        print('meta2')
+        print(meta2)
+        print('meta_pd2')
+        print(meta_pd2.iloc[:3,:3])
 
         # features are biplot, samples are dots
         ordi = OrdinationResults.read(ordi_fp)
@@ -343,6 +366,8 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
             pair, ordi, omic1, omic2, filt1, filt2,
             diff_cols1, meta_pd1, diff_cols2, meta_pd2,
             meta_fp,  omic1_common_fp, omic2_common_fp, ranks_fp)
+        print("cur_pc_sb_correlations")
+        print(cur_pc_sb_correlations)
         pc_sb_correlations.append(cur_pc_sb_correlations)
 
         cmd = ''
