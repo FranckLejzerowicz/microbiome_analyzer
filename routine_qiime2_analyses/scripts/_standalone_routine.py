@@ -127,6 +127,11 @@ from routine_qiime2_analyses import __version__
     help="Change output files permission (default = 664 [= -rw-rw-r--])."
 )
 @click.option(
+    "--eval-rarefs/--no-eval-rarefs", required=False, show_default=False,
+    help="Perform an evaluation of the various rarefaction depths "
+         "and the passed one."
+)
+@click.option(
     "-skip", "--p-skip", default=None, show_default=True, multiple=True,
     type=click.Choice(['alpha', 'merge_alpha', 'export_alpha', 'alpha_correlations',
                        'wol', 'taxonomy', 'barplot', 'volatility', 'beta',
@@ -196,6 +201,7 @@ def standalone_routine(
         p_longi_column,
         p_filt_threshs,
         p_raref_depths,
+        eval_rarefs,
         p_alpha_subsets,
         p_beta_subsets,
         p_perm_tests,
@@ -234,6 +240,7 @@ def standalone_routine(
         p_longi_column,
         p_filt_threshs,
         p_raref_depths,
+        eval_rarefs,
         p_alpha_subsets,
         p_beta_subsets,
         p_perm_tests,

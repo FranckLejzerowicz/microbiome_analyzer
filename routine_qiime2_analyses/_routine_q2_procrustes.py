@@ -42,32 +42,50 @@ def run_single_procrustes(odir: str, dm1: str, dm2: str, meta_pd: pd.DataFrame,
 def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                    p_procrustes: str, betas: dict, force: bool, prjct_nm: str,
                    qiime_env: str, chmod: str, noloc: bool, split: bool,
-                   run_params: dict, filt_raref: str) -> None:
+                   run_params: dict, filt_raref: str, eval_depths: dict) -> None:
     """
     """
-    job_folder = get_job_folder(i_datasets_folder, 'procrustes')
-    procrustes_pairs, procrustes_subsets = get_procrustes_dicts(p_procrustes)
+    evaluation = ''
+    if eval_depths:
+        evaluation = '_eval'
+        procrustes_pairs = {}
+        for dat, depths in eval_depths.items():
+            sorted_depths = sorted(depths, key=lambda x: int(x.split('_')[-1]))
+            for idx, x in enumerate(sorted_depths[:-1]):
+                y = sorted_depths[(idx+1)]
+                n0 = x.split('_')[-1]
+                n1 = y.split('_')[-1]
+                procrustes_pairs['%s_%s' % (n0, n1)] = [x, y]
+        procrustes_subsets = {'ALL': [[]]}
+    else:
+        procrustes_pairs, procrustes_subsets = get_procrustes_dicts(p_procrustes)
+
+    job_folder = get_job_folder(i_datasets_folder, 'procrustes%s' % evaluation)
 
     dms_tab = []
     all_sh_pbs = {}
     for pair, (dat1_, dat2_) in procrustes_pairs.items():
 
-        if dat1_.endswith('__raref') and dat1_ not in datasets:
-            dat1 = dat1_.split('__raref')[0]
+        if evaluation:
+            dat1, dat2 = dat1_, dat2_
         else:
-            dat1 = dat1_
-        if dat2_.endswith('__raref') and dat2_ not in datasets:
-            dat2 = dat2_.split('__raref')[0]
-        else:
-            dat2 = dat2_
+            if dat1_.endswith('__raref') and dat1_ not in datasets:
+                dat1 = dat1_.split('__raref')[0]
+            else:
+                dat1 = dat1_
+            if dat2_.endswith('__raref') and dat2_ not in datasets:
+                dat2 = dat2_.split('__raref')[0]
+            else:
+                dat2 = dat2_
 
-        job_folder2 = get_job_folder(i_datasets_folder, 'procrustes/chunks/%s' % pair)
+        job_folder2 = get_job_folder(i_datasets_folder, 'procruste%s/chunks/%s' % (evaluation, pair))
         if not split:
-            out_sh = '%s/run_procrustes_%s%s.sh' % (job_folder2, pair, filt_raref)
+            out_sh = '%s/run_procrustes%s_%s%s.sh' % (job_folder2, evaluation, pair, filt_raref)
+
         metrics_groups_metas_qzas1 = betas[dat1]
         for metric, groups_metas_qzas1 in metrics_groups_metas_qzas1.items():
             if split:
-                out_sh = '%s/run_procrustes_%s_%s%s.sh' % (job_folder2, pair, metric, filt_raref)
+                out_sh = '%s/run_procrustes%s_%s_%s%s.sh' % (job_folder2, evaluation, pair, metric, filt_raref)
             if metric not in betas[dat2] or metric not in betas[dat1]:
                 continue
             groups_metas_qzas2 = betas[dat2][metric]
@@ -85,22 +103,23 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                 meta1, qza1, dm1 = betas[dat1][metric][group1_]
                 meta2, qza2, dm2 = betas[dat2][metric][group2_]
 
-                if dat1_.endswith('__raref'):
-                    dm1_rgx = glob.glob('%s/tab_%s_raref*_%s_DM.qza' % (dirname(dm1), dat1, metric))
-                    if len(dm1_rgx) == 1:
-                        dm1 = dm1_rgx[0]
-                    meta_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat1)
-                    meta1_rgx = glob.glob('%s/meta_%s_raref*tsv' % (meta_dir, dat1))
-                    if len(meta1_rgx) >= 1:
-                        meta1 = meta1_rgx[0]
-                if dat2_.endswith('__raref'):
-                    dm2_rgx = glob.glob('%s/tab_%s_raref*_%s_DM.qza' % (dirname(dm2), dat2, metric))
-                    if len(dm2_rgx) == 1:
-                        dm2 = dm2_rgx[0]
-                    meta_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat2)
-                    meta2_rgx = glob.glob('%s/meta_%s_raref*tsv' % (meta_dir, dat2))
-                    if len(meta2_rgx) >= 1:
-                        meta2 = meta2_rgx[0]
+                if not len(eval_depths):
+                    if dat1_.endswith('__raref'):
+                        dm1_rgx = glob.glob('%s/tab_%s_raref*_%s_DM.qza' % (dirname(dm1), dat1, metric))
+                        if len(dm1_rgx) == 1:
+                            dm1 = dm1_rgx[0]
+                        meta_dir = get_analysis_folder(i_datasets_folder, 'rarefy%s/%s' % (evaluation, dat1))
+                        meta1_rgx = glob.glob('%s/meta_%s_raref*tsv' % (meta_dir, dat1))
+                        if len(meta1_rgx) >= 1:
+                            meta1 = meta1_rgx[0]
+                    if dat2_.endswith('__raref'):
+                        dm2_rgx = glob.glob('%s/tab_%s_raref*_%s_DM.qza' % (dirname(dm2), dat2, metric))
+                        if len(dm2_rgx) == 1:
+                            dm2 = dm2_rgx[0]
+                        meta_dir = get_analysis_folder(i_datasets_folder, 'rarefy%s/%s' % (evaluation, dat2))
+                        meta2_rgx = glob.glob('%s/meta_%s_raref*tsv' % (meta_dir, dat2))
+                        if len(meta2_rgx) >= 1:
+                            meta2 = meta2_rgx[0]
 
                 meta_pd1 = read_meta_pd(meta1)
                 meta_pd2 = read_meta_pd(meta2)
@@ -112,14 +131,14 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                 cases_dict = check_metadata_cases_dict(
                     meta1, meta_pd, dict(procrustes_subsets), 'procrustes')
                 odir = get_analysis_folder(i_datasets_folder,
-                                           'procrustes/%s/%s_vs_%s' % (pair, group1, group2))
+                                           'procrustes%s/%s/%s_vs_%s' % (evaluation, pair, group1, group2))
                 job_folder3 = get_job_folder(i_datasets_folder,
-                                             'procrustes/chunks/%s/%s_vs_%s' % (pair, group1, group2))
+                                             'procrustes%s/chunks/%s/%s_vs_%s' % (evaluation, pair, group1, group2))
                 for case_var, case_vals_list in cases_dict.items():
                     for case_vals in case_vals_list:
                         case_ = get_case(case_vals, case_var).replace(' ', '_')
                         cur = '%s__%s' % (metric, case_)
-                        cur_sh = '%s/run_procrustes_%s%s.sh' % (job_folder3, cur, filt_raref)
+                        cur_sh = '%s/run_procrustes%s_%s%s.sh' % (job_folder3, evaluation, cur, filt_raref)
                         cur_sh = cur_sh.replace(' ', '-')
                         all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
 
@@ -127,21 +146,21 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                         dm_out2 = '%s/dm_%s__%s_DM.qza' % (odir, dat2_, cur)
                         dm_out1_tsv = '%s.tsv' % splitext(dm_out1)[0]
                         dm_out2_tsv = '%s.tsv' % splitext(dm_out2)[0]
-                        biplot = '%s/procrustes_%s__%s__%s.qzv' % (odir, dat1_, dat2_, cur)
+                        biplot = '%s/procrustes%s_%s__%s__%s.qzv' % (odir, evaluation, dat1_, dat2_, cur)
                         run_single_procrustes(odir, dm1, dm2, meta_pd, dm_out1, dm_out2,
                                               biplot, cur_sh, cur, case_var, case_vals, force)
                         dms_tab.append([pair, dat1_, dat2_,
                                         group1, group2, case_, metric,
                                         dm_out1_tsv, dm_out2_tsv])
 
-    job_folder = get_job_folder(i_datasets_folder, 'procrustes')
-    main_sh = write_main_sh(job_folder, '4_run_procrustes%s' % filt_raref, all_sh_pbs,
-                            '%s.prcst%s' % (prjct_nm, filt_raref),
+    job_folder = get_job_folder(i_datasets_folder, 'procrustes%s' % evaluation)
+    main_sh = write_main_sh(job_folder, '4_run_procrustes%s%s' % (evaluation, filt_raref), all_sh_pbs,
+                            '%s.prcst%s%s' % (prjct_nm, evaluation, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
                             qiime_env, chmod, noloc)
     if main_sh:
-        if p_procrustes:
+        if p_procrustes and p_procrustes != 1:
             if p_procrustes.startswith('/panfs'):
                 p_procrustes = p_procrustes.replace(os.getcwd(), '')
             print('# Procrustes (pairs and samples subsets config in %s)' % p_procrustes)
@@ -156,11 +175,11 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
             'dm_out1', 'dm_out2',
         ]
     )
-    odir = get_analysis_folder(i_datasets_folder, 'procrustes/R')
-    dms_tab_fp = '%s/pairs.tsv' % odir
+    odir = get_analysis_folder(i_datasets_folder, 'procrustes%s/R' % evaluation)
+    dms_tab_fp = '%s/pairs%s.tsv' % (odir, evaluation)
     dms_tab_pd.to_csv(dms_tab_fp, index=False, sep='\t')
 
-    out_R = '%s/pairs_proscrustes_results.tsv' % odir
+    out_R = '%s/pairs_proscrustes_results%s.tsv' % (odir, evaluation)
     if not isfile(out_R):
         job_folder = get_job_folder(i_datasets_folder, 'procrustes/R')
         R_script = '%s/4_run_procrustes%s.R' % (job_folder, filt_raref)
@@ -193,12 +212,12 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
             o.write("}\n")
             o.write("write.table(x = res, file = '%s')\n" % out_R)
 
-        out_sh = '%s/4_run_procrustes_R%s.sh' % (job_folder, filt_raref)
+        out_sh = '%s/4_run_procrustes%s_R%s.sh' % (job_folder, evaluation, filt_raref)
         out_pbs = '%s.pbs' % splitext(out_sh)[0]
         with open(out_sh, 'w') as o:
             o.write('R -f %s --vanilla\n' % R_script)
 
-        run_xpbs(out_sh, out_pbs, '%s.prcrt.R%s' % (prjct_nm, filt_raref), 'renv',
+        run_xpbs(out_sh, out_pbs, '%s.prcrt%s.R%s' % (prjct_nm, evaluation, filt_raref), 'renv',
                  run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                  run_params["mem_num"], run_params["mem_dim"], chmod, 1,
                  '# Procrustes for stats in R (pairs and samples subsets config in %s)' % p_procrustes,

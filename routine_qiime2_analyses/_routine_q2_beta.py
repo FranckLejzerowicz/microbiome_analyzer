@@ -34,7 +34,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
              datasets_read: dict, p_beta_subsets: str, trees: dict, force: bool,
              prjct_nm: str, qiime_env: str, chmod: str,
              noloc: bool, Bs: tuple, dropout: bool, run_params: dict,
-             filt_raref: str) -> dict:
+             filt_raref: str, eval_depths: dict) -> dict:
     """
     Run beta: Beta diversity.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta/
@@ -50,15 +50,17 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
     :param chmod: whether to change permission of output files (defalt: 775).
     :return: deta divesity matrices.
     """
-
+    evaluation = ''
+    if len(eval_depths):
+        evaluation = '_eval'
     beta_metrics = get_metrics('beta_metrics', Bs)
     beta_subsets = get_subsets(p_beta_subsets)
-    job_folder = get_job_folder(i_datasets_folder, 'beta')
-    job_folder2 = get_job_folder(i_datasets_folder, 'beta/chunks')
+    job_folder = get_job_folder(i_datasets_folder, 'beta%s' % evaluation)
+    job_folder2 = get_job_folder(i_datasets_folder, 'beta%s/chunks' % evaluation)
 
     betas = {}
     main_written = 0
-    run_pbs = '%s/2_run_beta%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/2_run_beta%s%s.sh' % (job_folder, evaluation, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
             written = 0
@@ -74,7 +76,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
             if dat not in betas:
                 betas[dat] = {}
-            out_sh = '%s/run_beta_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_beta%s_%s%s.sh' % (job_folder2, evaluation, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 divs = {}
@@ -87,7 +89,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                     if metric not in divs:
                         divs[metric] = {}
 
-                    odir = get_analysis_folder(i_datasets_folder, 'beta/%s' % dat)
+                    odir = get_analysis_folder(i_datasets_folder, 'beta%s/%s' % (evaluation, dat))
                     out_fp = '%s/%s_%s_DM.qza' % (odir, basename(splitext(qza)[0]), metric)
                     if force or not os.path.isfile(out_fp):
                         write_diversity_beta(out_fp, datasets_phylo, trees,
@@ -102,7 +104,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                 if beta_subsets and dat in beta_subsets:
                     for subset, subset_regex in beta_subsets[dat].items():
                         subset_done = set()
-                        odir = get_analysis_folder(i_datasets_folder, 'beta/%s/%s' % (dat, subset))
+                        odir = get_analysis_folder(i_datasets_folder, 'beta%s/%s/%s' % (evaluation, dat, subset))
                         for metric in beta_metrics:
                             qza_to_subset = tsv.replace('.tsv', '.qza')
                             tsv_to_subset_pd = tsv_pd
@@ -144,7 +146,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                 main_written += 1
                             divs[metric][subset] = (meta, qza_subset, out_fp)
                 betas[dat] = divs
-            run_xpbs(out_sh, out_pbs, '%s.bt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+            run_xpbs(out_sh, out_pbs, '%s.bt%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc)

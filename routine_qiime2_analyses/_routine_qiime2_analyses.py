@@ -39,6 +39,7 @@ def routine_qiime2_analyses(
         p_longi_column: str,
         p_filt_threshs: str,
         p_raref_depths: str,
+        eval_rarefs: bool,
         p_alpha_subsets: str,
         p_beta_subsets: str,
         p_perm_tests: tuple,
@@ -133,6 +134,9 @@ def routine_qiime2_analyses(
     if raref:
         filt_raref += '_rrf'
 
+    if eval_rarefs and not p_procrustes:
+        p_procrustes = 1
+
     # PREPROCESSING ------------------------------------------------------------
     print('(import_datasets)')
     import_datasets(i_datasets_folder, datasets, datasets_phylo,
@@ -147,12 +151,14 @@ def routine_qiime2_analyses(
                             datasets_filt, datasets_filt_map, datasets_phylo, prjct_nm,
                             qiime_env, p_filt_threshs, chmod, noloc, run_params['filter'],
                             filt_raref)
+    eval_depths = {}
     if raref:
         print('(run_rarefy)')
-        datasets_rarefs = run_rarefy(i_datasets_folder, datasets, datasets_read, datasets_phylo,
-                   datasets_filt_map, datasets_rarefs, p_raref_depths, force,
-                   prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'],
-                   filt_raref)
+        datasets_rarefs, eval_depths = run_rarefy(
+            i_datasets_folder, datasets, datasets_read, datasets_phylo,
+            datasets_filt_map, datasets_rarefs, p_raref_depths, eval_rarefs, force,
+            prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'],
+            filt_raref)
 
     # TAXONOMY ------------------------------------------------------------
     taxonomies = {}
@@ -199,12 +205,13 @@ def routine_qiime2_analyses(
         diversities = run_alpha(i_datasets_folder, datasets, datasets_read,
                                 datasets_phylo, p_alpha_subsets, trees,
                                 force, prjct_nm, qiime_env, chmod, noloc,
-                                As, dropout, run_params['alpha'], filt_raref)
+                                As, dropout, run_params['alpha'],
+                                filt_raref, eval_depths)
         if 'merge_alpha' not in p_skip:
             print('(to_export)')
             to_export = merge_meta_alpha(i_datasets_folder, datasets, diversities, force,
                                          prjct_nm, qiime_env, chmod, noloc, dropout,
-                                         run_params['merge_alpha'], filt_raref)
+                                         run_params['merge_alpha'], filt_raref, eval_depths)
             if 'export_alpha' not in p_skip:
                 print('(export_meta_alpha)')
                 export_meta_alpha(datasets, filt_raref, to_export, dropout)
@@ -226,7 +233,7 @@ def routine_qiime2_analyses(
         betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
                          datasets_read, p_beta_subsets, trees, force,
                          prjct_nm, qiime_env, chmod, noloc, Bs, dropout,
-                         run_params['beta'], filt_raref)
+                         run_params['beta'], filt_raref, eval_depths)
         if 'export_beta' not in p_skip:
             print('(export_beta)')
             export_beta(i_datasets_folder, betas,
@@ -274,17 +281,16 @@ def routine_qiime2_analyses(
         if 'beta' not in p_skip and 'adonis' not in p_skip:
             print('(run_adonis)')
             run_adonis(p_formulas, i_datasets_folder, betas,
-                       p_perm_groups, force, prjct_nm, qiime_env,
-                       chmod, noloc, split,
-                       run_params['adonis'], filt_raref)
+                       p_perm_groups, force, prjct_nm, qiime_env, chmod,
+                       noloc, split, run_params['adonis'], filt_raref)
 
     if 'beta' not in p_skip and p_procrustes:
         if betas and 'procrustes' not in p_skip:
-            print('run_procrustes')
+            print('(run_procrustes)')
             run_procrustes(i_datasets_folder, datasets, datasets_filt,
-                           p_procrustes, betas, force, prjct_nm,
-                           qiime_env, chmod, noloc, split,
-                           run_params['procrustes'], filt_raref)
+                           p_procrustes, betas, force, prjct_nm, qiime_env,
+                           chmod, noloc, split, run_params['procrustes'],
+                           filt_raref, eval_depths)
 
     # MMVEC AND SONGBIRD --------------------------------------------------------
     filts = {}
@@ -305,19 +311,19 @@ def routine_qiime2_analyses(
         if filt3d:
             filts.update(get_filt3d_params(p_diff_models, 'songbird'))
         elif 'songbird' not in p_skip:
-            print('run_songbird')
+            print('(run_songbird)')
             songbird_outputs = run_songbird(p_diff_models, i_datasets_folder,
                                             datasets, datasets_read, datasets_filt,
                                             input_to_filtered, mmvec_outputs, force, prjct_nm,
                                             qiime_env, chmod, noloc, split,
                                             run_params['songbird'], filt_raref)
     if filt3d:
-        print('run_filt3d')
+        print('(run_filt3d)')
         explore_filtering(i_datasets_folder, datasets,
                           datasets_read, datasets_filt,
                           filts, p_filt3d_config)
     elif p_diff_models and p_mmvec_pairs and 'mmbird' not in p_skip:
-        print('run_mmbird')
+        print('(run_mmbird)')
         run_mmbird(
             i_datasets_folder, songbird_outputs, p_mmvec_highlights,
             mmvec_outputs, force, prjct_nm, qiime_env, chmod,

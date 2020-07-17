@@ -31,7 +31,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
               datasets_phylo: dict, p_alpha_subsets: str, trees: dict,
               force: bool, prjct_nm: str, qiime_env: str, chmod: str,
               noloc: bool, As: tuple, dropout: bool, run_params: dict,
-              filt_raref: str) -> dict:
+              filt_raref: str, eval_depths: dict) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -48,13 +48,15 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     :return: {'dataset1': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }],
               'dataset2': [ 'meta', {'div_index1': '.qza', 'div_index2': '.qza', ... }], '...'}
     """
-    # alpha_subsets_deletions = []
+    evaluation = ''
+    if len(eval_depths):
+        evaluation = '_eval'
     alpha_metrics = get_metrics('alpha_metrics', As)
     alpha_subsets = get_subsets(p_alpha_subsets)
-    job_folder = get_job_folder(i_datasets_folder, 'alpha')
-    job_folder2 = get_job_folder(i_datasets_folder, 'alpha/chunks')
+    job_folder = get_job_folder(i_datasets_folder, 'alpha%s' % evaluation)
+    job_folder2 = get_job_folder(i_datasets_folder, 'alpha%s/chunks' % evaluation)
     diversities = {}
-    run_pbs = '%s/1_run_alpha%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/1_run_alpha%s%s.sh' % (job_folder, evaluation, filt_raref)
     main_written = 0
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
@@ -70,7 +72,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
             else:
                 tsv_pd, meta_pd = datasets_read[dat]
 
-            out_sh = '%s/run_alpha_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_alpha%s_%s%s.sh' % (job_folder2, evaluation, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 qza = '%s.qza' % splitext(tsv)[0]
@@ -138,8 +140,8 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                             divs.setdefault(subset, []).append(out_fp)
 
                 diversities[dat] = divs
-            run_xpbs(out_sh, out_pbs, '%s.mg.lph.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
-                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+            run_xpbs(out_sh, out_pbs, '%s.mg.lph%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
+                     qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc)
     if main_written:
@@ -149,7 +151,8 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
 def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
                      force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-                     noloc: bool, dropout: bool, run_params: dict, filt_raref: str) -> dict:
+                     noloc: bool, dropout: bool, run_params: dict,
+                     filt_raref: str, eval_depths: dict) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -163,23 +166,28 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
     :param chmod: whether to change permission of output files (defalt: 775).
     :return:
     """
-    job_folder = get_job_folder(i_datasets_folder, 'tabulate')
-    job_folder2 = get_job_folder(i_datasets_folder, 'tabulate/chunks')
+    evaluation = ''
+    if len(eval_depths):
+        evaluation = '_eval'
+    job_folder = get_job_folder(i_datasets_folder, 'tabulate%s/' % evaluation)
+    job_folder2 = get_job_folder(i_datasets_folder, 'tabulate%s/chunks' % evaluation)
     written = 0
     to_export = {}
-    run_pbs = '%s/2_run_merge_alphas%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/2_run_merge_alphas%s%s.sh' % (job_folder, evaluation, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, group_divs in diversities.items():
             tsv, meta = datasets[dat]
             base = basename(splitext(tsv)[0]).lstrip('tab_')
-            out_sh = '%s/run_merge_alpha_%s%s.sh' % (job_folder2, base, filt_raref)
+            out_sh = '%s/run_merge_alpha%s_%s%s.sh' % (job_folder2, evaluation, base, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for group, divs in group_divs.items():
                     if group:
-                        output_folder = get_analysis_folder(i_datasets_folder, 'tabulate/%s/%s' % (dat, group))
+                        output_folder = get_analysis_folder(
+                            i_datasets_folder, 'tabulate%s/%s/%s' % (evaluation, dat, group))
                     else:
-                        output_folder = get_analysis_folder(i_datasets_folder, 'tabulate/%s' % dat)
+                        output_folder = get_analysis_folder(
+                            i_datasets_folder, 'tabulate%s/%s' % (evaluation, dat))
                     if dropout:
                         out_fp = '%s/%s_alphas__%s.qzv' % (output_folder, base, group)
                     else:
@@ -192,8 +200,8 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, diversities: dict,
                         cur_sh.write('echo "%s"\n' % cmd)
                         cur_sh.write('%s\n\n' % cmd)
                         written += 1
-            run_xpbs(out_sh, out_pbs, '%s.mrg.lph.%s%s' % (prjct_nm, base, filt_raref), qiime_env,
-                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+            run_xpbs(out_sh, out_pbs, '%s.mrg.lph%s.%s%s' % (prjct_nm, evaluation, base, filt_raref),
+                     qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc)
     if written:
