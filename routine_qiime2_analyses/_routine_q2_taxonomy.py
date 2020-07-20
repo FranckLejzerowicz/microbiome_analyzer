@@ -149,6 +149,13 @@ def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict, da
                     if not i_classifier:
                         print('No classifier passed for 16S data\nExiting...')
                         continue
+                    print(dat)
+                    print(i_datasets_folder)
+                    print(force)
+                    print(tsv_pd.iloc[:4,:4])
+                    print(out_qza)
+                    print(out_tsv)
+                    print(i_classifier)
                     cmd = run_taxonomy_amplicon(dat, i_datasets_folder, force, tsv_pd,
                                                 out_qza, out_tsv, i_classifier)
                 else:
