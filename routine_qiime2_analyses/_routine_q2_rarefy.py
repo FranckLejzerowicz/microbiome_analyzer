@@ -85,6 +85,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 if eval_rarefs:
                     depths = datasets_raref_evals[dat]
                 for depth in depths:
+                    print(dat, depth)
                     dat_raref = '%s_raref%s%s' % (dat, evaluation, depth)
                     datasets_rarefs[dat] = 'raref%s%s' % (evaluation, depth)
 
