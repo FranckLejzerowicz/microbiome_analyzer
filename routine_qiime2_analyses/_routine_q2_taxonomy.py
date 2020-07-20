@@ -130,7 +130,7 @@ def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict, da
             tsv, meta = datasets[dat]
             print(tsv)
             print(meta)
-            if tsv_meta_pds[0] == 'raref':
+            if not isinstance(tsv_meta_pds[0], pd.DataFrame) and tsv_meta_pds[0] == 'raref':
                 if not isfile(tsv):
                     print('Must have run rarefaction to use it further...\nExiting')
                     sys.exit(0)
