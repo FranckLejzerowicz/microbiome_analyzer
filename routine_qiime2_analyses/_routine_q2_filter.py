@@ -322,7 +322,8 @@ def explore_filtering(i_datasets_folder, datasets, datasets_read,
                 else:
                     print('dataset "%s" not found...' % dat)
                     continue
-            elif datasets_read[dat] == 'raref':
+            elif not isinstance(datasets_read[dat][0], pd.DataFrame) and datasets_read[dat][0] == 'raref':
+            # elif datasets_read[dat] == 'raref':
                 tsv, meta = datasets[dat]
                 if not isfile(tsv):
                     print('Must have run rarefaction to use it further...\nExiting')

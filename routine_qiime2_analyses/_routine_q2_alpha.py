@@ -62,8 +62,8 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
         for dat, tsv_meta_pds in datasets.items():
             written = 0
             tsv, meta = tsv_meta_pds
-
-            if datasets_read[dat] == 'raref':
+            if not isinstance(datasets_read[dat][0], pd.DataFrame) and datasets_read[dat][0] == 'raref':
+            # if datasets_read[dat] == 'raref':
                 if not isfile(tsv):
                     print('Must have run rarefaction to use it further...\nExiting')
                     sys.exit(0)
