@@ -81,16 +81,19 @@ def run_taxonomy_amplicon(dat: str, i_datasets_folder: str, force: bool, tsv_pd:
     :param i_classifier: Path to the taxonomic classifier.
     """
     cmd = ''
-    ref_classifier_qza = get_taxonomy_classifier(i_classifier)
-    odir_seqs = get_analysis_folder(i_datasets_folder, 'seqs/%s' % dat)
-    out_fp_seqs_rad = '%s/seq_%s' % (odir_seqs, dat)
-    out_fp_seqs_fasta = '%s.fasta' % out_fp_seqs_rad
-    out_fp_seqs_qza = '%s.qza' % out_fp_seqs_rad
-    if force or not isfile(out_fp_seqs_qza):
-        cmd += write_seqs_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, tsv_pd)
-    if force or not isfile(out_qza):
-        cmd += write_taxonomy_sklearn(out_qza, out_fp_seqs_qza, ref_classifier_qza)
-        cmd += run_export(out_qza, out_tsv, '')
+    if isfile(out_tsv) and not isfile(out_qza):
+        cmd += run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
+    else:
+        ref_classifier_qza = get_taxonomy_classifier(i_classifier)
+        odir_seqs = get_analysis_folder(i_datasets_folder, 'seqs/%s' % dat)
+        out_fp_seqs_rad = '%s/seq_%s' % (odir_seqs, dat)
+        out_fp_seqs_fasta = '%s.fasta' % out_fp_seqs_rad
+        out_fp_seqs_qza = '%s.qza' % out_fp_seqs_rad
+        if force or not isfile(out_fp_seqs_qza):
+            cmd += write_seqs_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, tsv_pd)
+        if force or not isfile(out_qza):
+            cmd += write_taxonomy_sklearn(out_qza, out_fp_seqs_qza, ref_classifier_qza)
+            cmd += run_export(out_qza, out_tsv, '')
     return cmd
 
 
@@ -128,8 +131,6 @@ def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict, da
             if dat in taxonomies:
                 continue
             tsv, meta = datasets[dat]
-            print(tsv)
-            print(meta)
             if not isinstance(tsv_meta_pds[0], pd.DataFrame) and tsv_meta_pds[0] == 'raref':
                 if not isfile(tsv):
                     print('Must have run rarefaction to use it further...\nExiting')
@@ -151,13 +152,6 @@ def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict, da
                     if not i_classifier:
                         print('No classifier passed for 16S data\nExiting...')
                         continue
-                    print(dat)
-                    print(i_datasets_folder)
-                    print(force)
-                    print(tsv_pd.iloc[:4,:4])
-                    print(out_qza)
-                    print(out_tsv)
-                    print(i_classifier)
                     cmd = run_taxonomy_amplicon(dat, i_datasets_folder, force, tsv_pd,
                                                 out_qza, out_tsv, i_classifier)
                 else:

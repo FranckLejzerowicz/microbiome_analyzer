@@ -9,6 +9,7 @@
 import sys
 from skbio.tree import TreeNode
 from os.path import isfile, splitext
+import pandas as pd
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
@@ -53,7 +54,8 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
         with open(main_sh, 'w') as main_o:
             for dat in sepp_datasets:
                 tsv, meta = datasets[dat]
-                if datasets_read[dat] == 'raref':
+                if not isinstance(datasets_read[dat][0], pd.DataFrame) and datasets_read[dat][0] == 'raref':
+                # if datasets_read[dat] == 'raref':
                     qza_raw_in = '%s/data/tab_%s_inTree.qza' % (i_datasets_folder, dat)
                     if isfile(qza_raw_in) and not force:
                         odir_sepp = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)

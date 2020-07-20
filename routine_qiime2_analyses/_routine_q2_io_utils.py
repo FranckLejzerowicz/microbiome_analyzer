@@ -898,7 +898,8 @@ def get_datasets_filtered(
             else:
                 print('%s dataset "%s" not found...' % (analysis, dat))
                 continue
-        elif datasets_read[dat] == 'raref':
+        elif not isinstance(datasets_read[dat][0], pd.DataFrame) and datasets_read[dat][0] == 'raref':
+        # elif datasets_read[dat] == 'raref':
             tsv, meta = datasets[dat]
             if not isfile(tsv):
                 print(analysis, 'Must have run rarefaction to use it further...\nExiting')
