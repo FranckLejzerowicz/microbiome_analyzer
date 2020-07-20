@@ -106,8 +106,8 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                         main_written += 1
                         written += 1
 
-                    eval_depths.setdefault(dat, []).append('%s_%s' % (dat, depth))
                     if eval_rarefs:
+                        eval_depths.setdefault(dat, []).append('%s_%s' % (dat, depth))
                         datasets_eval['%s_%s' % (dat, depth)] = [tsv_out, meta_out]
                         datasets_read_eval['%s_%s' % (dat, depth)] = ('raref', depth)
                         datasets_phylo_eval['%s_%s' % (dat, depth)] = datasets_phylo[dat]
