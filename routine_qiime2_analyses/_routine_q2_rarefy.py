@@ -81,7 +81,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
 
-                depths = [datasets_raref_depths[dat]]
+                depths = datasets_raref_depths[dat]
                 if eval_rarefs:
                     depths = datasets_raref_evals[dat]
                 for depth in depths:
@@ -148,12 +148,13 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
         datasets_raref_evals[dat] = set([int(x) for x in tsv_sam_sum.describe(
             percentiles=[x/100 for x in range(10, 101, 10)])[4:-1]])
         if dat in datasets_raref_depths_yml:
-            datasets_raref_depths[dat] = datasets_raref_depths_yml[dat]
-            datasets_raref_evals[dat].add(int(datasets_raref_depths_yml[dat]))
+            depths = datasets_raref_depths_yml[dat]
+            datasets_raref_depths[dat] = depths
+            datasets_raref_evals[dat].update(set([int(x) for x in depths]))
             continue
         raref_files = glob.glob('%s/qiime/rarefy/%s/tab_raref*.qza' % (i_datasets_folder, dat))
         if len(raref_files):
-            datasets_raref_depths[dat] = raref_files[0].split('_raref')[-1].split('.tsv')[0]
+            datasets_raref_depths[dat] = [x.split('_raref')[-1].split('.tsv')[0] for x in raref_files]
         else:
             count, division = np.histogram(tsv_sam_sum)
             skw = skew(count)
@@ -183,5 +184,5 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
                 second_quantile_to_round = second_quantile / ( 10 ** (nfigure - 2) )
                 second_quantile_rounded = round(second_quantile_to_round) * ( 10 ** (nfigure - 2) )
                 print('[%s] Proposed rarefaction depth: %s (second quantile)' % (dat, second_quantile_rounded))
-                datasets_raref_depths[dat] = str(int(second_quantile_rounded))
+                datasets_raref_depths[dat] = [str(int(second_quantile_rounded))]
     return datasets_raref_depths, datasets_raref_evals
