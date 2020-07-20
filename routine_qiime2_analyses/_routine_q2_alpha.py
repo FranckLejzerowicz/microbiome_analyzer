@@ -70,6 +70,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
                 datasets_read[dat] = [tsv_pd, meta_pd]
             else:
+                print()
                 tsv_pd, meta_pd = datasets_read[dat]
 
             out_sh = '%s/run_alpha%s_%s%s.sh' % (job_folder2, evaluation, dat, filt_raref)

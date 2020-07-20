@@ -113,7 +113,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                         datasets_phylo_eval['%s_%s' % (dat, depth)] = datasets_phylo[dat]
                     else:
                         datasets[dat] = [tsv_out, meta_out]
-                        datasets_read[dat] = 'raref'
+                        datasets_read[dat] = ('raref', depth)
                         datasets_phylo[dat] = datasets_phylo[dat]
                         # datasets_features[dat] = 'raref'
             run_xpbs(out_sh, out_pbs, '%s.bt%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
