@@ -1054,6 +1054,10 @@ def check_datasets_filtered(
 
         dat_filts_pass = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
+        print('')
+        print('dat, mb')
+        print(dat, mb)
+        print(unique_filterings)
         prevals_abunds = unique_filterings[(dat, mb)]
         for (preval_abund, preval, abund) in prevals_abunds:
             # make sure there's no empty row / column
