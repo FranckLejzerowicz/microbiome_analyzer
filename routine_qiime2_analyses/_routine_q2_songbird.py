@@ -139,6 +139,10 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     songbird_models = songbird_dicts[0]
     songbird_filtering = songbird_dicts[1]
     unique_filtering = get_unique_filterings(songbird_filtering)
+    print('songbird_filtering')
+    print(songbird_filtering)
+    print('unique_filtering')
+    print(unique_filtering)
 
     params = songbird_dicts[2]
     songbird_datasets = songbird_dicts[3]
