@@ -138,7 +138,7 @@ def get_filtering(p_yml: str, filtering_dict: dict,
         for dat_, filts in filtering_dict['filtering'].items():
             dat = get_dat_mb_or_not(dat_)
             for filt_name, prev_abund in filts.items():
-                if filt_name not in filtering[pair]:
+                if filt_name not in filtering['']:
                     filtering[''][filt_name] = {}
                 if dat in dats:
                     filtering[''][filt_name][dat] = prev_abund
