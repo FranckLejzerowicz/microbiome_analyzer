@@ -129,6 +129,7 @@ def get_filtering(p_yml: str, filtering_dict: dict,
         for pair, pair_d in filtering_dict['filtering'].items():
             filtering[pair] = {}
             for filt_name, dats_d in pair_d.items():
+                filtering[pair][filt_name] = {}
                 for dat_, prev_abund in dats_d.items():
                     dat = get_dat_mb_or_not(dat_)
                     if dat in dats:
