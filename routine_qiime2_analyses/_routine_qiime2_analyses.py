@@ -292,6 +292,9 @@ def routine_qiime2_analyses(
                            chmod, noloc, split, run_params['procrustes'],
                            filt_raref, eval_depths)
 
+    # PHATE ---------------------------------------------------------------------
+
+
     # MMVEC AND SONGBIRD --------------------------------------------------------
     filts = {}
     mmvec_outputs = []
