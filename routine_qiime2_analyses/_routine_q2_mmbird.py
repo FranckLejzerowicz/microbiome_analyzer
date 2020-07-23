@@ -508,31 +508,17 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
 
     corrs = []
     for r in range(3):
-        print("r")
-        print(r)
-        print("ordi.features.iloc[:3,:]")
-        print(ordi.features.iloc[:3,:])
         feats = ordi.features[r]
-        print("feats[:4]")
-        print(feats[:4])
         if len(diff_cols1) > 1:
-            print("diff_cols1")
-            print(diff_cols1)
             for model in diff_cols1:
-                print(' -', model)
-                print(len(meta_pd1.index.tolist()))
-                print(len(ordi.features.index.tolist()))
-                print(len(set(meta_pd1.index.tolist()) & set(ordi.features.index.tolist())))
-                print(set(meta_pd1.index.tolist()) ^ (set(meta_pd1.index.tolist()) & set(ordi.features.index.tolist())))
-                print(set(ordi.features.index.tolist()) ^ (set(meta_pd1.index.tolist()) & set(ordi.features.index.tolist())))
                 x = meta_pd1.loc[
-                    ordi.features.index,
-                    # [x for x in meta_pd1.index if x in ordi.features.index],
+                    # ordi.features.index,
+                    [x for x in meta_pd1.index if x in ordi.features.index],
                     model
                 ].astype(float)
                 x = x[x.notnull()]
                 y = feats[x.index]
-                r1, p1 = pearsonr(x, y)
+                # r1, p1 = pearsonr(x, y)
                 r2, p2 = spearmanr(x, y)
                 # corrs.append([pair, omic1, filt1, 'PC%s' % (r+1), model, r1, p1, 'pearson',
                 #              meta_fp, omic1_common_fp, ranks_fp])
@@ -541,10 +527,14 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
         sams = ordi.samples[r]
         if len(diff_cols2) > 1:
             for model in diff_cols2:
-                x = meta_pd2.loc[ordi.samples.index, model].astype(float)
+                x = meta_pd2.loc[
+                    [x for x in meta_pd2.index if x in ordi.samples.index],
+                    # ordi.samples.index,
+                    model
+                ].astype(float)
                 x = x[x.notnull()]
                 y = sams[x.index]
-                r1, p1 = pearsonr(x, y)
+                # r1, p1 = pearsonr(x, y)
                 r2, p2 = spearmanr(x, y)
                 # corrs.append([pair, omic2, filt2, 'PC%s' % (r+1), model, r1, p1, 'pearson',
                 #               meta_fp, omic2_common_fp, ranks_fp])
