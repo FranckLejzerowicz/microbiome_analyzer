@@ -522,7 +522,7 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
                 r2, p2 = spearmanr(x, y)
                 # corrs.append([pair, omic1, filt1, 'PC%s' % (r+1), model, r1, p1, 'pearson',
                 #              meta_fp, omic1_common_fp, ranks_fp])
-                corrs.append([pair, omic1, filt1, 'PC%s' % (r + 1), model, r1, p2, 'spearman',
+                corrs.append([pair, omic1, filt1, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
                               meta_fp,  omic1_common_fp, ranks_fp])
         sams = ordi.samples[r]
         if len(diff_cols2) > 1:
@@ -538,7 +538,7 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
                 r2, p2 = spearmanr(x, y)
                 # corrs.append([pair, omic2, filt2, 'PC%s' % (r+1), model, r1, p1, 'pearson',
                 #               meta_fp, omic2_common_fp, ranks_fp])
-                corrs.append([pair, omic2, filt2, 'PC%s' % (r + 1), model, r1, p2, 'spearman',
+                corrs.append([pair, omic2, filt2, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
                               meta_fp, omic2_common_fp, ranks_fp])
     corrs_pd = pd.DataFrame(corrs, columns=[
         'pair',
