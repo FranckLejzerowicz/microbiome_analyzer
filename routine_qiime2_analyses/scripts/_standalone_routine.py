@@ -92,6 +92,11 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/adonis_formulas.yml' and README)."
 )
 @click.option(
+    "-doc", "--p-doc-config", required=False, default=False, show_default=True,
+    help="Filters and subsets for the dissimilarity overlap curves analyses"
+         "Must be a yaml file, (see example in 'examples/doc_config.yml' and README)."
+)
+@click.option(
     "-s", "--p-diff-models", required=False, default=False, show_default=True,
     help="Formulas for multinomial regression-based differential abundance ranking (songbird).\n"
          "MUST BE YAML FILE, see 'examples/songbird_models.yml' and README."
@@ -135,13 +140,14 @@ from routine_qiime2_analyses import __version__
     "-skip", "--p-skip", default=None, show_default=True, multiple=True,
     type=click.Choice(['alpha', 'merge_alpha', 'export_alpha', 'alpha_correlations',
                        'wol', 'taxonomy', 'barplot', 'volatility', 'beta',
-                       'export_beta', 'emperor', 'emperor_biplot', 'deicode', 'sepp', 'alpha_kw',
-                       'permanova', 'adonis', 'songbird', 'mmvec', 'mmbird']),
+                       'export_beta', 'emperor', 'emperor_biplot', 'doc',
+                       'deicode',  'sepp', 'alpha_kw', 'permanova',
+                       'adonis', 'songbird', 'mmvec', 'mmbird']),
     help="Steps to skip (e.g. if already done or not necessary)."
          "\nSkipping 'alpha' will also skip 'merge_alpha', 'export_alpha',"
          "'alpha_correlations', 'alpha_kw' and 'volatility'."
          "\nSkipping 'beta' will also skip 'export_beta', 'emperor',"
-         "'emperor_biplot','deicode', 'permanova', 'adonis'."
+         "'doc', 'emperor_biplot','deicode', 'permanova', 'adonis'."
 )
 @click.option(
     "-As", "--p-alphas", default=None, show_default=True, multiple=True,
@@ -209,6 +215,7 @@ def standalone_routine(
         p_beta_type,
         p_procrustes,
         p_adonis_formulas,
+        p_doc_config,
         force,
         i_classifier,
         i_wol_tree,
@@ -248,6 +255,7 @@ def standalone_routine(
         p_beta_type,
         p_procrustes,
         p_adonis_formulas,
+        p_doc_config,
         force,
         i_classifier,
         i_wol_tree,

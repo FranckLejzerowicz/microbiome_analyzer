@@ -321,16 +321,6 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
 
         pair, omic1, omic2, filt1, filt2, sams, mmvec = keys
         ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp = values
-        if ranks_fp != '/projects/nutrition/analysis/tree_based/qiime/mmvec/paired/foods_ssu/vioscreen_foods_consumed_grams_per_day_1800s_noLiquids_0_0__16S_100nt_745s_0_0/b-50_l-1e-4_e-200_p-05_f-0_d-3_t-None_n-200_gpu-F/ranks.tsv':
-            continue
-        print('-'*30)
-        print('ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp')
-        print(ranks_fp)
-        print(ordi_fp)
-        print(meta_fp)
-        print(omic1_common_fp)
-        print(omic2_common_fp)
-        print('-'*50)
 
         order_omics = get_order_omics(omic1, omic2, filt1, filt2, omics_pairs)
         omic1 = order_omics[0]
@@ -345,16 +335,6 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         # get differentials
         meta1, meta_pd1, diff_cols1 = omics_pairs_metas[(pair, omic1, filt1)]
         meta2, meta_pd2, diff_cols2 = omics_pairs_metas[(pair, omic2, filt2)]
-        print('-'*50)
-        print('meta1')
-        print(meta1)
-        print('meta_pd1')
-        print(meta_pd1.iloc[:3,:3])
-        print('meta2')
-        print(meta2)
-        print('meta_pd2')
-        print(meta_pd2.iloc[:3,:3])
-        print('-'*50)
 
         # features are biplot, samples are dots
         ordi = OrdinationResults.read(ordi_fp)
@@ -363,10 +343,6 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
             pair, ordi, omic1, omic2, filt1, filt2,
             diff_cols1, meta_pd1, diff_cols2, meta_pd2,
             meta_fp,  omic1_common_fp, omic2_common_fp, ranks_fp)
-        print('-'*30)
-        print("cur_pc_sb_correlations")
-        print(cur_pc_sb_correlations)
-        print('-'*30)
         pc_sb_correlations.append(cur_pc_sb_correlations)
 
         cmd = ''

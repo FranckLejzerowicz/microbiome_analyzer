@@ -686,10 +686,8 @@ def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
 
 
 def write_doc(qza: str, new_meta: str, new_qza: str,
-              new_tsv: str, cur_rad: str, n_nodes: str,
-              n_procs: str, cur_sh: TextIO) -> None:
-    """
-    """
+              new_tsv: str, fp: str, fa: str, cur_rad: str,
+              n_nodes: str, n_procs: str, cur_sh: TextIO) -> None:
     cmd = '\n'
     if not isfile(new_qza):
         cmd += '\nqiime feature-table filter-samples \\\n'
@@ -703,9 +701,11 @@ def write_doc(qza: str, new_meta: str, new_qza: str,
     cmd += '--p-r 10 \\\n'
     cmd += '--p-iterations 2 \\\n'
     cmd += '--p-cores %s \\\n' % (int(n_nodes)*int(n_procs))
-    cmd += '--p-null 1 \\\n'
+    cmd += '--p-nulls 1 \\\n'
+    cmd += '-fp %s \\\n' % fp
+    cmd += '-fa %s \\\n' % fa
     cmd += '--null \\\n'
-    cmd += '--verbose \\\n'
+    cmd += '--verbose\n'
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 

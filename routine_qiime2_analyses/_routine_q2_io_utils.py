@@ -311,6 +311,19 @@ def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict):
     return models, filtering, params, datasets, main_cases_dict
 
 
+def get_doc_config(p_doc_config: str) -> (dict, dict):
+    main_cases_dict = {'ALL': [[]]}
+    if p_doc_config:
+        if not isfile(p_doc_config):
+            print('DOC config yaml file does not exist:\n%s\nExiting...' % p_doc_config)
+            sys.exit(0)
+        with open(p_doc_config) as handle:
+            doc_config = yaml.load(handle, Loader=yaml.FullLoader)
+        if 'subsets' in doc_config:
+            main_cases_dict.update(doc_config['subsets'])
+    return doc_config, main_cases_dict
+
+
 def get_main_cases_dict(p_perm_groups: str) -> dict:
     """
     Collect the subsets to perform based on the passed yaml file.

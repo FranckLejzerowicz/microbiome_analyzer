@@ -48,6 +48,7 @@ def routine_qiime2_analyses(
         p_beta_type: tuple,
         p_procrustes: str,
         p_formulas: str,
+        p_doc_config: str,
         force: bool,
         i_classifier: str,
         i_wol_tree: str,
@@ -200,10 +201,19 @@ def routine_qiime2_analyses(
                  prjct_nm, i_sepp_tree, trees, force, qiime_env, chmod, noloc,
                  run_params['sepp'], filt_raref)
 
+    print("datasets")
+    print(datasets)
+    print("datasets_rarefs")
+    print(datasets_rarefs)
+    print("datasets_filt")
+    print(datasets_filt)
+    print("datasets_filt_map")
+    print(datasets_filt_map)
+
     # DISSIMILARITY OVERLAP --------------------------------------------
     if 'doc' not in p_skip:
         print('(run_doc)')
-        run_doc(i_datasets_folder, datasets, p_perm_groups,
+        run_doc(i_datasets_folder, datasets, p_doc_config,
                 force, prjct_nm, qiime_env, chmod, noloc,
                 run_params['doc'], filt_raref, eval_depths)
 
