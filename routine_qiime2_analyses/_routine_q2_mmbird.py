@@ -320,19 +320,9 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
     for keys, values in mmvec_res.items():
 
         pair, omic1, omic2, filt1, filt2, sams, mmvec = keys
-        print('*'*50)
-        print('-'*30)
-        print('pair, omic1, omic2, filt1, filt2, sams, mmvec')
-        print(pair)
-        print(omic1)
-        print(omic2)
-        print(filt1)
-        print(filt2)
-        print(sams)
-        print(mmvec)
-        print('-'*30)
-
         ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp = values
+        if ranks_fp != '/projects/nutrition/analysis/tree_based/qiime/mmvec/paired/foods_ssu/vioscreen_foods_consumed_grams_per_day_1800s_noLiquids_0_0__16S_100nt_745s_0_0/b-50_l-1e-4_e-200_p-05_f-0_d-3_t-None_n-200_gpu-F/ranks.tsv':
+            continue
         print('-'*30)
         print('ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp')
         print(ranks_fp)
@@ -377,7 +367,6 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         print("cur_pc_sb_correlations")
         print(cur_pc_sb_correlations)
         print('-'*30)
-        print('*'*50)
         pc_sb_correlations.append(cur_pc_sb_correlations)
 
         cmd = ''
@@ -519,9 +508,18 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
 
     corrs = []
     for r in range(3):
+        print("r")
+        print(r)
+        print("ordi.features.iloc[:3,:]")
+        print(ordi.features.iloc[:3,:])
         feats = ordi.features[r]
+        print("feats[:4]")
+        print(feats[:4])
         if len(diff_cols1) > 1:
+            print("diff_cols1")
+            print(diff_cols1)
             for model in diff_cols1:
+                print(' -', model)
                 x = meta_pd1.loc[ordi.features.index, model].astype(float)
                 x = x[x.notnull()]
                 y = feats[x.index]

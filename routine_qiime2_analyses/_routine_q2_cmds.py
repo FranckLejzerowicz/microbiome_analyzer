@@ -685,6 +685,31 @@ def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
     cur_sh.write('%s\n\n' % cmd)
 
 
+def write_doc(qza: str, new_meta: str, new_qza: str,
+              new_tsv: str, cur_rad: str, n_nodes: str,
+              n_procs: str, cur_sh: TextIO) -> None:
+    """
+    """
+    cmd = '\n'
+    if not isfile(new_qza):
+        cmd += '\nqiime feature-table filter-samples \\\n'
+        cmd += '--i-table %s \\\n' % qza
+        cmd += '--m-metadata-file %s \\\n' % new_meta
+        cmd += '--o-filtered-table %s\n' % new_qza
+        cmd += run_export(new_qza, new_tsv, 'FeatureTable')
+    cmd += '\nXDOC \\\n'
+    cmd += '--i-otu %s \\\n' % new_tsv
+    cmd += '--o-outdir %s \\\n' % cur_rad
+    cmd += '--p-r 10 \\\n'
+    cmd += '--p-iterations 2 \\\n'
+    cmd += '--p-cores %s \\\n' % (int(n_nodes)*int(n_procs))
+    cmd += '--p-null 1 \\\n'
+    cmd += '--null \\\n'
+    cmd += '--verbose \\\n'
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n' % cmd)
+
+
 def write_deicode_biplot(qza: str, new_meta: str, new_qza: str, ordi_qza: str,
                          new_mat_qza: str, ordi_qzv: str, cur_sh: TextIO) -> None:
     """
@@ -700,16 +725,19 @@ def write_deicode_biplot(qza: str, new_meta: str, new_qza: str, ordi_qza: str,
     :param ordi_qzv: VISUALIZATION
     :param cur_sh: writing file handle.
     """
-    cmd = '\nqiime feature-table filter-samples \\\n'
-    cmd += '--i-table %s \\\n' % qza
-    cmd += '--m-metadata-file %s \\\n' % new_meta
-    cmd += '--o-filtered-table %s\n' % new_qza
-    cmd += 'qiime deicode rpca \\\n'
-    cmd += '--i-table %s \\\n' % new_qza
-    cmd += '--p-min-feature-count 10 \\\n'
-    cmd += '--p-min-sample-count 500 \\\n'
-    cmd += '--o-biplot %s \\\n' % ordi_qza
-    cmd += '--o-distance-matrix %s\n' % new_mat_qza
+    cmd = '\n'
+    if not isfile(new_qza):
+        cmd += '\nqiime feature-table filter-samples \\\n'
+        cmd += '--i-table %s \\\n' % qza
+        cmd += '--m-metadata-file %s \\\n' % new_meta
+        cmd += '--o-filtered-table %s\n' % new_qza
+    if not isfile(ordi_qza) or not isfile(new_mat_qza):
+        cmd += 'qiime deicode rpca \\\n'
+        cmd += '--i-table %s \\\n' % new_qza
+        cmd += '--p-min-feature-count 10 \\\n'
+        cmd += '--p-min-sample-count 500 \\\n'
+        cmd += '--o-biplot %s \\\n' % ordi_qza
+        cmd += '--o-distance-matrix %s\n' % new_mat_qza
     cmd += 'qiime emperor biplot \\\n'
     cmd += '--i-biplot %s \\\n' % ordi_qza
     cmd += '--m-sample-metadata-file %s \\\n' % new_meta

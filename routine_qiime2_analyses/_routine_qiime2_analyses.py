@@ -17,6 +17,7 @@ from routine_qiime2_analyses._routine_q2_rarefy import run_rarefy
 from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp, get_precomputed_trees
 from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
 from routine_qiime2_analyses._routine_q2_taxonomy import run_taxonomy, run_barplot, get_precomputed_taxonomies
+from routine_qiime2_analyses._routine_q2_doc import run_doc
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
                                                        run_correlations, run_volatility,
                                                        run_alpha_group_significance)
@@ -198,6 +199,13 @@ def routine_qiime2_analyses(
         run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo,
                  prjct_nm, i_sepp_tree, trees, force, qiime_env, chmod, noloc,
                  run_params['sepp'], filt_raref)
+
+    # DISSIMILARITY OVERLAP --------------------------------------------
+    if 'doc' not in p_skip:
+        print('(run_doc)')
+        run_doc(i_datasets_folder, datasets, p_perm_groups,
+                force, prjct_nm, qiime_env, chmod, noloc,
+                run_params['doc'], filt_raref, eval_depths)
 
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
