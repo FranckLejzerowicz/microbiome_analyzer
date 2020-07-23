@@ -520,7 +520,10 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
             print(diff_cols1)
             for model in diff_cols1:
                 print(' -', model)
-                x = meta_pd1.loc[ordi.features.index, model].astype(float)
+                print(len(meta_pd1.index.tolist()))
+                print(len(ordi.features.index.tolist()))
+                print(len(set(meta_pd1.index.tolist()) & set(ordi.features.index.tolist())))
+                x = meta_pd1.loc[ordi.features.index.tolist(), model].astype(float)
                 x = x[x.notnull()]
                 y = feats[x.index]
                 r1, p1 = pearsonr(x, y)
