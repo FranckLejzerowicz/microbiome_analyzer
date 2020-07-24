@@ -195,7 +195,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
         if not split:
             out_sh = '%s/run_songbird_%s%s.sh' % (job_folder2, dat, filt_raref)
         for (filt, tsv, meta_, pair) in filts_tsvs_metas_pair:
-
             if split:
                 out_sh = '%s/run_songbird_%s_%s_%s%s.sh' % (job_folder2, dat, filt, pair, filt_raref)
 

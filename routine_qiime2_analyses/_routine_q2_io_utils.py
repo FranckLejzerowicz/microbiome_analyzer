@@ -862,11 +862,12 @@ def get_raref_table(dat_rt: str, raref: str, i_datasets_folder: str,
     raref_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat_rt)
     tsv_rgx = '%s/tab_%s%s*.tsv' % (raref_dir, dat_rt, raref)
     tsv_globbed = glob.glob(tsv_rgx)
-    if len(tsv_globbed) != 1:
+    if len(tsv_globbed) >= 1:
+        tsv = sorted(tsv_globbed)[0]
+    else:
         print('Must have one rarefaction for "%s" to use it further in %s...'
               '\nExiting' % (dat_rt, analysis))
         sys.exit(0)
-    tsv = sorted(tsv_globbed)[0]
     meta_rgx = '%s/meta_%s%s*_alphas.tsv' % (raref_dir, dat_rt, raref)
     meta = glob.glob(meta_rgx)
     if not len(meta):
@@ -935,9 +936,7 @@ def get_datasets_filtered(
             else:
                 print('%s dataset "%s" not found...' % (analysis, dat))
                 continue
-
         elif not isinstance(datasets_read[dat][0], pd.DataFrame) and datasets_read[dat][0] == 'raref':
-        # elif datasets_read[dat] == 'raref':
             tsv, meta = datasets[dat]
             if not isfile(tsv):
                 print(analysis, 'Must have run rarefaction to use it further...\nExiting')
@@ -946,7 +945,7 @@ def get_datasets_filtered(
             datasets_read[dat] = [tsv_pd_, meta_pd_]
             input_to_filtered[dat_] = dat
         else:
-            tsv_pd_, meta_pd_ = datasets_read[dat]
+            tsv_pd_, meta_pd_ = datasets_read[dat][0]
             input_to_filtered[dat_] = dat
 
         dat_filts = {}

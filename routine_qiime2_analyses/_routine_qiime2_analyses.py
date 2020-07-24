@@ -327,17 +327,6 @@ def routine_qiime2_analyses(
                                       chmod, noloc, split, filt_raref,
                                       run_params['mmvec'], input_to_filtered)
 
-    print("datasets")
-    print(datasets)
-    print("datasets_rarefs")
-    print(datasets_rarefs)
-    print("datasets_filt")
-    print(datasets_filt)
-    print("datasets_filt_map")
-    print(datasets_filt_map)
-    print(datasets_filt_mapgfd)
-
-
     songbird_outputs = []
     if p_diff_models:
         if filt3d:
@@ -354,6 +343,7 @@ def routine_qiime2_analyses(
         explore_filtering(i_datasets_folder, datasets,
                           datasets_read, datasets_filt,
                           filts, p_filt3d_config)
+
     elif p_diff_models and p_mmvec_pairs and 'mmbird' not in p_skip:
         print('(run_mmbird)')
         run_mmbird(
