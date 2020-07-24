@@ -25,7 +25,7 @@ from routine_qiime2_analyses._routine_q2_cmds import run_import
 
 
 def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datasets_phylo: dict,
-             prjct_nm: str, i_sepp_tree: str, trees: dict, force: bool,
+             datasets_rarefs: dict, prjct_nm: str, i_sepp_tree: str, trees: dict, force: bool,
              qiime_env: str, chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
     """
     Run SEPP on the datasets composed or 16S deblur sequences (e.g. from redbiom/Qiita).
@@ -49,73 +49,85 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
         job_folder = get_job_folder(i_datasets_folder, 'phylo')
         job_folder2 = get_job_folder(i_datasets_folder, 'phylo/chunks')
 
-        written = 0
+        main_written = 0
         main_sh = '%s/1_run_sepp%s.sh' % (job_folder, filt_raref)
         with open(main_sh, 'w') as main_o:
-            for dat in sepp_datasets:
-                tsv, meta = datasets[dat]
-                if not isinstance(datasets_read[dat][0], pd.DataFrame) and datasets_read[dat][0] == 'raref':
-                # if datasets_read[dat] == 'raref':
-                    qza_raw_in = '%s/data/tab_%s_inTree.qza' % (i_datasets_folder, dat)
-                    if isfile(qza_raw_in) and not force:
-                        odir_sepp = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
-                        out_fp_sepp_tree = '%s/tree_%s.qza' % (odir_sepp, dat)
-                        trees[dat] = (qza_raw_in, out_fp_sepp_tree)
-                        print('Using the non rarefied tree (no need to recompute)...\nExiting')
-                        continue
-                    elif not isfile(tsv):
-                        print('Must have run rarefaction to use it further...\nExiting')
-                        sys.exit(0)
-                    tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
-                    datasets_read[dat] = [tsv_pd, meta_pd]
-                else:
-                    tsv_pd, meta_pd = datasets_read[dat]
-
-                qza = '%s.qza' % splitext(tsv)[0]
-                if not isfile(qza):
-                    print('Need to first import %s to .qza to do reads placement '
-                          '(see "# Import tables to qiime2")\nExiting...' % tsv)
-                    sys.exit(0)
-
-                qza_in = '%s_inTree.qza' % splitext(tsv)[0]
-                qza_out = '%s_notInTree.qza' % splitext(tsv)[0]
-
-                odir_seqs = get_analysis_folder(i_datasets_folder, 'seqs/%s' % dat)
-                odir_sepp = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
-
-                out_fp_seqs_rad = '%s/seq_%s' % (odir_seqs, dat)
-                out_fp_seqs_fasta = '%s.fasta' % out_fp_seqs_rad
-                out_fp_seqs_qza = '%s.qza' % out_fp_seqs_rad
-
-                out_fp_sepp_tree = '%s/tree_%s.qza' % (odir_sepp, dat)
-                trees[dat] = (qza_in, out_fp_sepp_tree)
-                out_fp_sepp_plac = '%s/plac_%s.qza' % (odir_sepp, dat)
-
+            for dat, tsv_metas_fps_ in datasets.items():
+                written = 0
+                if dat not in sepp_datasets:
+                    continue
                 out_sh = '%s/run_sepp_%s%s.sh' % (job_folder2, dat, filt_raref)
                 out_pbs = '%s.pbs' % splitext(out_sh)[0]
                 with open(out_sh, 'w') as cur_sh:
-                    if force or not isfile(out_fp_seqs_qza):
-                        cmd = write_seqs_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, tsv_pd)
-                        cur_sh.write('echo "%s"\n' % cmd)
-                        cur_sh.write('%s\n\n' % cmd)
-                        written += 1
-                    if force or not isfile(out_fp_sepp_tree):
-                        write_fragment_insertion(out_fp_seqs_qza, ref_tree_qza,
-                                                 out_fp_sepp_tree, out_fp_sepp_plac,
-                                                 qza, qza_in, qza_out, cur_sh)
-                        written += 1
+                    for idx, tsv_metas_fps in enumerate(tsv_metas_fps_):
+                        tsv, meta = tsv_metas_fps
+                        if not isinstance(datasets_read[dat][idx][0], pd.DataFrame) and datasets_read[dat][idx][0] == 'raref':
+                            qza_raw_in = '%s/data/tab_%s_inTree.qza' % (i_datasets_folder, dat)
+                            if isfile(qza_raw_in) and not force:
+                                odir_sepp = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
+                                out_fp_sepp_tree = '%s/tree_%s.qza' % (odir_sepp, dat)
+                                if idx:
+                                    trees[dat].append((qza_raw_in, out_fp_sepp_tree))
+                                else:
+                                    trees[dat] = [(qza_raw_in, out_fp_sepp_tree)]
+                                print('Using the non rarefied tree (no need to recompute)...\nExiting')
+                                continue
+                            elif not isfile(tsv):
+                                print('Must have run rarefaction to use it further...\nExiting')
+                                sys.exit(0)
+                            tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
+                            datasets_read[dat][idx] = [tsv_pd, meta_pd]
+                        else:
+                            tsv_pd, meta_pd = datasets_read[dat]
+
+                        qza = '%s.qza' % splitext(tsv)[0]
+                        if not isfile(qza):
+                            print('Need to first import %s to .qza to do reads placement '
+                                  '(see "# Import tables to qiime2")\nExiting...' % tsv)
+                            sys.exit(0)
+
+                        cur_raref = datasets_rarefs[dat][idx]
+                        qza_in = '%s_inTree%s.qza' % (splitext(tsv)[0], cur_raref)
+                        qza_out = '%s_notInTree%s.qza' % (splitext(tsv)[0], cur_raref)
+
+                        odir_seqs = get_analysis_folder(i_datasets_folder, 'seqs/%s' % dat)
+                        odir_sepp = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
+
+                        out_fp_seqs_rad = '%s/seq_%s%s' % (odir_seqs, dat, cur_raref)
+                        out_fp_seqs_fasta = '%s.fasta' % out_fp_seqs_rad
+                        out_fp_seqs_qza = '%s.qza' % out_fp_seqs_rad
+
+                        out_fp_sepp_tree = '%s/tree_%s%s.qza' % (odir_sepp, dat, cur_raref)
+                        if idx:
+                            trees[dat].append((qza_in, out_fp_sepp_tree))
+                        else:
+                            trees[dat] = [(qza_in, out_fp_sepp_tree)]
+                        out_fp_sepp_plac = '%s/plac_%s%s.qza' % (odir_sepp, dat, cur_raref)
+
+                        written = 0
+                        if force or not isfile(out_fp_seqs_qza):
+                            cmd = write_seqs_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, tsv_pd)
+                            cur_sh.write('echo "%s"\n' % cmd)
+                            cur_sh.write('%s\n\n' % cmd)
+                            written += 1
+                        if force or not isfile(out_fp_sepp_tree):
+                            write_fragment_insertion(out_fp_seqs_qza, ref_tree_qza,
+                                                     out_fp_sepp_tree, out_fp_sepp_plac,
+                                                     qza, qza_in, qza_out, cur_sh)
+                            written += 1
+                            main_written += 1
                 run_xpbs(out_sh, out_pbs, '%s.spp.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', main_o, noloc)
-        if written:
+        if main_written:
             print_message("# Fragment insertion using SEPP (%s)" % ', '.join(sepp_datasets), 'sh', main_sh)
 
 
-def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict,
+def shear_tree(i_datasets_folder: str, datasets: dict, datasets_read: dict, datasets_phylo: dict,
                datasets_features: dict, prjct_nm: str, i_wol_tree: str, trees: dict,
-               force: bool, qiime_env: str, chmod: str, noloc: bool, run_params: dict,
-               filt_raref: str) -> None:
+               datasets_rarefs: dict, force: bool, qiime_env: str, chmod: str,
+               noloc: bool, run_params: dict, filt_raref: str) -> None:
     """
     Get the sub-tree from the Web of Life tree that corresponds to the gOTUs-labeled features.
 
@@ -133,7 +145,6 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
     # check whether there's dataset(s) that may use the Web of Life tree (i.e. features contain gID)
     wol_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'wol']
     if len(wol_datasets):
-
         job_folder = get_job_folder(i_datasets_folder, 'phylo')
         job_folder2 = get_job_folder(i_datasets_folder, 'phylo/chunks')
 
@@ -143,44 +154,52 @@ def shear_tree(i_datasets_folder: str, datasets_read: dict, datasets_phylo: dict
         main_written = 0
         main_sh = '%s/0_run_import_trees%s.sh' % (job_folder, filt_raref)
         with open(main_sh, 'w') as main_o:
-            for dat in wol_datasets:
+            for dat, tsv_metas_fps_ in datasets.items():
                 written = 0
-                if datasets_features[dat] == 'raref':
-                    tab_pd = datasets_read[dat][0]
-                    datasets_features[dat] = dict(
-                        gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_pd.index
-                    )
+                if dat not in wol_datasets:
+                    continue
+                out_sh = '%s/run_import_tree_%s%s.sh' % (job_folder2, dat, filt_raref)
+                out_pbs = out_sh.replace('.sh', '.pbs')
+                with open(out_sh, 'w') as o:
+                    for idx, tsv_metas_fps in enumerate(tsv_metas_fps_):
+                        tsv, meta = tsv_metas_fps
+                        if not isinstance(datasets_read[dat][idx][0], pd.DataFrame) and datasets_read[dat][idx][0] == 'raref':
+                            if not isfile(tsv):
+                                print('Must have run rarefaction to use it further...\nExiting')
+                                sys.exit(0)
+                            tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
+                            datasets_read[dat][idx] = [tsv_pd, meta_pd]
+                        else:
+                            tsv_pd, meta_pd = datasets_read[dat][idx]
 
-                analysis_folder = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
-                wol_features_fpo = '%s/tree_%s.nwk' % (analysis_folder, dat)
-                wol_features_qza = wol_features_fpo.replace('.nwk', '.qza')
+                        cur_raref = datasets_rarefs[dat][idx]
+                        cur_datasets_features = dict(
+                            gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tsv_pd.index)
 
-                trees[dat] = ('', wol_features_qza)
+                        analysis_folder = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
+                        wol_features_fpo = '%s/tree_%s%s.nwk' % (analysis_folder, dat, cur_raref)
+                        wol_features_qza = wol_features_fpo.replace('.nwk', '.qza')
 
-                if force or not isfile(wol_features_qza):
+                        if idx:
+                            trees[dat].append(('', wol_features_qza))
+                        else:
+                            trees[dat] = [('', wol_features_qza)]
 
-                    cur_datasets_features = datasets_features[dat]
-                    wol_features = wol.shear(list(cur_datasets_features.keys()))
-                    # rename the tip per the features names associated with each gID
-                    for tip in wol_features.tips():
-                        tip.name = cur_datasets_features[tip.name]
-
-                    out_sh = '%s/run_import_tree_%s%s.sh' % (job_folder2, dat, filt_raref)
-                    out_pbs = out_sh.replace('.sh', '.pbs')
-                    wol_features.write(wol_features_fpo)
-
-                    with open(out_sh, 'w') as o:
-                        cmd = run_import(wol_features_fpo, wol_features_qza, "Phylogeny[Rooted]")
-                        o.write("echo '%s'\n" % cmd)
-                        o.write('%s\n\n' % cmd)
-
-                    written += 1
-                    main_written += 1
-                    main_written + 1
-                    run_xpbs(out_sh, out_pbs, '%s.shr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
-                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                             run_params["mem_num"], run_params["mem_dim"],
-                             chmod, written, 'single', main_o, noloc)
+                        if force or not isfile(wol_features_qza):
+                            wol_features = wol.shear(list(cur_datasets_features.keys()))
+                            # rename the tip per the features names associated with each gID
+                            for tip in wol_features.tips():
+                                tip.name = cur_datasets_features[tip.name]
+                            wol_features.write(wol_features_fpo)
+                            cmd = run_import(wol_features_fpo, wol_features_qza, "Phylogeny[Rooted]")
+                            o.write("echo '%s'\n" % cmd)
+                            o.write('%s\n\n' % cmd)
+                        written += 1
+                        main_written += 1
+                run_xpbs(out_sh, out_pbs, '%s.shr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                         run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                         run_params["mem_num"], run_params["mem_dim"],
+                         chmod, written, 'single', main_o, noloc)
         if main_written:
             print_message("# Shear Web of Life tree to features' genome IDs (%s)" % ', '.join(wol_datasets), 'sh', main_sh)
 

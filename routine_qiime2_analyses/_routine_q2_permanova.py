@@ -74,9 +74,9 @@ def run_single_perm(odir: str, subset: str, meta_pd: pd.DataFrame,
 
 
 def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tuple,
-                  p_beta_type: tuple, p_perm_groups: str, force: bool, prjct_nm: str,
-                  qiime_env: str, chmod: str, noloc: bool, split: bool,
-                  run_params: dict, filt_raref: str) -> None:
+                  p_beta_type: tuple, datasets_rarefs: dict, p_perm_groups: str,
+                  force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
+                  split: bool, run_params: dict, filt_raref: str) -> None:
     """
     Run beta-group-significance: Beta diversity group significance.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
@@ -98,43 +98,44 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
     metric_check = set()
     all_sh_pbs = {}
     first_print = 0
-    for dat in betas.keys():
-        odir = get_analysis_folder(i_datasets_folder, 'permanova/%s' % dat)
+
+    for dat, metric_groups_metas_dms_ in betas.items():
         if not split:
             out_sh = '%s/run_beta_group_significance_%s%s.sh' % (job_folder2, dat, filt_raref)
-        for metric, subset_files in betas[dat].items():
-            if split:
-                out_sh = '%s/run_beta_group_significance_%s_%s%s.sh' % (job_folder2, dat, metric, filt_raref)
-            for subset, (meta, qza, mat_qza) in subset_files.items():
+        for idx, metric_groups_metas_dms in enumerate(metric_groups_metas_dms_):
+            cur_depth = datasets_rarefs[dat][idx]
+            odir = get_analysis_folder(i_datasets_folder, 'permanova/%s%s' % (dat, cur_depth))
+            for metric, subset_files in metric_groups_metas_dms.items():
+                if split:
+                    out_sh = '%s/run_beta_group_significance_%s_%s%s.sh' % (job_folder2, dat, metric, filt_raref)
+                for subset, (meta, qza, mat_qza) in subset_files.items():
+                    if not isfile(mat_qza):
+                        if not first_print:
+                            print('Beta diversity, distances matrices must be generated already to automatise PERMANOVA\n'
+                                  '\t(re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)')
+                            first_print += 1
+                        continue
+                    if (dat, subset) not in metric_check:
+                        meta_pd = read_meta_pd(meta)
+                        meta_pd = meta_pd.set_index('sample_name')
+                        cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'PERMANOVA')
+                        testing_groups = check_metadata_testing_groups(meta, meta_pd, main_testing_groups, 'PERMANOVA')
+                        metric_check.add((dat, subset))
 
-                if not isfile(mat_qza):
-                    if not first_print:
-                        print('Beta diversity, distances matrices must be generated already to automatise PERMANOVA\n'
-                              '\t(re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)')
-                        first_print += 1
-                    continue
-
-                if (dat, subset) not in metric_check:
-                    meta_pd = read_meta_pd(meta)
-                    meta_pd = meta_pd.set_index('sample_name')
-                    cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'PERMANOVA')
-                    testing_groups = check_metadata_testing_groups(meta, meta_pd, main_testing_groups, 'PERMANOVA')
-                    metric_check.add((dat, subset))
-
-                for case_var, case_vals_list in cases_dict.items():
-                    testing_groups_case_var = list(set(testing_groups + [case_var]))
-                    for case_vals in case_vals_list:
-                        case_ = get_case(case_vals, case_var).replace(' ', '_')
-                        for testing_group in testing_groups_case_var:
-                            if testing_group == 'ALL':
-                                continue
-                            cur_sh = '%s/run_beta_group_significance_%s_%s_%s_%s_%s%s.sh' % (
-                                job_folder2, dat, metric, subset, case_, testing_group, filt_raref)
-                            cur_sh = cur_sh.replace(' ', '-')
-                            all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                            run_single_perm(odir, subset, meta_pd, cur_sh, metric, case_,
-                                            testing_group, p_beta_type, qza, mat_qza,
-                                            case_var, case_vals, force)
+                    for case_var, case_vals_list in cases_dict.items():
+                        testing_groups_case_var = list(set(testing_groups + [case_var]))
+                        for case_vals in case_vals_list:
+                            case_ = get_case(case_vals, case_var).replace(' ', '_')
+                            for testing_group in testing_groups_case_var:
+                                if testing_group == 'ALL':
+                                    continue
+                                cur_sh = '%s/run_beta_group_significance_%s%s_%s_%s_%s_%s%s.sh' % (
+                                    job_folder2, dat, cur_depth, metric, subset, case_, testing_group, filt_raref)
+                                cur_sh = cur_sh.replace(' ', '-')
+                                all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
+                                run_single_perm(odir, subset, meta_pd, cur_sh, metric, case_,
+                                                testing_group, p_beta_type, qza, mat_qza,
+                                                case_var, case_vals, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'permanova')
     main_sh = write_main_sh(job_folder, '3_run_beta_group_significance%s' % filt_raref, all_sh_pbs,

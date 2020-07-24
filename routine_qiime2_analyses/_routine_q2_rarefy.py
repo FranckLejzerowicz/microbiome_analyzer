@@ -30,7 +30,7 @@ def get_raref_depths(p_raref_depths):
 def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                datasets_phylo: dict, datasets_filt_map: dict, datasets_rarefs: dict,
                p_raref_depths: str, eval_rarefs: bool, force: bool, prjct_nm: str, qiime_env: str,
-               chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> (dict, dict):
+               chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> dict:
     """
     Run rarefy: Rarefy table.
     https://docs.qiime2.org/2019.10/plugins/available/feature-table/rarefy/
@@ -63,17 +63,17 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     job_folder2 = get_job_folder(i_datasets_folder, 'rarefy%s/chunks' % evaluation)
     run_pbs = '%s/1_run_rarefy%s%s.sh' % (job_folder, evaluation, filt_raref)
     with open(run_pbs, 'w') as o:
-        for dat, tsv_meta_pds in datasets.items():
+        for dat, tsv_meta_pds_ in datasets.items():
 
             written = 0
             if dat in datasets_filt_map:
                 if dat not in datasets_raref_depths:
-                    datasets_rarefs[dat] = 0
+                    datasets_rarefs[dat].append(0)
                     continue
                 datasets_raref_depths[dat] = datasets_raref_depths[datasets_filt_map[dat]]
 
             if dat not in datasets_raref_depths:
-                datasets_rarefs[dat] = 0
+                datasets_rarefs[dat].append(0)
                 continue
 
             odir = get_analysis_folder(i_datasets_folder, 'rarefy%s/%s' % (evaluation, dat))
@@ -84,39 +84,45 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 depths = datasets_raref_depths[dat]
                 if eval_rarefs:
                     depths = datasets_raref_evals[dat]
-                for depth in depths:
-                    print(dat, depth)
-                    dat_raref = '%s_raref%s%s' % (dat, evaluation, depth)
-                    datasets_rarefs[dat] = 'raref%s%s' % (evaluation, depth)
 
+                for tsv_meta_pds in tsv_meta_pds_:
                     tsv, meta = tsv_meta_pds
-                    meta_out = '%s/meta_%s.tsv' % (odir, dat_raref)
-                    subprocess.call(['cp', meta, meta_out])
+                    for ddx, depth in enumerate(depths):
+                        dat_raref = '%s_raref%s%s' % (dat, evaluation, depth)
+                        meta_out = '%s/meta_%s.tsv' % (odir, dat_raref)
+                        subprocess.call(['cp', meta, meta_out])
+                        qza = tsv.replace('.tsv', '.qza')
+                        qza_out = '%s/tab_%s.qza' % (odir, dat_raref)
+                        tsv_out = '%s.tsv' % splitext(qza_out)[0]
+                        if force or not os.path.isfile(qza_out):
+                            write_rarefy(qza, qza_out, depth, cur_sh)
+                            main_written += 1
+                            written += 1
+                        if force or not os.path.isfile(tsv_out):
+                            cmd = run_export(qza_out, tsv_out, 'FeatureTable[Frequency]')
+                            cur_sh.write('echo "%s"\n' % cmd)
+                            cur_sh.write('%s\n\n' % cmd)
+                            main_written += 1
+                            written += 1
 
-                    qza = tsv.replace('.tsv', '.qza')
-                    qza_out = '%s/tab_%s.qza' % (odir, dat_raref)
-                    tsv_out = '%s.tsv' % splitext(qza_out)[0]
-                    if force or not os.path.isfile(qza_out):
-                        write_rarefy(qza, qza_out, depth, cur_sh)
-                        main_written += 1
-                        written += 1
-                    if force or not os.path.isfile(tsv_out):
-                        cmd = run_export(qza_out, tsv_out, 'FeatureTable[Frequency]')
-                        cur_sh.write('echo "%s"\n' % cmd)
-                        cur_sh.write('%s\n\n' % cmd)
-                        main_written += 1
-                        written += 1
-
-                    if eval_rarefs:
-                        eval_depths.setdefault(dat, []).append('%s_%s' % (dat, depth))
-                        datasets_eval['%s_%s' % (dat, depth)] = [tsv_out, meta_out]
-                        datasets_read_eval['%s_%s' % (dat, depth)] = ('raref', depth)
-                        datasets_phylo_eval['%s_%s' % (dat, depth)] = datasets_phylo[dat]
-                    else:
-                        datasets[dat] = [tsv_out, meta_out]
-                        datasets_read[dat] = ('raref', depth)
-                        datasets_phylo[dat] = datasets_phylo[dat]
-                        # datasets_features[dat] = 'raref'
+                        if eval_rarefs:
+                            eval_depths.setdefault(dat, []).append('%s_%s' % (dat, depth))
+                            datasets_eval['%s_%s' % (dat, depth)] = [[tsv_out, meta_out]]
+                            # datasets_eval['%s_%s' % (dat, depth)] = [[tsv_out, meta_out]]
+                            datasets_read_eval['%s_%s' % (dat, depth)] = ('raref', depth)
+                            datasets_phylo_eval['%s_%s' % (dat, depth)] = datasets_phylo[dat]
+                        else:
+                            if ddx:
+                                datasets[dat].append([tsv_out, meta_out])
+                                datasets_read[dat].append(('raref', depth))
+                                datasets_rarefs[dat].append('_raref%s%s' % (evaluation, depth))
+                            else:
+                                datasets[dat] = [[tsv_out, meta_out]]
+                                datasets_read[dat] = [('raref', depth)]
+                                datasets_rarefs[dat] = ['_raref%s%s' % (evaluation, depth)]
+                            # datasets[dat] = [tsv_out, meta_out]
+                            # datasets_read[dat] = ('raref', depth)
+                            datasets_phylo[dat] = datasets_phylo[dat]
             run_xpbs(out_sh, out_pbs, '%s.bt%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
                      qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
@@ -128,7 +134,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     datasets_read.update(datasets_read_eval)
     datasets_phylo.update(datasets_phylo_eval)
 
-    return datasets_raref_depths, eval_depths
+    return eval_depths
 
 
 def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
@@ -144,46 +150,47 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
     datasets_raref_depths_yml = get_raref_depths(p_raref_depths)
     datasets_raref_depths = {}
     datasets_raref_evals = {}
-    for dat, (tsv_pd, meta_pd) in datasets_read.items():
-        tsv_sam_sum = tsv_pd.sum()
-        datasets_raref_evals[dat] = set([int(x) for x in tsv_sam_sum.describe(
-            percentiles=[x / 100 for x in range(10, 101, 10)])[4:-1]])
-        if dat in datasets_raref_depths_yml:
-            depths = datasets_raref_depths_yml[dat]
-            datasets_raref_depths[dat] = depths
-            datasets_raref_evals[dat].update(set([int(x) for x in depths]))
-            continue
-        raref_files = glob.glob('%s/qiime/rarefy/%s/tab_raref*.qza' % (i_datasets_folder, dat))
-        if len(raref_files):
-            datasets_raref_depths[dat] = [x.split('_raref')[-1].split('.tsv')[0] for x in raref_files]
-        else:
-            count, division = np.histogram(tsv_sam_sum)
-            skw = skew(count)
-            if abs(skw) > 1:
-                print()
-                print(' ==> Consider rarefying <==')
-                print('[%s] Reads-per-sample distribution [skewness=%s] (>1!)' % (dat, round(abs(float(skw)), 3)))
-                division_std = np.interp(count, (min(count), max(count)), (0, 20))
-                print('\treadsbin\tsamples\thistogram')
-                for ddx, div in enumerate(division_std):
-                    if div > 1:
-                        print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], '-' * int(div)))
-                    elif div == 0:
-                        print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], ''))
-                    else:
-                        print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], '-'))
-            second_quantile = tsv_sam_sum.quantile(0.2)
-            if second_quantile < 1000:
-                print('[%s] Second quantile of the reads-per-sample distribution is <1000' % dat)
-                print('- The sequencing might have failed! Analyze with caution')
-                print('- reads-per-sample distribution described:')
-                for x,y in tsv_sam_sum.describe().to_dict().items():
-                    print('\t%s: %s' % (x, round(y, 3)))
-                print('!!! NOT RAREFYING %s !!!' % dat)
+    for dat, tsv_meta_pds in datasets_read.items():
+        for (tsv_pd, meta_pd) in tsv_meta_pds:
+            tsv_sam_sum = tsv_pd.sum()
+            datasets_raref_evals[dat] = set([int(x) for x in tsv_sam_sum.describe(
+                percentiles=[x / 100 for x in range(10, 101, 10)])[4:-1]])
+            if dat in datasets_raref_depths_yml:
+                depths = datasets_raref_depths_yml[dat]
+                datasets_raref_depths[dat] = depths
+                datasets_raref_evals[dat].update(set([int(x) for x in depths]))
+                continue
+            raref_files = glob.glob('%s/qiime/rarefy/%s/tab_raref*.qza' % (i_datasets_folder, dat))
+            if len(raref_files):
+                datasets_raref_depths[dat] = [x.split('_raref')[-1].split('.tsv')[0] for x in raref_files]
             else:
-                nfigure = len(str(int(second_quantile)))
-                second_quantile_to_round = second_quantile / ( 10 ** (nfigure - 2) )
-                second_quantile_rounded = round(second_quantile_to_round) * ( 10 ** (nfigure - 2) )
-                print('[%s] Proposed rarefaction depth: %s (second quantile)' % (dat, second_quantile_rounded))
-                datasets_raref_depths[dat] = [str(int(second_quantile_rounded))]
+                count, division = np.histogram(tsv_sam_sum)
+                skw = skew(count)
+                if abs(skw) > 1:
+                    print()
+                    print(' ==> Consider rarefying <==')
+                    print('[%s] Reads-per-sample distribution [skewness=%s] (>1!)' % (dat, round(abs(float(skw)), 3)))
+                    division_std = np.interp(count, (min(count), max(count)), (0, 20))
+                    print('\treadsbin\tsamples\thistogram')
+                    for ddx, div in enumerate(division_std):
+                        if div > 1:
+                            print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], '-' * int(div)))
+                        elif div == 0:
+                            print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], ''))
+                        else:
+                            print('\t%s\t%s\t%s' % (format(division[ddx], '6.3E'), count[ddx], '-'))
+                second_quantile = tsv_sam_sum.quantile(0.2)
+                if second_quantile < 1000:
+                    print('[%s] Second quantile of the reads-per-sample distribution is <1000' % dat)
+                    print('- The sequencing might have failed! Analyze with caution')
+                    print('- reads-per-sample distribution described:')
+                    for x,y in tsv_sam_sum.describe().to_dict().items():
+                        print('\t%s: %s' % (x, round(y, 3)))
+                    print('!!! NOT RAREFYING %s !!!' % dat)
+                else:
+                    nfigure = len(str(int(second_quantile)))
+                    second_quantile_to_round = second_quantile / ( 10 ** (nfigure - 2) )
+                    second_quantile_rounded = round(second_quantile_to_round) * ( 10 ** (nfigure - 2) )
+                    print('[%s] Proposed rarefaction depth: %s (second quantile)' % (dat, second_quantile_rounded))
+                    datasets_raref_depths[dat] = [str(int(second_quantile_rounded))]
     return datasets_raref_depths, datasets_raref_evals

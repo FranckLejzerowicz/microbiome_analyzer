@@ -313,6 +313,20 @@ def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict):
 
 def get_doc_config(p_doc_config: str) -> (dict, dict):
     main_cases_dict = {'ALL': [[]]}
+    doc_params = {
+        'r': 50,
+        'subr': 0,
+        'mov_avg': 5,
+        'ci': ['0.025', '0.5', '0.975'],
+        'span': 0.2,
+        'degree': 1,
+        'family': 'symmetric',
+        'iterations': 2,
+        'surface': 'direct',
+        'nulls': 1,
+        'non-zero': 1,
+        'null': 1
+    }
     if p_doc_config:
         if not isfile(p_doc_config):
             print('DOC config yaml file does not exist:\n%s\nExiting...' % p_doc_config)
@@ -320,8 +334,10 @@ def get_doc_config(p_doc_config: str) -> (dict, dict):
         with open(p_doc_config) as handle:
             doc_config = yaml.load(handle, Loader=yaml.FullLoader)
         if 'subsets' in doc_config:
-            main_cases_dict.update(doc_config['subsets'])
-    return doc_config, main_cases_dict
+            main_cases_dict = doc_config['subsets']
+        if 'params' in doc_config:
+            doc_params.update(doc_config['params'])
+    return doc_config, doc_params, main_cases_dict
 
 
 def get_main_cases_dict(p_perm_groups: str) -> dict:
@@ -585,13 +601,14 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
         meta_sam_col = get_sample_col(meta)
         meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str}, low_memory=False)
         meta_pd.rename(columns={meta_sam_col: 'sample_name'}, inplace=True)
-        datasets[dat] = [path, meta]
-        # path_pd : indexed with feature name
-        # meta_pd : not indexed -> "sample_name" as first column
-        datasets_read[dat] = [path_pd, meta_pd]
+        datasets[dat] = [[path, meta]]
+        # datasets[dat] = [path, meta]
+        datasets_read[dat] = [[path_pd, meta_pd]]
+        # datasets_read[dat] = [path_pd, meta_pd]
         datasets_features[dat] = {}
         datasets_phylo[dat] = ('', 0)
-        datasets_rarefs[dat] = ''
+        # datasets_rarefs[dat] = ''
+        datasets_rarefs[dat] = ['']
         gID_or_DNA(dat, path, path_pd, datasets_read, datasets_features, datasets_phylo)
     return datasets, datasets_read, datasets_features, datasets_phylo, datasets_rarefs
 

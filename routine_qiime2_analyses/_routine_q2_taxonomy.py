@@ -97,9 +97,10 @@ def run_taxonomy_amplicon(dat: str, i_datasets_folder: str, force: bool, tsv_pd:
     return cmd
 
 
-def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict, datasets_phylo: dict,
-                 datasets_features: dict, i_classifier: str, taxonomies: dict, force: bool,
-                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
+def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict, datasets_read: dict,
+                 datasets_phylo: dict, datasets_features: dict, i_classifier: str,
+                 taxonomies: dict, force: bool, prjct_nm: str, qiime_env: str,
+                 chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
     """
     classify-sklearn: Pre-fitted sklearn-based taxonomy classifier
 
@@ -120,61 +121,73 @@ def run_taxonomy(i_datasets_folder: str, datasets: dict, datasets_read: dict, da
     amplicon_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'amplicon']
     wol_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'wol']
 
-    method = 'sklearn'
-    # method = 'hybrid-vsearch-sklearn'
-    # method = 'consensus-blast'
-    # method = 'consensus-vsearch'
     written = 0
     run_pbs = '%s/1_run_taxonomy%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
-        for dat, tsv_meta_pds in datasets_read.items():
-            if dat in taxonomies:
-                continue
-            tsv, meta = datasets[dat]
-            if not isinstance(tsv_meta_pds[0], pd.DataFrame) and tsv_meta_pds[0] == 'raref':
-                if not isfile(tsv):
-                    print('Must have run rarefaction to use it further...\nExiting')
-                    sys.exit(0)
-                tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
-                datasets_read[dat] = [tsv_pd, meta_pd]
-            else:
-                tsv_pd, meta_pd = tsv_meta_pds
-
+        for dat, tsv_meta_pds_ in datasets_read.items():
             out_sh = '%s/run_taxonomy_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if dat in taxonomies:
+                continue
             with open(out_sh, 'w') as cur_sh:
-                odir = get_analysis_folder(i_datasets_folder, 'taxonomy/%s' % dat)
-                out_rad = '%s/tax_%s' % (odir, dat)
-                if dat in amplicon_datasets:
-                    out_qza = '%s_%s.qza' % (out_rad, method)
-                    out_tsv = '%s.tsv' % splitext(out_qza)[0]
-                    taxonomies[dat] = [method, out_qza]
-                    if not i_classifier:
-                        print('No classifier passed for 16S data\nExiting...')
-                        continue
-                    cmd = run_taxonomy_amplicon(dat, i_datasets_folder, force, tsv_pd,
-                                                out_qza, out_tsv, i_classifier)
-                else:
-                    out_qza = '%s.qza' % out_rad
-                    out_tsv = '%s.tsv' % out_rad
-                    if dat in wol_datasets:
-                        cur_datasets_features = datasets_features[dat]
-                        taxonomies[dat] = ['wol', out_qza]
-                        cmd = run_taxonomy_wol(force, tsv_pd, out_qza, out_tsv,
-                                               cur_datasets_features)
+                for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
+                    tsv, meta = datasets[dat][idx]
+                    if not isinstance(tsv_meta_pds[0], pd.DataFrame) and tsv_meta_pds[0] == 'raref':
+                        if not isfile(tsv):
+                            print('Must have run rarefaction to use it further...\nExiting')
+                            sys.exit(0)
+                        tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
+                        datasets_read[dat][idx] = [tsv_pd, meta_pd]
                     else:
-                        if len([x for x in tsv_pd.index if str(x).isdigit()]) == tsv_pd.shape[0]:
+                        tsv_pd, meta_pd = tsv_meta_pds
+
+                    odir = get_analysis_folder(i_datasets_folder, 'taxonomy/%s' % dat)
+                    out_rad = '%s/tax_%s' % (odir, dat)
+
+                    if dat in amplicon_datasets:
+                        out_qza = '%s_%s.qza' % (out_rad, method)
+                        out_tsv = '%s.tsv' % splitext(out_qza)[0]
+                        # if dat in taxonomies:
+                        #     if out_tsv == [dat][-1]:
+                        #         continue
+                        #     tax_tsv_ref = taxonomies[dat][-1]
+                        #     tax_tsv_ref_pd = pd.read_csv(tax_tsv_ref, header=0, index_col=0, sep='\t')
+                        #     print(tax_tsv_ref_pd.shape)
+                        #     print(tax_tsv_ref_pd.iloc[:3,:3])
+                        #     print(tsv_pd.shape)
+                        #     print(tsv_pd.iloc[:3,:3])
+                        #     tax_pd = tax_tsv_ref_pd.loc[tsv_pd.index]
+                        #     print(tax_pd.shape)
+                        #     print(tax_pd.iloc[:3,:3])
+                        #     print(tax_pvdv)
+                        # else:
+                        taxonomies[dat] = [method, out_qza, out_tsv]
+                        if not i_classifier:
+                            print('No classifier passed for 16S data\nExiting...')
                             continue
-                        taxonomies[dat] = ['feat', out_qza]
-                        cmd = run_taxonomy_others(force, tsv_pd, out_qza, out_tsv)
-                if cmd:
-                    cur_sh.write('echo "%s"\n' % cmd)
-                    cur_sh.write('%s\n\n' % cmd)
-                    written += 1
-            run_xpbs(out_sh, out_pbs, '%s.tx.sklrn.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
-                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                     run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                        cmd = run_taxonomy_amplicon(dat, i_datasets_folder, force, tsv_pd,
+                                                    out_qza, out_tsv, i_classifier)
+                    else:
+                        out_qza = '%s.qza' % out_rad
+                        out_tsv = '%s.tsv' % out_rad
+                        if dat in wol_datasets:
+                            cur_datasets_features = datasets_features[dat]
+                            taxonomies[dat] = ['wol', out_qza, out_tsv]
+                            cmd = run_taxonomy_wol(force, tsv_pd, out_qza, out_tsv,
+                                                   cur_datasets_features)
+                        else:
+                            if len([x for x in tsv_pd.index if str(x).isdigit()]) == tsv_pd.shape[0]:
+                                continue
+                            taxonomies[dat] = ['feat', out_qza, out_tsv]
+                            cmd = run_taxonomy_others(force, tsv_pd, out_qza, out_tsv)
+                    if cmd:
+                        cur_sh.write('echo "%s"\n' % cmd)
+                        cur_sh.write('%s\n\n' % cmd)
+                        written += 1
+                run_xpbs(out_sh, out_pbs, '%s.tx.sklrn.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                         run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                         run_params["mem_num"], run_params["mem_dim"],
+                         chmod, written, 'single', o, noloc)
     if written:
         print_message('# Classify features using classify-sklearn', 'sh', run_pbs)
 
@@ -199,22 +212,23 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
     written = 0
     run_pbs = '%s/1_run_barplot%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
-        for dat, tsv_meta_pds in datasets.items():
-            tsv, meta = tsv_meta_pds
-            if dat not in taxonomies:
-                continue
-            method, tax_qza = taxonomies[dat]
-            if not method:
-                method = 'taxofromfile'
-            qza = '%s.qza' % splitext(tsv)[0]
+        for dat, tsv_meta_pds_ in datasets.items():
             out_sh = '%s/run_barplot_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
-                odir = get_analysis_folder(i_datasets_folder, 'barplot/%s' % dat)
-                out_qzv = '%s/bar_%s_%s.qzv' % (odir, dat, method)
-                if force or not isfile(out_qzv):
-                    write_barplots(out_qzv, qza, meta, tax_qza, cur_sh)
-                    written += 1
+                for tsv_meta_pds in tsv_meta_pds_:
+                    tsv, meta = tsv_meta_pds
+                    if dat not in taxonomies:
+                        continue
+                    method, tax_qza, tax_tsv = taxonomies[dat]
+                    if not method:
+                        method = 'taxofromfile'
+                    qza = '%s.qza' % splitext(tsv)[0]
+                    odir = get_analysis_folder(i_datasets_folder, 'barplot/%s' % dat)
+                    out_qzv = '%s/bar_%s_%s.qzv' % (odir, dat, method)
+                    if force or not isfile(out_qzv):
+                        write_barplots(out_qzv, qza, meta, tax_qza, cur_sh)
+                        written += 1
             run_xpbs(out_sh, out_pbs, '%s.brplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
@@ -223,14 +237,23 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
         print_message('# Make sample compositions barplots', 'sh', run_pbs)
 
 
-def get_precomputed_taxonomies(i_datasets_folder: str, datasets: dict, taxonomies: dict) -> None:
+def get_precomputed_taxonomies(i_datasets_folder: str, datasets: dict,
+                               taxonomies: dict, method: str) -> None:
     """
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets: dataset -> [tsv/biom path, meta path]
     :param taxonomies: dataset -> [classification_method, tax_qza]
     """
     for dat in datasets:
+
         analysis_folder = get_analysis_folder(i_datasets_folder, 'taxonomy/%s' % dat)
-        tax_qza = '%s/tax_%s.qza' % (analysis_folder, dat)
+
+        tax_qza = '%s/tax_%s_%s.qza' % (analysis_folder, dat, method)
+        tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
         if isfile(tax_qza):
-            taxonomies[dat] = ('', tax_qza)
+            taxonomies[dat] = ['', tax_qza, tax_tsv]
+
+        tax_qza = '%s/tax_%s.qza' % (analysis_folder, dat)
+        tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
+        if isfile(tax_qza):
+            taxonomies[dat] = ['', tax_qza, tax_tsv]

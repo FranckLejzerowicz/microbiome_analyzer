@@ -156,7 +156,7 @@ def routine_qiime2_analyses(
     eval_depths = {}
     if raref:
         print('(run_rarefy)')
-        datasets_rarefs, eval_depths = run_rarefy(
+        eval_depths = run_rarefy(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_filt_map, datasets_rarefs, p_raref_depths, eval_rarefs, force,
             prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'],
@@ -164,8 +164,12 @@ def routine_qiime2_analyses(
 
     # TAXONOMY ------------------------------------------------------------
     taxonomies = {}
+    method = 'sklearn'
+    # method = 'hybrid-vsearch-sklearn'
+    # method = 'consensus-blast'
+    # method = 'consensus-vsearch'
     print('(get_precomputed_taxonomies)')
-    get_precomputed_taxonomies(i_datasets_folder, datasets, taxonomies)
+    get_precomputed_taxonomies(i_datasets_folder, datasets, taxonomies, method)
     if i_qemistree and 'qemistree' not in p_skip:
         if isdir(i_qemistree):
             print('(run_qemistree)')
@@ -177,7 +181,7 @@ def routine_qiime2_analyses(
 
     if 'taxonomy' not in p_skip:
         print('(run_taxonomy)')
-        run_taxonomy(i_datasets_folder, datasets, datasets_read,
+        run_taxonomy(method, i_datasets_folder, datasets, datasets_read,
                      datasets_phylo, datasets_features, i_classifier,
                      taxonomies, force, prjct_nm, qiime_env, chmod, noloc,
                      run_params['taxonomy'], filt_raref)
@@ -186,20 +190,127 @@ def routine_qiime2_analyses(
             run_barplot(i_datasets_folder, datasets, taxonomies,
                         force, prjct_nm, qiime_env, chmod, noloc,
                         run_params['barplot'], filt_raref)
+
     # TREES ------------------------------------------------------------
     trees = {}
     print('(get_precomputed_trees)')
     get_precomputed_trees(i_datasets_folder, datasets, datasets_phylo, trees)
     if 'wol' not in p_skip:
         print('(shear_tree)')
-        shear_tree(i_datasets_folder, datasets_read, datasets_phylo,
-                   datasets_features, prjct_nm, i_wol_tree, trees,
+        shear_tree(i_datasets_folder, datasets, datasets_read, datasets_phylo,
+                   datasets_features, prjct_nm, i_wol_tree, trees, datasets_rarefs,
                    force, qiime_env, chmod, noloc, run_params['wol'], filt_raref)
     if i_sepp_tree and 'sepp' not in p_skip:
         print('(run_sepp)')
         run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo,
-                 prjct_nm, i_sepp_tree, trees, force, qiime_env, chmod, noloc,
-                 run_params['sepp'], filt_raref)
+                 datasets_rarefs, prjct_nm, i_sepp_tree, trees, force,
+                 qiime_env, chmod, noloc, run_params['sepp'], filt_raref)
+
+    # DISSIMILARITY OVERLAP --------------------------------------------
+    if 'doc' not in p_skip:
+        print('(run_doc)')
+        run_doc(i_datasets_folder, datasets, p_doc_config,
+                datasets_rarefs, force, prjct_nm, qiime_env, chmod,
+                noloc, run_params['doc'], filt_raref, eval_depths)
+
+    # ALPHA ------------------------------------------------------------
+    if 'alpha' not in p_skip:
+        print('(diversities)')
+        diversities = run_alpha(i_datasets_folder, datasets, datasets_read,
+                                datasets_phylo, datasets_rarefs, p_alpha_subsets,
+                                trees, force, prjct_nm, qiime_env, chmod, noloc,
+                                As, dropout, run_params['alpha'], filt_raref,
+                                eval_depths)
+        if 'merge_alpha' not in p_skip:
+            print('(to_export)')
+            to_export = merge_meta_alpha(i_datasets_folder, datasets, datasets_rarefs,
+                                         diversities, force, prjct_nm, qiime_env, chmod,
+                                         noloc,  dropout, run_params['merge_alpha'],
+                                         filt_raref, eval_depths)
+            if 'export_alpha' not in p_skip:
+                print('(export_meta_alpha)')
+                export_meta_alpha(datasets, filt_raref, datasets_rarefs, to_export, dropout)
+        if 'alpha_correlations' not in p_skip:
+            print('(run_correlations)')
+            run_correlations(i_datasets_folder, datasets, diversities,
+                             datasets_rarefs, force, prjct_nm, qiime_env,
+                             chmod, noloc, run_params['alpha_correlations'],
+                             filt_raref)
+        if p_longi_column:
+            if 'volatility' not in p_skip:
+                print('(run_volatility)')
+                run_volatility(i_datasets_folder, datasets, p_longi_column,
+                               datasets_rarefs, force, prjct_nm, qiime_env, chmod,
+                               noloc, run_params['volatility'], filt_raref)
+
+    # BETA ----------------------------------------------------------------------
+    if 'beta' not in p_skip:
+        print('(betas)')
+        betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
+                         datasets_read, datasets_rarefs, p_beta_subsets,
+                         trees, force, prjct_nm, qiime_env, chmod, noloc,
+                         Bs, dropout, run_params['beta'], filt_raref,
+                         eval_depths)
+        if 'export_beta' not in p_skip:
+            print('(export_beta)')
+            export_beta(i_datasets_folder, betas, datasets_rarefs,
+                        force, prjct_nm, qiime_env, chmod, noloc,
+                        run_params['export_beta'], filt_raref)
+        if 'emperor' not in p_skip:
+            print('(run_pcoas)')
+            pcoas = run_pcoas(i_datasets_folder, betas, datasets_rarefs,
+                              force, prjct_nm, qiime_env, chmod, noloc,
+                              run_params['pcoa'], filt_raref)
+            print('(run_emperor)')
+            run_emperor(i_datasets_folder, pcoas, datasets_rarefs,
+                        prjct_nm, qiime_env, chmod, noloc,
+                        run_params['emperor'], filt_raref)
+        if 'emperor_biplot' not in p_skip:
+            print('(run_biplots)')
+            biplots = run_biplots(i_datasets_folder, betas,
+                                  datasets_rarefs,  taxonomies, force,
+                                  prjct_nm, qiime_env, chmod, noloc,
+                                  run_params['biplot'], filt_raref)
+            print('(run_emperor_biplot)')
+            run_emperor_biplot(i_datasets_folder, biplots, taxonomies,
+                               datasets_rarefs, prjct_nm, qiime_env, chmod,
+                               noloc, run_params['emperor_biplot'], filt_raref)
+
+    # STATS ------------------------------------------------------------------
+    if 'beta' not in p_skip and 'deicode' not in p_skip:
+        print('(run_deicode)')
+        run_deicode(i_datasets_folder, datasets, datasets_rarefs,
+                    p_perm_groups, force, prjct_nm, qiime_env, chmod,
+                    noloc, run_params['deicode'], filt_raref)
+    if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
+        print('(run_alpha_group_significance)')
+        run_alpha_group_significance(i_datasets_folder, datasets, diversities,
+                                     datasets_rarefs, p_perm_groups, force,
+                                     prjct_nm, qiime_env, chmod, noloc, As, split,
+                                     run_params['alpha_kw'], filt_raref)
+    if p_perm_tests:
+        if 'beta' not in p_skip and 'permanova' not in p_skip:
+            print('(run_permanova)')
+            run_permanova(i_datasets_folder, betas, p_perm_tests, p_beta_type,
+                          datasets_rarefs, p_perm_groups, force, prjct_nm,
+                          qiime_env, chmod, noloc, split,
+                          run_params['permanova'], filt_raref)
+    if p_formulas:
+        if 'beta' not in p_skip and 'adonis' not in p_skip:
+            print('(run_adonis)')
+            run_adonis(p_formulas, i_datasets_folder, betas, datasets_rarefs,
+                       p_perm_groups, force, prjct_nm, qiime_env, chmod,
+                       noloc, split, run_params['adonis'], filt_raref)
+
+    if 'beta' not in p_skip and p_procrustes:
+        if betas and 'procrustes' not in p_skip:
+            print('(run_procrustes)')
+            run_procrustes(i_datasets_folder, datasets, datasets_filt, datasets_rarefs,
+                           p_procrustes, betas, force, prjct_nm, qiime_env,
+                           chmod, noloc, split, run_params['procrustes'],
+                           filt_raref, eval_depths)
+
+    # PHATE ---------------------------------------------------------------------
 
     print("datasets")
     print(datasets)
@@ -209,109 +320,7 @@ def routine_qiime2_analyses(
     print(datasets_filt)
     print("datasets_filt_map")
     print(datasets_filt_map)
-
-    # DISSIMILARITY OVERLAP --------------------------------------------
-    if 'doc' not in p_skip:
-        print('(run_doc)')
-        run_doc(i_datasets_folder, datasets, p_doc_config,
-                force, prjct_nm, qiime_env, chmod, noloc,
-                run_params['doc'], filt_raref, eval_depths)
-
-    # ALPHA ------------------------------------------------------------
-    if 'alpha' not in p_skip:
-        print('(diversities)')
-        diversities = run_alpha(i_datasets_folder, datasets, datasets_read,
-                                datasets_phylo, p_alpha_subsets, trees,
-                                force, prjct_nm, qiime_env, chmod, noloc,
-                                As, dropout, run_params['alpha'],
-                                filt_raref, eval_depths)
-        if 'merge_alpha' not in p_skip:
-            print('(to_export)')
-            to_export = merge_meta_alpha(i_datasets_folder, datasets, diversities, force,
-                                         prjct_nm, qiime_env, chmod, noloc, dropout,
-                                         run_params['merge_alpha'], filt_raref, eval_depths)
-            if 'export_alpha' not in p_skip:
-                print('(export_meta_alpha)')
-                export_meta_alpha(datasets, filt_raref, to_export, dropout)
-        if 'alpha_correlations' not in p_skip:
-            print('(run_correlations)')
-            run_correlations(i_datasets_folder, datasets, diversities,
-                             force, prjct_nm, qiime_env, chmod, noloc,
-                             run_params['alpha_correlations'], filt_raref)
-        if p_longi_column:
-            if 'volatility' not in p_skip:
-                print('(run_volatility)')
-                run_volatility(i_datasets_folder, datasets, p_longi_column,
-                               force, prjct_nm, qiime_env, chmod, noloc,
-                               run_params['volatility'], filt_raref)
-
-    # BETA ----------------------------------------------------------------------
-    if 'beta' not in p_skip:
-        print('(betas)')
-        betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
-                         datasets_read, p_beta_subsets, trees, force,
-                         prjct_nm, qiime_env, chmod, noloc, Bs, dropout,
-                         run_params['beta'], filt_raref, eval_depths)
-        if 'export_beta' not in p_skip:
-            print('(export_beta)')
-            export_beta(i_datasets_folder, betas,
-                        force, prjct_nm, qiime_env, chmod, noloc,
-                        run_params['export_beta'], filt_raref)
-        if 'emperor' not in p_skip:
-            print('(run_pcoas)')
-            pcoas = run_pcoas(i_datasets_folder, betas, force,
-                              prjct_nm, qiime_env, chmod, noloc,
-                              run_params['pcoa'], filt_raref)
-            print('(run_emperor)')
-            run_emperor(i_datasets_folder, pcoas,
-                        prjct_nm, qiime_env, chmod, noloc,
-                        run_params['emperor'], filt_raref)
-        if 'emperor_biplot' not in p_skip:
-            print('(run_biplots)')
-            biplots = run_biplots(i_datasets_folder, datasets, betas, taxonomies,
-                                  force, prjct_nm, qiime_env, chmod, noloc,
-                                  run_params['biplot'], filt_raref)
-            print('(run_emperor_biplot)')
-            run_emperor_biplot(i_datasets_folder, biplots, taxonomies,
-                               prjct_nm, qiime_env, chmod, noloc,
-                               run_params['emperor_biplot'], filt_raref)
-
-    # STATS ------------------------------------------------------------------
-    if 'beta' not in p_skip and 'deicode' not in p_skip:
-        print('(run_deicode)')
-        run_deicode(i_datasets_folder, datasets, p_perm_groups,
-                    force, prjct_nm, qiime_env, chmod, noloc,
-                    run_params['deicode'], filt_raref)
-    if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
-        print('(run_alpha_group_significance)')
-        run_alpha_group_significance(i_datasets_folder, datasets, diversities,
-                                     p_perm_groups, force, prjct_nm,
-                                     qiime_env, chmod, noloc, As, split,
-                                     run_params['alpha_kw'], filt_raref)
-    if p_perm_tests:
-        if 'beta' not in p_skip and 'permanova' not in p_skip:
-            print('(run_permanova)')
-            run_permanova(i_datasets_folder, betas, p_perm_tests, p_beta_type,
-                          p_perm_groups, force, prjct_nm,
-                          qiime_env, chmod, noloc, split,
-                          run_params['permanova'], filt_raref)
-    if p_formulas:
-        if 'beta' not in p_skip and 'adonis' not in p_skip:
-            print('(run_adonis)')
-            run_adonis(p_formulas, i_datasets_folder, betas,
-                       p_perm_groups, force, prjct_nm, qiime_env, chmod,
-                       noloc, split, run_params['adonis'], filt_raref)
-
-    if 'beta' not in p_skip and p_procrustes:
-        if betas and 'procrustes' not in p_skip:
-            print('(run_procrustes)')
-            run_procrustes(i_datasets_folder, datasets, datasets_filt,
-                           p_procrustes, betas, force, prjct_nm, qiime_env,
-                           chmod, noloc, split, run_params['procrustes'],
-                           filt_raref, eval_depths)
-
-    # PHATE ---------------------------------------------------------------------
-
+    print(datasets_filt_mapgfd)
 
     # MMVEC AND SONGBIRD --------------------------------------------------------
     filts = {}

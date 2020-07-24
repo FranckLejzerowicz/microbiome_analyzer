@@ -60,7 +60,7 @@ def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
     else:
         procrustes_pairs, procrustes_subsets = get_procrustes_dicts(p_procrustes)
 
-    job_folder = get_job_folder(i_datasets_folder, 'procrustes%s' % evaluation)
+    get_job_folder(i_datasets_folder, 'procrustes%s' % evaluation)
 
     dms_tab = []
     all_sh_pbs = {}

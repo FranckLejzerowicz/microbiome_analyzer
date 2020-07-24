@@ -45,19 +45,20 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
     out_pbs = '%s.pbs' % splitext(out_sh)[0]
     written = 0
     with open(out_sh, 'w') as sh:
-        for dat, tsv_meta_pds in datasets.items():
-            tsv, meta = tsv_meta_pds
-            qza = '%s.qza' % splitext(tsv)[0]
-            if datasets_phylo[dat][1]:
-                cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
-                sh.write('echo "%s"\n' % cmd)
-                sh.write('%s\n' % cmd)
-                written += 1
-            elif force or not isfile(qza):
-                cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
-                sh.write('echo "%s"\n' % cmd)
-                sh.write('%s\n' % cmd)
-                written += 1
+        for dat, tsv_meta_pds_ in datasets.items():
+            for tsv_meta_pds in tsv_meta_pds_: # REMOVE IF FIXED NOT KEPT
+                tsv, meta = tsv_meta_pds
+                qza = '%s.qza' % splitext(tsv)[0]
+                if datasets_phylo[dat][1]:
+                    cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
+                    sh.write('echo "%s"\n' % cmd)
+                    sh.write('%s\n' % cmd)
+                    written += 1
+                elif force or not isfile(qza):
+                    cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
+                    sh.write('echo "%s"\n' % cmd)
+                    sh.write('%s\n' % cmd)
+                    written += 1
     run_xpbs(out_sh, out_pbs, '%s.mprt%s' % (prjct_nm, filt_raref), qiime_env,
              run_params["time"], run_params["n_nodes"], run_params["n_procs"],
              run_params["mem_num"], run_params["mem_dim"],
@@ -101,7 +102,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
     out_sh = '%s/1_run_import_filtered%s.sh' % (job_folder, filt_raref)
     out_pbs = '%s.pbs' % splitext(out_sh)[0]
     with open(out_sh, 'w') as sh:
-        for dat, tab_meta_pds in datasets_read.items():
+        for dat, tab_meta_pds_ in datasets_read.items():
             if dat not in threshs_dats:
                 continue
             threshs_d = threshs_dats[dat]
@@ -124,24 +125,6 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
             if thresh_sam < 0 or thresh_feat < 0:
                 print('Filtering threshold must be positive: skipping...')
                 continue
-
-            if tab_meta_pds == 'raref':
-                tsv, meta = datasets[dat]
-                if not isfile(tsv):
-                    print('Must have run rarefaction to use it further...\nExiting')
-                    sys.exit(0)
-                tab_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
-                # --> datasets_read <--
-                # path_pd : indexed with feature name
-                # meta_pd : not indexed -> "sample_name" as first column
-                datasets_read[dat] = [tab_pd, meta_pd]
-            else:
-                tab_pd, meta_pd = tab_meta_pds
-
-            if datasets_features[dat] == 'raref':
-                datasets_features[dat] = dict(
-                    gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_pd.index
-                )
 
             dat_filt = []
             if names:
@@ -167,70 +150,75 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                 '%s/metadata/' % i_datasets_folder
             ).replace('tab_', 'meta_')
             if isfile(qza) and isfile(meta_filt_fp):
-                datasets_update[dat_filt] = [tab_filt_fp, meta_filt_fp]
+                # datasets_update[dat_filt] = [tab_filt_fp, meta_filt_fp]
+                datasets_update[dat_filt] = [[tab_filt_fp, meta_filt_fp]]
                 tab_filt_pd = pd.read_csv(tab_filt_fp, index_col=0, header=0, sep='\t')
                 with open(meta_filt_fp) as f:
                     for line in f:
                         break
                 meta_filt_pd = pd.read_csv(meta_filt_fp, header=0, sep='\t',
                                            dtype={line.split('\t')[0]: str})
-                datasets_read_update[dat_filt] = [tab_filt_pd, meta_filt_pd]
+                # datasets_read_update[dat_filt] = [tab_filt_pd, meta_filt_pd]
+                datasets_read_update[dat_filt] = [[tab_filt_pd, meta_filt_pd]]
                 datasets_phylo_update[dat_filt] = datasets_phylo[dat]
                 datasets_features_update[dat_filt] = dict(
                     gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_filt_pd.index
                 )
                 continue
 
-            meta_pd = meta_pd.set_index('sample_name')
-
-            dat_filt = []
-            if names:
-                dat_filt.append('%srm' % len(names))
-                tab_filt_pd = tab_pd[[x for x in tab_pd.columns if x not in names]].copy()
-            else:
-                tab_filt_pd = tab_pd.copy()
-
-            if thresh_sam:
-                if thresh_sam > 1:
-                    tab_filt_pd = tab_filt_pd.loc[:, tab_filt_pd.sum(0) >= thresh_sam]
-                    dat_filt.append('minSam%s' % thresh_sam)
+            for tab_meta_pds in tab_meta_pds_:
+                tab_pd, meta_pd = tab_meta_pds
+                meta_pd = meta_pd.set_index('sample_name')
+                dat_filt = []
+                if names:
+                    dat_filt.append('%srm' % len(names))
+                    tab_filt_pd = tab_pd[[x for x in tab_pd.columns if x not in names]].copy()
                 else:
-                    tab_perc_min = tab_filt_pd.sum(0).mean() * thresh_sam
-                    tab_filt_pd = tab_filt_pd.loc[:, tab_filt_pd.sum(0) >= tab_perc_min]
-                    dat_filt.append('minSam%s' % str(thresh_sam).replace('.', ''))
+                    tab_filt_pd = tab_pd.copy()
 
-            if thresh_feat:
-                if thresh_feat > 1:
-                    tab_filt_rm = tab_filt_pd < thresh_feat
-                    dat_filt.append('minFeat%s' % thresh_feat)
-                else:
-                    tab_perc = tab_filt_pd/tab_filt_pd.sum(0)
-                    tab_filt_rm = tab_perc < thresh_feat
-                    dat_filt.append('minFeat%s' % str(thresh_feat).replace('.', ''))
-                tab_filt_pd[tab_filt_rm] = 0
+                if thresh_sam:
+                    if thresh_sam > 1:
+                        tab_filt_pd = tab_filt_pd.loc[:, tab_filt_pd.sum(0) >= thresh_sam]
+                        dat_filt.append('minSam%s' % thresh_sam)
+                    else:
+                        tab_perc_min = tab_filt_pd.sum(0).mean() * thresh_sam
+                        tab_filt_pd = tab_filt_pd.loc[:, tab_filt_pd.sum(0) >= tab_perc_min]
+                        dat_filt.append('minSam%s' % str(thresh_sam).replace('.', ''))
 
-            tab_filt_pd = tab_filt_pd.loc[tab_filt_pd.sum(1) > 0, :]
-            tab_filt_pd = tab_filt_pd.loc[:, tab_filt_pd.sum(0) > 0]
+                if thresh_feat:
+                    if thresh_feat > 1:
+                        tab_filt_rm = tab_filt_pd < thresh_feat
+                        dat_filt.append('minFeat%s' % thresh_feat)
+                    else:
+                        tab_perc = tab_filt_pd/tab_filt_pd.sum(0)
+                        tab_filt_rm = tab_perc < thresh_feat
+                        dat_filt.append('minFeat%s' % str(thresh_feat).replace('.', ''))
+                    tab_filt_pd[tab_filt_rm] = 0
 
-            dat_filt = '%s_%s' % (dat, '-'.join(dat_filt))
-            if tab_filt_pd.shape[0] < 2 or tab_filt_pd.shape[1] < 2:
-                print('Filtering too harsh (no more data for %s): skipping...' % dat_filt)
-                continue
+                tab_filt_pd = tab_filt_pd.loc[tab_filt_pd.sum(1) > 0, :]
+                tab_filt_pd = tab_filt_pd.loc[:, tab_filt_pd.sum(0) > 0]
 
-            meta_filt_pd = meta_pd.loc[tab_filt_pd.columns.tolist()].copy()
-            tab_filt_pd.reset_index().to_csv(tab_filt_fp, index=False, sep='\t')
-            meta_filt_pd.reset_index().to_csv(meta_filt_fp, index=False, sep='\t')
+                dat_filt = '%s_%s' % (dat, '-'.join(dat_filt))
+                if tab_filt_pd.shape[0] < 2 or tab_filt_pd.shape[1] < 2:
+                    print('Filtering too harsh (no more data for %s): skipping...' % dat_filt)
+                    continue
 
-            datasets_update[dat_filt] = [tab_filt_fp, meta_filt_fp]
-            datasets_read_update[dat_filt] = [tab_filt_pd, meta_filt_pd.reset_index()]
-            datasets_phylo_update[dat_filt] = datasets_phylo[dat]
-            datasets_features_update[dat_filt] = dict(
-                gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_filt_pd.index
-            )
-            cmd = run_import(tab_filt_fp, qza, "FeatureTable[Frequency]")
-            sh.write('echo "%s"\n' % cmd)
-            sh.write('%s\n' % cmd)
-            written += 1
+                meta_filt_pd = meta_pd.loc[tab_filt_pd.columns.tolist()].copy()
+                tab_filt_pd.reset_index().to_csv(tab_filt_fp, index=False, sep='\t')
+                meta_filt_pd.reset_index().to_csv(meta_filt_fp, index=False, sep='\t')
+
+                # datasets_update[dat_filt] = [tab_filt_fp, meta_filt_fp]
+                datasets_update[dat_filt] = [[tab_filt_fp, meta_filt_fp]]
+                # datasets_read_update[dat_filt] = [tab_filt_pd, meta_filt_pd.reset_index()]
+                datasets_read_update[dat_filt] = [[tab_filt_pd, meta_filt_pd.reset_index()]]
+                datasets_phylo_update[dat_filt] = datasets_phylo[dat]
+                datasets_features_update[dat_filt] = dict(
+                    gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_filt_pd.index
+                )
+                cmd = run_import(tab_filt_fp, qza, "FeatureTable[Frequency]")
+                sh.write('echo "%s"\n' % cmd)
+                sh.write('%s\n' % cmd)
+                written += 1
     if written:
         run_xpbs(out_sh, out_pbs, '%s.fltr%s' % (prjct_nm, filt_raref), qiime_env,
                  run_params["time"], run_params["n_nodes"], run_params["n_procs"],
