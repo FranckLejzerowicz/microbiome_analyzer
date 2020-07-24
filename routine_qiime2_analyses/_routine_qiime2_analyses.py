@@ -282,12 +282,16 @@ def routine_qiime2_analyses(
         run_deicode(i_datasets_folder, datasets, datasets_rarefs,
                     p_perm_groups, force, prjct_nm, qiime_env, chmod,
                     noloc, run_params['deicode'], filt_raref)
+    else:
+        print('(skip_deicode)')
     if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
         print('(run_alpha_group_significance)')
         run_alpha_group_significance(i_datasets_folder, datasets, diversities,
                                      datasets_rarefs, p_perm_groups, force,
                                      prjct_nm, qiime_env, chmod, noloc, As, split,
                                      run_params['alpha_kw'], filt_raref)
+    else:
+        print('(skip_alpha_kw)')
     if p_perm_tests:
         if 'beta' not in p_skip and 'permanova' not in p_skip:
             print('(run_permanova)')
@@ -295,6 +299,8 @@ def routine_qiime2_analyses(
                           datasets_rarefs, p_perm_groups, force, prjct_nm,
                           qiime_env, chmod, noloc, split,
                           run_params['permanova'], filt_raref)
+    else:
+        print('(skip_permanova)')
     if p_formulas:
         if 'beta' not in p_skip and 'adonis' not in p_skip:
             print('(run_adonis)')
@@ -302,6 +308,8 @@ def routine_qiime2_analyses(
                        p_perm_groups, force, prjct_nm, qiime_env, chmod,
                        noloc, split, run_params['adonis'], filt_raref)
 
+    else:
+        print('(skip_adonis)')
     if 'beta' not in p_skip and p_procrustes:
         if betas and 'procrustes' not in p_skip:
             print('(run_procrustes)')
@@ -309,6 +317,8 @@ def routine_qiime2_analyses(
                            p_procrustes, betas, force, prjct_nm, qiime_env,
                            chmod, noloc, split, run_params['procrustes'],
                            filt_raref, eval_depths)
+    else:
+        print('(skip_procrustes)')
 
     # PHATE ---------------------------------------------------------------------
 
