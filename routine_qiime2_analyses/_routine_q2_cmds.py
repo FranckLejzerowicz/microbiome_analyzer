@@ -706,8 +706,8 @@ def write_doc(qza: str, new_meta: str, new_qza: str,
     cmd += '--p-r %s \\\n' % doc_params['r']
     cmd += '--p-subr %s \\\n' % doc_params['subr']
     cmd += '--p-mov-avg %s \\\n' % doc_params['mov_avg']
-    for ci in doc_params['ci']:
-        cmd += '--p-ci %s \\\n' % ci
+    # for ci in doc_params['ci']:
+    #     cmd += '--p-ci %s \\\n' % ci
     cmd += '--p-span %s \\\n' % doc_params['span']
     cmd += '--p-degree %s \\\n' % doc_params['degree']
     cmd += '--p-family %s \\\n' % doc_params['family']
