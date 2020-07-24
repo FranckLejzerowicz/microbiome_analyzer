@@ -50,7 +50,7 @@ def run_single_doc(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
 def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             datasets_rarefs: dict, force: bool, prjct_nm: str,
             qiime_env: str, chmod: str, noloc: bool, run_params: dict,
-            filt_raref: str, eval_depths: dict) -> None:
+            filt_raref: str, eval_depths: dict, split: bool) -> None:
 
     evaluation = ''
     if len(eval_depths):
@@ -71,9 +71,13 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             meta_pd = meta_pd.set_index('sample_name')
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'DOC')
             cur_raref = datasets_rarefs[dat][idx]
-            out_sh = '%s/run_doc%s_%s%s%s.sh' % (job_folder2, evaluation, dat, filt_raref, cur_raref)
+            if not split:
+                out_sh = '%s/run_doc%s_%s%s%s.sh' % (job_folder2, evaluation, dat, filt_raref, cur_raref)
             odir = get_analysis_folder(i_datasets_folder, 'doc%s/%s' % (evaluation, dat))
             for case_var, case_vals_list in cases_dict.items():
+                if split:
+                    out_sh = '%s/run_doc%s_%s%s%s%s.sh' % (
+                        job_folder2, evaluation, dat, filt_raref, cur_raref, case_var)
                 for filt, (fp, fa) in filters.items():
                     cur_sh = '%s/run_doc%s_%s_%s%s%s_%s.sh' % (
                         job_folder2, evaluation, dat, case_var, filt_raref, cur_raref, filt)

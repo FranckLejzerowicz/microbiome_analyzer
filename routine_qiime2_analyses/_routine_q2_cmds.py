@@ -718,7 +718,7 @@ def write_doc(qza: str, new_meta: str, new_qza: str,
         cmd += '--non-zero \\\n'
     if doc_params['null']:
         cmd += '--null \\\n'
-    cmd += '--verbose\n'
+    cmd += '--verbose 2> /dev/null\n'
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 
