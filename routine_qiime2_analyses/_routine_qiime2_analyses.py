@@ -150,9 +150,9 @@ def routine_qiime2_analyses(
     if p_filt_threshs:
         print('(filter_rare_samples)')
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
-                            datasets_filt, datasets_filt_map, datasets_phylo, prjct_nm,
-                            qiime_env, p_filt_threshs, chmod, noloc, run_params['filter'],
-                            filt_raref)
+                            datasets_rarefs, datasets_filt, datasets_filt_map, datasets_phylo,
+                            prjct_nm, qiime_env, p_filt_threshs, chmod, noloc,
+                            run_params['filter'], filt_raref)
     eval_depths = {}
     if raref:
         print('(run_rarefy)')
@@ -312,16 +312,6 @@ def routine_qiime2_analyses(
 
     # PHATE ---------------------------------------------------------------------
 
-    print("datasets")
-    print(datasets)
-    print("datasets_rarefs")
-    print(datasets_rarefs)
-    print("datasets_filt")
-    print(datasets_filt)
-    print("datasets_filt_map")
-    print(datasets_filt_map)
-    print(datasets_filt_mapgfd)
-
     # MMVEC AND SONGBIRD --------------------------------------------------------
     filts = {}
     mmvec_outputs = []
@@ -332,10 +322,22 @@ def routine_qiime2_analyses(
         elif 'mmvec' not in p_skip:
             print('(run_mmvec)')
             mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
-                                      datasets_filt, datasets_read, force,
-                                      gpu, standalone, prjct_nm, qiime_env,
+                                      datasets_filt, datasets_read, datasets_rarefs,
+                                      force, gpu, standalone, prjct_nm, qiime_env,
                                       chmod, noloc, split, filt_raref,
                                       run_params['mmvec'], input_to_filtered)
+
+    print("datasets")
+    print(datasets)
+    print("datasets_rarefs")
+    print(datasets_rarefs)
+    print("datasets_filt")
+    print(datasets_filt)
+    print("datasets_filt_map")
+    print(datasets_filt_map)
+    print(datasets_filt_mapgfd)
+
+
     songbird_outputs = []
     if p_diff_models:
         if filt3d:

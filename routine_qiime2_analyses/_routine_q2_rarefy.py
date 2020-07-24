@@ -54,9 +54,11 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     if eval_rarefs:
         evaluation = '_eval'
 
-    datasets_eval = {}
-    datasets_read_eval = {}
-    datasets_phylo_eval = {}
+    datasets_update = {}
+    datasets_read_update = {}
+    datasets_phylo_update = {}
+
+    datasets_append = {}
 
     main_written = 0
     job_folder = get_job_folder(i_datasets_folder, 'rarefy%s' % evaluation)
@@ -107,22 +109,24 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
                         if eval_rarefs:
                             eval_depths.setdefault(dat, []).append('%s_%s' % (dat, depth))
-                            datasets_eval['%s_%s' % (dat, depth)] = [[tsv_out, meta_out]]
+                            datasets_update['%s_%s' % (dat, depth)] = [[tsv_out, meta_out]]
                             # datasets_eval['%s_%s' % (dat, depth)] = [[tsv_out, meta_out]]
-                            datasets_read_eval['%s_%s' % (dat, depth)] = ('raref', depth)
-                            datasets_phylo_eval['%s_%s' % (dat, depth)] = datasets_phylo[dat]
+                            datasets_read_update['%s_%s' % (dat, depth)] = ('raref', depth)
+                            datasets_phylo_update['%s_%s' % (dat, depth)] = datasets_phylo[dat]
                         else:
-                            if ddx:
-                                datasets[dat].append([tsv_out, meta_out])
-                                datasets_read[dat].append(('raref', depth))
-                                datasets_rarefs[dat].append('_raref%s%s' % (evaluation, depth))
-                            else:
-                                datasets[dat] = [[tsv_out, meta_out]]
-                                datasets_read[dat] = [('raref', depth)]
-                                datasets_rarefs[dat] = ['_raref%s%s' % (evaluation, depth)]
-                            # datasets[dat] = [tsv_out, meta_out]
-                            # datasets_read[dat] = ('raref', depth)
-                            datasets_phylo[dat] = datasets_phylo[dat]
+                            datasets_append.setdefault(dat, []).append([tsv_out, meta_out])
+                            datasets_read[dat].append(('raref', depth))
+                            datasets_rarefs.setdefault(dat, []).append('_raref%s%s' % (evaluation, depth))
+
+                            # if ddx:
+                            #     datasets[dat].append([tsv_out, meta_out])
+                            #     datasets_read[dat].append(('raref', depth))
+                            #     datasets_rarefs[dat].append('_raref%s%s' % (evaluation, depth))
+                            # else:
+                            #     datasets[dat] = [[tsv_out, meta_out]]
+                            #     datasets_read[dat] = [('raref', depth)]
+                            #     datasets_rarefs[dat] = ['_raref%s%s' % (evaluation, depth)]
+
             run_xpbs(out_sh, out_pbs, '%s.bt%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
                      qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
@@ -130,9 +134,13 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     if main_written:
         print_message('# Get rarefied datasets', 'sh', run_pbs)
 
-    datasets.update(datasets_eval)
-    datasets_read.update(datasets_read_eval)
-    datasets_phylo.update(datasets_phylo_eval)
+    if eval_rarefs:
+        datasets.update(datasets_update)
+        datasets_read.update(datasets_read_update)
+        datasets_phylo.update(datasets_phylo_update)
+    else:
+        for dat, fps in datasets_append.items():
+            datasets[dat].extend(fps)
 
     return eval_depths
 

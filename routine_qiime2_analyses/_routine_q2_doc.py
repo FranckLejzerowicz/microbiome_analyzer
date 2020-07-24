@@ -61,7 +61,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
 
     all_sh_pbs = {}
     for dat, tsv_meta_pds_ in datasets.items():
-        if 'filtering' in doc_config and dat in doc_config['filtering']:
+        if doc_config and 'filtering' in doc_config and dat in doc_config['filtering']:
             filters = doc_config['filtering'][dat]
         else:
             filters = {'0_0': ['0', '0']}

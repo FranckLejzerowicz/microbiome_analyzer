@@ -311,8 +311,8 @@ def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict):
     return models, filtering, params, datasets, main_cases_dict
 
 
-def get_doc_config(p_doc_config: str) -> (dict, dict):
-    main_cases_dict = {'ALL': [[]]}
+def get_doc_config(p_doc_config: str) -> (dict, dict, dict):
+    doc_config = {}
     doc_params = {
         'r': 50,
         'subr': 0,
@@ -324,9 +324,10 @@ def get_doc_config(p_doc_config: str) -> (dict, dict):
         'iterations': 2,
         'surface': 'direct',
         'nulls': 1,
-        'non-zero': 1,
+        'non_zero': 1,
         'null': 1
     }
+    main_cases_dict = {'ALL': [[]]}
     if p_doc_config:
         if not isfile(p_doc_config):
             print('DOC config yaml file does not exist:\n%s\nExiting...' % p_doc_config)
@@ -1049,9 +1050,9 @@ def get_datasets_filtered(
 
 def check_datasets_filtered(
         i_datasets_folder: str, datasets: dict,
-        datasets_filt: dict, unique_datasets: list,
-        unique_filterings: dict, analysis: str,
-        input_to_filtered: dict) -> (dict, dict, list):
+        datasets_filt: dict, datasets_rarefs: dict,
+        unique_datasets: list, unique_filterings: dict,
+        analysis: str, input_to_filtered: dict) -> (dict, dict, list):
     """
     Filter the datasets for use in mmvec.
 
@@ -1071,20 +1072,24 @@ def check_datasets_filtered(
         else:
             dat = dat_
         if dat not in datasets:
-            if dat.endswith('__raref'):
-                dat = dat.split('__raref')[0]
+            if '__raref' in dat:
+                split = dat_.split('__raref')
+                dat = '__raref'.join(split[:-1])
+                raref = '_raref%s' % '__raref'.join(split[-1:])
                 if dat in datasets_filt:
                     dat = datasets_filt[dat]
-                dat = '%s__raref' % dat
-                input_to_filtered[dat_] = dat
+                dat = '%s%s' % (dat, raref)
             else:
                 print('%s dataset "%s" not found...' % (analysis, dat))
                 continue
-        else:
-            input_to_filtered[dat_] = dat
+        input_to_filtered[dat_] = dat
 
         dat_filts_pass = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
+
+        print(dat_, dat, raref)
+        print(unique_filterings)
+
         prevals_abunds = unique_filterings[(dat, mb)]
         for (preval_abund, preval, abund) in prevals_abunds:
             # make sure there's no empty row / column

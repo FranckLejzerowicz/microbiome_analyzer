@@ -276,7 +276,7 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str,
 
 
 def check_filtered_and_common_dataset(
-        i_datasets_folder:str, datasets: dict, datasets_filt: dict,
+        i_datasets_folder:str, datasets: dict, datasets_filt: dict, datasets_rarefs: dict,
         unique_datasets: list, mmvec_pairs: dict, mmvec_filtering: dict,
         unique_filterings: dict, analysis: str, input_to_filtered: dict) -> (dict, dict):
     """
@@ -295,7 +295,7 @@ def check_filtered_and_common_dataset(
 
     print('\t-> [%s] Check datasets filtered...' % analysis)
     filt_datasets_pass = check_datasets_filtered(
-        i_datasets_folder, datasets, datasets_filt,
+        i_datasets_folder, datasets, datasets_filt, datasets_rarefs,
         unique_datasets, unique_filterings, analysis,
         input_to_filtered
     )
@@ -383,8 +383,8 @@ def get_unique_mmvec_filtering(mmvec_filtering):
 
 
 def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
-              datasets_filt: dict, datasets_read: dict, force: bool,
-              gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
+              datasets_filt: dict, datasets_read: dict, datasets_rarefs: dict,
+              force: bool, gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
               chmod: str, noloc: bool, split: bool, filt_raref: str,
               run_params: dict, input_to_filtered: dict) -> list:
     """
@@ -413,8 +413,15 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
     unique_filterings = get_unique_mmvec_filtering(mmvec_filtering)
 
+    print()
+    print("unique_datasets")
+    print(unique_datasets)
+    print()
+    print("unique_filterings")
+    print(unique_filterings)
+
     filt_datasets_done, common_datasets_done = check_filtered_and_common_dataset(
-        i_datasets_folder, datasets, datasets_filt,
+        i_datasets_folder, datasets, datasets_filt, datasets_rarefs,
         unique_datasets, mmvec_pairs, mmvec_filtering,
         unique_filterings, 'mmvec', input_to_filtered)
 

@@ -75,9 +75,10 @@ def get_threshs(p_filt_threshs):
 
 
 def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: dict,
-                        datasets_features: dict, datasets_filt: dict, datasets_filt_map: dict,
-                        datasets_phylo: dict, prjct_nm: str, qiime_env: str, p_filt_threshs: str,
-                        chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
+                        datasets_features: dict, datasets_rarefs: dict, datasets_filt: dict,
+                        datasets_filt_map: dict, datasets_phylo: dict, prjct_nm: str,
+                        qiime_env: str, p_filt_threshs: str, chmod: str, noloc: bool,
+                        run_params: dict, filt_raref: str) -> None:
     """
     Filter the rare features, keep samples with enough reads/features and import to Qiime2.
 
@@ -215,6 +216,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                 datasets_features_update[dat_filt] = dict(
                     gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_filt_pd.index
                 )
+                datasets_rarefs[dat_filt] = ['']
                 cmd = run_import(tab_filt_fp, qza, "FeatureTable[Frequency]")
                 sh.write('echo "%s"\n' % cmd)
                 sh.write('%s\n' % cmd)
