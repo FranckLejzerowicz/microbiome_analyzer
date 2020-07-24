@@ -141,13 +141,13 @@ from routine_qiime2_analyses import __version__
     type=click.Choice(['alpha', 'merge_alpha', 'export_alpha', 'alpha_correlations',
                        'wol', 'taxonomy', 'barplot', 'volatility', 'beta',
                        'export_beta', 'emperor', 'emperor_biplot', 'doc',
-                       'deicode',  'sepp', 'alpha_kw', 'permanova',
+                       'deicode',  'sepp', 'alpha_kw', 'permanova', 'procrustes',
                        'adonis', 'songbird', 'mmvec', 'mmbird']),
     help="Steps to skip (e.g. if already done or not necessary)."
          "\nSkipping 'alpha' will also skip 'merge_alpha', 'export_alpha',"
          "'alpha_correlations', 'alpha_kw' and 'volatility'."
          "\nSkipping 'beta' will also skip 'export_beta', 'emperor',"
-         "'doc', 'emperor_biplot','deicode', 'permanova', 'adonis'."
+         "'doc', 'emperor_biplot','deicode', 'permanova', 'adonis', 'procrustes'."
 )
 @click.option(
     "-As", "--p-alphas", default=None, show_default=True, multiple=True,

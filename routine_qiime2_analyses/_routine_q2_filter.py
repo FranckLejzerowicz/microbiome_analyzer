@@ -301,14 +301,16 @@ def explore_filtering(i_datasets_folder, datasets, datasets_read,
             else:
                 dat = dat_
             if dat not in datasets:
-                if dat.endswith('__raref'):
-                    dat = dat.split('__raref')[0]
+                if '__raref' in dat:
+                    split = dat.split('__raref')
+                    dat = '__raref'.join(split[:-1])
+                    raref = '_raref%s' % '__raref'.join(split[-1:])
                     if dat in datasets_filt:
                         dat = datasets_filt[dat]
-                    tsv_pd_, meta_pd_ = get_raref_table(dat, i_datasets_folder, 'filter3D')
+                    tsv_pd_, meta_pd_ = get_raref_table(dat, raref, i_datasets_folder, 'filter3D')
                     if not tsv_pd_.shape[0]:
                         continue
-                    dat = '%s__raref' % dat
+                    dat = '%s_%s' % (dat, raref)
                 else:
                     print('dataset "%s" not found...' % dat)
                     continue

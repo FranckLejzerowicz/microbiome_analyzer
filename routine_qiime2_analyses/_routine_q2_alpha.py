@@ -472,7 +472,7 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'alpha Kruskal-Wallis')
 
             odir = get_analysis_folder(i_datasets_folder, 'alpha_group_significance/%s%s' % (dat, cur_raref))
-            for qza in diversities[dat]['']:
+            for qza in raref_diversities['']:
                 metric = get_metric(alpha_metrics, qza)
                 div_tsv = '%s.tsv' % splitext(qza)[0]
                 if not isfile(div_tsv) or not isfile(div_tsv):
@@ -480,7 +480,7 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
                     continue
                 out_sh = '%s/run_alpha_group_significance_%s%s_%s%s.sh' % (job_folder2, dat, cur_raref, metric, filt_raref)
                 for case_var, case_vals_list in cases_dict.items():
-                    cur_sh = '%s/run_adonis_%s%s_%s_%s%s.sh' % (
+                    cur_sh = '%s/run_alpha_group_significance_%s%s_%s_%s%s.sh' % (
                         job_folder2, dat, cur_raref, metric, case_var, filt_raref)
                     cur_sh = cur_sh.replace(' ', '-')
                     all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)

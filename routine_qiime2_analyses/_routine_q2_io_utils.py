@@ -857,24 +857,27 @@ def filter_non_mb_table(preval: str, abund: str,
     return tsv_filt_pd, res
 
 
-def get_raref_table(dat_rt: str, i_datasets_folder: str,
+def get_raref_table(dat_rt: str, raref: str, i_datasets_folder: str,
                     analysis: str) -> (pd.DataFrame, pd.DataFrame):
     raref_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat_rt)
-    tsv_globbed = glob.glob('%s/tab_%s_raref*.tsv' % (raref_dir, dat_rt))
+    tsv_rgx = '%s/tab_%s%s*.tsv' % (raref_dir, dat_rt, raref)
+    tsv_globbed = glob.glob(tsv_rgx)
     if len(tsv_globbed) != 1:
         print('Must have one rarefaction for "%s" to use it further in %s...'
               '\nExiting' % (dat_rt, analysis))
         sys.exit(0)
-    tsv = tsv_globbed[0]
-    meta = glob.glob('%s/meta_%s_raref*_alphas.tsv' % (raref_dir, dat_rt))
+    tsv = sorted(tsv_globbed)[0]
+    meta_rgx = '%s/meta_%s%s*_alphas.tsv' % (raref_dir, dat_rt, raref)
+    meta = glob.glob(meta_rgx)
     if not len(meta):
-        meta = glob.glob('%s/meta_%s_raref*.tsv' % (raref_dir, dat_rt))
+        meta_rgx = '%s/meta_%s%s*.tsv' % (raref_dir, dat_rt, raref)
+        meta = glob.glob(meta_rgx)
         if not len(meta):
             return pd.DataFrame(), pd.DataFrame()
         else:
-            meta = meta[0]
+            meta = sorted(meta)[0]
     else:
-        meta = meta[0]
+        meta = sorted(meta)[0]
     tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
     return tsv_pd_, meta_pd_
 
@@ -918,18 +921,21 @@ def get_datasets_filtered(
         else:
             dat = dat_
         if dat not in datasets:
-            if dat.endswith('__raref'):
-                dat = dat.split('__raref')[0]
+            if '__raref' in dat:
+                split = dat.split('__raref')
+                dat = '__raref'.join(split[:-1])
+                raref = '_raref%s' % '__raref'.join(split[-1:])
                 if dat in datasets_filt:
                     dat = datasets_filt[dat]
-                tsv_pd_, meta_pd_ = get_raref_table(dat, i_datasets_folder, analysis)
+                tsv_pd_, meta_pd_ = get_raref_table(dat, raref, i_datasets_folder, analysis)
                 if not tsv_pd_.shape[0]:
                     continue
-                dat = '%s__raref' % dat
+                dat = '%s_%s' % (dat, raref)
                 input_to_filtered[dat_] = dat
             else:
                 print('%s dataset "%s" not found...' % (analysis, dat))
                 continue
+
         elif not isinstance(datasets_read[dat][0], pd.DataFrame) and datasets_read[dat][0] == 'raref':
         # elif datasets_read[dat] == 'raref':
             tsv, meta = datasets[dat]
@@ -1049,8 +1055,7 @@ def get_datasets_filtered(
 
 
 def check_datasets_filtered(
-        i_datasets_folder: str, datasets: dict,
-        datasets_filt: dict, datasets_rarefs: dict,
+        i_datasets_folder: str, datasets: dict, datasets_filt: dict,
         unique_datasets: list, unique_filterings: dict,
         analysis: str, input_to_filtered: dict) -> (dict, dict, list):
     """
@@ -1078,7 +1083,7 @@ def check_datasets_filtered(
                 raref = '_raref%s' % '__raref'.join(split[-1:])
                 if dat in datasets_filt:
                     dat = datasets_filt[dat]
-                dat = '%s%s' % (dat, raref)
+                dat = '%s_%s' % (dat, raref)
             else:
                 print('%s dataset "%s" not found...' % (analysis, dat))
                 continue
@@ -1086,9 +1091,6 @@ def check_datasets_filtered(
 
         dat_filts_pass = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
-
-        print(dat_, dat, raref)
-        print(unique_filterings)
 
         prevals_abunds = unique_filterings[(dat, mb)]
         for (preval_abund, preval, abund) in prevals_abunds:
