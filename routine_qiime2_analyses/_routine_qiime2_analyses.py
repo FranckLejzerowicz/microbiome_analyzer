@@ -310,9 +310,6 @@ def routine_qiime2_analyses(
 
     else:
         print('(skip_adonis)')
-    print(p_skip)
-    print(p_procrustes)
-    print(len(betas))
     if 'beta' not in p_skip and p_procrustes:
         if betas and 'procrustes' not in p_skip:
             print('(run_procrustes)')
