@@ -686,9 +686,9 @@ def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
 
 
 def write_doc(qza: str, new_meta: str, new_qza: str,
-              new_tsv: str, fp: str, fa: str, cur_rad: str,
-              n_nodes: str, n_procs: str, doc_params: dict,
-              cur_sh: TextIO) -> None:
+              new_tsv: str, fp: str, fa: str, time_log: str, log: str,
+              cur_rad: str, n_nodes: str, n_procs: str,
+              doc_params: dict, cur_sh: TextIO) -> None:
 
     cmd = '\n'
     if not isfile(new_qza):
@@ -697,7 +697,7 @@ def write_doc(qza: str, new_meta: str, new_qza: str,
         cmd += '--m-metadata-file %s \\\n' % new_meta
         cmd += '--o-filtered-table %s\n' % new_qza
         cmd += run_export(new_qza, new_tsv, 'FeatureTable')
-    cmd += '\nXDOC \\\n'
+    cmd += '\n/usr/bin/time -v -o %s -a -- XDOC \\\n' % time_log
     cmd += '--i-otu %s \\\n' % new_tsv
     cmd += '--o-outdir %s \\\n' % cur_rad
     cmd += '-fp %s \\\n' % fp
@@ -718,7 +718,7 @@ def write_doc(qza: str, new_meta: str, new_qza: str,
         cmd += '--non-zero \\\n'
     if doc_params['null']:
         cmd += '--null \\\n'
-    cmd += '--verbose 2> /dev/null\n'
+    cmd += '--verbose 2>> %s\n' % log
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 
@@ -839,7 +839,6 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
         cur_sh.write(cmd)
 
 
-
 def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
                            formula: str, new_qzv: str, cur_sh: TextIO) -> None:
     """
@@ -890,7 +889,6 @@ def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
     cmd += '--o-visualization %s\n' % new_qzv
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
-
 
 
 def write_procrustes(common_meta_fp: str, dm1: str, dm2: str,

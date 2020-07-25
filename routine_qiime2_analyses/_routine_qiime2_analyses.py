@@ -313,7 +313,7 @@ def routine_qiime2_analyses(
     if 'beta' not in p_skip and p_procrustes:
         if betas and 'procrustes' not in p_skip:
             print('(run_procrustes)')
-            run_procrustes(i_datasets_folder, datasets, datasets_filt, datasets_rarefs,
+            run_procrustes(i_datasets_folder, datasets, datasets_filt,
                            p_procrustes, betas, force, prjct_nm, qiime_env,
                            chmod, noloc, split, run_params['procrustes'],
                            filt_raref, eval_depths)
@@ -332,11 +332,10 @@ def routine_qiime2_analyses(
         elif 'mmvec' not in p_skip:
             print('(run_mmvec)')
             mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
-                                      datasets_filt, datasets_read, datasets_rarefs,
-                                      force, gpu, standalone, prjct_nm, qiime_env,
-                                      chmod, noloc, split, filt_raref,
-                                      run_params['mmvec'], input_to_filtered)
-
+                                      datasets_filt, datasets_read, force, gpu,
+                                      standalone, prjct_nm, qiime_env, chmod,
+                                      noloc, split, filt_raref, run_params['mmvec'],
+                                      input_to_filtered)
     songbird_outputs = []
     if p_diff_models:
         if filt3d:
