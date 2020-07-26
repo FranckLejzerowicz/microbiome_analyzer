@@ -383,8 +383,8 @@ def get_unique_mmvec_filtering(mmvec_filtering):
 
 
 def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
-              datasets_filt: dict, datasets_read: dict, datasets_rarefs: dict,
-              force: bool, gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
+              datasets_filt: dict, datasets_read: dict, force: bool,
+              gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
               chmod: str, noloc: bool, split: bool, filt_raref: str,
               run_params: dict, input_to_filtered: dict) -> list:
     """
