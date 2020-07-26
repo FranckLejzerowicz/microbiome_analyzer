@@ -46,7 +46,7 @@ def run_single_doc(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
             if force or not isfile('%s/DO.tsv' % cur_rad):
                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-                write_doc(qza, new_meta, new_qza, new_tsv, fp, fa, log,
+                write_doc(qza, new_meta, new_qza, new_tsv, fp, fa, time_log, log,
                           cur_rad, n_nodes, n_procs, doc_params, cur_sh_o)
                 remove = False
     if remove:
@@ -130,7 +130,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                                 time_log = '%s/R/time_log.error' % case
                                 log = '%s/R/log.error' % case
                                 cur_r = '%s/run_R_doc_%s_%s_%s_vanilla.R' % (job_folder2, dat, case_var, cdx)
-                                shs.append('/usr/bin/time -v -o %s -a -- R -f %s --vanilla\n' % cur_r)
+                                shs.append('/usr/bin/time -v -o %s -a -- R -f %s --vanilla  2>> %s\n' % (time_log, cur_r, log))
                                 with open(cur_r, 'w') as o:
                                     o.write("library(DOC)\n")
                                     o.write("library(ggplot2)\n")
