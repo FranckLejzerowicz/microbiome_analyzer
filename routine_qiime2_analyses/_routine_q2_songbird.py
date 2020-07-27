@@ -47,11 +47,11 @@ def get_train_column(new_meta_pd, train):
                 new_meta_pd.index.tolist(),
                 k=int(train))
         else:
-            train = float(train)
-            if 0 < train < 1:
+            train_float = float(train)
+            if 0 < train_float < 1:
                 train_samples = random.sample(
                     new_meta_pd.index.tolist(),
-                    k=int(float(train)*new_meta_pd.shape[1]))
+                    k=int(train_float * new_meta_pd.shape[1]))
             else:
                 raise IOError('Float passed as percent of samples for'
                               ' training not valid (must be in range 0-1)')
