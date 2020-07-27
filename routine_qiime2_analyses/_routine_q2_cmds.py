@@ -251,7 +251,7 @@ def filter_feature_table(qza: str, new_qza: str, meta: str) -> str:
 
 def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
                        epoch: str, batch: str, diff_prior: str, learn: str,
-                       thresh_sample: str, thresh_feat: str, n_random: str,
+                       thresh_sample: str, thresh_feat: str, train_column: str,
                        diffs: str, diffs_qza: str, stats: str, plot: str,
                        base_diff_qza: str, base_stats: str, base_plot: str,
                        tensor: str, tensor_html: str, cur_sh: TextIO) -> None:
@@ -266,7 +266,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
     :param learn:
     :param thresh_sample:
     :param thresh_feat:
-    :param n_random:
+    :param train:
     :param diffs:
     :param diffs_qza:
     :param stats:
@@ -297,7 +297,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd += ' --p-learning-rate %s \\\n' % learn
         cmd += ' --p-min-sample-count %s \\\n' % thresh_sample
         cmd += ' --p-min-feature-count %s \\\n' % thresh_feat
-        cmd += ' --p-num-random-test-examples %s \\\n' % n_random
+        cmd += ' --p-num-random-test-examples %s \\\n' % train_column
         cmd += ' --p-summary-interval 2 \\\n'
         cmd += ' --o-differentials %s \\\n' % diffs_qza
         cmd += ' --o-regression-stats %s \\\n' % stats

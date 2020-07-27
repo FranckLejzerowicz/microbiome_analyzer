@@ -244,12 +244,13 @@ def get_songbird_params(p_diff_models: str, diff_dict: dict) -> dict:
     :return: parameters.
     """
     params = {
+        'train': ['0.2'],
         'batches': ['2'],
         'learns': ['1e-4'],
         'epochs': ['5000'],
         'thresh_feats': ['0'],
         'thresh_samples': ['0'],
-        'diff_priors': ['0.1', '1']
+        'diff_priors': ['0.5']
     }
     if 'params' not in diff_dict:
         print('No parameters set in %s:\nUsing defaults: %s' % (

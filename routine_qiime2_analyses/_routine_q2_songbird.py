@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import os
+import random
 import itertools
 import pandas as pd
 from os.path import isfile, splitext
@@ -35,11 +36,45 @@ from routine_qiime2_analyses._routine_q2_mmvec import (
 )
 
 
+def get_train_column(new_meta_pd, train):
+    if train.isdigit() or train.replace('.', '').isdigit():
+        train_column = 'TrainTest'
+        if train.isdigit():
+            train_samples = random.sample(
+                new_meta_pd.index.tolist(),
+                k=int(train))
+        else:
+            train = float(train)
+            if 0 < train < 1:
+                train_samples = random.sample(
+                    new_meta_pd.index.tolist(),
+                    k=int(float(train)*new_meta_pd.shape[1]))
+            else:
+                raise IOError('Float passed as percent of samples for'
+                              ' training not valid (must be in range 0-1)')
+        new_meta_pd[train_column] = ['Train' if x in train_samples else
+                                     'Test' for x in new_meta_pd.index]
+    else:
+        if train in new_meta_pd.columns:
+            if {'Train', 'Test'}.issubset(new_meta_pd[train]):
+                train_column = train
+                new_meta_pd = new_meta_pd.loc[
+                    new_meta_pd[train].isin(['Train', 'Test'])
+                ]
+            else:
+                raise IOError('Columns passed for training do '
+                              'not have "Train" and "Test" factors')
+        else:
+            raise IOError('Columns passed for training not exists')
+    return new_meta_pd, train_column
+
+
 def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
-                        case: str, formula_meta_var_drop: list, case_var: str, case_vals: list, force: bool,
-                        batch: str, learn: str, epoch: str, diff_prior: str,
-                        thresh_feat: str, thresh_sample: str, n_random: str,
-                        baselines: dict, baseline: str) -> (str, str):
+                        case: str, formula_meta_var_drop: list, case_var: str,
+                        case_vals: list, force: bool, batch: str, learn: str,
+                        epoch: str, diff_prior: str, thresh_feat: str,
+                        thresh_sample: str, train: str, baselines: dict,
+                        baseline: str) -> (str, str):
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
@@ -59,7 +94,7 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
     :param diff_prior:
     :param thresh_feat:
     :param thresh_sample:
-    :param n_random:
+    :param train:
     :param force: Force the re-writing of scripts for all commands.
     """
     remove = True
@@ -95,12 +130,12 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
             new_meta_pd = rename_duplicate_columns(new_meta_pd)
             if len(drop):
                 new_meta_pd = new_meta_pd.loc[(~new_meta_pd[meta_var.lower()].isin(drop)), :]
+            new_meta_pd, train_column = get_train_column(new_meta_pd, train)
             new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-            write_songbird_cmd(qza, new_qza, new_meta, formula, epoch,
-                               batch, diff_prior, learn, thresh_sample,
-                               thresh_feat, n_random, diffs, diffs_qza, stats, plot,
-                               base_diff_qza, base_stats, base_plot, tensor, tensor_html,
-                               cur_sh_o)
+            write_songbird_cmd(qza, new_qza, new_meta, formula, epoch, batch, diff_prior,
+                               learn, thresh_sample, thresh_feat, train_column, diffs,
+                               diffs_qza, stats, plot, base_diff_qza, base_stats,
+                               base_plot, tensor, tensor_html, cur_sh_o)
             remove = False
     if remove:
         os.remove(cur_sh)
@@ -144,13 +179,13 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     songbird_datasets = songbird_dicts[3]
     main_cases_dict = songbird_dicts[4]
 
+    train = params['train']
     batches = params['batches']
     learns = params['learns']
     epochs = params['epochs']
     thresh_feats = params['thresh_feats']
     thresh_samples = params['thresh_samples']
     diff_priors = params['diff_priors']
-    n_randoms = params['n_randoms']
 
     filt_datasets_done, common_datasets_done = check_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_filt, songbird_datasets,
@@ -168,10 +203,16 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     songbird_models.update(dict((input_to_filtered[x], y)
         for x, y in songbird_models.items() if x in input_to_filtered))
 
+    for i,j in songbird_models.items():
+        print()
+        print(i)
+        for jj in j:
+            print('  -', jj)
+
     songbirds = {}
     for dat, filts_files in filt_datasets.items():
         for filts, files in filts_files.items():
-            songbirds.setdefault(dat, []).append(['_'.join(filts), files[0], files[2], ''])
+            songbirds.setdefault(dat[0], []).append([filts, files[0], files[2], ''])
 
     if mmvec_outputs:
         mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
@@ -191,13 +232,12 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     first_print = 0
     songbird_outputs = []
     for dat, filts_tsvs_metas_pair in songbirds.items():
-
+        print('dat', dat)
         if not split:
             out_sh = '%s/run_songbird_%s%s.sh' % (job_folder2, dat, filt_raref)
         for (filt, tsv, meta_, pair) in filts_tsvs_metas_pair:
             if split:
                 out_sh = '%s/run_songbird_%s_%s_%s%s.sh' % (job_folder2, dat, filt, pair, filt_raref)
-
             meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
             if isfile(meta_alphas):
                 meta = meta_alphas
@@ -213,25 +253,25 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             meta_pd = rename_duplicate_columns(meta_pd)
             meta_pd = meta_pd.set_index('sample_name')
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
+
             # print(' --->', dat, end=' : ')
             if dat in songbird_models:
-                # print(' IN !!!')
+                print(' IN !!!')
                 models = check_metadata_models(meta, meta_pd, songbird_models[dat])
             else:
-                # print(' OUT...')
+                print(' OUT...')
                 continue
             baselines = {}
             for model, formula_meta_var_drop in models.items():
                 # print(" ** model, formula_meta_var_drop")
                 # print(model, formula_meta_var_drop)
                 for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
-                                                           thresh_feats, thresh_samples, n_randoms)):
-                    batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, n_random = [str(x) for x in it]
+                                                           thresh_feats, thresh_samples, train)):
+                    batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, train = [str(x) for x in it]
                     model_rep = model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE')
-
-                    params = '%s/filt_f%s_s%s/%s_%s_%s_%s' % (
+                    params = '%s/filt_f%s_s%s/%s_%s_%s_%s_%s' % (
                         model_rep, thresh_feat, thresh_sample,
-                        batch, learn, epoch, diff_prior.replace('.', '')
+                        batch, learn, epoch, diff_prior.replace('.', ''), train.replace('.', '')
                     )
                     for case_var, case_vals_list in cases_dict.items():
                         for case_vals in case_vals_list:
@@ -250,10 +290,12 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                 odir, qza, meta_pd, cur_sh, case, formula_meta_var_drop,
                                 case_var, case_vals, force, batch, learn,
                                 epoch, diff_prior, thresh_feat,
-                                thresh_sample, n_random, baselines, baseline
+                                thresh_sample, train, baselines, baseline
                             )
                             songbird_outputs.append([dat, filt, params.replace('/', '__'),
                                                      case, diffs, pair])
+                            print(diffs)
+                            print(tensor_html)
 
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
     main_sh = write_main_sh(job_folder, '2_songbird%s' % filt_raref, all_sh_pbs,
