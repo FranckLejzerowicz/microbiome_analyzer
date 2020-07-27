@@ -325,7 +325,6 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd += ' --o-differentials %s \\\n' % base_diff_qza
         cmd += ' --o-regression-stats %s \\\n' % base_stats
         cmd += ' --o-regression-biplot %s\n' % base_plot
-        cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 
     if not isfile(tensor):

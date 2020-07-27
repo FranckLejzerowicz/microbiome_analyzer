@@ -203,12 +203,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     songbird_models.update(dict((input_to_filtered[x], y)
         for x, y in songbird_models.items() if x in input_to_filtered))
 
-    for i,j in songbird_models.items():
-        print()
-        print(i)
-        for jj in j:
-            print('  -', jj)
-
     songbirds = {}
     for dat, filts_files in filt_datasets.items():
         for filts, files in filts_files.items():
@@ -232,7 +226,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     first_print = 0
     songbird_outputs = []
     for dat, filts_tsvs_metas_pair in songbirds.items():
-        print('dat', dat)
         if not split:
             out_sh = '%s/run_songbird_%s%s.sh' % (job_folder2, dat, filt_raref)
         for (filt, tsv, meta_, pair) in filts_tsvs_metas_pair:
@@ -256,10 +249,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
             # print(' --->', dat, end=' : ')
             if dat in songbird_models:
-                print(' IN !!!')
                 models = check_metadata_models(meta, meta_pd, songbird_models[dat])
             else:
-                print(' OUT...')
                 continue
             baselines = {}
             for model, formula_meta_var_drop in models.items():
@@ -294,8 +285,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             )
                             songbird_outputs.append([dat, filt, params.replace('/', '__'),
                                                      case, diffs, pair])
-                            print(diffs)
-                            print(tensor_html)
 
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
     main_sh = write_main_sh(job_folder, '2_songbird%s' % filt_raref, all_sh_pbs,
