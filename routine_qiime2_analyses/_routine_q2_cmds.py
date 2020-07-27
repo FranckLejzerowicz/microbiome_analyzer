@@ -297,7 +297,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd += ' --p-learning-rate %s \\\n' % learn
         cmd += ' --p-min-sample-count %s \\\n' % thresh_sample
         cmd += ' --p-min-feature-count %s \\\n' % thresh_feat
-        cmd += ' --p-num-random-test-examples %s \\\n' % train_column
+        cmd += ' --p-training-column %s \\\n' % train_column
         cmd += ' --p-summary-interval 2 \\\n'
         cmd += ' --o-differentials %s \\\n' % diffs_qza
         cmd += ' --o-regression-stats %s \\\n' % stats
@@ -320,7 +320,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd += ' --p-learning-rate %s \\\n' % learn
         cmd += ' --p-min-sample-count %s \\\n' % thresh_sample
         cmd += ' --p-min-feature-count %s \\\n' % thresh_feat
-        cmd += ' --p-num-random-test-examples %s \\\n' % n_random
+        cmd += ' --p-training-column %s \\\n' % train_column
         cmd += ' --p-summary-interval 2 \\\n'
         cmd += ' --o-differentials %s \\\n' % base_diff_qza
         cmd += ' --o-regression-stats %s \\\n' % base_stats
