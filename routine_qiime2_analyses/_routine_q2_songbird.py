@@ -37,9 +37,6 @@ from routine_qiime2_analyses._routine_q2_mmvec import (
 
 
 def get_train_column(new_meta_pd, train):
-    print(train)
-    print(train)
-    print(train)
     if train.isdigit() or train.replace('.', '').isdigit():
         train_column = 'TrainTest'
         if train.isdigit():
@@ -183,7 +180,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     songbird_datasets = songbird_dicts[4]
     main_cases_dict = songbird_dicts[5]
 
-    train = params['train']
+    trains = params['train']
     batches = params['batches']
     learns = params['learns']
     epochs = params['epochs']
@@ -263,7 +260,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     # print(" ** model, formula_meta_var_drop")
                     # print(model, formula_meta_var_drop)
                     for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
-                                                               thresh_feats, thresh_samples, train)):
+                                                               thresh_feats, thresh_samples, trains)):
                         batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, train = [str(x) for x in it]
                         model_rep = model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE')
                         params = '%s/filt_f%s_s%s/%s_%s_%s_%s_%s' % (
