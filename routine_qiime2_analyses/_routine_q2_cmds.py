@@ -254,7 +254,8 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
                        thresh_sample: str, thresh_feat: str, train_column: str,
                        diffs: str, diffs_qza: str, stats: str, plot: str,
                        base_diff_qza: str, base_stats: str, base_plot: str,
-                       tensor: str, tensor_html: str, cur_sh: TextIO) -> None:
+                       baseline_formula: str, tensor: str, tensor_html: str,
+                       cur_sh: TextIO) -> None:
     """
     :param qza:
     :param new_qza:
@@ -277,9 +278,6 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
     :param tensor:
     :param cur_sh:
     """
-
-    # could evolve
-    base_formula = '1'
 
     if not isfile(new_qza):
         cmd = filter_feature_table(qza, new_qza, new_meta)
@@ -313,7 +311,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd = '\nqiime songbird multinomial \\\n'
         cmd += ' --i-table %s \\\n' % new_qza
         cmd += ' --m-metadata-file %s \\\n' % new_meta
-        cmd += ' --p-formula "%s" \\\n' % base_formula
+        cmd += ' --p-formula "%s" \\\n' % baseline_formula
         cmd += ' --p-epochs %s \\\n' % epoch
         cmd += ' --p-batch-size %s \\\n' % batch
         cmd += ' --p-differential-prior %s \\\n' % diff_prior

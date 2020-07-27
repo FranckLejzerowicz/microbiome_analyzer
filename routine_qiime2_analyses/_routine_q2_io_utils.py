@@ -265,6 +265,18 @@ def get_songbird_params(p_diff_models: str, diff_dict: dict) -> dict:
     return params
 
 
+def get_songbird_baselines(p_diff_models: str, diff_dict: dict) -> dict:
+    """
+    Get potential different baselines for songbird modesl.
+    :param p_diff_models: file containing the parameters.
+    :param diff_dict: parsed content of the file containing the parameters.
+    :return: baselines per model.
+    """
+    baselines = {}
+    if 'baselines' in diff_dict:
+        return diff_dict['baselines']
+
+
 def get_songbird_models(p_diff_models: str, diff_dict: dict) -> dict:
     """
     Get the models for songbird passed by the user.
@@ -286,7 +298,7 @@ def get_highlights(highlights_fp: str) -> dict:
     return highlights
 
 
-def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict):
+def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict, dict):
     """
     Collect from on the passed yaml file:
     - subsets to perform songbird on
@@ -307,9 +319,10 @@ def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict):
 
     models = get_songbird_models(p_diff_models, diff_dict)
     params = get_songbird_params(p_diff_models, diff_dict)
+    baselines = get_songbird_baselines(p_diff_models, diff_dict)
     filtering = get_filtering(p_diff_models, diff_dict,  models, 'songbird')
     datasets = [(dat[:-1], 1) if dat[-1] == '*' else (dat, 0) for dat in models]
-    return models, filtering, params, datasets, main_cases_dict
+    return models, filtering, params, baselines, datasets, main_cases_dict
 
 
 def get_doc_config(p_doc_config: str) -> (dict, dict, dict):
