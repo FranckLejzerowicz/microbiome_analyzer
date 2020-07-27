@@ -49,11 +49,14 @@ def get_train_column(new_meta_pd, train):
                 train_samples = random.sample(
                     new_meta_pd.index.tolist(),
                     k=int(train_float * new_meta_pd.shape[1]))
+                print(train_samples)
+                print(train_samples)
             else:
                 raise IOError('Float passed as percent of samples for'
                               ' training not valid (must be in range 0-1)')
         new_meta_pd[train_column] = ['Train' if x in train_samples else
                                      'Test' for x in new_meta_pd.index]
+        print(new_meta_pd[train_column].value_counts())
     else:
         if train in new_meta_pd.columns:
             if {'Train', 'Test'}.issubset(new_meta_pd[train]):
