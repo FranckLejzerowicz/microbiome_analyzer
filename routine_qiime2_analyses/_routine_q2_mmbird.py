@@ -566,11 +566,11 @@ def summarize_songbirds(i_datasets_folder) -> pd.DataFrame:
                 diff = path.replace('-tensorboard.html', '.tsv')
                 root_split = root.split('%s/' % songbird_folder)[-1].split('/')
                 dat = root_split[0]
-                if len(root_split) == 7:
-                    pair, dataset_filter, subset, model, songbird_filter, parameters = root_split[1:]
+                if len(root_split) == 8:
+                    pair, dataset_filter, subset, model, songbird_filter, parameters, baseline = root_split[1:]
                 else:
                     pair = 'no_pair'
-                    dataset_filter, subset, model, songbird_filter, parameters = root_split[1:]
+                    dataset_filter, subset, model, songbird_filter, parameters, baseline = root_split[1:]
                 with open(path) as f:
                     for line in f:
                         if 'Pseudo Q-squared' in line:
