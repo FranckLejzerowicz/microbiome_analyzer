@@ -45,6 +45,8 @@ def get_train_column(new_meta_pd, train):
                 k=int(train))
         else:
             train_float = float(train)
+            print(train_float)
+            print(int(train_float * new_meta_pd.shape[1]))
             if 0 < train_float < 1:
                 train_samples = random.sample(
                     new_meta_pd.index.tolist(),
