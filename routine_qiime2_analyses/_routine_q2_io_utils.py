@@ -265,7 +265,7 @@ def get_songbird_params(p_diff_models: str, diff_dict: dict) -> dict:
     return params
 
 
-def get_songbird_baselines(p_diff_models: str, diff_dict: dict) -> dict:
+def get_songbird_baselines(diff_dict: dict) -> dict:
     """
     Get potential different baselines for songbird modesl.
     :param p_diff_models: file containing the parameters.
@@ -275,6 +275,7 @@ def get_songbird_baselines(p_diff_models: str, diff_dict: dict) -> dict:
     baselines = {}
     if 'baselines' in diff_dict:
         return diff_dict['baselines']
+    return baselines
 
 
 def get_songbird_models(p_diff_models: str, diff_dict: dict) -> dict:
@@ -319,7 +320,7 @@ def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict, dic
 
     models = get_songbird_models(p_diff_models, diff_dict)
     params = get_songbird_params(p_diff_models, diff_dict)
-    baselines = get_songbird_baselines(p_diff_models, diff_dict)
+    baselines = get_songbird_baselines(diff_dict)
     filtering = get_filtering(p_diff_models, diff_dict,  models, 'songbird')
     datasets = [(dat[:-1], 1) if dat[-1] == '*' else (dat, 0) for dat in models]
     return models, filtering, params, baselines, datasets, main_cases_dict
