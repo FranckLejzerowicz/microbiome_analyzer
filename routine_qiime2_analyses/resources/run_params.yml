@@ -187,6 +187,13 @@ songbird:
   mem_num: "4"
   mem_dim: "gb"
   env: "qiime2-2020.2"
+phate:
+  time: "72"
+  n_nodes: "1"
+  n_procs: "4"
+  mem_num: "8"
+  mem_dim: "gb"
+  env: "phate"
 mmbird:
   time: "48"
   n_nodes: "1"

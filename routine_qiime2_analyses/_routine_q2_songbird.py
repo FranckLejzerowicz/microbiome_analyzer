@@ -69,7 +69,7 @@ def get_train_column(new_meta_pd, train):
     return new_meta_pd, train_column
 
 
-def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
+def run_single_songbird(odir: str, odir_base: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
                         case: str, formula_meta_var_drop: list, case_var: str,
                         case_vals: list, force: bool, batch: str, learn: str,
                         epoch: str, diff_prior: str, thresh_feat: str,
@@ -99,47 +99,58 @@ def run_single_songbird(odir: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
     """
     remove = True
 
-    new_meta = '%s/metadata.tsv' % odir
-    new_qza = '%s/tab.qza' % odir
     diffs = '%s/differentials.tsv' % odir
     diffs_qza = '%s/differentials.qza' % odir
     stats = '%s/differentials-stats.qza' % odir
     plot = '%s/differentials-biplot.qza' % odir
     if baseline in baselines:
+        first_model = False
         base_diff_qza = ''
         base_stats = baselines[baseline]
         base_plot = ''
     else:
-        base_diff_qza = '%s/differentials-baseline.qza' % odir
-        base_stats = '%s/differentials-stats-baseline.qza' % odir
-        base_plot = '%s/differentialsbiplot-baseline.qza' % odir
+        first_model = True
+        base_diff_qza = '%s/differentials-baseline.qza' % odir_base
+        base_stats = '%s/differentials-stats-baseline.qza' % odir_base
+        base_plot = '%s/differentialsbiplot-baseline.qza' % odir_base
         baselines[baseline] = base_stats
-    tensor = '%s/tensorboard.qzv' % odir
-    tensor_html = '%s/tensorboard.html' % odir
+    tensor = '%s/tensorboard.qzv' % odir_base
+    tensor_html = '%s/tensorboard.html' % odir_base
 
-    formula, vars, meta_var, drop = formula_meta_var_drop
+    print()
+    print(baseline)
+    print(first_model)
+    print(diffs_qza)
+    print(base_diff_qza)
+    print(tensor_html)
+
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor_html):
-            new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-            new_meta_pd.columns = [x.lower() for x in new_meta_pd.columns]
-            if meta_var:
-                meta_vars = list(set(list(vars) + [meta_var]))
-            else:
-                meta_vars = list(vars)
-            new_meta_pd = new_meta_pd[meta_vars]
-            new_meta_pd = rename_duplicate_columns(new_meta_pd)
-            if len(drop):
-                new_meta_pd = new_meta_pd.loc[(~new_meta_pd[meta_var.lower()].isin(drop)), :]
-            new_meta_pd, train_column = get_train_column(new_meta_pd, train)
-            new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
             write_songbird_cmd(qza, new_qza, new_meta, formula, epoch, batch, diff_prior,
                                learn, thresh_sample, thresh_feat, train_column, diffs,
-                               diffs_qza, stats, plot, base_diff_qza, base_stats,
+                               diffs_qza, stats, plot, base_diff_qza, base_stats, first_model,
                                base_plot, baseline_formula, tensor, tensor_html, cur_sh_o)
             remove = False
     if remove:
         os.remove(cur_sh)
     return diffs, tensor_html
+
+
+def get_songbird_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
+                                     train, case, case_var, case_vals, drop):
+    new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+    new_meta_pd.columns = [x.lower() for x in new_meta_pd.columns]
+    if meta_var:
+        meta_vars = list(set(list(meta_vars_) + [meta_var]))
+    else:
+        meta_vars = list(meta_vars_)
+    new_meta_pd = new_meta_pd[meta_vars]
+    new_meta_pd = rename_duplicate_columns(new_meta_pd)
+    if len(drop):
+        new_meta_pd = new_meta_pd.loc[(~new_meta_pd[meta_var.lower()].isin(drop)), :]
+    new_meta_pd, train_column = get_train_column(new_meta_pd, train)
+    new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
+    return train_column
 
 
 def get_unique_filterings(songbird_filtering):
@@ -227,6 +238,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     first_print = 0
     songbird_outputs = []
     for dat, filts_tsvs_metas_pair in songbirds.items():
+
         if not split:
             out_sh = '%s/run_songbird_%s%s.sh' % (job_folder2, dat, filt_raref)
         for (filt, tsv, meta_, pair) in filts_tsvs_metas_pair:
@@ -244,47 +256,73 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
                           '\t(if you have alpha diversity as a factors in the models)!')
                     first_print += 1
+
+            if pair:
+                dat_pair = '%s/%s' % (dat, pair)
+            else:
+                dat_pair = '%s' % dat
+
             qza = '%s.qza' % splitext(tsv)[0]
             meta_pd = read_meta_pd(meta)
             meta_pd = rename_duplicate_columns(meta_pd)
             meta_pd = meta_pd.set_index('sample_name')
-            cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
-            # print(' --->', dat, end=' : ')
+
             if dat in songbird_models:
                 models = check_metadata_models(meta, meta_pd, songbird_models[dat])
             else:
                 continue
-            baselines = {}
-            for model, formula_meta_var_drop in models.items():
-                model_baselines = {'1': '"1"'}
-                if dat in models_baselines and model in models_baselines[dat]:
-                    model_baselines = models_baselines[dat][model]
-                for model_baseline, baseline_formula in model_baselines.items():
-                    # print(" ** model, formula_meta_var_drop")
-                    # print(model, formula_meta_var_drop)
+
+            cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
+            for case_var, case_vals_list in cases_dict.items():
+                for case_vals in case_vals_list:
+
                     for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
                                                                thresh_feats, thresh_samples, trains)):
                         batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, train = [str(x) for x in it]
-                        model_rep = model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE')
-                        params = '%s/filt_f%s_s%s/%s_%s_%s_%s_%s' % (
-                            model_rep, thresh_feat, thresh_sample,
-                            batch, learn, epoch, diff_prior.replace('.', ''), train.replace('.', '')
-                        )
-                        for case_var, case_vals_list in cases_dict.items():
-                            for case_vals in case_vals_list:
-                                case = get_case(case_vals, case_var, str(idx))
-                                baseline = '%s_%s_%s' % (model_baseline, '_'.join([str(x) for x in it]), case)
+                        params = 'filt_f%s_s%s/%s_%s_%s_%s_%s' % (
+                            thresh_feat, thresh_sample, batch, learn, epoch,
+                            diff_prior.replace('.', ''), train.replace('.', '') )
+                        case = get_case(case_vals, case_var, str(idx))
+
+                        datdir = '%s/%s/%s/%s' % (dat_pair, filt, case, params)
+
+                        baselines = {}
+                        for model, formula_meta_var_drop in models.items():
+
+                            datdir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
+                            new_qza = '%s/tab.qza' % datdir
+                            new_meta = '%s/metadata.tsv' % datdir
+
+                            formula, meta_vars, meta_var, drop = formula_meta_var_drop
+                            train_column = get_songbird_metadata_train_test(
+                                meta_pd, meta_vars, meta_var, new_meta,
+                                train, case, case_var, case_vals, drop)
+
+                            model_baselines = {'1': '"1"'}
+                            model_rep = model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE')
+                            if dat in models_baselines and model in models_baselines[dat]:
+                                model_baselines = models_baselines[dat][model]
+
+                            for model_baseline, baseline_formula in model_baselines.items():
+
+                                baseline = '%s_%s_%s' % ('_'.join([str(x) for x in it]), case, model_baseline)
+
                                 if pair:
-                                    res_dir = '%s/%s/%s/%s/%s' % (dat, pair, filt, case, params)
+                                    dat_pair = '%s/%s' % (dat, pair)
                                 else:
-                                    res_dir = '%s/%s/%s/%s' % (dat, filt, case, params)
-                                odir = get_analysis_folder(i_datasets_folder, 'songbird/%s/%s' % (res_dir, model_baseline))
-                                cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s%s.sh' % (
-                                    job_folder2, dat, filt, model_rep, case, pair, filt_raref)
+                                    dat_pair = '%s' % dat
+                                res_dir = '%s/%s/%s/%s/%s' % (dat_pair, filt, case, params, model_rep)
+                                res_dir_base = '%s/%s/%s/%s/%s' % (dat_pair, filt, case, params, model_baseline)
+                                odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % res_dir)
+                                odir_base = get_analysis_folder(i_datasets_folder, 'songbird/%s' % res_dir_base)
+
+                                cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s%s_%s.sh' % (
+                                    job_folder2, dat, filt, model_rep, case, pair, filt_raref, model_baseline)
                                 cur_sh = cur_sh.replace(' ', '-')
                                 all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
+
                                 diffs, tensor_html = run_single_songbird(
-                                    odir, qza, meta_pd, cur_sh, case, formula_meta_var_drop,
+                                    odir, odir_base, qza, meta_pd, cur_sh, case, formula_meta_var_drop,
                                     case_var, case_vals, force, batch, learn,
                                     epoch, diff_prior, thresh_feat, thresh_sample,
                                     train, baselines, baseline, baseline_formula

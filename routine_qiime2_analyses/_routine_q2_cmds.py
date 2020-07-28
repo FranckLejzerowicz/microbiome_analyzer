@@ -253,9 +253,9 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
                        epoch: str, batch: str, diff_prior: str, learn: str,
                        thresh_sample: str, thresh_feat: str, train_column: str,
                        diffs: str, diffs_qza: str, stats: str, plot: str,
-                       base_diff_qza: str, base_stats: str, base_plot: str,
-                       baseline_formula: str, tensor: str, tensor_html: str,
-                       cur_sh: TextIO) -> None:
+                       base_diff_qza: str, base_stats: str, first_model: bool,
+                       base_plot: str, baseline_formula: str, tensor: str,
+                       tensor_html: str, cur_sh: TextIO) -> None:
     """
     :param qza:
     :param new_qza:
@@ -279,33 +279,34 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
     :param cur_sh:
     """
 
-    if not isfile(new_qza):
-        cmd = filter_feature_table(qza, new_qza, new_meta)
-        cur_sh.write('echo "%s"\n' % cmd)
-        cur_sh.write('%s\n' % cmd)
+    if first_model:
+        if not isfile(new_qza):
+            cmd = filter_feature_table(qza, new_qza, new_meta)
+            cur_sh.write('echo "%s"\n' % cmd)
+            cur_sh.write('%s\n' % cmd)
 
-    if not isfile(diffs_qza):
-        cmd = '\nqiime songbird multinomial \\\n'
-        cmd += ' --i-table %s \\\n' % new_qza
-        cmd += ' --m-metadata-file %s \\\n' % new_meta
-        cmd += ' --p-formula "%s" \\\n' % formula
-        cmd += ' --p-epochs %s \\\n' % epoch
-        cmd += ' --p-batch-size %s \\\n' % batch
-        cmd += ' --p-differential-prior %s \\\n' % diff_prior
-        cmd += ' --p-learning-rate %s \\\n' % learn
-        cmd += ' --p-min-sample-count %s \\\n' % thresh_sample
-        cmd += ' --p-min-feature-count %s \\\n' % thresh_feat
-        cmd += ' --p-training-column %s \\\n' % train_column
-        cmd += ' --p-summary-interval 2 \\\n'
-        cmd += ' --o-differentials %s \\\n' % diffs_qza
-        cmd += ' --o-regression-stats %s \\\n' % stats
-        cmd += ' --o-regression-biplot %s\n' % plot
-        cur_sh.write('%s\n' % cmd)
+        if not isfile(diffs_qza):
+            cmd = '\nqiime songbird multinomial \\\n'
+            cmd += ' --i-table %s \\\n' % new_qza
+            cmd += ' --m-metadata-file %s \\\n' % new_meta
+            cmd += ' --p-formula "%s" \\\n' % formula
+            cmd += ' --p-epochs %s \\\n' % epoch
+            cmd += ' --p-batch-size %s \\\n' % batch
+            cmd += ' --p-differential-prior %s \\\n' % diff_prior
+            cmd += ' --p-learning-rate %s \\\n' % learn
+            cmd += ' --p-min-sample-count %s \\\n' % thresh_sample
+            cmd += ' --p-min-feature-count %s \\\n' % thresh_feat
+            cmd += ' --p-training-column %s \\\n' % train_column
+            cmd += ' --p-summary-interval 2 \\\n'
+            cmd += ' --o-differentials %s \\\n' % diffs_qza
+            cmd += ' --o-regression-stats %s \\\n' % stats
+            cmd += ' --o-regression-biplot %s\n' % plot
+            cur_sh.write('%s\n' % cmd)
 
-    if not isfile(diffs):
-        cmd = run_export(diffs_qza, diffs, '')
-        cur_sh.write('echo "%s"\n' % cmd)
-        cur_sh.write('%s\n' % cmd)
+        if not isfile(diffs):
+            cmd = run_export(diffs_qza, diffs, '')
+            cur_sh.write('echo "%s"\n' % cmd)
+            cur_sh.write('%s\n' % cmd)
 
     if len(base_diff_qza) and not isfile(base_diff_qza):
         cmd = '\nqiime songbird multinomial \\\n'
@@ -337,6 +338,33 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd = run_export(tensor, tensor_html, 'songbird')
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
+
+
+def write_phate_cmd(tsv: str,
+                    cur_sh: TextIO) -> None:
+    """
+    :param qza:
+    :param new_qza:
+    :param new_meta:
+    :param formula:
+    :param epoch:
+    :param batch:
+    :param diff_prior:
+    :param learn:
+    :param thresh_sample:
+    :param thresh_feat:
+    :param train:
+    :param diffs:
+    :param diffs_qza:
+    :param stats:
+    :param plot:
+    :param base_diff_qza:
+    :param base_stats:
+    :param base_plot:
+    :param tensor:
+    :param cur_sh:
+    """
+    pass
 
 
 def run_import(input_path: str, output_path: str, typ: str) -> str:

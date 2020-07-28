@@ -97,6 +97,11 @@ from routine_qiime2_analyses import __version__
          "Must be a yaml file, (see example in 'examples/doc_config.yml' and README)."
 )
 @click.option(
+    "-phate", "--p-phate-config", required=False, default=False, show_default=True,
+    help="Filters and subsets for the PHATE latent space analysis"
+         "Must be a yaml file, (see example in 'examples/phate_config.yml' and README)."
+)
+@click.option(
     "-s", "--p-diff-models", required=False, default=False, show_default=True,
     help="Formulas for multinomial regression-based differential abundance ranking (songbird).\n"
          "MUST BE YAML FILE, see 'examples/songbird_models.yml' and README."
@@ -216,6 +221,7 @@ def standalone_routine(
         p_procrustes,
         p_adonis_formulas,
         p_doc_config,
+        p_phate_config,
         force,
         i_classifier,
         i_wol_tree,
@@ -256,6 +262,7 @@ def standalone_routine(
         p_procrustes,
         p_adonis_formulas,
         p_doc_config,
+        p_phate_config,
         force,
         i_classifier,
         i_wol_tree,
