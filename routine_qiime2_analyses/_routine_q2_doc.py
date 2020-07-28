@@ -7,6 +7,8 @@
 # ----------------------------------------------------------------------------
 
 import os
+import time
+import random
 import numpy as np
 import pandas as pd
 from os.path import isdir, isfile, splitext
@@ -23,7 +25,8 @@ from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_di
 from routine_qiime2_analyses._routine_q2_cmds import get_case, get_new_meta_pd, write_doc
 
 
-def run_single_doc(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
+def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
+                   meta_pd: pd.DataFrame, case_var: str,
                    doc_params: dict, case_vals_list: list, cur_sh: str,
                    force: bool, filt: str, cur_raref: str, fp: str, fa: str,
                    n_nodes: str, n_procs: str) -> list:
@@ -32,22 +35,33 @@ def run_single_doc(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
     cases = []
     with open(cur_sh, 'w') as cur_sh_o:
         for case_vals in case_vals_list:
+            token = '%s%s' % (''.join([str(random.choice(range(100))) for x in range(3)]), time.time())
             case = get_case(case_vals, '', case_var)
             cur_rad = '%s/%s_%s%s' % (odir, case.strip('_'), filt, cur_raref)
-            cur_rad_r = '%s/R' % cur_rad
             cases.append(cur_rad)
+            cur_rad_r = '%s/R' % cur_rad
+            cur_rad_token = '%s/tmp/%s/' % (i_dataset_folder, token)
+            cur_rad_r_token = '%s/R' % cur_rad_token
             if not isdir(cur_rad_r):
                 os.makedirs(cur_rad_r)
+            if not isdir(cur_rad_r_token):
+                os.makedirs(cur_rad_r_token)
             new_meta = '%s/meta.tsv' % cur_rad
             new_qza = '%s/tab.qza' % cur_rad
             new_tsv = '%s/tab.tsv' % cur_rad
             time_log = '%s/time_log.error' % cur_rad
             log = '%s/log.error' % cur_rad
+            new_meta_token = '%s/meta.tsv' % cur_rad_token
+            new_qza_token = '%s/tab.qza' % cur_rad_token
+            new_tsv_token = '%s/tab.tsv' % cur_rad_token
+            time_log_token = '%s/time_log.error' % cur_rad_token
+            log_token = '%s/log.error' % cur_rad_token
             if force or not isfile('%s/DO.tsv' % cur_rad):
                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-                write_doc(qza, new_meta, new_qza, new_tsv, fp, fa, time_log, log,
-                          cur_rad, n_nodes, n_procs, doc_params, cur_sh_o)
+                write_doc(qza, fp, fa, new_meta, new_qza, new_tsv, time_log, log, cur_rad,
+                          new_meta_token, new_qza_token, new_tsv_token, time_log_token, log_token,
+                          cur_rad_token, n_nodes, n_procs, doc_params, cur_sh_o)
                 remove = False
     if remove:
         os.remove(cur_sh)
@@ -93,7 +107,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                         job_folder2, evaluation, dat, case_var, filt_raref, cur_raref, filt)
                     cur_sh = cur_sh.replace(' ', '-')
                     all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                    cases = run_single_doc(odir, tsv, meta_pd, case_var, doc_params,
+                    cases = run_single_doc(i_datasets_folder, odir, tsv, meta_pd, case_var, doc_params,
                                            case_vals_list, cur_sh, force, filt, cur_raref, fp, fa,
                                            run_params["n_nodes"], run_params["n_procs"])
                     dat_cases_tabs[dat][cur_raref].setdefault(case_var, []).extend(cases)

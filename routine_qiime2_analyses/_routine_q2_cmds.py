@@ -712,9 +712,10 @@ def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
     cur_sh.write('%s\n\n' % cmd)
 
 
-def write_doc(qza: str, new_meta: str, new_qza: str,
-              new_tsv: str, fp: str, fa: str, time_log: str, log: str,
-              cur_rad: str, n_nodes: str, n_procs: str,
+def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
+              new_tsv: str, time_log: str, log: str, cur_rad: str, new_meta_token: str,
+              new_qza_token: str, new_tsv_token: str, time_log_token: str,
+              log_token: str, cur_rad_token: str, n_nodes: str, n_procs: str,
               doc_params: dict, cur_sh: TextIO) -> None:
 
     cmd = '\n'
@@ -724,9 +725,12 @@ def write_doc(qza: str, new_meta: str, new_qza: str,
         cmd += '--m-metadata-file %s \\\n' % new_meta
         cmd += '--o-filtered-table %s\n' % new_qza
         cmd += run_export(new_qza, new_tsv, 'FeatureTable')
-    cmd += '\n/usr/bin/time -v -o %s -a -- XDOC \\\n' % time_log
-    cmd += '--i-otu %s \\\n' % new_tsv
-    cmd += '--o-outdir %s \\\n' % cur_rad
+
+    cmd += 'cp %s/* %s\n' % (cur_rad, cur_rad_token)
+
+    cmd += '\n/usr/bin/time -v -o %s -a -- XDOC \\\n' % time_log_token
+    cmd += '--i-otu %s \\\n' % new_tsv_token
+    cmd += '--o-outdir %s \\\n' % cur_rad_token
     cmd += '-fp %s \\\n' % fp
     cmd += '-fa %s \\\n' % fa
     cmd += '--p-cpus %s \\\n' % (int(n_nodes)*int(n_procs))
@@ -745,7 +749,9 @@ def write_doc(qza: str, new_meta: str, new_qza: str,
         cmd += '--non-zero \\\n'
     if doc_params['null']:
         cmd += '--null \\\n'
-    cmd += '--verbose 2>> %s\n' % log
+    cmd += '--verbose 2>> %s\n\n' % log_token
+    cmd += 'cp %s/* %s\n\n' % (cur_rad_token, cur_rad)
+    cmd += 'rm -rf %s\n\n' % cur_rad_token
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 
