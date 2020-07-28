@@ -47,13 +47,6 @@ sepp:
   mem_num: "100"
   mem_dim: "gb"
   env: "qiime2-2020.2"
-doc:
-  time: "48"
-  n_nodes: "1"
-  n_procs: "12"
-  mem_num: "4"
-  mem_dim: "gb"
-  env: "xdoc"
 alpha:
   time: "4"
   n_nodes: "1"
@@ -187,6 +180,13 @@ songbird:
   mem_num: "4"
   mem_dim: "gb"
   env: "qiime2-2020.2"
+doc:
+  time: "48"
+  n_nodes: "1"
+  n_procs: "4"
+  mem_num: "4"
+  mem_dim: "gb"
+  env: "xdoc"
 phate:
   time: "72"
   n_nodes: "1"
