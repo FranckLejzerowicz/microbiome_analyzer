@@ -282,7 +282,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
     if new_qza not in metadatas:
         if not isfile(new_qza):
             cmd = filter_feature_table(qza, new_qza, new_meta)
-            cur_sh.write('echo "%s"\n' % cmd)
+            # cur_sh.write('echo "%s"\n' % cmd)
             cur_sh.write('%s\n' % cmd)
         metadatas[new_qza] = new_meta
 
@@ -306,7 +306,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
 
     if not isfile(diffs):
         cmd = run_export(diffs_qza, diffs, '')
-        cur_sh.write('echo "%s"\n' % cmd)
+        # cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 
     if not first_base:
@@ -333,12 +333,12 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd += ' --i-regression-stats %s \\\n' % stats
         cmd += ' --i-baseline-stats %s \\\n' % base_stats
         cmd += ' --o-visualization %s\n' % tensor
-        cur_sh.write('echo "%s"\n' % cmd)
+        # cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 
     if not isdir(tensor_html):
         cmd = run_export(tensor, tensor_html, 'songbird')
-        cur_sh.write('echo "%s"\n' % cmd)
+        # cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 
 
