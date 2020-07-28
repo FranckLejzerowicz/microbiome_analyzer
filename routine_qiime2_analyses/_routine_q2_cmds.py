@@ -712,9 +712,8 @@ def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
 
 
 def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
-              new_tsv: str, cur_rad: str,
-              new_tsv_token: str, time_log_token: str,
-              log_token: str, cur_rad_token: str, n_nodes: str, n_procs: str,
+              new_tsv: str, cur_rad: str, new_tsv_token: str,
+              cur_rad_token: str, n_nodes: str, n_procs: str,
               doc_params: dict, cur_sh: TextIO) -> None:
 
     cmd = '\n'
@@ -727,7 +726,7 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
 
     cmd += 'cp %s %s\n' % (new_tsv, new_tsv_token)
 
-    cmd += '\n/usr/bin/time -v -o %s -a -- XDOC \\\n' % time_log_token
+    cmd += '\nXDOC \\\n'
     cmd += '--i-otu %s \\\n' % new_tsv_token
     cmd += '--o-outdir %s \\\n' % cur_rad_token
     cmd += '-fp %s \\\n' % fp
@@ -748,7 +747,7 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
         cmd += '--non-zero \\\n'
     if doc_params['null']:
         cmd += '--null \\\n'
-    cmd += '--verbose 2>> %s\n\n' % log_token
+    cmd += '--verbose\n\n'
     cmd += 'rsync -am %s %s\n\n' % (cur_rad_token, cur_rad)
     cmd += 'rm -rf %s\n\n' % cur_rad_token
     cur_sh.write('echo "%s"\n' % cmd)
