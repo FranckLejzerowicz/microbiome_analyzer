@@ -131,6 +131,8 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
 def get_songbird_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
                                      train, case, case_var, case_vals, drop):
     new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+    if train in new_meta_pd.columns:
+        meta_vars_.append(train)
     new_meta_pd.columns = [x.lower() for x in new_meta_pd.columns]
     if meta_var:
         meta_vars = list(set(list(meta_vars_) + [meta_var]))
@@ -296,6 +298,13 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                 model_baselines = models_baselines[dat][model]
 
                             for model_baseline, baseline_formula in model_baselines.items():
+                                print()
+                                print("model_baseline, baseline_formula")
+                                print(model_baseline, baseline_formula)
+                                print("baselines")
+                                print(baselines)
+                                print("metadatas")
+                                print(metadatas)
 
                                 odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
                                 odir_base = get_analysis_folder(i_datasets_folder, 'songbird/%s/%s' % (datdir, model_baseline))
