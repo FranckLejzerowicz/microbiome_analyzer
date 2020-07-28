@@ -724,6 +724,8 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
         cmd += '--o-filtered-table %s\n' % new_qza
         cmd += run_export(new_qza, new_tsv, 'FeatureTable')
 
+    cmd += 'mkdir -p %s\n' % cur_rad_token
+    cmd += 'mkdir -p %s\n' % cur_rad
     cmd += 'cp %s %s\n' % (new_tsv, new_tsv_token)
 
     cmd += '\nXDOC \\\n'
