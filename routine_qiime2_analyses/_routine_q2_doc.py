@@ -174,7 +174,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                         run_xpbs(out_sh, out_pbs, '%s.doc.R.%s%s_%s' % (prjct_nm, dat, filt_raref, cdx),
                                  'xdoc', run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                                  run_params["mem_num"], run_params["mem_dim"],
-                                 chmod, written, 'single', main_o, noloc)
+                                 chmod, written, 'single', main_o, noloc, '~/.')
         if main_written:
             print_message('# DOC (R)', 'sh', main_sh)
 
