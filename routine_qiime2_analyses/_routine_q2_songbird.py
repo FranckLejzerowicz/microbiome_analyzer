@@ -352,6 +352,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                     force, batch, learn, epoch, diff_prior, thresh_feat, thresh_sample,
                                     formula, train_column, metadatas, baselines, model_baseline, baseline_formula
                                 )
+                                print("baselines")
+                                print(baselines)
                                 print("metadatas")
                                 print(metadatas)
 
