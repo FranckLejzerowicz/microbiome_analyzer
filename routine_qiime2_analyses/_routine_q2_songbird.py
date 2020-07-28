@@ -115,10 +115,11 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
 
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor_html):
-            write_songbird_cmd(qza, new_qza, new_meta, formula, epoch, batch, diff_prior,
-                               learn, thresh_sample, thresh_feat, train_column, metadatas,
-                               diffs, diffs_qza, stats, plot, base_diff_qza, base_stats,
-                               base_plot, baseline_formula, tensor, tensor_html, cur_sh_o)
+            write_songbird_cmd(
+                qza, new_qza, new_meta, formula, epoch, batch, diff_prior,
+                learn, thresh_sample, thresh_feat, train_column, metadatas,
+                diffs, diffs_qza, stats, plot, base_diff_qza, base_stats,
+                base_plot, baseline_formula, tensor, tensor_html, cur_sh_o)
             remove = False
     if remove:
         os.remove(cur_sh)

@@ -1040,6 +1040,7 @@ def get_datasets_filtered(
                         # print(analysis, 'write (job): tsv_qza', tsv_qza)
                     already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
             else:
+                print(meta_out)
                 meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
                 if tsv_hash in already_computed:
                     already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
