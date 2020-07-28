@@ -86,7 +86,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             odir = get_analysis_folder(i_datasets_folder, 'doc%s/%s' % (evaluation, dat))
             for case_var, case_vals_list in cases_dict.items():
                 if split:
-                    out_sh = '%s/run_doc%s_%s%s%s%s.sh' % (
+                    out_sh = '%s/run_doc%s_%s%s%s_%s.sh' % (
                         job_folder2, evaluation, dat, filt_raref, cur_raref, case_var)
                 for filt, (fp, fa) in filters.items():
                     cur_sh = '%s/run_doc%s_%s_%s%s%s_%s.sh' % (
