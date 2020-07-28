@@ -315,9 +315,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             model_rep = model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE')
 
                             datdir = '%s/%s/%s/%s/%s' % (dat_pair_path, filt, case, params, model_rep)
-                            datdir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
-                            new_qza = '%s/tab.qza' % datdir
-                            new_meta = '%s/metadata.tsv' % datdir
+                            odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
+                            new_qza = '%s/tab.qza' % odir
+                            new_meta = '%s/metadata.tsv' % odir
 
                             formula, meta_vars, meta_var, drop = formula_meta_var_drop
                             train_column = get_songbird_metadata_train_test(
@@ -332,7 +332,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
                             for model_baseline, baseline_formula in model_baselines.items():
 
-                                odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
                                 odir_base = get_analysis_folder(i_datasets_folder, 'songbird/%s/b-%s' % (datdir, model_baseline))
 
                                 cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s.sh' % (
