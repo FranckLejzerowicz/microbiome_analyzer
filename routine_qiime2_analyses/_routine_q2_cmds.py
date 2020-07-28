@@ -252,10 +252,10 @@ def filter_feature_table(qza: str, new_qza: str, meta: str) -> str:
 def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
                        epoch: str, batch: str, diff_prior: str, learn: str,
                        thresh_sample: str, thresh_feat: str, train_column: str,
-                       diffs: str, diffs_qza: str, stats: str, plot: str,
-                       base_diff_qza: str, base_stats: str, first_model: bool,
-                       base_plot: str, baseline_formula: str, tensor: str,
-                       tensor_html: str, cur_sh: TextIO) -> None:
+                       metadatas: dict, diffs: str, diffs_qza: str, stats: str,
+                       plot: str, base_diff_qza: str, base_stats: str,
+                       base_plot: str, first_base: bool, baseline_formula: str,
+                       tensor: str, tensor_html: str, cur_sh: TextIO) -> None:
     """
     :param qza:
     :param new_qza:
@@ -279,40 +279,18 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
     :param cur_sh:
     """
 
-    if first_model:
+    if new_qza not in metadatas:
         if not isfile(new_qza):
             cmd = filter_feature_table(qza, new_qza, new_meta)
             cur_sh.write('echo "%s"\n' % cmd)
             cur_sh.write('%s\n' % cmd)
+        metadatas[new_qza] = new_meta
 
-        if not isfile(diffs_qza):
-            cmd = '\nqiime songbird multinomial \\\n'
-            cmd += ' --i-table %s \\\n' % new_qza
-            cmd += ' --m-metadata-file %s \\\n' % new_meta
-            cmd += ' --p-formula "%s" \\\n' % formula
-            cmd += ' --p-epochs %s \\\n' % epoch
-            cmd += ' --p-batch-size %s \\\n' % batch
-            cmd += ' --p-differential-prior %s \\\n' % diff_prior
-            cmd += ' --p-learning-rate %s \\\n' % learn
-            cmd += ' --p-min-sample-count %s \\\n' % thresh_sample
-            cmd += ' --p-min-feature-count %s \\\n' % thresh_feat
-            cmd += ' --p-training-column %s \\\n' % train_column
-            cmd += ' --p-summary-interval 2 \\\n'
-            cmd += ' --o-differentials %s \\\n' % diffs_qza
-            cmd += ' --o-regression-stats %s \\\n' % stats
-            cmd += ' --o-regression-biplot %s\n' % plot
-            cur_sh.write('%s\n' % cmd)
-
-        if not isfile(diffs):
-            cmd = run_export(diffs_qza, diffs, '')
-            cur_sh.write('echo "%s"\n' % cmd)
-            cur_sh.write('%s\n' % cmd)
-
-    if len(base_diff_qza) and not isfile(base_diff_qza):
+    if not isfile(diffs_qza):
         cmd = '\nqiime songbird multinomial \\\n'
         cmd += ' --i-table %s \\\n' % new_qza
         cmd += ' --m-metadata-file %s \\\n' % new_meta
-        cmd += ' --p-formula "%s" \\\n' % baseline_formula
+        cmd += ' --p-formula "%s" \\\n' % formula
         cmd += ' --p-epochs %s \\\n' % epoch
         cmd += ' --p-batch-size %s \\\n' % batch
         cmd += ' --p-differential-prior %s \\\n' % diff_prior
@@ -321,10 +299,34 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd += ' --p-min-feature-count %s \\\n' % thresh_feat
         cmd += ' --p-training-column %s \\\n' % train_column
         cmd += ' --p-summary-interval 2 \\\n'
-        cmd += ' --o-differentials %s \\\n' % base_diff_qza
-        cmd += ' --o-regression-stats %s \\\n' % base_stats
-        cmd += ' --o-regression-biplot %s\n' % base_plot
+        cmd += ' --o-differentials %s \\\n' % diffs_qza
+        cmd += ' --o-regression-stats %s \\\n' % stats
+        cmd += ' --o-regression-biplot %s\n' % plot
         cur_sh.write('%s\n' % cmd)
+
+    if not isfile(diffs):
+        cmd = run_export(diffs_qza, diffs, '')
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
+
+    if not first_base:
+        if len(base_diff_qza) and not isfile(base_diff_qza):
+            cmd = '\nqiime songbird multinomial \\\n'
+            cmd += ' --i-table %s \\\n' % new_qza
+            cmd += ' --m-metadata-file %s \\\n' % new_meta
+            cmd += ' --p-formula "%s" \\\n' % baseline_formula
+            cmd += ' --p-epochs %s \\\n' % epoch
+            cmd += ' --p-batch-size %s \\\n' % batch
+            cmd += ' --p-differential-prior %s \\\n' % diff_prior
+            cmd += ' --p-learning-rate %s \\\n' % learn
+            cmd += ' --p-min-sample-count %s \\\n' % thresh_sample
+            cmd += ' --p-min-feature-count %s \\\n' % thresh_feat
+            cmd += ' --p-training-column %s \\\n' % train_column
+            cmd += ' --p-summary-interval 2 \\\n'
+            cmd += ' --o-differentials %s \\\n' % base_diff_qza
+            cmd += ' --o-regression-stats %s \\\n' % base_stats
+            cmd += ' --o-regression-biplot %s\n' % base_plot
+            cur_sh.write('%s\n' % cmd)
 
     if not isfile(tensor):
         cmd = '\n\nqiime songbird summarize-paired \\\n'
@@ -727,7 +729,7 @@ def write_doc(qza: str, new_meta: str, new_qza: str,
     cmd += '--o-outdir %s \\\n' % cur_rad
     cmd += '-fp %s \\\n' % fp
     cmd += '-fa %s \\\n' % fa
-    cmd += '--p-cores %s \\\n' % (int(n_nodes)*int(n_procs))
+    cmd += '--p-cpus %s \\\n' % (int(n_nodes)*int(n_procs))
     cmd += '--p-r %s \\\n' % doc_params['r']
     cmd += '--p-subr %s \\\n' % doc_params['subr']
     cmd += '--p-mov-avg %s \\\n' % doc_params['mov_avg']

@@ -69,12 +69,11 @@ def get_train_column(new_meta_pd, train):
     return new_meta_pd, train_column
 
 
-def run_single_songbird(odir: str, odir_base: str, qza: str, meta_pd: pd.DataFrame, cur_sh: str,
-                        case: str, formula_meta_var_drop: list, case_var: str,
-                        case_vals: list, force: bool, batch: str, learn: str,
-                        epoch: str, diff_prior: str, thresh_feat: str,
-                        thresh_sample: str, train: str, baselines: dict,
-                        baseline: str, baseline_formula: str) -> (str, str):
+def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
+                        new_meta: str, cur_sh: str, force: bool, batch: str,
+                        learn: str, epoch: str, diff_prior: str, thresh_feat: str,
+                        thresh_sample: str, formula: str, train_column: str, metadatas: dict,
+                        baselines: dict, model_baseline: str, baseline_formula: str) -> (str, str):
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
@@ -98,38 +97,31 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, meta_pd: pd.DataFra
     :param force: Force the re-writing of scripts for all commands.
     """
     remove = True
-
     diffs = '%s/differentials.tsv' % odir
     diffs_qza = '%s/differentials.qza' % odir
     stats = '%s/differentials-stats.qza' % odir
     plot = '%s/differentials-biplot.qza' % odir
-    if baseline in baselines:
-        first_model = False
+    if model_baseline in baselines:
+        first_base = False
         base_diff_qza = ''
-        base_stats = baselines[baseline]
+        base_stats = baselines[model_baseline]
         base_plot = ''
     else:
-        first_model = True
+        first_base = True
         base_diff_qza = '%s/differentials-baseline.qza' % odir_base
         base_stats = '%s/differentials-stats-baseline.qza' % odir_base
         base_plot = '%s/differentialsbiplot-baseline.qza' % odir_base
-        baselines[baseline] = base_stats
+        baselines[model_baseline] = base_stats
     tensor = '%s/tensorboard.qzv' % odir_base
     tensor_html = '%s/tensorboard.html' % odir_base
-
-    print()
-    print(baseline)
-    print(first_model)
-    print(diffs_qza)
-    print(base_diff_qza)
-    print(tensor_html)
 
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor_html):
             write_songbird_cmd(qza, new_qza, new_meta, formula, epoch, batch, diff_prior,
-                               learn, thresh_sample, thresh_feat, train_column, diffs,
-                               diffs_qza, stats, plot, base_diff_qza, base_stats, first_model,
-                               base_plot, baseline_formula, tensor, tensor_html, cur_sh_o)
+                               learn, thresh_sample, thresh_feat, train_column, metadatas,
+                               diffs, diffs_qza, stats, plot, base_diff_qza, base_stats,
+                               base_plot, first_base, baseline_formula, tensor,
+                               tensor_html, cur_sh_o)
             remove = False
     if remove:
         os.remove(cur_sh)
@@ -284,11 +276,10 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             diff_prior.replace('.', ''), train.replace('.', '') )
                         case = get_case(case_vals, case_var, str(idx))
 
-                        datdir = '%s/%s/%s/%s' % (dat_pair, filt, case, params)
-
-                        baselines = {}
                         for model, formula_meta_var_drop in models.items():
+                            model_rep = model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE')
 
+                            datdir = '%s/%s/%s/%s/%s' % (dat_pair, filt, case, params, model_rep)
                             datdir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
                             new_qza = '%s/tab.qza' % datdir
                             new_meta = '%s/metadata.tsv' % datdir
@@ -298,34 +289,26 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                 meta_pd, meta_vars, meta_var, new_meta,
                                 train, case, case_var, case_vals, drop)
 
+                            baselines = {}
+                            metadatas = {}
                             model_baselines = {'1': '"1"'}
-                            model_rep = model.replace('+', 'PLUS').replace('*', 'COMBI').replace('-', 'MINUS').replace('/', 'DIVIDE')
                             if dat in models_baselines and model in models_baselines[dat]:
                                 model_baselines = models_baselines[dat][model]
 
                             for model_baseline, baseline_formula in model_baselines.items():
 
-                                baseline = '%s_%s_%s' % ('_'.join([str(x) for x in it]), case, model_baseline)
+                                odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
+                                odir_base = get_analysis_folder(i_datasets_folder, 'songbird/%s/%s' % (datdir, model_baseline))
 
-                                if pair:
-                                    dat_pair = '%s/%s' % (dat, pair)
-                                else:
-                                    dat_pair = '%s' % dat
-                                res_dir = '%s/%s/%s/%s/%s' % (dat_pair, filt, case, params, model_rep)
-                                res_dir_base = '%s/%s/%s/%s/%s' % (dat_pair, filt, case, params, model_baseline)
-                                odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % res_dir)
-                                odir_base = get_analysis_folder(i_datasets_folder, 'songbird/%s' % res_dir_base)
-
-                                cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s%s_%s.sh' % (
-                                    job_folder2, dat, filt, model_rep, case, pair, filt_raref, model_baseline)
+                                cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s.sh' % (
+                                    job_folder2, dat_pair, filt, case, model_rep, model_baseline)
                                 cur_sh = cur_sh.replace(' ', '-')
                                 all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
 
                                 diffs, tensor_html = run_single_songbird(
-                                    odir, odir_base, qza, meta_pd, cur_sh, case, formula_meta_var_drop,
-                                    case_var, case_vals, force, batch, learn,
-                                    epoch, diff_prior, thresh_feat, thresh_sample,
-                                    train, baselines, baseline, baseline_formula
+                                    odir, odir_base, qza, new_qza, new_meta, cur_sh,
+                                    force, batch, learn, epoch, diff_prior, thresh_feat, thresh_sample,
+                                    formula, train_column, metadatas, baselines, model_baseline, baseline_formula
                                 )
                                 songbird_outputs.append([dat, filt, params.replace('/', '__'),
                                                          case, diffs, pair])

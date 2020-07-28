@@ -207,13 +207,6 @@ def routine_qiime2_analyses(
                  datasets_rarefs, prjct_nm, i_sepp_tree, trees, force,
                  qiime_env, chmod, noloc, run_params['sepp'], filt_raref)
 
-    # DISSIMILARITY OVERLAP --------------------------------------------
-    if 'doc' not in p_skip:
-        print('(run_doc)')
-        run_doc(i_datasets_folder, datasets, p_doc_config,
-                datasets_rarefs, force, prjct_nm, qiime_env, chmod,
-                noloc, run_params['doc'], filt_raref, eval_depths, split)
-
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
         print('(diversities)')
@@ -324,6 +317,13 @@ def routine_qiime2_analyses(
                            filt_raref, eval_depths)
     else:
         print('(skip_procrustes)')
+
+    # DISSIMILARITY OVERLAP --------------------------------------------
+    if 'doc' not in p_skip:
+        print('(run_doc)')
+        run_doc(i_datasets_folder, datasets, p_doc_config,
+                datasets_rarefs, force, prjct_nm, qiime_env, chmod,
+                noloc, run_params['doc'], filt_raref, eval_depths, split)
 
     filts = {}
     input_to_filtered = {}
