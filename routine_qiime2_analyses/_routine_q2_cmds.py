@@ -712,7 +712,7 @@ def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
 
 
 def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
-              new_tsv: str, time_log: str, log: str, cur_rad: str,
+              new_tsv: str, cur_rad: str,
               new_tsv_token: str, time_log_token: str,
               log_token: str, cur_rad_token: str, n_nodes: str, n_procs: str,
               doc_params: dict, cur_sh: TextIO) -> None:
@@ -732,7 +732,7 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
     cmd += '--o-outdir %s \\\n' % cur_rad_token
     cmd += '-fp %s \\\n' % fp
     cmd += '-fa %s \\\n' % fa
-    cmd += '--p-cpus %s \\\n' % (int(n_nodes)*int(n_procs))
+    cmd += '--p-cpus %s \\\n' % (int(n_nodes) * int(n_procs))
     cmd += '--p-r %s \\\n' % doc_params['r']
     cmd += '--p-subr %s \\\n' % doc_params['subr']
     cmd += '--p-mov-avg %s \\\n' % doc_params['mov_avg']

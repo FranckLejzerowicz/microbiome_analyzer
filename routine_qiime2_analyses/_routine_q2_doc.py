@@ -35,7 +35,7 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
     cases = []
     with open(cur_sh, 'w') as cur_sh_o:
         for case_vals in case_vals_list:
-            token = '%s%s' % (''.join([str(random.choice(range(100))) for x in range(3)]), time.time())
+            token = ''.join([str(random.choice(range(100))) for x in range(3)])
             case = get_case(case_vals, '', case_var)
             cur_rad = '%s/%s_%s%s' % (odir, case.strip('_'), filt, cur_raref)
             cases.append(cur_rad)
@@ -57,7 +57,7 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
             if force or not isfile('%s/DO.tsv' % cur_rad):
                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-                write_doc(qza, fp, fa, new_meta, new_qza, new_tsv, time_log, log,
+                write_doc(qza, fp, fa, new_meta, new_qza, new_tsv,
                           cur_rad, new_tsv_token, time_log_token, log_token,
                           cur_rad_token, n_nodes, n_procs, doc_params, cur_sh_o)
                 remove = False
