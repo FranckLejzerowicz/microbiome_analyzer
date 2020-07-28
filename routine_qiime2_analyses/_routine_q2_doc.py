@@ -168,8 +168,9 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                         out_sh = '%s/run_R_doc_%s%s_%s.sh' % (job_folder2, dat, filt_raref, cdx)
                         out_pbs = '%s.pbs' % splitext(out_sh)[0]
                         with open(out_sh, 'w') as o:
-                            o.write('echo "%s"\n\n' % chunk)
-                            o.write('%s\n\n' % chunk)
+                            for c in chunk:
+                                o.write('echo "%s"\n\n' % chunk)
+                                o.write('%s\n\n' % chunk)
                         run_xpbs(out_sh, out_pbs, '%s.doc.R.%s%s_%s' % (prjct_nm, dat, filt_raref, cdx),
                                  'xdoc', run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                                  run_params["mem_num"], run_params["mem_dim"],
