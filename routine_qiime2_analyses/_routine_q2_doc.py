@@ -92,7 +92,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             dat_cases_tabs[dat][cur_raref] = {}
             if not split:
                 out_sh = '%s/run_doc%s_%s%s%s.sh' % (job_folder2, evaluation, dat, filt_raref, cur_raref)
-                out_sh = '%s/run_import_doc%s_%s%s%s.sh' % (job_folder2, evaluation, dat, filt_raref, cur_raref)
+                out_import_sh = '%s/run_import_doc%s_%s%s%s.sh' % (job_folder2, evaluation, dat, filt_raref, cur_raref)
             odir = get_analysis_folder(i_datasets_folder, 'doc%s/%s' % (evaluation, dat))
             for case_var, case_vals_list in cases_dict.items():
                 if split:
