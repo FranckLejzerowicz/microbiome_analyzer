@@ -170,7 +170,7 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: di
     if len(eval_depths):
         evaluation = '_eval'
 
-    job_folder = get_job_folder(i_datasets_folder, 'tabulate%s/' % evaluation)
+    job_folder = get_job_folder(i_datasets_folder, 'tabulate%s' % evaluation)
     job_folder2 = get_job_folder(i_datasets_folder, 'tabulate%s/chunks' % evaluation)
 
     to_export = {}
@@ -228,11 +228,7 @@ def export_meta_alpha(datasets: dict, filt_raref: str, datasets_rarefs: dict,
     """
     first_print = True
     for dat, meta_alphas_fps_ in to_export.items():
-        main_meta = meta_alphas_fps_[0][1]
-        print()
-        print(dat)
-        print(meta_alphas_fps_)
-        continue
+        all_meta_alphas_pds = []
         for idx, meta_alphas_fps in enumerate(meta_alphas_fps_):
             tsv, meta = datasets[dat][idx]
             cur_raref = datasets_rarefs[dat][idx]
@@ -255,8 +251,9 @@ def export_meta_alpha(datasets: dict, filt_raref: str, datasets_rarefs: dict,
                 meta_alpha_pd.set_index('sample_name', inplace=True)
 
                 if filt_raref:
+                    filt_raref = filt_raref.replace('_rrf', '')
                     replace_cols = dict(
-                        (x, '%s_%s%s' % (x, filt_raref, cur_raref)) for x in meta_alpha_pd.columns)
+                        (x, '%s%s%s' % (x, filt_raref, cur_raref)) for x in meta_alpha_pd.columns)
                     meta_alpha_pd.rename(columns=replace_cols, inplace=True)
 
                 group = meta_alpha_fp.split('_alphas__')[-1].split('.tsv')[0]
@@ -269,7 +266,7 @@ def export_meta_alpha(datasets: dict, filt_raref: str, datasets_rarefs: dict,
                 meta_alphas_pds.append(meta_alpha_pd)
             meta_alphas_pd = pd.concat(meta_alphas_pds, axis=1, sort=False)
             if meta_alphas_pd.index.tolist()[0] == '#q2:types':
-                meta_alphas_pd = meta_alphas_pd.iloc[1:,:]
+                meta_alphas_pd = meta_alphas_pd.iloc[1:, :]
             meta_alphas_pd = meta_alphas_pd.reset_index()
             meta_alphas_pd.rename(columns={meta_alphas_pd.columns[0]: 'sample_name'}, inplace=True)
 
@@ -286,6 +283,25 @@ def export_meta_alpha(datasets: dict, filt_raref: str, datasets_rarefs: dict,
             if os.getcwd().startswith('/panfs'):
                 meta_alpha_fpo = meta_alpha_fpo.replace(os.getcwd(), '')
             print(' -> Written:', meta_alpha_fpo)
+            meta_alphas_pd.set_index('sample_nane', inplace=True)
+            all_meta_alphas_pds.append(meta_alphas_pd)
+
+        all_meta_alphas_pd = pd.concat(all_meta_alphas_pds, axis=1, sort=False)
+        main_meta = datasets[dat][0][1]
+        meta_alpha_fpo = '%s_alphas_full.tsv' % splitext(main_meta)[0]
+        if isfile(meta_alpha_fpo):
+            meta_pd = read_meta_pd(meta_alpha_fpo)
+        else:
+            meta_pd = read_meta_pd(main_meta)
+        col_to_remove = all_meta_alphas_pd.columns.tolist()[1:]
+        if len(set(col_to_remove) & set(meta_pd.columns.tolist())):
+            meta_pd.drop(columns=[col for col in col_to_remove if col in meta_pd.columns], inplace=True)
+        all_meta_alphas_pd = meta_pd.merge(all_meta_alphas_pd, on='sample_name', how='left')
+        all_meta_alphas_pd.to_csv(meta_alpha_fpo, index=False, sep='\t')
+        if os.getcwd().startswith('/panfs'):
+            meta_alpha_fpo = meta_alpha_fpo.replace(os.getcwd(), '')
+        print(' -> Written:', meta_alpha_fpo)
+        all_meta_alphas_pds.append(meta_alphas_pd.set_index('sample_nane'))
 
 
 def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,

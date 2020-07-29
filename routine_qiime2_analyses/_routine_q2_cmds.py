@@ -726,8 +726,10 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
         cur_import_sh_o.write('%s\n' % cmd)
 
         cmd = run_export(new_qza, new_tsv, 'FeatureTable')
+        cmd += 'rm %s %s\n' % (new_qza, new_qza.replace('.qza', '.biom'))
         cur_import_sh_o.write('echo "%s"\n' % cmd)
         cur_import_sh_o.write('%s\n' % cmd)
+
 
     cmd = 'mkdir -p %s\n' % cur_rad_token
     cmd += 'mkdir -p %s\n' % cur_rad
