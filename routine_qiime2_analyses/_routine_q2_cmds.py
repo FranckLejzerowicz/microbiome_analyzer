@@ -716,7 +716,6 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
               cur_rad_token: str, n_nodes: str, n_procs: str,
               doc_params: dict, cur_sh: TextIO) -> None:
 
-    cmd = '\n'
     if not isfile(new_qza):
         cmd = '\nqiime feature-table filter-samples \\\n'
         cmd += '--i-table %s \\\n' % qza
