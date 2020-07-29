@@ -718,17 +718,24 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
 
     cmd = '\n'
     if not isfile(new_qza):
-        cmd += '\nqiime feature-table filter-samples \\\n'
+        cmd = '\nqiime feature-table filter-samples \\\n'
         cmd += '--i-table %s \\\n' % qza
         cmd += '--m-metadata-file %s \\\n' % new_meta
         cmd += '--o-filtered-table %s\n' % new_qza
-        cmd += run_export(new_qza, new_tsv, 'FeatureTable')
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
 
-    cmd += 'mkdir -p %s\n' % cur_rad_token
+        cmd += run_export(new_qza, new_tsv, 'FeatureTable')
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
+
+    cmd = 'mkdir -p %s\n' % cur_rad_token
     cmd += 'mkdir -p %s\n' % cur_rad
     cmd += 'cp %s %s\n' % (new_tsv, new_tsv_token)
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n' % cmd)
 
-    cmd += '\nXDOC \\\n'
+    cmd = '\nXDOC \\\n'
     cmd += '--i-otu %s \\\n' % new_tsv_token
     cmd += '--o-outdir %s \\\n' % cur_rad_token
     cmd += '-fp %s \\\n' % fp
@@ -750,8 +757,14 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
     if doc_params['null']:
         cmd += '--null \\\n'
     cmd += '--verbose\n\n'
-    cmd += 'rsync -am %s %s\n\n' % (cur_rad_token, cur_rad)
-    cmd += 'rm -rf %s\n\n' % cur_rad_token
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n' % cmd)
+
+    cmd = 'rsync -am %s %s\n\n' % (cur_rad_token, cur_rad)
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n' % cmd)
+
+    cmd = 'rm -rf %s\n\n' % cur_rad_token
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 

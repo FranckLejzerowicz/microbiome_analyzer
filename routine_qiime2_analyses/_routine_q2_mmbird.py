@@ -49,7 +49,7 @@ def get_mmvec_outputs(mmvec_outputs: list):
     return mmvec_outputs_pd
 
 
-def get_songbird_outputs(songbird_outputs: list):
+def get_songbird_outputs(songbird_outputs: list) -> (pd.DataFrame, pd.DataFrame):
     songbird_outputs_pd = pd.DataFrame(
         songbird_outputs,
         columns=[
@@ -58,18 +58,31 @@ def get_songbird_outputs(songbird_outputs: list):
             'songbird_parameters',
             'songbird_case',
             'songbird_fp',
+            'songbird_baseline',
+            'songbird_q2',
             'pair'
         ])
     songbird_outputs_pd['pair_omic_filt'] = songbird_outputs_pd['pair'] + '__' + songbird_outputs_pd[
         'songbird_dat'] + '__' + songbird_outputs_pd['songbird_filt']
     songbird_outputs_pd['case_params'] = songbird_outputs_pd['songbird_case'] + '__' + songbird_outputs_pd[
         'songbird_parameters']
-    songbird_outputs_pd = songbird_outputs_pd.drop(
+    songbird_outputs_drop_pd = songbird_outputs_pd.drop(
         columns=['pair', 'songbird_dat', 'songbird_filt', 'songbird_case', 'songbird_parameters'])
-    songbird_outputs_pd = songbird_outputs_pd.pivot(columns='case_params', index='pair_omic_filt')
-    songbird_outputs_pd.columns = songbird_outputs_pd.columns.droplevel()
-    songbird_outputs_pd = songbird_outputs_pd.reset_index()
-    return songbird_outputs_pd
+    fps_cols = ['case_params', 'pair_omic_filt', 'songbird_fp']
+    songbird_outputs_fps_pd = songbird_outputs_drop_pd[fps_cols].pivot(
+        columns='case_params', index='pair_omic_filt')
+    songbird_outputs_fps_pd.columns = songbird_outputs_fps_pd.columns.droplevel()
+    songbird_outputs_fps_pd = songbird_outputs_fps_pd.reset_index()
+    q2s_cols = ['case_params', 'pair_omic_filt', 'songbird_q2']
+    songbird_outputs_q2s_pd = songbird_outputs_drop_pd[q2s_cols].pivot(
+        columns='case_params', index='pair_omic_filt')
+    songbird_outputs_q2s_pd.columns = songbird_outputs_q2s_pd.columns.droplevel()
+    songbird_outputs_q2s_pd = songbird_outputs_q2s_pd.reset_index()
+    print("songbird_outputs_fps_pd")
+    print(songbird_outputs_fps_pd)
+    print("songbird_outputs_q2s_pd")
+    print(songbird_outputs_q2s_pd)
+    return songbird_outputs_fps_pd, songbird_outputs_q2s_pd
 
 
 def merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd):
@@ -602,7 +615,9 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
 
     print('\t-> [mmbird] Get songbird output...', end=' ')
     if len(songbird_outputs):
-        songbird_outputs_pd = get_songbird_outputs(songbird_outputs)
+        # songbird_outputs_pd = get_songbird_outputs(songbird_outputs)
+        songbird_outputs_fps_pd, songbird_outputs_q2s_pd = get_songbird_outputs(songbird_outputs)
+        print(gf)
         mmvec_songbird_pd = merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd)
     else:
         mmvec_songbird_pd = mmvec_outputs_pd.copy()
