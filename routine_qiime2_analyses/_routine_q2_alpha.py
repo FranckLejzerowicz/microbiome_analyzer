@@ -288,7 +288,7 @@ def export_meta_alpha(datasets: dict, filt_raref: str, datasets_rarefs: dict,
 
         all_meta_alphas_pd = pd.concat(all_meta_alphas_pds, axis=1, sort=False)
         print("all_meta_alphas_pd")
-        print(all_meta_alphas_pd)
+        print(all_meta_alphas_pd.columns.tolist())
         print(all_meta_alphas_pfdsd)
         main_meta = datasets[dat][0][1]
         meta_alpha_fpo = '%s_alphas_full.tsv' % splitext(main_meta)[0]
