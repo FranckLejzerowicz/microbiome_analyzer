@@ -401,11 +401,6 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
 
 def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd,
                              songbird_outputs_q2s_pd, taxo_pds):
-    print()
-    print()
-    print()
-    print(songbird_outputs_q2s_pd)
-    print(songbird_outputs_q2s_pd.columns)
     omics_pairs_metas = {}
     for omicn in ['1', '2']:
         pair_omic_filt = ['pair', 'omic%s' % omicn, 'filt%s' % omicn]
@@ -414,25 +409,11 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd,
             (pair_omic_filt + all_omic_sb)
         ].set_index(pair_omic_filt).T.to_dict()
         for (pair, omic, filt), sb_head_diff_fp in omicn_songbirds.items():
-            print()
-            print()
-            print()
-            print()
-            print('-' *50)
-            print("pair, omic, filt")
-            print(pair, omic, filt)
-            print()
-            print("sb_head_diff_fp")
-            print(sb_head_diff_fp)
             feats_diff_cols = []
             cur_mmvec_folder = get_analysis_folder(i_datasets_folder, 'mmvec/metadata/%s' % pair)
             omic_diff_list = []
             if len(sb_head_diff_fp):
                 for sb_head, diff_fp in sb_head_diff_fp.items():
-                    print("**** sb_head")
-                    print(sb_head)
-                    print("**** diff_fp")
-                    print(diff_fp)
                     model = sb_head.replace('_omic%s_songbird_common_fp' % omicn, '')
                     if str(diff_fp) != 'nan' and isfile(diff_fp):
 
