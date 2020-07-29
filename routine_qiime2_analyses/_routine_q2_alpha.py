@@ -285,7 +285,7 @@ def export_meta_alpha(datasets: dict, filt_raref: str, datasets_rarefs: dict,
             if os.getcwd().startswith('/panfs'):
                 meta_alpha_fpo = meta_alpha_fpo.replace(os.getcwd(), '')
             print(' -> Written:', meta_alpha_fpo)
-            meta_alphas_pd.set_index('sample_nane', inplace=True)
+            meta_alphas_pd.set_index('sample_name', inplace=True)
             all_meta_alphas_pds.append(meta_alphas_pd)
 
         all_meta_alphas_pd = pd.concat(all_meta_alphas_pds, axis=1, sort=False)
@@ -303,7 +303,6 @@ def export_meta_alpha(datasets: dict, filt_raref: str, datasets_rarefs: dict,
         if os.getcwd().startswith('/panfs'):
             meta_alpha_fpo = meta_alpha_fpo.replace(os.getcwd(), '')
         print(' -> Written:', meta_alpha_fpo)
-        all_meta_alphas_pds.append(meta_alphas_pd.set_index('sample_nane'))
 
 
 def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,

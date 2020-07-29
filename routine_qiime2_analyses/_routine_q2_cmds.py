@@ -717,7 +717,7 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
               doc_params: dict, cur_sh: TextIO,
               cur_import_sh_o: TextIO) -> None:
 
-    if not isfile(new_qza):
+    if not isfile(new_tsv):
         cmd = '\nqiime feature-table filter-samples \\\n'
         cmd += '--i-table %s \\\n' % qza
         cmd += '--m-metadata-file %s \\\n' % new_meta
