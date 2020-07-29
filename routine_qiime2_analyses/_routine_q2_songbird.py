@@ -269,6 +269,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             else:
                 continue
 
+            print(dat, meta, meta_pd.columns)
+
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
             for case_var, case_vals_list in cases_dict.items():
                 for case_vals in case_vals_list:

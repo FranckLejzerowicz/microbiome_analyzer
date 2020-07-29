@@ -155,7 +155,8 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                     for case_var, cases in case_var_cases.items():
                         for cdx, case in enumerate(cases):
                             plot = '%s_%s_%s_%s' % (dat, raref, case_var, cdx)
-                            if not isfile('%s/R/DO.tsv' % case):
+                            pdf = '%s/R/plot.pdf' % case
+                            if not isfile(pdf):
                                 cur_r = '%s/run_R_doc_%s_%s_%s_vanilla.R' % (job_folder2, dat, case_var, cdx)
                                 shs.append('R -f %s --vanilla\n' % cur_r)
                                 with open(cur_r, 'w') as o:
@@ -181,8 +182,8 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                                     o.write("    write.table(x=res.null$FNS, file='%s/R/null_FNS.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
                                     o.write("    write.table(x=res.null$BOOT, file='%s/R/null_BOOT.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
                                     o.write("    write.table(x=res.null$CI, file='%s/R/null_CI.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
-                                    o.write("    pdf('%s/R/plot.pdf')\n" % case)
-                                    o.write("    merged <- DOC.merge(list(s_%s = res, s_%s = res.null))\n" % (plot, plot))
+                                    o.write("    pdf('%s')\n" % pdf)
+                                    o.write("    merged <- DOC.merge(list(s_%s = res, s_%s=res.null))\n" % (plot, plot))
                                     o.write("    plot(merged)\n")
                                     o.write("    dev.off()\n")
                                     o.write("}\n")
