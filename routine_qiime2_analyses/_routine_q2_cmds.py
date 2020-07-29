@@ -714,19 +714,20 @@ def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
 def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
               new_tsv: str, cur_rad: str, new_tsv_token: str,
               cur_rad_token: str, n_nodes: str, n_procs: str,
-              doc_params: dict, cur_sh: TextIO) -> None:
+              doc_params: dict, cur_sh: TextIO,
+              cur_import_sh_o: TextIO) -> None:
 
     if not isfile(new_qza):
         cmd = '\nqiime feature-table filter-samples \\\n'
         cmd += '--i-table %s \\\n' % qza
         cmd += '--m-metadata-file %s \\\n' % new_meta
         cmd += '--o-filtered-table %s\n' % new_qza
-        cur_sh.write('echo "%s"\n' % cmd)
-        cur_sh.write('%s\n' % cmd)
+        cur_import_sh_o.write('echo "%s"\n' % cmd)
+        cur_import_sh_o.write('%s\n' % cmd)
 
         cmd = run_export(new_qza, new_tsv, 'FeatureTable')
-        cur_sh.write('echo "%s"\n' % cmd)
-        cur_sh.write('%s\n' % cmd)
+        cur_import_sh_o.write('echo "%s"\n' % cmd)
+        cur_import_sh_o.write('%s\n' % cmd)
 
     cmd = 'mkdir -p %s\n' % cur_rad_token
     cmd += 'mkdir -p %s\n' % cur_rad

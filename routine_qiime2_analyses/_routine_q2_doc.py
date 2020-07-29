@@ -28,12 +28,12 @@ from routine_qiime2_analyses._routine_q2_cmds import get_case, get_new_meta_pd, 
 def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                    meta_pd: pd.DataFrame, case_var: str,
                    doc_params: dict, case_vals_list: list, cur_sh: str,
-                   force: bool, filt: str, cur_raref: str, fp: str, fa: str,
-                   n_nodes: str, n_procs: str) -> list:
+                   cur_import_sh: str, force: bool, filt: str, cur_raref: str,
+                   fp: str, fa: str, n_nodes: str, n_procs: str) -> list:
     remove = True
     qza = '%s.qza' % splitext(tsv)[0]
     cases = []
-    with open(cur_sh, 'w') as cur_sh_o:
+    with open(cur_sh, 'w') as cur_sh_o, open(cur_import_sh, 'w') as cur_import_sh_o:
         for case_vals in case_vals_list:
             token = ''.join([str(random.choice(range(100))) for x in range(3)])
             case = get_case(case_vals, '', case_var)
@@ -54,7 +54,8 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
                 write_doc(qza, fp, fa, new_meta, new_qza, new_tsv,
                           cur_rad, new_tsv_token, cur_rad_token,
-                          n_nodes, n_procs, doc_params, cur_sh_o)
+                          n_nodes, n_procs, doc_params,
+                          cur_sh_o, cur_import_sh_o)
                 remove = False
     if remove:
         os.remove(cur_sh)
@@ -73,8 +74,9 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
     job_folder2 = get_job_folder(i_datasets_folder, 'doc%s/chunks' % evaluation)
     doc_config, doc_params, main_cases_dict = get_doc_config(p_doc_config)
 
-    dat_cases_tabs = {}
     all_sh_pbs = {}
+    all_import_sh_pbs = {}
+    dat_cases_tabs = {}
     for dat, tsv_meta_pds_ in datasets.items():
         dat_cases_tabs[dat] = {}
         if doc_config and 'filtering' in doc_config and dat in doc_config['filtering']:
@@ -99,12 +101,29 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                     cur_sh = '%s/run_doc%s_%s_%s%s%s_%s.sh' % (
                         job_folder2, evaluation, dat, case_var, filt_raref, cur_raref, filt)
                     cur_sh = cur_sh.replace(' ', '-')
+                    cur_import_sh = '%s/run_import_doc%s_%s_%s%s%s_%s.sh' % (
+                        job_folder2, evaluation, dat, case_var, filt_raref, cur_raref, filt)
+                    cur_import_sh = cur_import_sh.replace(' ', '-')
                     all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
+                    all_import_sh_pbs.setdefault((dat, out_sh), []).append(cur_import_sh)
                     cases = run_single_doc(i_datasets_folder, odir, tsv, meta_pd, case_var, doc_params,
-                                           case_vals_list, cur_sh, force, filt, cur_raref, fp, fa,
-                                           run_params["n_nodes"], run_params["n_procs"])
+                                           case_vals_list, cur_sh, cur_import_sh, force, filt, cur_raref,
+                                           fp, fa, run_params["n_nodes"], run_params["n_procs"])
                     dat_cases_tabs[dat][cur_raref].setdefault(case_var, []).extend(cases)
     job_folder = get_job_folder(i_datasets_folder, 'doc%s' % evaluation)
+
+    main_sh = write_main_sh(job_folder, '3_run_import_doc%s%s' % (evaluation, filt_raref),
+                            all_import_sh_pbs, '%s.doc.mpt%s%s' % (prjct_nm, evaluation, filt_raref),
+                            "1", "1", "1", "250", "mb", qiime_env, chmod, noloc)
+    if main_sh:
+        if p_doc_config:
+            if p_doc_config.startswith('/panfs'):
+                p_doc_config = p_doc_config.replace(os.getcwd(), '')
+            print('# Import for DOC (groups config in %s)' % p_doc_config)
+        else:
+            print('# Import DOC')
+        print_message('', 'sh', main_sh)
+
     main_sh = write_main_sh(job_folder, '3_run_doc%s%s' % (evaluation, filt_raref), all_sh_pbs,
                             '%s.doc%s%s' % (prjct_nm, evaluation, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
