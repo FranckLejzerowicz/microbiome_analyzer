@@ -108,7 +108,7 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
     else:
         base_diff_qza = '%s/differentials-baseline.qza' % odir_base
         base_stats = '%s/differentials-stats-baseline.qza' % odir_base
-        base_plot = '%s/differentialsbiplot-baseline.qza' % odir_base
+        base_plot = '%s/differentials-biplot-baseline.qza' % odir_base
         baselines[model_baseline] = base_stats
     tensor = '%s/tensorboard.qzv' % odir_base
     tensor_html = '%s/tensorboard.html' % odir_base

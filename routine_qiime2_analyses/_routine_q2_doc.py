@@ -182,7 +182,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                                     o.write("    write.table(x=res.null$BOOT, file='%s/R/null_BOOT.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
                                     o.write("    write.table(x=res.null$CI, file='%s/R/null_CI.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
                                     o.write("    pdf('%s/R/plot.pdf')\n" % case)
-                                    o.write("    merged <- DOC.merge(list(%s = res, %s = res.null))\n" % (plot, plot))
+                                    o.write("    merged <- DOC.merge(list(s_%s = res, s_%s = res.null))\n" % (plot, plot))
                                     o.write("    plot(merged)\n")
                                     o.write("    dev.off()\n")
                                     o.write("}\n")
