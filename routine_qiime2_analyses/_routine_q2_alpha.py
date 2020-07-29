@@ -232,9 +232,7 @@ def export_meta_alpha(datasets: dict, filt_raref: str, datasets_rarefs: dict,
         for idx, meta_alphas_fps in enumerate(meta_alphas_fps_):
             tsv, meta = datasets[dat][idx]
             cur_raref = datasets_rarefs[dat][idx]
-            print(meta_alphas_fps)
             meta_alphas_fps_exist = [x for x in meta_alphas_fps if isfile(x)]
-            print(meta_alphas_fps_exist)
             if len(meta_alphas_fps_exist) != len(meta_alphas_fps):
                 if not first_print:
                     print('\nWarning: First make sure you run alpha -> alpha merge/export (2_run_merge_alphas.sh) '
@@ -298,6 +296,8 @@ def export_meta_alpha(datasets: dict, filt_raref: str, datasets_rarefs: dict,
         col_to_remove = all_meta_alphas_pd.columns.tolist()[1:]
         if len(set(col_to_remove) & set(meta_pd.columns.tolist())):
             meta_pd.drop(columns=[col for col in col_to_remove if col in meta_pd.columns], inplace=True)
+        all_meta_alphas_pd = all_meta_alphas_pd.reset_index()
+        all_meta_alphas_pd.rename(columns={all_meta_alphas_pd.columns[0]: 'sample_name'}, inplace=True)
         all_meta_alphas_pd = meta_pd.merge(all_meta_alphas_pd, on='sample_name', how='left')
         all_meta_alphas_pd.to_csv(meta_alpha_fpo, index=False, sep='\t')
         if os.getcwd().startswith('/panfs'):
