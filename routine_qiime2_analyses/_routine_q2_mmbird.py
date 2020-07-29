@@ -69,6 +69,16 @@ def get_songbird_outputs(songbird_outputs: list) -> (pd.DataFrame, pd.DataFrame)
     songbird_outputs_drop_pd = songbird_outputs_pd.drop(
         columns=['pair', 'songbird_dat', 'songbird_filt', 'songbird_case', 'songbird_parameters'])
     fps_cols = ['case_params', 'pair_omic_filt', 'songbird_fp']
+    print()
+    print()
+    print(songbird_outputs_drop_pd)
+    for i in songbird_outputs_drop_pd.values:
+        print(i)
+    print(songbird_outputs_drop_pd[fps_cols])
+    print(songbird_outputs_drop_pd[fps_cols].shape)
+    print(songbird_outputs_drop_pd[fps_cols].drop_duplicates())
+    print(songbird_outputs_drop_pd[fps_cols].drop_duplicates().shape)
+    print(songbird_outputs_drop_pd[fps_cols].drop_duplicates().values)
     songbird_outputs_fps_pd = songbird_outputs_drop_pd[fps_cols].drop_duplicates().pivot(
         columns='case_params', index='pair_omic_filt')
     songbird_outputs_fps_pd.columns = songbird_outputs_fps_pd.columns.droplevel()
