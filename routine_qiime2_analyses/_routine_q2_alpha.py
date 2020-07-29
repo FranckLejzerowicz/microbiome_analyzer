@@ -218,8 +218,9 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: di
     return to_export
 
 
-def export_meta_alpha(datasets: dict, filt_raref: str, datasets_rarefs: dict,
-                      to_export: dict, dropout: bool) -> None:
+def export_meta_alpha(datasets: dict, filt_raref: str,
+                      datasets_rarefs: dict, to_export: dict,
+                      dropout: bool) -> None:
     """
     Export the alpha diversity vectors.
 
@@ -269,7 +270,7 @@ def export_meta_alpha(datasets: dict, filt_raref: str, datasets_rarefs: dict,
                 meta_alphas_pd = meta_alphas_pd.iloc[1:, :]
             meta_alphas_pd = meta_alphas_pd.reset_index()
             meta_alphas_pd.rename(columns={meta_alphas_pd.columns[0]: 'sample_name'}, inplace=True)
-            all_meta_alphas_pds.append(meta_alphas_pd)
+            all_meta_alphas_pds.append(meta_alphas_pd.set_index('sample_name'))
 
             meta_alpha_fpo = '%s_alphas.tsv' % splitext(meta)[0]
             if isfile(meta_alpha_fpo):
@@ -284,7 +285,6 @@ def export_meta_alpha(datasets: dict, filt_raref: str, datasets_rarefs: dict,
             if os.getcwd().startswith('/panfs'):
                 meta_alpha_fpo = meta_alpha_fpo.replace(os.getcwd(), '')
             print(' -> Written:', meta_alpha_fpo)
-            meta_alphas_pd.set_index('sample_name', inplace=True)
 
         all_meta_alphas_pd = pd.concat(all_meta_alphas_pds, axis=1, sort=False)
         main_meta = datasets[dat][0][1]
