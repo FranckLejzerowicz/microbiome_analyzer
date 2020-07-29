@@ -134,16 +134,14 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                         for cdx, case in enumerate(cases):
                             plot = '%s_%s_%s_%s' % (dat, raref, case_var, cdx)
                             if not isfile('%s/R/DO.tsv' % case):
-                                time_log = '%s/R/time_log.error' % case
-                                log = '%s/R/log.error' % case
                                 cur_r = '%s/run_R_doc_%s_%s_%s_vanilla.R' % (job_folder2, dat, case_var, cdx)
-                                shs.append('/usr/bin/time -v -o %s -a -- R -f %s --vanilla  2>> %s\n' % (time_log, cur_r, log))
+                                shs.append('R -f %s --vanilla\n' % cur_r)
                                 with open(cur_r, 'w') as o:
                                     o.write("library(DOC)\n")
                                     o.write("library(ggplot2)\n")
                                     o.write("otu <- read.table('%s/tab.tsv', header=T, sep='\\t', comment.char='', check.names=F, nrows=2)\n" % case)
                                     o.write("index_name <- colnames(otu)[1]\n")
-                                    o.write("otu <- read.table('%s/tab.tsv', header=T, sep='\\t', comment.char='', check.names=F, nrows=2, row.names=index_col)\n" % case)
+                                    o.write("otu <- read.table('%s/tab.tsv', header=T, sep='\\t', comment.char='', check.names=F, nrows=2, row.names=index_name)\n" % case)
                                     o.write("res <- DOC(otu)\n")
                                     o.write("res.null <- DOC.null(otu)\n")
                                     o.write("write.table(x=res$DO, file='%s/R/DO.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
