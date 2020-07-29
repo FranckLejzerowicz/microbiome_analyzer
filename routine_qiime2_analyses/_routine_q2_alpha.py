@@ -228,6 +228,11 @@ def export_meta_alpha(datasets: dict, filt_raref: str, datasets_rarefs: dict,
     """
     first_print = True
     for dat, meta_alphas_fps_ in to_export.items():
+        main_meta = meta_alphas_fps_[0][1]
+        print()
+        print(dat)
+        print(meta_alphas_fps_)
+        continue
         for idx, meta_alphas_fps in enumerate(meta_alphas_fps_):
             tsv, meta = datasets[dat][idx]
             cur_raref = datasets_rarefs[dat][idx]
