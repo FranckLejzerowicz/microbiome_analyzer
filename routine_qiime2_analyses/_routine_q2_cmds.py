@@ -724,7 +724,7 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 
-        cmd += run_export(new_qza, new_tsv, 'FeatureTable')
+        cmd = run_export(new_qza, new_tsv, 'FeatureTable')
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 
