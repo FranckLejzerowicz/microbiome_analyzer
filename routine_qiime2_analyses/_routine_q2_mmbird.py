@@ -433,29 +433,35 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd,
                     print(sb_head)
                     print("**** diff_fp")
                     print(diff_fp)
-                    print(gfd)
                     model = sb_head.replace('_omic%s_songbird_common_fp' % omicn, '')
                     if str(diff_fp) != 'nan' and isfile(diff_fp):
-                        diff_html = '%s-tensorboard.html' % splitext(diff_fp)[0]
-                        if isfile(diff_html):
-                            with open(diff_html) as f:
-                                for line in f:
-                                    if 'Pseudo Q-squared' in line:
-                                        q2 = line.split('Pseudo Q-squared:</a></strong> ')[-1].split('<')[0]
-                                        break
-                        else:
-                            q2 = 'Not_found'
+
                         diff_pd = pd.read_csv(diff_fp, header=0, sep='\t', dtype=str)
                         index_header = diff_pd.columns[0]
                         if diff_pd[index_header][0] == '#q2:types':
                             diff_pd = diff_pd[1:]
                         diff_pd = diff_pd.rename(columns={index_header: 'Feature ID'}).set_index('Feature ID')
                         diff_pd = diff_pd.drop(columns=[x for x in diff_pd.columns if 'Intercept' in x])
-                        diff_cols = ['%s__%s__Q2=%s' % (model, x, q2) for x in diff_pd.columns]
+
+                        q2s = {}
+                        diff_htmls = glob.glob('%s/*/tensorboard.html' % dirname(diff_fp))
+                        if len(diff_htmls):
+                            for diff_html in diff_htmls:
+                                baseline = dirname(diff_html).split('/')[-1]
+                                with open(diff_html) as f:
+                                    for line in f:
+                                        if 'Pseudo Q-squared' in line:
+                                            q2 = line.split('Pseudo Q-squared:</a></strong> ')[-1].split('<')[0]
+                                            q2s[baseline] = q2
+                                            break
+                        else:
+                            q2s['NaN'] = 'None'
+                        diff_cols = ['%s__%s__%s' % (
+                            model, x, '--'.join(['b:%s-Q2=%s' % (b, q) for b, q in q2s.items()])
+                        ) for x in diff_pd.columns]
                         diff_pd.columns = diff_cols
                         feats_diff_cols.extend(diff_cols)
                         omic_diff_list.append(diff_pd)
-            print(jsjfkjbdsf)
 
             if len(omic_diff_list):
                 omic_songbird_ranks = pd.concat(omic_diff_list, axis=1, sort=False).reset_index()
