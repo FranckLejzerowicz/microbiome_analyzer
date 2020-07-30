@@ -40,6 +40,8 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
                         factors_print = '%s, ...' % factors_print
                     print('  [%s] factors of variable %s not in %s (%s)' % (
                         analysis, variable, basename(meta), factors_print))
+                    if len([x for x in factors_print if len(x)==1]) == len(factors_print):
+                        print('    -> this is certainly due to non-nested list in the yaml file.')
                     to_pop.add(variable)
     if to_pop:
         for pop in to_pop:

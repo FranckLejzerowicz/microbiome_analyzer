@@ -335,9 +335,8 @@ def routine_qiime2_analyses(
         elif 'phate' not in p_skip:
             print('(run_phate)')
             run_phate(p_phate_config, i_datasets_folder,
-                      datasets, datasets_read, datasets_filt,
-                      input_to_filtered, force, prjct_nm,
-                      qiime_env, chmod, noloc, split,
+                      datasets, datasets_rarefs, force,
+                      prjct_nm, qiime_env, chmod, noloc, split,
                       run_params['phate'], filt_raref)
     else:
         print('(skip_phate)')
