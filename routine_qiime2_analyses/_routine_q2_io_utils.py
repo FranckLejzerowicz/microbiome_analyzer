@@ -326,6 +326,32 @@ def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict, dic
     return models, filtering, params, baselines, datasets, main_cases_dict
 
 
+def get_phate_dicts(p_phate_config: str) -> (dict, list, dict, dict):
+    if not isfile(p_phate_config):
+        print('yaml file containing groups does not exist:\n%s\nExiting...' % p_phate_config)
+        sys.exit(0)
+    with open(p_phate_config) as handle:
+        diff_dict = yaml.load(handle, Loader=yaml.FullLoader)
+
+    main_cases_dict = {'ALL': [[]]}
+    if 'subsets' in diff_dict:
+        main_cases_dict.update(diff_dict['subsets'])
+
+    phate_filtering = {}
+    if 'filtering' in diff_dict:
+        phate_filtering = diff_dict['filtering']
+
+    phate_params = {'t': (None,), 'decay': (15,), 'knn': (5,)}
+    if 'parameters' in diff_dict:
+        phate_params.update(diff_dict['parameters'])
+
+    phate_labels = []
+    if 'labels' in diff_dict:
+        phate_labels.extend(diff_dict['labels'])
+
+    return phate_filtering, phate_labels, phate_params, main_cases_dict
+
+
 def get_doc_config(p_doc_config: str) -> (dict, dict, dict):
     doc_config = {}
     doc_params = {

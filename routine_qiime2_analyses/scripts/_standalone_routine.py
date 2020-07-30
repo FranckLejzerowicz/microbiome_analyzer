@@ -98,7 +98,7 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "-phate", "--p-phate-config", required=False, default=False, show_default=True,
-    help="Filters and subsets for the PHATE latent space analysis"
+    help="Filters, subsets, parameters and stratifications for the PHATE latent space analysis"
          "Must be a yaml file, (see example in 'examples/phate_config.yml' and README)."
 )
 @click.option(

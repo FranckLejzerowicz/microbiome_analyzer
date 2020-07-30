@@ -341,31 +341,40 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cur_sh.write('%s\n' % cmd)
 
 
-def write_phate_cmd(tsv: str,
-                    cur_sh: TextIO) -> None:
-    """
-    :param qza:
-    :param new_qza:
-    :param new_meta:
-    :param formula:
-    :param epoch:
-    :param batch:
-    :param diff_prior:
-    :param learn:
-    :param thresh_sample:
-    :param thresh_feat:
-    :param train:
-    :param diffs:
-    :param diffs_qza:
-    :param stats:
-    :param plot:
-    :param base_diff_qza:
-    :param base_stats:
-    :param base_plot:
-    :param tensor:
-    :param cur_sh:
-    """
-    pass
+def write_phate_cmd(qza: str, new_qza: str, new_tsv: str,
+                    new_meta: str, fp: str, fa: str, cur_rad: str,
+                    phate_labels: list, phate_params: dict,
+                    n_nodes: str, n_procs: str,
+                    cur_sh_o: TextIO) -> None:
+
+    if not isfile(new_tsv):
+        cmd = '\nqiime feature-table filter-samples \\\n'
+        cmd += '--i-table %s \\\n' % qza
+        cmd += '--m-metadata-file %s \\\n' % new_meta
+        cmd += '--o-filtered-table %s\n' % new_qza
+        cur_sh_o.write('echo "%s"\n' % cmd)
+        cur_sh_o.write('%s\n' % cmd)
+
+        cmd = run_export(new_qza, new_tsv, 'FeatureTable')
+        cmd += 'rm %s %s\n' % (new_qza, new_qza.replace('.qza', '.biom'))
+        cur_sh_o.write('echo "%s"\n' % cmd)
+        cur_sh_o.write('%s\n' % cmd)
+
+    cmd = '\nXphate \\\n'
+    cmd += '--i-table %s \\\n' % new_tsv
+    cmd += '--o-dir-path %s \\\n' % cur_rad
+    if phate_labels:
+        for phate_label in phate_labels:
+            cmd += '--p-labels %s \\\n' % phate_label
+    cmd += '-fp %s \\\n' % fp
+    cmd += '-fa %s \\\n' % fa
+    cmd += '--p-cpus %s \\\n' % (int(n_nodes) * int(n_procs))
+    for k, vs in phate_params.items():
+        for v in vs:
+            cmd += '--p-%s %s \\\n' % (k, v)
+    cmd += '--verbose\n\n'
+    cur_sh_o.write('echo "%s"\n' % cmd)
+    cur_sh_o.write('%s\n' % cmd)
 
 
 def run_import(input_path: str, output_path: str, typ: str) -> str:

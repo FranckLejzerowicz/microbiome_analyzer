@@ -28,6 +28,7 @@ from routine_qiime2_analyses._routine_q2_procrustes import run_procrustes
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
 from routine_qiime2_analyses._routine_q2_permanova import run_permanova
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
+from routine_qiime2_analyses._routine_q2_phate import run_phate
 from routine_qiime2_analyses._routine_q2_songbird import run_songbird
 from routine_qiime2_analyses._routine_q2_mmvec import run_mmvec
 from routine_qiime2_analyses._routine_q2_mmbird import run_mmbird
@@ -328,16 +329,18 @@ def routine_qiime2_analyses(
     filts = {}
     input_to_filtered = {}
     # PHATE ---------------------------------------------------------------------
-    # if p_phate_config:
-    #     if filt3d:
-    #         filts.update(get_filt3d_params(p_phate_config, 'phate'))
-    #     elif 'phate' not in p_skip:
-    #         print('(run_phate)')
-    #         run_phate(p_phate_config, i_datasets_folder,
-    #                   datasets, datasets_read, datasets_filt,
-    #                   input_to_filtered, force, prjct_nm,
-    #                   qiime_env, chmod, noloc, split,
-    #                   run_params['phate'], filt_raref)
+    if p_phate_config:
+        if filt3d:
+            filts.update(get_filt3d_params(p_phate_config, 'phate'))
+        elif 'phate' not in p_skip:
+            print('(run_phate)')
+            run_phate(p_phate_config, i_datasets_folder,
+                      datasets, datasets_read, datasets_filt,
+                      input_to_filtered, force, prjct_nm,
+                      qiime_env, chmod, noloc, split,
+                      run_params['phate'], filt_raref)
+    else:
+        print('(skip_phate)')
 
     # MMVEC AND SONGBIRD --------------------------------------------------------
     mmvec_outputs = []
