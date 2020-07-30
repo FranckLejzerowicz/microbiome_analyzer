@@ -371,7 +371,7 @@ def write_phate_cmd(qza: str, new_qza: str, new_tsv: str,
     cmd += '--p-cpus %s \\\n' % (int(n_nodes) * int(n_procs))
     for k, vs in phate_params.items():
         for v in vs:
-            cmd += '--p-%s %s \\\n' % (k, v)
+            cmd += '--p-%ss %s \\\n' % (k, v)
     cmd += '--verbose\n\n'
     cur_sh_o.write('echo "%s"\n' % cmd)
     cur_sh_o.write('%s\n' % cmd)
