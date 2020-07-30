@@ -27,7 +27,7 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 )
 
 
-def run_single_phate(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
+def run_single_phate(dat: str, odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
                      phate_labels: list, phate_params: dict, run_params: dict,
                      case_vals_list: list, cur_sh: str, force: bool,
                      filt: str, cur_raref: str, fp: str, fa: str) -> None:
@@ -43,7 +43,7 @@ def run_single_phate(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
             new_meta = '%s/meta.tsv' % cur_rad
             new_qza = '%s/tab.qza' % cur_rad
             new_tsv = '%s/tab.tsv' % cur_rad
-            phate_html = '%s/phate.html' % cur_rad
+            phate_html = '%s/phate_%s_%s_%s.html' % (cur_rad, dat, filt, case)
             if force or not isfile(phate_html):
                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
@@ -91,7 +91,7 @@ def run_phate(p_phate_config: str, i_datasets_folder: str, datasets: dict,
                     cur_sh = cur_sh.replace(' ', '-')
                     all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                     run_single_phate(
-                        odir, tsv, meta_pd, case_var, phate_labels,
+                        dat, odir, tsv, meta_pd, case_var, phate_labels,
                         phate_params, run_params, case_vals_list,
                         cur_sh, force, filt, cur_raref, fp, fa)
 

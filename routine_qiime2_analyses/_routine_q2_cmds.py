@@ -377,6 +377,10 @@ def write_phate_cmd(qza: str, new_qza: str, new_tsv: str,
     cur_sh_o.write('echo "%s"\n' % cmd)
     cur_sh_o.write('%s\n' % cmd)
 
+    cmd = 'rm %s %s\n' % (new_tsv, new_meta)
+    cur_sh_o.write('echo "%s"\n' % cmd)
+    cur_sh_o.write('%s\n' % cmd)
+
 
 def run_import(input_path: str, output_path: str, typ: str) -> str:
     """
