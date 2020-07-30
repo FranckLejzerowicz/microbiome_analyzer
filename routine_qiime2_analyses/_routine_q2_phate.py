@@ -65,8 +65,6 @@ def run_phate(p_phate_config: str, i_datasets_folder: str, datasets: dict,
     phate_dicts = get_phate_dicts(p_phate_config)
     phate_filtering, phate_labels, phate_params, main_cases_dict = phate_dicts
 
-    print(main_cases_dict)
-
     all_sh_pbs = {}
     for dat, tsv_meta_pds_ in datasets.items():
         if dat in phate_filtering:
