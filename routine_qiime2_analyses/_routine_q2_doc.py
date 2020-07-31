@@ -29,7 +29,8 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                    doc_params: dict, case_vals_list: list, cur_sh: str,
                    cur_import_sh: str, force: bool, filt: str, cur_raref: str,
                    fp: str, fa: str, n_nodes: str, n_procs: str,
-                   dat_phates: dict, doc_phate: bool, need_to_run_phate: list) -> list:
+                   dat_phates: dict, doc_phate: bool, need_to_run_phate: list,
+                   need_to_run_less_phate: list) -> list:
     remove = True
     qza = '%s.qza' % splitext(tsv)[0]
     cases = []
@@ -57,7 +58,10 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                           n_nodes, n_procs, doc_params,
                           cur_sh_o, cur_import_sh_o)
                 remove = False
+
+            # run DOC on each cluster from PHATE
             if doc_phate and filt in dat_phates and case in dat_phates[filt]:
+                # get the clusters
                 xphate_tsv = dat_phates[filt][case]
                 if not isfile(xphate_tsv):
                     if not need_to_run_phate:
@@ -66,15 +70,42 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                     need_to_run_phate.append(
                         xphate_tsv.replace('%s/qiime/phate' % i_dataset_folder, '...'))
                     continue
-                xphate_pd = pd.read_csv(
-                    xphate_tsv, header=0, sep='\t',
-                    usecols=['sample_name', 'variable', 'factor'])
-                xphate_pd = xphate_pd.loc[
-                    xphate_pd['variable'] == 'Silhouette_score_cluster',
-                ].drop(columns=['variable'])
-                xphate_clusters = dict(xphate_pd.groupby('factor').apply(func=lambda x: x.sample_name.tolist()))
-                print(xphate_clusters)
-                print(xphate_clustersfdsa)
+                xphate_pd = pd.read_csv(xphate_tsv, header=0, sep='\t', dtype={'sample_name': str})
+                if len(xphate_pd[['knn', 'decay', 't']].drop_duplicates()) > 5:
+                    if not need_to_run_less_phate:
+                        print('Warning: PHATE has been for multiple parameters combinations:\n'
+                              ' --> It may be unwise to let DOC ru on every combination...\n'
+                              ' --> Be sure to run PHATE using few, desired sets of parameters!')
+                    need_to_run_less_phate.append(
+                        xphate_tsv.replace('%s/qiime/phate' % i_dataset_folder, '...'))
+                cols = ['sample_name', 'knn', 'decay', 't', 'cluster']
+                xphate_clusters = dict(xphate_pd[cols].groupby(
+                    ['knn', 'decay', 't', 'cluster']
+                ).apply(func=lambda x: x.sample_name.tolist()))
+
+                # repeat DOC command for the clusters
+                for (knn, decay, t, cluster), samples_phate in xphate_clusters.items():
+                    token = ''.join([str(random.choice(range(100))) for x in range(3)])
+                    cur_rad_phate = '%s/phate/%s_%s_%s_clust%s' % (cur_rad, knn, decay, t, cluster)
+                    cases.append(cur_rad_phate)
+                    cur_rad_phate_r = '%s/R' % cur_rad_phate
+                    cur_rad_token = '%s/tmp/%s/' % (i_dataset_folder, token)
+                    if not isdir(cur_rad_phate_r):
+                        os.makedirs(cur_rad_phate_r)
+                    if not isdir(cur_rad_token):
+                        os.makedirs(cur_rad_token)
+                    new_meta = '%s/meta.tsv' % cur_rad_phate
+                    new_qza = '%s/tab.qza' % cur_rad_phate
+                    new_tsv = '%s/tab.tsv' % cur_rad_phate
+                    new_tsv_token = '%s/tab.tsv' % cur_rad_token
+                    if force or not isfile('%s/DO.tsv' % cur_rad_phate):
+                        new_meta_pd_phate = new_meta_pd.loc[samples_phate, :].copy()
+                        new_meta_pd_phate.reset_index().to_csv(new_meta, index=False, sep='\t')
+                        write_doc(qza, fp, fa, new_meta, new_qza, new_tsv,
+                                  cur_rad_phate, new_tsv_token, cur_rad_token,
+                                  n_nodes, n_procs, doc_params,
+                                  cur_sh_o, cur_import_sh_o)
+                        remove = False
     if remove:
         os.remove(cur_sh)
     return cases
@@ -88,10 +119,11 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
     job_folder2 = get_job_folder(i_datasets_folder, 'doc/chunks')
     doc_filtering, doc_params, main_cases_dict = get_doc_config(p_doc_config)
 
-    need_to_run_phate = []
     all_sh_pbs = {}
     all_import_sh_pbs = {}
     dat_cases_tabs = {}
+    need_to_run_phate = []
+    need_to_run_less_phate = []
     for dat, tsv_meta_pds_ in datasets.items():
         dat_cases_tabs[dat] = {}
         if dat in doc_filtering:
@@ -102,7 +134,6 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             dat_phates = []
             if dat in phates:
                 dat_phates = phates[dat][idx]
-                print(dat_phates)
             tsv, meta = tsv_meta_pds
             meta_pd = read_meta_pd(meta)
             meta_pd = meta_pd.set_index('sample_name')
@@ -131,7 +162,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                     cases = run_single_doc(i_datasets_folder, odir, tsv, meta_pd, case_var, doc_params,
                                            case_vals_list, cur_sh, cur_import_sh, force, filt, cur_raref,
                                            fp, fa, run_params["n_nodes"], run_params["n_procs"],
-                                           dat_phates, doc_phate, need_to_run_phate)
+                                           dat_phates, doc_phate, need_to_run_phate, need_to_run_less_phate)
                     dat_cases_tabs[dat][cur_raref].setdefault(case_var, []).extend(cases)
 
     for need_to_run in need_to_run_phate:

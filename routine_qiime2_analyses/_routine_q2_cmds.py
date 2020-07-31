@@ -377,9 +377,9 @@ def write_phate_cmd(qza: str, new_qza: str, new_tsv: str,
     cur_sh_o.write('echo "%s"\n' % cmd)
     cur_sh_o.write('%s\n' % cmd)
 
-    cmd = 'rm %s %s\n' % (new_tsv, new_meta)
-    cur_sh_o.write('echo "%s"\n' % cmd)
-    cur_sh_o.write('%s\n' % cmd)
+    # cmd = 'rm %s %s\n' % (new_tsv, new_meta)
+    # cur_sh_o.write('echo "%s"\n' % cmd)
+    # cur_sh_o.write('%s\n' % cmd)
 
 
 def run_import(input_path: str, output_path: str, typ: str) -> str:
@@ -743,7 +743,6 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
         cmd += 'rm %s %s\n' % (new_qza, new_qza.replace('.qza', '.biom'))
         cur_import_sh_o.write('echo "%s"\n' % cmd)
         cur_import_sh_o.write('%s\n' % cmd)
-
 
     cmd = 'mkdir -p %s\n' % cur_rad_token
     cmd += 'mkdir -p %s\n' % cur_rad

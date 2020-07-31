@@ -47,7 +47,7 @@ def run_single_phate(dat: str, odir: str, tsv: str, meta_pd: pd.DataFrame, case_
             phate_html = '%s/phate_%s_%s_%s.html' % (cur_rad, dat, filt, case)
             phate_tsv = '%s_xphate.tsv' % splitext(phate_html)[0]
             cases[case] = phate_tsv
-            if force or not isfile(phate_tsv):
+            if force or not isfile(phate_html) or not isfile(phate_tsv):
                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
                 write_phate_cmd(qza, new_qza, new_tsv, new_meta, fp, fa,
