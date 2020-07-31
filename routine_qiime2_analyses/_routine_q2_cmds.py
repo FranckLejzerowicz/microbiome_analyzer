@@ -362,6 +362,7 @@ def write_phate_cmd(qza: str, new_qza: str, new_tsv: str,
 
     cmd = '\nXphate \\\n'
     cmd += '--i-table %s \\\n' % new_tsv
+    cmd += '--m-metadata %s \\\n' % new_meta
     cmd += '--o-html %s \\\n' % phate_html
     if phate_labels:
         for phate_label in phate_labels:
