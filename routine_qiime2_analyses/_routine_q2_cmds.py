@@ -342,27 +342,27 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
 
 
 def write_phate_cmd(qza: str, new_qza: str, new_tsv: str,
-                    new_meta: str, fp: str, fa: str, cur_rad: str,
+                    new_meta: str, fp: str, fa: str, phate_html: str,
                     phate_labels: list, phate_params: dict,
-                    n_nodes: str, n_procs: str,
-                    cur_sh_o: TextIO) -> None:
+                    n_nodes: str, n_procs: str, cur_sh_o: TextIO,
+                    cur_import_sh_o: TextIO) -> None:
 
     if not isfile(new_tsv):
         cmd = '\nqiime feature-table filter-samples \\\n'
         cmd += '--i-table %s \\\n' % qza
         cmd += '--m-metadata-file %s \\\n' % new_meta
         cmd += '--o-filtered-table %s\n' % new_qza
-        cur_sh_o.write('echo "%s"\n' % cmd)
-        cur_sh_o.write('%s\n' % cmd)
+        cur_import_sh_o.write('echo "%s"\n' % cmd)
+        cur_import_sh_o.write('%s\n' % cmd)
 
         cmd = run_export(new_qza, new_tsv, 'FeatureTable')
         cmd += 'rm %s %s\n' % (new_qza, new_qza.replace('.qza', '.biom'))
-        cur_sh_o.write('echo "%s"\n' % cmd)
-        cur_sh_o.write('%s\n' % cmd)
+        cur_import_sh_o.write('echo "%s"\n' % cmd)
+        cur_import_sh_o.write('%s\n' % cmd)
 
     cmd = '\nXphate \\\n'
     cmd += '--i-table %s \\\n' % new_tsv
-    cmd += '--o-dir-path %s \\\n' % cur_rad
+    cmd += '--o-html %s \\\n' % phate_html
     if phate_labels:
         for phate_label in phate_labels:
             cmd += '--p-labels %s \\\n' % phate_label
@@ -781,6 +781,46 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
     cur_sh.write('%s\n' % cmd)
 
     cmd = 'rm -rf %s\n\n' % cur_rad_token
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n' % cmd)
+
+
+def write_sourcetracking(
+        qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
+        new_tsv: str, cur_rad: str, n_nodes: str,  n_procs: str,
+        sourcetracking_params: dict, column: str, sinks: list,
+        sources: list, sdx: int, cur_sh: TextIO) -> None:
+
+    if not isfile(new_tsv) and not sdx:
+        cmd = '\nqiime feature-table filter-samples \\\n'
+        cmd += '--i-table %s \\\n' % qza
+        cmd += '--m-metadata-file %s \\\n' % new_meta
+        cmd += '--o-filtered-table %s\n' % new_qza
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
+
+        cmd = run_export(new_qza, new_tsv, 'FeatureTable')
+        cmd += 'rm %s %s\n' % (new_qza, new_qza.replace('.qza', '.biom'))
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
+
+    cmd = '\nXsourcetracking \\\n'
+    cmd += '--i-table %s \\\n' % new_tsv
+    cmd += '--o-dir-path %s \\\n' % cur_rad
+    cmd += '--m-metadata %s \\\n' % new_meta
+    cmd += '--p-column-name %s \\\n' % column
+    for sink in sinks:
+        cmd += '--p-sink %s \\\n' % sink
+    for source in sources:
+        cmd += '--p-sources %s \\\n' % source
+    cmd += '-fp %s \\\n' % fp
+    cmd += '-fa %s \\\n' % fa
+    cmd += '--p-cpus %s \\\n' % (int(n_nodes) * int(n_procs))
+    if sourcetracking_params['rarefaction']:
+        cmd += '--p-rarefaction %s \\\n' % sourcetracking_params['rarefaction']
+    if sourcetracking_params['iterations']:
+        cmd += '--p-iterations-burnins %s \\\n' % sourcetracking_params['iterations']
+    cmd += '--verbose\n\n'
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 

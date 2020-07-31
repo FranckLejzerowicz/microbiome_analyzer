@@ -353,7 +353,7 @@ def get_phate_dicts(p_phate_config: str) -> (dict, list, dict, dict):
 
 
 def get_doc_config(p_doc_config: str) -> (dict, dict, dict):
-    doc_config = {}
+    doc_filtering = {}
     doc_params = {
         'r': 50,
         'subr': 0,
@@ -375,11 +375,39 @@ def get_doc_config(p_doc_config: str) -> (dict, dict, dict):
             sys.exit(0)
         with open(p_doc_config) as handle:
             doc_config = yaml.load(handle, Loader=yaml.FullLoader)
+        if 'filtering' in doc_config:
+            doc_filtering = doc_config['filtering']
         if 'subsets' in doc_config:
             main_cases_dict = doc_config['subsets']
         if 'params' in doc_config:
             doc_params.update(doc_config['params'])
-    return doc_config, doc_params, main_cases_dict
+    return doc_filtering, doc_params, main_cases_dict
+
+
+def get_sourcetracking_config(p_sourcetracking_config: str) -> (dict, dict, dict, dict):
+    sourcetracking_filtering = {}
+    sourcetracking_params = {
+        'method': 'sourcetracker',
+        'iterations': None,
+        'rarefaction': None
+    }
+    main_cases_dict = {'ALL': [[]]}
+    if not p_sourcetracking_config or not isfile(p_sourcetracking_config):
+        print('DOC config yaml file does not exist:\n%s\nExiting...' % p_sourcetracking_config)
+        sys.exit(0)
+    with open(p_sourcetracking_config) as handle:
+        sourcetracking_config = yaml.load(handle, Loader=yaml.FullLoader)
+    if 'sourcesink' not in sourcetracking_config:
+        raise IOError('At least one sink for one metadata column must be set '
+                      '(no "sourcesink" in %s)' % p_sourcetracking_config)
+    sourcetracking_sourcesink = sourcetracking_config['sourcesink']
+    if 'filtering' in sourcetracking_config:
+        sourcetracking_filtering = sourcetracking_config['params']
+    if 'subsets' in sourcetracking_config:
+        main_cases_dict = sourcetracking_config['subsets']
+    if 'params' in sourcetracking_config:
+        sourcetracking_params.update(sourcetracking_config['params'])
+    return sourcetracking_sourcesink, sourcetracking_filtering, sourcetracking_params, main_cases_dict
 
 
 def get_main_cases_dict(p_perm_groups: str) -> dict:

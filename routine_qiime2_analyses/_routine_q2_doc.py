@@ -28,7 +28,8 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                    meta_pd: pd.DataFrame, case_var: str,
                    doc_params: dict, case_vals_list: list, cur_sh: str,
                    cur_import_sh: str, force: bool, filt: str, cur_raref: str,
-                   fp: str, fa: str, n_nodes: str, n_procs: str) -> list:
+                   fp: str, fa: str, n_nodes: str, n_procs: str,
+                   dat_phates: dict, doc_phate: bool, need_to_run_phate: list) -> list:
     remove = True
     qza = '%s.qza' % splitext(tsv)[0]
     cases = []
@@ -56,6 +57,24 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                           n_nodes, n_procs, doc_params,
                           cur_sh_o, cur_import_sh_o)
                 remove = False
+            if doc_phate and filt in dat_phates and case in dat_phates[filt]:
+                xphate_tsv = dat_phates[filt][case]
+                if not isfile(xphate_tsv):
+                    if not need_to_run_phate:
+                        print('Unable to run DOC on a set of PHATE clusters:\n'
+                              '(Be sure to run PHATE first...)')
+                    need_to_run_phate.append(
+                        xphate_tsv.replace('%s/qiime/phate' % i_dataset_folder, '...'))
+                    continue
+                xphate_pd = pd.read_csv(
+                    xphate_tsv, header=0, sep='\t',
+                    usecols=['sample_name', 'variable', 'factor'])
+                xphate_pd = xphate_pd.loc[
+                    xphate_pd['variable'] == 'Silhouette_score_cluster',
+                ].drop(columns=['variable'])
+                xphate_clusters = dict(xphate_pd.groupby('factor').apply(func=lambda x: x.sample_name.tolist()))
+                print(xphate_clusters)
+                print(xphate_clustersfdsa)
     if remove:
         os.remove(cur_sh)
     return cases
@@ -64,25 +83,26 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
 def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             datasets_rarefs: dict, force: bool, prjct_nm: str,
             qiime_env: str, chmod: str, noloc: bool, run_params: dict,
-            filt_raref: str, eval_depths: dict, split: bool) -> None:
+            filt_raref: str, phates: dict, doc_phate: bool, split: bool) -> None:
 
-    evaluation = ''
-    if len(eval_depths):
-        evaluation = '_eval'
+    job_folder2 = get_job_folder(i_datasets_folder, 'doc/chunks')
+    doc_filtering, doc_params, main_cases_dict = get_doc_config(p_doc_config)
 
-    job_folder2 = get_job_folder(i_datasets_folder, 'doc%s/chunks' % evaluation)
-    doc_config, doc_params, main_cases_dict = get_doc_config(p_doc_config)
-
+    need_to_run_phate = []
     all_sh_pbs = {}
     all_import_sh_pbs = {}
     dat_cases_tabs = {}
     for dat, tsv_meta_pds_ in datasets.items():
         dat_cases_tabs[dat] = {}
-        if doc_config and 'filtering' in doc_config and dat in doc_config['filtering']:
-            filters = doc_config['filtering'][dat]
+        if dat in doc_filtering:
+            filters = doc_filtering[dat]
         else:
             filters = {'0_0': ['0', '0']}
         for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
+            dat_phates = []
+            if dat in phates:
+                dat_phates = phates[dat][idx]
+                print(dat_phates)
             tsv, meta = tsv_meta_pds
             meta_pd = read_meta_pd(meta)
             meta_pd = meta_pd.set_index('sample_name')
@@ -90,32 +110,36 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             cur_raref = datasets_rarefs[dat][idx]
             dat_cases_tabs[dat][cur_raref] = {}
             if not split:
-                out_sh = '%s/run_doc%s_%s%s%s.sh' % (job_folder2, evaluation, dat, filt_raref, cur_raref)
-                out_import_sh = '%s/run_import_doc%s_%s%s%s.sh' % (job_folder2, evaluation, dat, filt_raref, cur_raref)
-            odir = get_analysis_folder(i_datasets_folder, 'doc%s/%s' % (evaluation, dat))
-            for case_var, case_vals_list in cases_dict.items():
+                out_sh = '%s/run_doc_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
+                out_import_sh = '%s/run_import_doc_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
+            odir = get_analysis_folder(i_datasets_folder, 'doc/%s' % dat)
+            for filt, (fp, fa) in filters.items():
                 if split:
-                    out_sh = '%s/run_doc%s_%s%s%s_%s.sh' % (
-                        job_folder2, evaluation, dat, filt_raref, cur_raref, case_var)
-                    out_import_sh = '%s/run_import_doc%s_%s%s%s_%s.sh' % (
-                        job_folder2, evaluation, dat, filt_raref, cur_raref, case_var)
-                for filt, (fp, fa) in filters.items():
-                    cur_sh = '%s/run_doc%s_%s_%s%s%s_%s.sh' % (
-                        job_folder2, evaluation, dat, case_var, filt_raref, cur_raref, filt)
+                    out_sh = '%s/run_doc_%s%s%s_%s.sh' % (
+                        job_folder2, dat, filt_raref, cur_raref, filt)
+                    out_import_sh = '%s/run_import_doc_%s%s%s_%s.sh' % (
+                        job_folder2, dat, filt_raref, cur_raref, filt)
+                for case_var, case_vals_list in cases_dict.items():
+                    cur_sh = '%s/run_doc_%s_%s%s%s_%s.sh' % (
+                        job_folder2, dat, case_var, filt_raref, cur_raref, filt)
                     cur_sh = cur_sh.replace(' ', '-')
-                    cur_import_sh = '%s/run_import_doc%s_%s_%s%s%s_%s.sh' % (
-                        job_folder2, evaluation, dat, case_var, filt_raref, cur_raref, filt)
+                    cur_import_sh = '%s/run_import_doc_%s_%s%s%s_%s.sh' % (
+                        job_folder2, dat, case_var, filt_raref, cur_raref, filt)
                     cur_import_sh = cur_import_sh.replace(' ', '-')
                     all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                     all_import_sh_pbs.setdefault((dat, out_import_sh), []).append(cur_import_sh)
                     cases = run_single_doc(i_datasets_folder, odir, tsv, meta_pd, case_var, doc_params,
                                            case_vals_list, cur_sh, cur_import_sh, force, filt, cur_raref,
-                                           fp, fa, run_params["n_nodes"], run_params["n_procs"])
+                                           fp, fa, run_params["n_nodes"], run_params["n_procs"],
+                                           dat_phates, doc_phate, need_to_run_phate)
                     dat_cases_tabs[dat][cur_raref].setdefault(case_var, []).extend(cases)
-    job_folder = get_job_folder(i_datasets_folder, 'doc%s' % evaluation)
 
-    main_sh = write_main_sh(job_folder, '3_run_import_doc%s%s' % (evaluation, filt_raref),
-                            all_import_sh_pbs, '%s.doc.mpt%s%s' % (prjct_nm, evaluation, filt_raref),
+    for need_to_run in need_to_run_phate:
+        print(' -', need_to_run)
+
+    job_folder = get_job_folder(i_datasets_folder, 'doc')
+    main_sh = write_main_sh(job_folder, '3_run_import_doc%s' % filt_raref,
+                            all_import_sh_pbs, '%s.doc.mpt%s' % (prjct_nm, filt_raref),
                             "1", "1", "1", "250", "mb", qiime_env, chmod, noloc)
     if main_sh:
         if p_doc_config:
@@ -126,8 +150,8 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             print('# Import DOC')
         print_message('', 'sh', main_sh)
 
-    main_sh = write_main_sh(job_folder, '3_run_doc%s%s' % (evaluation, filt_raref), all_sh_pbs,
-                            '%s.doc%s%s' % (prjct_nm, evaluation, filt_raref),
+    main_sh = write_main_sh(job_folder, '3_run_doc%s' % filt_raref, all_sh_pbs,
+                            '%s.doc%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
                             qiime_env, chmod, noloc, '~/.')
@@ -141,7 +165,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
         print_message('', 'sh', main_sh)
 
     do_r = 1
-    if do_r and not len(eval_depths):
+    if do_r:
         job_folder = get_job_folder(i_datasets_folder, 'doc/R')
         job_folder2 = get_job_folder(i_datasets_folder, 'doc/R/chunks')
         main_written = 0

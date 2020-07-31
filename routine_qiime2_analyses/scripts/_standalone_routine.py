@@ -92,14 +92,19 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/adonis_formulas.yml' and README)."
 )
 @click.option(
-    "-doc", "--p-doc-config", required=False, default=False, show_default=True,
-    help="Filters and subsets for the dissimilarity overlap curves analyses"
-         "Must be a yaml file, (see example in 'examples/doc_config.yml' and README)."
-)
-@click.option(
     "-phate", "--p-phate-config", required=False, default=False, show_default=True,
     help="Filters, subsets, parameters and stratifications for the PHATE latent space analysis"
          "Must be a yaml file, (see example in 'examples/phate_config.yml' and README)."
+)
+@click.option(
+    "-st", "--p-sourcetracking-config", required=False, default=False, show_default=True,
+    help="Filters, subsets, parameters and isn/sources for sourcetracking"
+         "Must be a yaml file, (see example in 'examples/sourcetracking_config.yml' and README)."
+)
+@click.option(
+    "-doc", "--p-doc-config", required=False, default=False, show_default=True,
+    help="Filters and subsets for the dissimilarity overlap curves analyses"
+         "Must be a yaml file, (see example in 'examples/doc_config.yml' and README)."
 )
 @click.option(
     "-s", "--p-diff-models", required=False, default=False, show_default=True,
@@ -194,6 +199,11 @@ from routine_qiime2_analyses import __version__
     help="Allow samples dropouts for the features subsetting (alpha and beta)."
 )
 @click.option(
+    "--doc-phate/--no-doc-phate", default=True, show_default=True,
+    help="Apply DOC on each PHATE cluster as a subset"
+         "(for filtering/subsets present in both DIC and PHATE .yml configs)."
+)
+@click.option(
     "--filt3d/--no-filt3d", default=False, show_default=True,
     help="Only check the effect of filtering thresholds passed to songbird "
          "and mmvec instead of running all of them."
@@ -221,6 +231,7 @@ def standalone_routine(
         p_procrustes,
         p_adonis_formulas,
         p_doc_config,
+        p_sourcetracking_config,
         p_phate_config,
         force,
         i_classifier,
@@ -242,6 +253,7 @@ def standalone_routine(
         p_betas,
         split,
         dropout,
+        doc_phate,
         filt3d,
         p_filt3d_config
 ):
@@ -262,6 +274,7 @@ def standalone_routine(
         p_procrustes,
         p_adonis_formulas,
         p_doc_config,
+        p_sourcetracking_config,
         p_phate_config,
         force,
         i_classifier,
@@ -283,6 +296,7 @@ def standalone_routine(
         p_betas,
         split,
         dropout,
+        doc_phate,
         filt3d,
         p_filt3d_config
     )

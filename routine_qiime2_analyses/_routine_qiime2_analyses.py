@@ -18,6 +18,7 @@ from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp, get_
 from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
 from routine_qiime2_analyses._routine_q2_taxonomy import run_taxonomy, run_barplot, get_precomputed_taxonomies
 from routine_qiime2_analyses._routine_q2_doc import run_doc
+from routine_qiime2_analyses._routine_q2_sourcetracking import run_sourcetracking
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
                                                        run_correlations, run_volatility,
                                                        run_alpha_group_significance)
@@ -50,6 +51,7 @@ def routine_qiime2_analyses(
         p_procrustes: str,
         p_formulas: str,
         p_doc_config: str,
+        p_sourcetracking_config: str,
         p_phate_config: str,
         force: bool,
         i_classifier: str,
@@ -71,6 +73,7 @@ def routine_qiime2_analyses(
         Bs: tuple,
         split: bool,
         dropout: bool,
+        doc_phate: bool,
         filt3d: bool,
         p_filt3d_config: str) -> None:
     """
@@ -319,29 +322,37 @@ def routine_qiime2_analyses(
     else:
         print('(skip_procrustes)')
 
+    # PHATE ---------------------------------------------------------------------
+    if p_phate_config and 'phate' not in p_skip:
+            print('(run_phate)')
+            phates = run_phate(
+                p_phate_config, i_datasets_folder, datasets, datasets_rarefs, force,
+                prjct_nm, qiime_env, chmod, noloc, split, run_params['phate'], filt_raref)
+    else:
+        phates = {}
+        print('(skip_phate)')
+
     # DISSIMILARITY OVERLAP --------------------------------------------
     if 'doc' not in p_skip:
         print('(run_doc)')
         run_doc(i_datasets_folder, datasets, p_doc_config,
-                datasets_rarefs, force, prjct_nm, qiime_env, chmod,
-                noloc, run_params['doc'], filt_raref, eval_depths, split)
-
-    filts = {}
-    input_to_filtered = {}
-    # PHATE ---------------------------------------------------------------------
-    if p_phate_config:
-        if filt3d:
-            filts.update(get_filt3d_params(p_phate_config, 'phate'))
-        elif 'phate' not in p_skip:
-            print('(run_phate)')
-            run_phate(p_phate_config, i_datasets_folder,
-                      datasets, datasets_rarefs, force,
-                      prjct_nm, qiime_env, chmod, noloc, split,
-                      run_params['phate'], filt_raref)
+                datasets_rarefs, force, prjct_nm, qiime_env, chmod, noloc,
+                run_params['doc'], filt_raref, phates, doc_phate, split)
     else:
-        print('(skip_phate)')
+        print('(skip_doc)')
+
+    # SOURCETRACKING --------------------------------------------
+    if 'sourcetracking' not in p_skip:
+        print('(run_sourcetracking)')
+        run_sourcetracking(i_datasets_folder, datasets, p_sourcetracking_config,
+                           datasets_rarefs, force, prjct_nm, qiime_env, chmod,
+                           noloc, run_params['sourcetracking'], filt_raref, split)
+    else:
+        print('(skip_sourcetracking)')
 
     # MMVEC AND SONGBIRD --------------------------------------------------------
+    filts = {}
+    input_to_filtered = {}
     mmvec_outputs = []
     if p_mmvec_pairs:
         if filt3d:
