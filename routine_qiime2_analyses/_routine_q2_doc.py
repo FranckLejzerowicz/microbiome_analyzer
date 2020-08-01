@@ -89,7 +89,7 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                     cur_rad_phate = '%s/phate/%s_%s_%s_clust%s' % (cur_rad, knn, decay, t, cluster)
                     cases.append(cur_rad_phate)
                     cur_rad_phate_r = '%s/R' % cur_rad_phate
-                    cur_rad_token = '%s/tmp/%s/' % (i_dataset_folder, token)
+                    cur_rad_token = '%s/tmp/%s' % (i_dataset_folder, token)
                     if not isdir(cur_rad_phate_r):
                         os.makedirs(cur_rad_phate_r)
                     if not isdir(cur_rad_token):

@@ -89,6 +89,7 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
     sourcetracking_sourcesink = sourcetracking_dicts[0]
     sourcetracking_filtering = sourcetracking_dicts[1]
     sourcetracking_params = sourcetracking_dicts[2]
+    method = sourcetracking_params['method']
     main_cases_dict = sourcetracking_dicts[3]
 
     all_sh_pbs = {}
@@ -123,6 +124,10 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
                         cur_raref, fp, fa, run_params["n_nodes"], run_params["n_procs"])
 
     job_folder = get_job_folder(i_datasets_folder, 'sourcetracking')
+    if method == 'sourcetracker':
+        qiime_env = 'sourcetracker2'
+    if method == 'feast':
+        qiime_env = 'feast'
     main_sh = write_main_sh(job_folder, '3_run_sourcetracking%s' % filt_raref, all_sh_pbs,
                             '%s.srctrk%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
