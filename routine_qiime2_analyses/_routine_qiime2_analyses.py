@@ -342,7 +342,7 @@ def routine_qiime2_analyses(
         print('(skip_doc)')
 
     # SOURCETRACKING --------------------------------------------
-    if 'sourcetracking' not in p_skip:
+    if p_sourcetracking_config and 'sourcetracking' not in p_skip:
         print('(run_sourcetracking)')
         run_sourcetracking(i_datasets_folder, datasets, p_sourcetracking_config,
                            datasets_rarefs, force, prjct_nm, qiime_env, chmod,

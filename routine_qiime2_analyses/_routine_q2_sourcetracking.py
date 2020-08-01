@@ -106,6 +106,7 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
             cur_raref = datasets_rarefs[dat][idx]
             if not split:
                 out_sh = '%s/run_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
+                out_sh = '%s/run_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
             odir = get_analysis_folder(i_datasets_folder, 'sourcetracking/%s' % dat)
             for case_var, case_vals_list in cases_dict.items():
                 if split:
