@@ -211,6 +211,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     for dat, filts_files in filt_datasets.items():
         for filts, files in filts_files.items():
             songbirds.setdefault(dat[0], []).append([filts, files[0], files[2], ''])
+            print('   *', filts)
+            print('   *', files[0])
+            print('   *', files[2])
 
     if mmvec_outputs:
         mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
