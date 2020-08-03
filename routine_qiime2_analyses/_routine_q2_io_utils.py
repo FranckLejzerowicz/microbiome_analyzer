@@ -1070,7 +1070,7 @@ def get_datasets_filtered(
             if analysis == 'songbird':
                 if meta_out != '/projects/nutrition/analysis/tree_based/qiime/mmvec/datasets/16S_100nt_745s__raref5000/meta_16S_100nt_745s__raref5000_0_0_723s.tsv':
                     continue
-                print('*', meta_out)
+                print('***', meta_out)
                 meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
                 tsv_out_mmvec = tsv_out.replace('/songbird/', '/mmvec/')
                 tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
