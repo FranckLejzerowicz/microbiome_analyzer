@@ -112,6 +112,8 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict, filtering: di
             preval_filt2, abund_filter2 = preval_abund_dats[(omic2, bool2)]
             filt1 = '%s_%s' % (preval_filt1, abund_filter1)
             filt2 = '%s_%s' % (preval_filt2, abund_filter2)
+            if preval_abund not in filt_datasets[(omic1, bool1)] or preval_abund not in filt_datasets[(omic2, bool2)]:
+                continue
             tsv1, qza1, meta1, meta_pd1, sams1 = filt_datasets[(omic1, bool1)][preval_abund]
             tsv2, qza2, meta2, meta_pd2, sams2 = filt_datasets[(omic2, bool2)][preval_abund]
             # print()
