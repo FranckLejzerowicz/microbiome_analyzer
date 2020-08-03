@@ -1072,6 +1072,10 @@ def get_datasets_filtered(
                 #                           low_memory=False)
                 #     # print(analysis, 'has mmvec', meta_out, meta_pd.shape)
                 # else:
+                print(meta_out)
+                print(meta_out)
+                print(meta_out)
+                print(meta_pd_.columns)
                 meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
 
                 if tsv_hash in already_computed:
