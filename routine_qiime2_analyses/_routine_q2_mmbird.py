@@ -9,6 +9,7 @@
 import os
 import sys
 import glob
+import time
 import pandas as pd
 from os.path import dirname, isfile, splitext
 
@@ -357,12 +358,16 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         # features are biplot, samples are dots
         ordi = OrdinationResults.read(ordi_fp)
 
+        start = time.time()
         cur_pc_sb_correlations = get_pc_sb_correlations(
             pair, ordi, omic1, omic2, filt1, filt2,
             diff_cols1, meta_pd1, diff_cols2, meta_pd2,
             meta_fp,  omic1_common_fp, omic2_common_fp, ranks_fp)
         pc_sb_correlations.append(cur_pc_sb_correlations)
+        end = time.time()
+        print('get_pc_sb_correlations: %s' % (end-start))
 
+        start = time.time()
         cmd = ''
         if pair in highlights:
             pair_highlights = highlights[pair]
@@ -394,6 +399,8 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
 
         if cmd:
             pair_cmds.setdefault(pair, []).append(cmd)
+        end = time.time()
+        print('get_cmd: %s' % (end-start))
 
     pc_sb_correlations_pd = pd.concat(pc_sb_correlations)
     return pair_cmds, pc_sb_correlations_pd
@@ -432,6 +439,7 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                         diff_pd = diff_pd.drop(columns=[x for x in diff_pd.columns if 'Intercept' in x])
 
                         q2s = {}
+                        positiveQ2 = False
                         diff_htmls = glob.glob('%s/*/tensorboard.html' % dirname(diff_fp))
                         if len(diff_htmls):
                             for diff_html in diff_htmls:
@@ -440,8 +448,9 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                                     for line in f:
                                         if 'Pseudo Q-squared' in line:
                                             q2 = line.split('Pseudo Q-squared:</a></strong> ')[-1].split('<')[0]
-                                            q2s[baseline] = q2
-                                            break
+                                            if float(q2) > 0:
+                                                q2s[baseline] = q2
+                                                break
                         else:
                             q2s[''] = ''
                         diff_cols = ['%s__%s__%s' % (
