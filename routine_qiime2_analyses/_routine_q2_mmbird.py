@@ -448,7 +448,7 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                                     for line in f:
                                         if 'Pseudo Q-squared' in line:
                                             q2 = line.split('Pseudo Q-squared:</a></strong> ')[-1].split('<')[0]
-                                            if float(q2) > 0:
+                                            if float(q2) > 0.1:
                                                 q2s[baseline] = q2
                                                 break
                         else:
