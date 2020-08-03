@@ -789,20 +789,20 @@ def write_sourcetracking(
         qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
         new_tsv: str, cur_rad: str, n_nodes: str,  n_procs: str,
         sourcetracking_params: dict, column: str, sinks: list,
-        sources: list, sdx: int, cur_sh: TextIO) -> None:
+        sources: list, sdx: int, cur_sh: TextIO, cur_import_sh: TextIO) -> None:
 
     if not isfile(new_tsv) and not sdx:
         cmd = '\nqiime feature-table filter-samples \\\n'
         cmd += '--i-table %s \\\n' % qza
         cmd += '--m-metadata-file %s \\\n' % new_meta
         cmd += '--o-filtered-table %s\n' % new_qza
-        cur_sh.write('echo "%s"\n' % cmd)
-        cur_sh.write('%s\n' % cmd)
+        cur_import_sh.write('echo "%s"\n' % cmd)
+        cur_import_sh.write('%s\n' % cmd)
 
         cmd = run_export(new_qza, new_tsv, 'FeatureTable')
         cmd += 'rm %s %s\n' % (new_qza, new_qza.replace('.qza', '.biom'))
-        cur_sh.write('echo "%s"\n' % cmd)
-        cur_sh.write('%s\n' % cmd)
+        cur_import_sh.write('echo "%s"\n' % cmd)
+        cur_import_sh.write('%s\n' % cmd)
 
     cmd = '\nXsourcetracking \\\n'
     cmd += '--i-table %s \\\n' % new_tsv

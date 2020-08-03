@@ -226,7 +226,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             songbirds.setdefault(omic1, []).append([filt1, omic1_common_fp, meta_common_fp, pair])
             songbirds.setdefault(omic2, []).append([filt2, omic2_common_fp, meta_common_fp, pair])
 
-
     uni = 0
 
     all_sh_pbs = {}
@@ -242,16 +241,20 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     out_sh = '%s/run_songbird_%s_%s_%s%s.sh' % (job_folder2, dat, filt, pair, filt_raref)
                 else:
                     out_sh = '%s/run_songbird_%s_%s%s.sh' % (job_folder2, dat, filt, filt_raref)
-            meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
+
+            meta_alphas = '%s_alphas_full.tsv' % splitext(meta_)[0]
             if isfile(meta_alphas):
                 meta = meta_alphas
             else:
-                meta = meta_
-                if not first_print:
-                    print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
-                          '\t(if you have alpha diversity as a factors in the models)!')
-                    first_print += 1
-
+                meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
+                if isfile(meta_alphas):
+                    meta = meta_alphas
+                else:
+                    meta = meta_
+                    if not first_print:
+                        print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
+                              '\t(if you have alpha diversity as a factors in the models)!')
+                        first_print += 1
             if pair:
                 dat_pair = '%s_%s' % (dat, pair)
                 dat_pair_path = '%s/%s' % (dat, pair)

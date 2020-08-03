@@ -28,13 +28,14 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 def run_single_sourcetracking(
         odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
         sourcetracking_params: dict, sourcetracking_sourcesink: dict,
-        case_vals_list: list, cur_sh: str, force: bool, filt: str, cur_raref: str,
-        fp: str,  fa: str, n_nodes: str, n_procs: str) -> list:
+        case_vals_list: list, cur_sh: str, cur_import_sh: str,
+        force: bool, filt: str, cur_raref: str, fp: str,  fa: str,
+        n_nodes: str, n_procs: str) -> list:
 
+    cases = []
     remove = True
     qza = '%s.qza' % splitext(tsv)[0]
-    cases = []
-    with open(cur_sh, 'w') as cur_sh_o:
+    with open(cur_sh, 'w') as cur_sh_o, open(cur_import_sh, 'w') as cur_import_sh_o:
         for case_vals in case_vals_list:
             case = get_case(case_vals, '', case_var)
             cur_rad = '%s/%s_%s%s' % (odir, case.strip('_'), filt, cur_raref)
@@ -73,7 +74,7 @@ def run_single_sourcetracking(
                     write_sourcetracking(
                         qza, fp, fa, new_meta, new_qza, new_tsv,
                         cur_rad, n_nodes, n_procs, sourcetracking_params,
-                        column, sinks, sources, sdx, cur_sh_o)
+                        column, sinks, sources, sdx, cur_sh_o, cur_import_sh_o)
                     remove = False
     if remove:
         os.remove(cur_sh)
@@ -107,32 +108,52 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
             cur_raref = datasets_rarefs[dat][idx]
             if not split:
                 out_sh = '%s/run_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
-                out_sh = '%s/run_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
+                out_import_sh = '%s/run_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
             odir = get_analysis_folder(i_datasets_folder, 'sourcetracking/%s' % dat)
             for case_var, case_vals_list in cases_dict.items():
                 if split:
                     out_sh = '%s/run_sourcetracking_%s%s%s_%s.sh' % (
                         job_folder2, dat, filt_raref, cur_raref, case_var)
+                    out_import_sh = '%s/run_import_sourcetracking_%s%s%s_%s.sh' % (
+                        job_folder2, dat, filt_raref, cur_raref, case_var)
                 for filt, (fp, fa) in filters.items():
                     cur_sh = '%s/run_sourcetracking_%s_%s%s%s_%s.sh' % (
                         job_folder2, dat, case_var, filt_raref, cur_raref, filt)
                     cur_sh = cur_sh.replace(' ', '-')
+                    cur_import_sh = '%s/run_import_sourcetracking_%s_%s%s%s_%s.sh' % (
+                        job_folder2, dat, case_var, filt_raref, cur_raref, filt)
+                    cur_import_sh = cur_import_sh.replace(' ', '-')
                     all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
+                    all_import_sh_pbs.setdefault((dat, out_import_sh), []).append(cur_import_sh)
                     run_single_sourcetracking(
                         odir, tsv, meta_pd, case_var, sourcetracking_params,
-                        sourcetracking_sourcesink, case_vals_list, cur_sh, force, filt,
-                        cur_raref, fp, fa, run_params["n_nodes"], run_params["n_procs"])
+                        sourcetracking_sourcesink, case_vals_list, cur_sh, cur_import_sh, force,
+                        filt, cur_raref, fp, fa, run_params["n_nodes"], run_params["n_procs"])
 
     job_folder = get_job_folder(i_datasets_folder, 'sourcetracking')
     if method == 'sourcetracker':
         qiime_env = 'sourcetracker2'
     if method == 'feast':
         qiime_env = 'feast'
-    main_sh = write_main_sh(job_folder, '3_run_sourcetracking%s' % filt_raref, all_sh_pbs,
-                            '%s.srctrk%s' % (prjct_nm, filt_raref),
+
+    main_sh = write_main_sh(job_folder, '3_run_import_sourcetracking%s' % filt_raref,
+                            all_import_sh_pbs, '%s.mpt.srctrk%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
                             qiime_env, chmod, noloc, '~/.')
+    if main_sh:
+        if p_sourcetracking_config:
+            if p_sourcetracking_config.startswith('/panfs'):
+                p_sourcetracking_config = p_sourcetracking_config.replace(os.getcwd(), '')
+            print('# import sourcetracking (groups config in %s)' % p_sourcetracking_config)
+        else:
+            print('# import sourcetracking')
+        print_message('', 'sh', main_sh)
+
+    main_sh = write_main_sh(job_folder, '3_run_sourcetracking%s' % filt_raref, all_sh_pbs,
+                            '%s.srctrk%s' % (prjct_nm, filt_raref), run_params["time"],
+                            run_params["n_nodes"], run_params["n_procs"], run_params["mem_num"],
+                            run_params["mem_dim"], 'sourcetracker', chmod, noloc, '~/.')
     if main_sh:
         if p_sourcetracking_config:
             if p_sourcetracking_config.startswith('/panfs'):

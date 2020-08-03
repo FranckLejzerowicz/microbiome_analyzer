@@ -402,7 +402,7 @@ def get_sourcetracking_config(p_sourcetracking_config: str) -> (dict, dict, dict
                       '(no "sourcesink" in %s)' % p_sourcetracking_config)
     sourcetracking_sourcesink = sourcetracking_config['sourcesink']
     if 'filtering' in sourcetracking_config:
-        sourcetracking_filtering = sourcetracking_config['params']
+        sourcetracking_filtering = sourcetracking_config['filtering']
     if 'subsets' in sourcetracking_config:
         main_cases_dict = sourcetracking_config['subsets']
     if 'params' in sourcetracking_config:
@@ -938,15 +938,18 @@ def get_raref_table(dat_rt: str, raref: str, i_datasets_folder: str,
         print('Must have one rarefaction for "%s" to use it further in %s...'
               '\nExiting' % (dat_rt, analysis))
         sys.exit(0)
-    meta_rgx = '%s/meta_%s%s*_alphas.tsv' % (raref_dir, dat_rt, raref)
+    meta_rgx = '%s/meta_%s%s*_alphas_full.tsv' % (raref_dir, dat_rt, raref)
     meta = glob.glob(meta_rgx)
     if not len(meta):
-        meta_rgx = '%s/meta_%s%s*.tsv' % (raref_dir, dat_rt, raref)
+        meta_rgx = '%s/meta_%s%s*_alphas.tsv' % (raref_dir, dat_rt, raref)
         meta = glob.glob(meta_rgx)
         if not len(meta):
-            return pd.DataFrame(), pd.DataFrame()
-        else:
-            meta = sorted(meta)[0]
+            meta_rgx = '%s/meta_%s%s*.tsv' % (raref_dir, dat_rt, raref)
+            meta = glob.glob(meta_rgx)
+            if not len(meta):
+                return pd.DataFrame(), pd.DataFrame()
+            else:
+                meta = sorted(meta)[0]
     else:
         meta = sorted(meta)[0]
     tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)

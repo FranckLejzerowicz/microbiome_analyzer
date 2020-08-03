@@ -355,8 +355,7 @@ def make_filtered_and_common_dataset(
         print('\t-> [mmvec] Get common datasets...')
         common_datasets, common_jobs = get_common_datasets(
             i_datasets_folder, mmvec_pairs, filtering, filt_datasets,
-            common_datasets_done, input_to_filtered, force
-        )
+            common_datasets_done, input_to_filtered, force)
 
     pre_jobs = filt_jobs + common_jobs
     if len(pre_jobs):
