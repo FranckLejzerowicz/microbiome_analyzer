@@ -1009,18 +1009,15 @@ def get_datasets_filtered(
                 raref = '_raref%s' % '__raref'.join(split[-1:])
                 if dat in datasets_filt:
                     dat = datasets_filt[dat]
-                print('A')
                 tsv_pd_, meta_pd_ = get_raref_table(dat, raref, i_datasets_folder, analysis)
                 if not tsv_pd_.shape[0]:
                     continue
                 dat = '%s_%s' % (dat, raref)
                 input_to_filtered[dat_] = dat
-                print(meta_pd_.columns)
             else:
                 print('%s dataset "%s" not found...' % (analysis, dat))
                 continue
         elif not isinstance(datasets_read[dat][0], pd.DataFrame) and datasets_read[dat][0] == 'raref':
-            print('B')
             tsv, meta = datasets[dat]
             if not isfile(tsv):
                 print(analysis, 'Must have run rarefaction to use it further...\nExiting')
@@ -1029,26 +1026,17 @@ def get_datasets_filtered(
             datasets_read[dat] = [tsv_pd_, meta_pd_]
             input_to_filtered[dat_] = dat
         else:
-            print('C')
             tsv_pd_, meta_pd_ = datasets_read[dat][0]
             tsv, meta = datasets[dat][0]
             meta_alphas = get_meta_alpha(dirname(meta), dat, '')
             if meta_alphas and meta_alphas != meta:
                 meta_pd_ = read_meta_pd(meta_alphas)
-            print(meta_pd_.columns)
             input_to_filtered[dat_] = dat
 
         dat_filts = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
         prevals_abunds = filtering[(dat_, mb)]
         for (preval_abund, preval, abund) in prevals_abunds:
-            print(preval_abund, preval, abund)
-            print(preval_abund, preval, abund)
-            print(preval_abund, preval, abund)
-            if len(filt_datasets_done[(dat, mb)][preval_abund]):
-                print('\t\t\t*', '[DONE]', dat, mb, preval_abund)
-                dat_filts[preval_abund] = filt_datasets_done[(dat, mb)][preval_abund]
-                continue
             # make sure there's no empty row / column
             tsv_pd = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :].copy()
             tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
@@ -1062,96 +1050,91 @@ def get_datasets_filtered(
             tsv_qza = '%s.qza' % splitext(tsv_out)[0]
             meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
 
-            print('+++++++++++++++++++++++++++++++++++')
-            print(meta_out)
-            print('+++++++++++++++++++++++++++++++++++')
             tsv_hash = hash_pandas_object(tsv_pd).sum()
 
-            if analysis == 'songbird':
-                if meta_out != '/projects/nutrition/analysis/tree_based/qiime/mmvec/datasets/16S_100nt_745s__raref5000/meta_16S_100nt_745s__raref5000_0_0_723s.tsv':
-                    continue
-                print('***', meta_out)
-                meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
-                tsv_out_mmvec = tsv_out.replace('/songbird/', '/mmvec/')
-                tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
-                # if isfile(meta_out_mmvec):
-                #     meta_out = meta_out_mmvec
-                #     # print('USE MMVECs meta')
-                #     # print(' - - -', meta_out)
-                #     with open(meta_out) as f:
-                #         for line in f:
-                #             break
-                #     meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
-                #                           dtype={line.split('\t')[0]: str},
-                #                           low_memory=False)
-                #     # print(analysis, 'has mmvec', meta_out, meta_pd.shape)
-                # else:
-                print(meta_out)
-                print(meta_out)
-                print(meta_out)
-                print(meta_pd_.columns)
+            if len(filt_datasets_done[(dat, mb)][preval_abund]):
+                print('\t\t\t*', '[DONE]', dat, mb, preval_abund)
+                dat_filts[preval_abund] = filt_datasets_done[(dat, mb)][preval_abund]
                 meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
-
-                if tsv_hash in already_computed:
-                    already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
-                    tsv_out_src = already_computed[tsv_hash][0][0]
-                    tsv_qza_src = already_computed[tsv_hash][0][1]
-                    meta_out_src = already_computed[tsv_hash][0][2]
-                    if isfile(tsv_out):
-                        cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
-                        filt_jobs.append(cmd)
-                    # if isfile(tsv_qza):
-                    #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_qza, tsv_qza_src, tsv_qza)
-                    #     filt_jobs.append(cmd)
-                    if isfile(meta_out):
-                        cmd = '\nrm %s\nln -s %s %s\n' % (meta_out, meta_out_src, meta_out)
-                        filt_jobs.append(cmd)
-                else:
-                    if isfile(tsv_out_mmvec):
-                        # print(analysis, 'is file: tsv_out_mmvec', tsv_out_mmvec)
-                        # print('USE MMVECs tsv')
-                        # print(' - - -', tsv_out_mmvec)
-                        tsv_out = tsv_out_mmvec
-                    elif force or not isfile(tsv_out):
-                        # print(analysis, 'write: tsv_out', tsv_out)
-                        write_filtered_tsv(tsv_out, tsv_pd)
-
-                    if isfile(tsv_qza_mmvec):
-                        # print('USE MMVECs qza')
-                        # print(' - - -', tsv_qza_mmvec)
-                        # print(analysis, 'is file: tsv_qza_mmvec', tsv_qza_mmvec)
-                        tsv_qza = tsv_qza_mmvec
-                    elif force or not isfile(tsv_qza):
-                        cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
-                        filt_jobs.append(cmd)
-                        # print(analysis, 'write (job): tsv_qza', tsv_qza)
-                    already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
             else:
-                meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
-                if tsv_hash in already_computed:
-                    already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
-                    tsv_out_src = already_computed[tsv_hash][0][0]
-                    tsv_qza_src = already_computed[tsv_hash][0][1]
-                    meta_out_src = already_computed[tsv_hash][0][2]
-                    if isfile(tsv_out):
-                        cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
-                        filt_jobs.append(cmd)
-                    # if isfile(tsv_qza):
-                    #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_qza, tsv_qza_src, tsv_qza)
-                    #     filt_jobs.append(cmd)
-                    if isfile(meta_out):
-                        cmd = '\nrm %s\nln -s %s %s\n' % (meta_out, meta_out_src, meta_out)
-                        filt_jobs.append(cmd)
+                if analysis == 'songbird':
+                    meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
+                    tsv_out_mmvec = tsv_out.replace('/songbird/', '/mmvec/')
+                    tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
+                    if isfile(meta_out_mmvec):
+                        meta_out = meta_out_mmvec
+                        # print('USE MMVECs meta')
+                        # print(' - - -', meta_out)
+                        with open(meta_out) as f:
+                            for line in f:
+                                break
+                        meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
+                                              dtype={line.split('\t')[0]: str},
+                                              low_memory=False)
+                        # print(analysis, 'has mmvec', meta_out, meta_pd.shape)
+                    else:
+                        meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
+
+                    if tsv_hash in already_computed:
+                        already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
+                        tsv_out_src = already_computed[tsv_hash][0][0]
+                        tsv_qza_src = already_computed[tsv_hash][0][1]
+                        meta_out_src = already_computed[tsv_hash][0][2]
+                        if isfile(tsv_out):
+                            cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
+                            filt_jobs.append(cmd)
+                        # if isfile(tsv_qza):
+                        #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_qza, tsv_qza_src, tsv_qza)
+                        #     filt_jobs.append(cmd)
+                        if isfile(meta_out):
+                            cmd = '\nrm %s\nln -s %s %s\n' % (meta_out, meta_out_src, meta_out)
+                            filt_jobs.append(cmd)
+                    else:
+                        if isfile(tsv_out_mmvec):
+                            # print(analysis, 'is file: tsv_out_mmvec', tsv_out_mmvec)
+                            # print('USE MMVECs tsv')
+                            # print(' - - -', tsv_out_mmvec)
+                            tsv_out = tsv_out_mmvec
+                        elif force or not isfile(tsv_out):
+                            # print(analysis, 'write: tsv_out', tsv_out)
+                            write_filtered_tsv(tsv_out, tsv_pd)
+
+                        if isfile(tsv_qza_mmvec):
+                            # print('USE MMVECs qza')
+                            # print(' - - -', tsv_qza_mmvec)
+                            # print(analysis, 'is file: tsv_qza_mmvec', tsv_qza_mmvec)
+                            tsv_qza = tsv_qza_mmvec
+                        elif force or not isfile(tsv_qza):
+                            cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
+                            filt_jobs.append(cmd)
+                            # print(analysis, 'write (job): tsv_qza', tsv_qza)
+                        already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
                 else:
-                    if force or not isfile(tsv_out):
-                        write_filtered_tsv(tsv_out, tsv_pd)
-                    if force or not isfile(tsv_qza):
-                        cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
-                        filt_jobs.append(cmd)
-                    already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
-            print('\t\t\t*', '[TODO]', dat, mb, preval_abund, ':', tsv_pd.shape)
-            dat_filts[preval_abund] = [
-                tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()]
+                    meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
+                    if tsv_hash in already_computed:
+                        already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
+                        tsv_out_src = already_computed[tsv_hash][0][0]
+                        tsv_qza_src = already_computed[tsv_hash][0][1]
+                        meta_out_src = already_computed[tsv_hash][0][2]
+                        if isfile(tsv_out):
+                            cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
+                            filt_jobs.append(cmd)
+                        # if isfile(tsv_qza):
+                        #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_qza, tsv_qza_src, tsv_qza)
+                        #     filt_jobs.append(cmd)
+                        if isfile(meta_out):
+                            cmd = '\nrm %s\nln -s %s %s\n' % (meta_out, meta_out_src, meta_out)
+                            filt_jobs.append(cmd)
+                    else:
+                        if force or not isfile(tsv_out):
+                            write_filtered_tsv(tsv_out, tsv_pd)
+                        if force or not isfile(tsv_qza):
+                            cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
+                            filt_jobs.append(cmd)
+                        already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
+                print('\t\t\t*', '[TODO]', dat, mb, preval_abund, ':', tsv_pd.shape)
+                dat_filts[preval_abund] = [
+                    tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()]
         filt_datasets[(dat, mb)] = dat_filts
     return filt_datasets, filt_jobs
 
