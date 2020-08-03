@@ -313,7 +313,7 @@ def get_tax_fp(i_datasets_folder: str, omic: str, input_to_filtered: dict) -> st
     omic_taxs = [x for x, y in input_to_filtered.items() if y == omic]
     if len(omic_taxs):
         omic_tax_ = omic_taxs[0]
-        if omic_tax_.endswith('__raref'):
+        if '__raref' in omic_tax_:
             omic_tax = '__raref'.join(omic_tax_.split('__raref')[:-1])
         else:
             omic_tax = omic_tax_
