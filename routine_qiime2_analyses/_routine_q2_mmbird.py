@@ -628,6 +628,17 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
     else:
         mmvec_songbird_pd = mmvec_outputs_pd.copy()
     print(mmvec_songbird_pd.columns.tolist())
+    print(mmvec_songbird_pd[[
+        'pair', 'omic1', 'omic2', 'filt1', 'filt2',
+        'omic_filt1', 'omic_filt2', 'pair_omic_filt1', 'pair_omic_filt2',
+        'ALL_0__filt_f0_s0__2_1e-4_400_05_02_Animal_Protein_omic1_songbird_common_fp'
+    ]])
+    print(mmvec_songbird_pd[[
+        'pair', 'omic1', 'omic2', 'filt1', 'filt2',
+        'omic_filt1', 'omic_filt2', 'pair_omic_filt1', 'pair_omic_filt2',
+        'ALL_0__filt_f0_s0__2_1e-4_400_05_02_Animal_Protein_omic1_songbird_common_fp'
+    ]].values)
+    print(bfds)
     print('Done.')
 
     q2s_pd = summarize_songbirds(i_datasets_folder)
