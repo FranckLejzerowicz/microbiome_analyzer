@@ -153,12 +153,12 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict, filtering: di
                  new_tsv1, new_tsv2, new_qza1,
                  new_qza2, len_common_sams]
             )
-            if meta_fp in common_datasets_done[pair]:
-                print('\t\t\t* [DONE]', pair, ':', omic1, filt1, omic2, filt2)
-                continue
             meta_subset1 = get_meta_common_sorted(meta_pd1, common_sams)
             meta_subset2 = get_meta_common_sorted(meta_pd2, common_sams)
             merge_and_write_metas(meta_subset1, meta_subset2, meta_fp)
+            if meta_fp in common_datasets_done[pair]:
+                print('\t\t\t* [DONE]', pair, ':', omic1, filt1, omic2, filt2)
+                continue
             if force or not isfile(new_qza1):
                 cmd = filter_feature_table(qza1, new_qza1, meta_fp)
                 common_jobs.append(cmd)
