@@ -403,6 +403,9 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
         all_omic_sb = [x for x in mmvec_songbird_pd.columns if x.endswith('omic%s_songbird_common_fp' % omicn)]
         omicn_songbirds = mmvec_songbird_pd[(pair_omic_filt + all_omic_sb)].set_index(pair_omic_filt).T.to_dict()
         for (pair, omic, filt), sb_head_diff_fp in omicn_songbirds.items():
+            if (pair, omic, filt) not in [('ssu_qemistree', '16S_100nt_745s__raref5000', '10_0'),
+                                          ('expert_qemistree', 'vioscreen_micromacro_qemistree_1800s', '0_0')]:
+                continue
             print("*****  pair, omic, filt  *****")
             print(pair, omic, filt)
             feats_diff_cols = []
@@ -442,6 +445,8 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
             if len(omic_diff_list):
                 omic_songbird_ranks = pd.concat(omic_diff_list, axis=1, sort=False).reset_index()
                 omic_songbird_ranks.rename(columns={omic_songbird_ranks.columns[0]: 'Feature ID'}, inplace=True)
+                print("'\n'.join(omic_songbird_ranks.columns.tolist())")
+                print('\n'.join(omic_songbird_ranks.columns.tolist()))
                 print('1.', omic_songbird_ranks.shape)
             else:
                 omic_common_fp = mmvec_songbird_pd.loc[
