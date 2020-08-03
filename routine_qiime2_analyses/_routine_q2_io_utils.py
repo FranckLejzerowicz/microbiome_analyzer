@@ -1149,10 +1149,7 @@ def get_datasets_filtered(
                 dat_filts[preval_abund] = [
                     tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()]
         filt_datasets[(dat, mb)] = dat_filts
-
-    for dat_mb in drop_keys:
-        filtering[dat_mb] = [x for x in filtering[dat_mb] if x not in drop_keys[dat_mb]]
-
+    print(filt_datasets)
     return filt_datasets, filt_jobs
 
 
