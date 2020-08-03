@@ -367,9 +367,6 @@ def routine_qiime2_analyses(
     else:
         print('(skip_mmvec)')
 
-    print()
-
-
     songbird_outputs = []
     if p_diff_models:
         if filt3d:
