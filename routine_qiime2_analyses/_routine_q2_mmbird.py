@@ -400,21 +400,12 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
     omics_pairs_metas = {}
     for omicn in ['1', '2']:
         pair_omic_filt = ['pair', 'omic%s' % omicn, 'filt%s' % omicn]
-        print("omicn")
-        print(omicn)
-        print("mmvec_songbird_pd.columns.value_counts()")
-        print(mmvec_songbird_pd.columns.value_counts())
         all_omic_sb = [x for x in mmvec_songbird_pd.columns if x.endswith('omic%s_songbird_common_fp' % omicn)]
         omicn_songbirds = mmvec_songbird_pd[(pair_omic_filt + all_omic_sb)]
-        print("omicn_songbirds.columns.value_counts()")
-        print(omicn_songbirds.columns.value_counts())
-        print("omicn_songbirds.index.value_counts()")
-        print(omicn_songbirds.index.value_counts())
         omicn_songbirds = omicn_songbirds.set_index(pair_omic_filt)
-        print("omicn_songbirds.columns.value_counts()")
-        print(omicn_songbirds.columns.value_counts())
-        print("omicn_songbirds.index.value_counts()")
-        print(omicn_songbirds.index.value_counts())
+        print("omicn_songbirds.loc[(ssu_foods, vioscreen_foods_consumed_grams_per_day_1800s_noLiquids, 0_0),:]")
+        print(omicn_songbirds.loc[('ssu_foods', 'vioscreen_foods_consumed_grams_per_day_1800s_noLiquids', '0_0'),:])
+        print(omicn_songbirds.loc[('ssu_foods', 'vioscreen_foods_consumed_grams_per_day_1800s_noLiquids', '0_0'),:].values)
         omicn_songbirds = omicn_songbirds.T.to_dict()
         for (pair, omic, filt), sb_head_diff_fp in omicn_songbirds.items():
             if (pair, omic, filt) not in [
