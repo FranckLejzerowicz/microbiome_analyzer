@@ -1004,6 +1004,9 @@ def get_datasets_filtered(
                 if dat in datasets_filt:
                     dat = datasets_filt[dat]
                 tsv_pd_, meta_pd_ = get_raref_table(dat, raref, i_datasets_folder, analysis)
+                if analysis == 'songbird':
+                    print("meta_pd_.columns")
+                    print(meta_pd_.columns)
                 if not tsv_pd_.shape[0]:
                     continue
                 dat = '%s_%s' % (dat, raref)
