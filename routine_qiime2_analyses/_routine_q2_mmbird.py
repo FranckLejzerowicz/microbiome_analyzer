@@ -396,8 +396,7 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
     return pair_cmds, pc_sb_correlations_pd
 
 
-def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd,
-                             songbird_outputs_q2s_pd, taxo_pds):
+def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
     omics_pairs_metas = {}
     for omicn in ['1', '2']:
         pair_omic_filt = ['pair', 'omic%s' % omicn, 'filt%s' % omicn]
@@ -647,7 +646,7 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
 
     print('\t-> [mmbird] Get songbird differentials + taxonomy...', end=' ')
     omics_pairs_metas = get_omics_songbirds_taxa(
-        i_datasets_folder, mmvec_songbird_pd, songbird_outputs_q2s_pd, taxo_pds)
+        i_datasets_folder, mmvec_songbird_pd, taxo_pds)
     print('Done.')
 
     print('\t-> [mmbird] Get res dict...')
