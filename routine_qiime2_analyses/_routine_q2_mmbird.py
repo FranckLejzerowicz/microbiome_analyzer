@@ -494,16 +494,15 @@ def get_taxo_pds(i_datasets_folder, mmvec_songbird_pd, input_to_filtered):
         print(mmvec_songbird_pd['omic%s' % omicn].unique())
         for omic in mmvec_songbird_pd['omic%s' % omicn].unique():
             omic_tax_fp = get_tax_fp(i_datasets_folder, omic, input_to_filtered)
-            # print("omic_tax_fp")
-            # print(omic_tax_fp)
+            print("omic_tax_fp")
+            print(omic_tax_fp)
             if isfile(omic_tax_fp):
                 omic_tax_pd = pd.read_csv(omic_tax_fp, header=0, sep='\t', dtype=str)
-                print(omic_tax_pd.iloc[:4,:])
                 omic_tax_pd.rename(columns={omic_tax_pd.columns[0]: 'Feature ID'}, inplace=True)
-                # print("omic_tax_pd.iloc[:3,:3]")
-                # print(omic_tax_pd.iloc[:3,:3])
             else:
                 omic_tax_pd = pd.DataFrame()
+            print("omic_tax_pd.iloc[:3,:3]")
+            print(omic_tax_pd.iloc[:3, :3])
             taxo_pds[omic] = omic_tax_pd
     return taxo_pds
 
