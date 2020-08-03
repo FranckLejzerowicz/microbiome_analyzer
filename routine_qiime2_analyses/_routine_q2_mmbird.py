@@ -490,19 +490,19 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd,
 def get_taxo_pds(i_datasets_folder, mmvec_songbird_pd, input_to_filtered):
     taxo_pds = {}
     for omicn in ['1', '2']:
-        print('omicn:', omicn)
-        print(mmvec_songbird_pd['omic%s' % omicn].unique())
+        # print('omicn:', omicn)
+        # print(mmvec_songbird_pd['omic%s' % omicn].unique())
         for omic in mmvec_songbird_pd['omic%s' % omicn].unique():
             omic_tax_fp = get_tax_fp(i_datasets_folder, omic, input_to_filtered)
-            print("omic_tax_fp")
-            print(omic_tax_fp)
+            # print("omic_tax_fp")
+            # print(omic_tax_fp)
             if isfile(omic_tax_fp):
                 omic_tax_pd = pd.read_csv(omic_tax_fp, header=0, sep='\t', dtype=str)
                 omic_tax_pd.rename(columns={omic_tax_pd.columns[0]: 'Feature ID'}, inplace=True)
             else:
                 omic_tax_pd = pd.DataFrame()
-            print("omic_tax_pd.iloc[:3,:3]")
-            print(omic_tax_pd.iloc[:3, :3])
+            # print("omic_tax_pd.iloc[:3,:3]")
+            # print(omic_tax_pd.iloc[:3, :3])
             taxo_pds[omic] = omic_tax_pd
     return taxo_pds
 
@@ -653,9 +653,8 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
         i_datasets_folder, mmvec_songbird_pd, songbird_outputs_q2s_pd, taxo_pds)
     print('Done.')
 
-    print('\t-> [mmbird] Get res dict...', end=' ')
+    print('\t-> [mmbird] Get res dict...')
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
-    print('Done.')
 
     print('\t-> [mmbird] Get commands...', end=' ')
     highlights = get_highlights(p_mmvec_highlights)
