@@ -450,9 +450,9 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
             if len(omic_diff_list):
                 omic_songbird_ranks = pd.concat(omic_diff_list, axis=1, sort=False).reset_index()
                 omic_songbird_ranks.rename(columns={omic_songbird_ranks.columns[0]: 'Feature ID'}, inplace=True)
-                print("'\n'.join(omic_songbird_ranks.columns.tolist())")
-                print('\n'.join(omic_songbird_ranks.columns.tolist()))
-                print('1.', omic_songbird_ranks.shape)
+                # print("'\n'.join(omic_songbird_ranks.columns.tolist())")
+                # print('\n'.join(omic_songbird_ranks.columns.tolist()))
+                # print('1.', omic_songbird_ranks.shape)
             else:
                 omic_common_fp = mmvec_songbird_pd.loc[
                     (mmvec_songbird_pd['pair'] == pair) &
@@ -463,13 +463,13 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                     'omic%s_common_fp' % omicn
                 ].tolist()[0]
                 omic_tax_list = []
-                print('2.', omic_common_fp)
+                # print('2.', omic_common_fp)
                 with open(omic_common_fp) as f:
                     for ldx, line in enumerate(f):
                         if ldx:
                             omic_tax_list.append([line.split('\t')[0]])
                 omic_songbird_ranks = pd.DataFrame(omic_tax_list, columns=['Feature ID'])
-                print('2.', omic_songbird_ranks.shape)
+                # print('2.', omic_songbird_ranks.shape)
             # print("omic")
             # print(omic)
             # print("taxo_pds.keys()")
@@ -482,7 +482,7 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                         omic_tax_pd = pd.concat([omic_tax_pd, omic_split_taxa_pd], axis=1, sort=False)
                     omic_songbird_ranks = omic_songbird_ranks.merge(
                         omic_tax_pd, on='Feature ID', how='left').drop_duplicates()
-            print('3.', omic_songbird_ranks.shape)
+            # print('3.', omic_songbird_ranks.shape)
             meta_omic_fp = '%s/feature_metadata_%s_%s__%s_%s.tsv' % (cur_mmvec_folder, omic, filt, omic_, filt_)
             drop_columns = [col for col in omic_songbird_ranks.columns if omic_songbird_ranks[col].unique().size == 1]
             meta_omic_pd = omic_songbird_ranks.drop(columns=drop_columns)
