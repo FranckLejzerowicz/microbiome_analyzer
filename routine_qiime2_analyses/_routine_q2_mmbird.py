@@ -408,6 +408,8 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
         omicn_songbirds = mmvec_songbird_pd[(pair_omic_filt + all_omic_sb)]
         print("omicn_songbirds.columns.value_counts()")
         print(omicn_songbirds.columns.value_counts())
+        print("omicn_songbirds.index.value_counts()")
+        print(omicn_songbirds.index.value_counts())
         omicn_songbirds = omicn_songbirds.set_index(pair_omic_filt)
         omicn_songbirds = omicn_songbirds.T.to_dict()
         for (pair, omic, filt), sb_head_diff_fp in omicn_songbirds.items():
