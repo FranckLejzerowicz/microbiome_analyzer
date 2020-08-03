@@ -1015,6 +1015,7 @@ def get_datasets_filtered(
                     continue
                 dat = '%s_%s' % (dat, raref)
                 input_to_filtered[dat_] = dat
+                print(meta_pd_.columns)
             else:
                 print('%s dataset "%s" not found...' % (analysis, dat))
                 continue
