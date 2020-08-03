@@ -405,7 +405,11 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
         print("mmvec_songbird_pd.columns.value_counts()")
         print(mmvec_songbird_pd.columns.value_counts())
         all_omic_sb = [x for x in mmvec_songbird_pd.columns if x.endswith('omic%s_songbird_common_fp' % omicn)]
-        omicn_songbirds = mmvec_songbird_pd[(pair_omic_filt + all_omic_sb)].set_index(pair_omic_filt).T.to_dict()
+        omicn_songbirds = mmvec_songbird_pd[(pair_omic_filt + all_omic_sb)]
+        omicn_songbirds = omicn_songbirds.set_index(pair_omic_filt).T.to_dict()
+        print("omicn_songbirds.columns.value_counts()")
+        print(omicn_songbirds.columns.value_counts())
+        omicn_songbirds = omicn_songbirds.T.to_dict()
         for (pair, omic, filt), sb_head_diff_fp in omicn_songbirds.items():
             if (pair, omic, filt) not in [
                 ('ssu_qemistree', '16S_100nt_745s__raref5000', '10_0'),
