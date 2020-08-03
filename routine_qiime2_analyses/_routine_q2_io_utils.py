@@ -1151,7 +1151,7 @@ def get_datasets_filtered(
         filt_datasets[(dat, mb)] = dat_filts
 
     for dat_mb in drop_keys:
-        filtering[dat_mb] = [x for x in filtering[dat_mb] if x in drop_keys[dat_mb]]
+        filtering[dat_mb] = [x for x in filtering[dat_mb] if x not in drop_keys[dat_mb]]
 
     return filt_datasets, filt_jobs
 
