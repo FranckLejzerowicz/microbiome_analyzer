@@ -1009,7 +1009,6 @@ def get_datasets_filtered(
                 raref = '_raref%s' % '__raref'.join(split[-1:])
                 if dat in datasets_filt:
                     dat = datasets_filt[dat]
-                print('A')
                 tsv_pd_, meta_pd_ = get_raref_table(dat, raref, i_datasets_folder, analysis)
                 if not tsv_pd_.shape[0]:
                     continue
@@ -1023,12 +1022,10 @@ def get_datasets_filtered(
             if not isfile(tsv):
                 print(analysis, 'Must have run rarefaction to use it further...\nExiting')
                 sys.exit(0)
-            print('B')
             tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
             datasets_read[dat] = [tsv_pd_, meta_pd_]
             input_to_filtered[dat_] = dat
         else:
-            print('C')
             tsv_pd_, meta_pd_ = datasets_read[dat][0]
             tsv, meta = datasets[dat][0]
             meta_alphas = get_meta_alpha(dirname(meta), dat, '')
@@ -1063,19 +1060,19 @@ def get_datasets_filtered(
                 meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
                 tsv_out_mmvec = tsv_out.replace('/songbird/', '/mmvec/')
                 tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
-                if isfile(meta_out_mmvec):
-                    meta_out = meta_out_mmvec
-                    # print('USE MMVECs meta')
-                    # print(' - - -', meta_out)
-                    with open(meta_out) as f:
-                        for line in f:
-                            break
-                    meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
-                                          dtype={line.split('\t')[0]: str},
-                                          low_memory=False)
-                    # print(analysis, 'has mmvec', meta_out, meta_pd.shape)
-                else:
-                    meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
+                # if isfile(meta_out_mmvec):
+                #     meta_out = meta_out_mmvec
+                #     # print('USE MMVECs meta')
+                #     # print(' - - -', meta_out)
+                #     with open(meta_out) as f:
+                #         for line in f:
+                #             break
+                #     meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
+                #                           dtype={line.split('\t')[0]: str},
+                #                           low_memory=False)
+                #     # print(analysis, 'has mmvec', meta_out, meta_pd.shape)
+                # else:
+                meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
 
                 if tsv_hash in already_computed:
                     already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
@@ -1112,10 +1109,6 @@ def get_datasets_filtered(
                         # print(analysis, 'write (job): tsv_qza', tsv_qza)
                     already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
             else:
-                print("meta_out")
-                print(meta_out)
-                print("meta_pd_.columns")
-                print(meta_pd_.columns)
                 meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
                 if tsv_hash in already_computed:
                     already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
