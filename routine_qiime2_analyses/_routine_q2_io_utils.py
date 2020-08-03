@@ -954,6 +954,7 @@ def get_raref_table(dat_rt: str, raref: str, i_datasets_folder: str,
             meta = sorted(meta)[0]
     else:
         meta = sorted(meta)[0]
+    print(meta)
     tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
     return tsv_pd_, meta_pd_
 
