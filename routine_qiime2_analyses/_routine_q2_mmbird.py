@@ -401,9 +401,10 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
     for omicn in ['1', '2']:
         pair_omic_filt = ['pair', 'omic%s' % omicn, 'filt%s' % omicn]
         all_omic_sb = [x for x in mmvec_songbird_pd.columns if x.endswith('omic%s_songbird_common_fp' % omicn)]
-        omicn_songbirds = mmvec_songbird_pd[
-            (pair_omic_filt + all_omic_sb)
-        ].set_index(pair_omic_filt).T.to_dict()
+        omicn_songbirds = mmvec_songbird_pd[(pair_omic_filt + all_omic_sb)].set_index(pair_omic_filt).T.to_dict()
+        print("omicn_songbirds")
+        print(omicn_songbirds)
+        print(omicn_songbirdsgfd)
         for (pair, omic, filt), sb_head_diff_fp in omicn_songbirds.items():
             feats_diff_cols = []
             cur_mmvec_folder = get_analysis_folder(i_datasets_folder, 'mmvec/metadata/%s' % pair)
@@ -626,16 +627,13 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
         mmvec_songbird_pd = merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd)
     else:
         mmvec_songbird_pd = mmvec_outputs_pd.copy()
-
-    # print("mmvec_songbird_pd")
-    # print(mmvec_songbird_pd)
-    # print(mmvec_songbird_pd.values[:10])
+    print('Done.')
 
     q2s_pd = summarize_songbirds(i_datasets_folder)
     out_folder = get_analysis_folder(i_datasets_folder, 'songbird')
     q2s_fp = '%s/songbird_q2.tsv' % out_folder
     q2s_pd.to_csv(q2s_fp, index=False, sep='\t')
-    print(' --> Written:', q2s_fp)
+    print('\t\t==> Written:', q2s_fp)
 
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
 
@@ -661,7 +659,7 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
     out_folder = get_analysis_folder(i_datasets_folder, 'mmbird')
     out_correlations = '%s/pc_vs_songbird_correlations.tsv' % out_folder
     pc_sb_correlations_pd.to_csv(out_correlations, index=False, sep='\t')
-    print(' --> Written:', out_correlations)
+    print('\t\t==> Written:', out_correlations)
 
     # get_log_ratios(pc_sb_correlations_pd)
 
