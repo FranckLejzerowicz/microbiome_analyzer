@@ -15,12 +15,11 @@ import pkg_resources
 import pandas as pd
 
 from pandas.util import hash_pandas_object
-from os.path import basename, splitext, isfile, isdir, abspath
+from os.path import basename, dirname, splitext, isfile, isdir, abspath
 
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_cmds import run_import, run_export
-from routine_qiime2_analyses._routine_q2_metadata import rename_duplicate_columns
 
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
@@ -927,6 +926,26 @@ def filter_non_mb_table(preval: str, abund: str,
     return tsv_filt_pd, res
 
 
+def get_meta_alpha(raref_dir, dat_rt, raref):
+    meta_rgx = '%s/meta_%s%s*_alphas_full.tsv' % (raref_dir, dat_rt, raref)
+    meta = glob.glob(meta_rgx)
+    if not len(meta):
+        meta_rgx = '%s/meta_%s%s*_alphas.tsv' % (raref_dir, dat_rt, raref)
+        meta = glob.glob(meta_rgx)
+        if not len(meta):
+            meta_rgx = '%s/meta_%s%s*.tsv' % (raref_dir, dat_rt, raref)
+            meta = glob.glob(meta_rgx)
+            if not len(meta):
+                meta = ''
+            else:
+                meta = sorted(meta)[0]
+        else:
+            meta = sorted(meta)[0]
+    else:
+        meta = sorted(meta)[0]
+    return meta
+
+
 def get_raref_table(dat_rt: str, raref: str, i_datasets_folder: str,
                     analysis: str) -> (pd.DataFrame, pd.DataFrame):
     raref_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat_rt)
@@ -938,22 +957,9 @@ def get_raref_table(dat_rt: str, raref: str, i_datasets_folder: str,
         print('Must have one rarefaction for "%s" to use it further in %s...'
               '\nExiting' % (dat_rt, analysis))
         sys.exit(0)
-    meta_rgx = '%s/meta_%s%s*_alphas_full.tsv' % (raref_dir, dat_rt, raref)
-    meta = glob.glob(meta_rgx)
-    if not len(meta):
-        meta_rgx = '%s/meta_%s%s*_alphas.tsv' % (raref_dir, dat_rt, raref)
-        meta = glob.glob(meta_rgx)
-        if not len(meta):
-            meta_rgx = '%s/meta_%s%s*.tsv' % (raref_dir, dat_rt, raref)
-            meta = glob.glob(meta_rgx)
-            if not len(meta):
-                return pd.DataFrame(), pd.DataFrame()
-            else:
-                meta = sorted(meta)[0]
-        else:
-            meta = sorted(meta)[0]
-    else:
-        meta = sorted(meta)[0]
+    meta = get_meta_alpha(raref_dir, dat_rt, raref)
+    if not meta:
+        return pd.DataFrame(), pd.DataFrame()
     tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
     return tsv_pd_, meta_pd_
 
@@ -1024,6 +1030,10 @@ def get_datasets_filtered(
         else:
             print('C')
             tsv_pd_, meta_pd_ = datasets_read[dat][0]
+            tsv, meta = datasets[dat]
+            meta_alphas = get_meta_alpha(dirname(meta), dat, '')
+            if meta_alphas and meta_alphas != meta:
+                meta_pd_ = read_meta_pd(meta_alphas)
             input_to_filtered[dat_] = dat
 
         dat_filts = {}
