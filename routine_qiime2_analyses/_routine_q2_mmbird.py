@@ -579,6 +579,10 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
     corrs = []
     for r in range(2):
         feats = ordi.features[r]
+        print("feats")
+        print(feats)
+        print("len(diff_cols1)")
+        print(len(diff_cols1))
         if len(diff_cols1):
             meta_feats_pd1 = pd.concat([meta_pd1, feats], axis=1, sort=False)
             print("meta_feats_pd1")
@@ -604,6 +608,10 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
                 end = time.time()
                 print('1.', end - start)
         sams = ordi.samples[r]
+        print("sams")
+        print(sams)
+        print("len(diff_cols2)")
+        print(len(diff_cols2))
         if len(diff_cols2):
             for model in diff_cols2:
                 start = time.time()

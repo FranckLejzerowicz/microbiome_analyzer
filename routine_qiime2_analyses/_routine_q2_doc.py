@@ -71,18 +71,19 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                         xphate_tsv.replace('%s/qiime/phate' % i_dataset_folder, '...'))
                     continue
                 xphate_pd = pd.read_csv(xphate_tsv, header=0, sep='\t', dtype={'sample_name': str})
+                xphate_pd = xphate_pd.loc[xphate_pd['variable'].str.contains('cluster_k')]
                 if len(xphate_pd[['knn', 'decay', 't']].drop_duplicates()) > 5:
                     if not need_to_run_less_phate:
                         print('Warning: PHATE has been for multiple parameters combinations:\n'
-                              ' --> It may be unwise to let DOC ru on every combination...\n'
+                              ' --> It may be unwise to let DOC run on every combination...\n'
                               ' --> Be sure to run PHATE using few, desired sets of parameters!')
                     need_to_run_less_phate.append(
                         xphate_tsv.replace('%s/qiime/phate' % i_dataset_folder, '...'))
-                cols = ['sample_name', 'knn', 'decay', 't', 'cluster']
+                cols = ['sample_name', 'knn', 'decay', 't', 'variable']
                 xphate_clusters = dict(xphate_pd[cols].groupby(
-                    ['knn', 'decay', 't', 'cluster']
+                    ['knn', 'decay', 't', 'variable']
                 ).apply(func=lambda x: x.sample_name.tolist()))
-
+                print(xphate_clusters)
                 # repeat DOC command for the clusters
                 for (knn, decay, t, cluster), samples_phate in xphate_clusters.items():
                     token = ''.join([str(random.choice(range(100))) for x in range(3)])
