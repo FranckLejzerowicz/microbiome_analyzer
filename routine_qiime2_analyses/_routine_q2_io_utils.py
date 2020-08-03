@@ -1062,9 +1062,9 @@ def get_datasets_filtered(
             tsv_qza = '%s.qza' % splitext(tsv_out)[0]
             meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
 
+            print('+++++++++++++++++++++++++++++++++++')
             print(meta_out)
-            print(meta_out)
-            print(meta_out)
+            print('+++++++++++++++++++++++++++++++++++')
             tsv_hash = hash_pandas_object(tsv_pd).sum()
 
             if analysis == 'songbird':
