@@ -1045,7 +1045,6 @@ def get_datasets_filtered(
             print(preval_abund, preval, abund)
             print(preval_abund, preval, abund)
             print(preval_abund, preval, abund)
-            print(preval_abund, preval, abund)
             if len(filt_datasets_done[(dat, mb)][preval_abund]):
                 print('\t\t\t*', '[DONE]', dat, mb, preval_abund)
                 dat_filts[preval_abund] = filt_datasets_done[(dat, mb)][preval_abund]
@@ -1066,6 +1065,7 @@ def get_datasets_filtered(
             tsv_hash = hash_pandas_object(tsv_pd).sum()
 
             if analysis == 'songbird':
+                print('*', meta_out)
                 meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
                 tsv_out_mmvec = tsv_out.replace('/songbird/', '/mmvec/')
                 tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
