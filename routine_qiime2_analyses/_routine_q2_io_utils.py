@@ -1009,6 +1009,7 @@ def get_datasets_filtered(
                 raref = '_raref%s' % '__raref'.join(split[-1:])
                 if dat in datasets_filt:
                     dat = datasets_filt[dat]
+                print('A')
                 tsv_pd_, meta_pd_ = get_raref_table(dat, raref, i_datasets_folder, analysis)
                 if not tsv_pd_.shape[0]:
                     continue
@@ -1018,6 +1019,7 @@ def get_datasets_filtered(
                 print('%s dataset "%s" not found...' % (analysis, dat))
                 continue
         elif not isinstance(datasets_read[dat][0], pd.DataFrame) and datasets_read[dat][0] == 'raref':
+            print('B')
             tsv, meta = datasets[dat]
             if not isfile(tsv):
                 print(analysis, 'Must have run rarefaction to use it further...\nExiting')
@@ -1026,6 +1028,7 @@ def get_datasets_filtered(
             datasets_read[dat] = [tsv_pd_, meta_pd_]
             input_to_filtered[dat_] = dat
         else:
+            print('C')
             tsv_pd_, meta_pd_ = datasets_read[dat][0]
             tsv, meta = datasets[dat][0]
             meta_alphas = get_meta_alpha(dirname(meta), dat, '')
