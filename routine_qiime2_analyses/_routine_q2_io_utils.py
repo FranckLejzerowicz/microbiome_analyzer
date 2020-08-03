@@ -1062,6 +1062,12 @@ def get_datasets_filtered(
             tsv_qza = '%s.qza' % splitext(tsv_out)[0]
             meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
 
+            if meta_out != '/projects/nutrition/analysis/tree_based/qiime/mmvec/datasets/16S_100nt_745s__raref5000/meta_16S_100nt_745s__raref5000_0_0_723s.tsv':
+                continue
+
+            print(meta_out)
+            print(meta_out)
+            print(meta_out)
             tsv_hash = hash_pandas_object(tsv_pd).sum()
 
             if analysis == 'songbird':
