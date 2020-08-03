@@ -335,6 +335,9 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
     for keys, values in mmvec_res.items():
 
         pair, omic1, omic2, filt1, filt2, sams, mmvec = keys
+        print()
+        print(pair, omic1, omic2, filt1, filt2, sams)
+        print(mmvec)
         ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp = values
 
         order_omics = get_order_omics(omic1, omic2, filt1, filt2, omics_pairs)
@@ -657,14 +660,14 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
         i_datasets_folder, mmvec_songbird_pd, taxo_pds)
     print('Done.')
 
-    print('\t-> [mmbird] Get res dict...')
+    print('\t-> [mmbird] Get res dict...', end=' ')
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
+    print('Done.')
 
-    print('\t-> [mmbird] Get commands...', end=' ')
+    print('\t-> [mmbird] Get commands...')
     highlights = get_highlights(p_mmvec_highlights)
     pair_cmds, pc_sb_correlations_pd = get_pair_cmds(
         mmvec_res, omics_pairs_metas, omics_pairs, force, highlights)
-    print('Done.')
 
     out_folder = get_analysis_folder(i_datasets_folder, 'mmbird')
     out_correlations = '%s/pc_vs_songbird_correlations.tsv' % out_folder
