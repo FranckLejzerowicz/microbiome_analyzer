@@ -995,6 +995,7 @@ def get_datasets_filtered(
     :return: list of datasets from filtered threshold.
     """
 
+    drop_keys = {}
     filt_jobs = []
     filt_datasets = {}
     for (dat_, mb) in unique_datasets:
@@ -1036,7 +1037,6 @@ def get_datasets_filtered(
         dat_filts = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
         prevals_abunds = filtering[(dat_, mb)]
-        drop_keys = {}
         for (preval_abund, preval, abund) in prevals_abunds:
             # make sure there's no empty row / column
             tsv_pd = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :].copy()
@@ -1152,6 +1152,7 @@ def get_datasets_filtered(
 
     for dat_mb in drop_keys:
         filtering[dat_mb] = [x for x in filtering[dat_mb] if x in drop_keys[dat_mb]]
+
     return filt_datasets, filt_jobs
 
 
