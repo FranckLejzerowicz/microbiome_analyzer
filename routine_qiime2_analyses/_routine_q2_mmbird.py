@@ -402,9 +402,6 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
         pair_omic_filt = ['pair', 'omic%s' % omicn, 'filt%s' % omicn]
         all_omic_sb = [x for x in mmvec_songbird_pd.columns if x.endswith('omic%s_songbird_common_fp' % omicn)]
         omicn_songbirds = mmvec_songbird_pd[(pair_omic_filt + all_omic_sb)].set_index(pair_omic_filt).T.to_dict()
-        print("omicn_songbirds")
-        print(omicn_songbirds)
-        print(omicn_songbirdsgfd)
         for (pair, omic, filt), sb_head_diff_fp in omicn_songbirds.items():
             feats_diff_cols = []
             cur_mmvec_folder = get_analysis_folder(i_datasets_folder, 'mmvec/metadata/%s' % pair)
@@ -425,7 +422,7 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                         diff_htmls = glob.glob('%s/*/tensorboard.html' % dirname(diff_fp))
                         if len(diff_htmls):
                             for diff_html in diff_htmls:
-                                baseline = dirname(diff_html).split('/')[-1]
+                                baseline = diff_html.split('/')[-2]
                                 with open(diff_html) as f:
                                     for line in f:
                                         if 'Pseudo Q-squared' in line:
@@ -433,14 +430,18 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                                             q2s[baseline] = q2
                                             break
                         else:
-                            q2s['NaN'] = 'None'
+                            q2s[''] = ''
                         diff_cols = ['%s__%s__%s' % (
-                            model, x, '--'.join(['b:%s-Q2=%s' % (b, q) for b, q in q2s.items()])
+                            model, x, '--'.join(['%s-Q2=%s' % (b, q) if b else 'noQ2' for b, q in q2s.items()])
                         ) for x in diff_pd.columns]
                         diff_pd.columns = diff_cols
                         feats_diff_cols.extend(diff_cols)
                         omic_diff_list.append(diff_pd)
-
+            print("feats_diff_cols")
+            print(feats_diff_cols)
+            print("omic_diff_list")
+            print(omic_diff_list)
+            print(feats_diff_colsfds)
             if len(omic_diff_list):
                 omic_songbird_ranks = pd.concat(omic_diff_list, axis=1, sort=False).reset_index()
                 omic_songbird_ranks.rename(columns={omic_songbird_ranks.columns[0]: 'Feature ID'}, inplace=True)
@@ -627,18 +628,6 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
         mmvec_songbird_pd = merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd)
     else:
         mmvec_songbird_pd = mmvec_outputs_pd.copy()
-    print(mmvec_songbird_pd.columns.tolist())
-    print(mmvec_songbird_pd[[
-        'pair', 'omic1', 'omic2', 'filt1', 'filt2',
-        'omic_filt1', 'omic_filt2', 'pair_omic_filt1', 'pair_omic_filt2',
-        'ALL_0__filt_f0_s0__2_1e-4_400_05_02_Animal_Protein_omic1_songbird_common_fp'
-    ]])
-    print(mmvec_songbird_pd[[
-        'pair', 'omic1', 'omic2', 'filt1', 'filt2',
-        'omic_filt1', 'omic_filt2', 'pair_omic_filt1', 'pair_omic_filt2',
-        'ALL_0__filt_f0_s0__2_1e-4_400_05_02_Animal_Protein_omic1_songbird_common_fp'
-    ]].values)
-    print(bfds)
     print('Done.')
 
     q2s_pd = summarize_songbirds(i_datasets_folder)
