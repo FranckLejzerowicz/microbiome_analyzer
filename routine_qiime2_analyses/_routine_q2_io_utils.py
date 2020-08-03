@@ -1036,6 +1036,7 @@ def get_datasets_filtered(
         dat_filts = {}
         dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
         prevals_abunds = filtering[(dat_, mb)]
+        drop_keys = {}
         for (preval_abund, preval, abund) in prevals_abunds:
             # make sure there's no empty row / column
             tsv_pd = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :].copy()
@@ -1076,6 +1077,7 @@ def get_datasets_filtered(
                         meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
 
                     if tsv_hash in already_computed:
+                        drop_keys.setdefault((dat_, mb), []).append((preval_abund, preval, abund))
                         already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
                         tsv_out_src = already_computed[tsv_hash][0][0]
                         # tsv_qza_src = already_computed[tsv_hash][0][1]
@@ -1119,6 +1121,7 @@ def get_datasets_filtered(
                 else:
                     meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
                     if tsv_hash in already_computed:
+                        drop_keys.setdefault((dat_, mb), []).append((preval_abund, preval, abund))
                         already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
                         tsv_out_src = already_computed[tsv_hash][0][0]
                         # tsv_qza_src = already_computed[tsv_hash][0][1]
@@ -1146,6 +1149,9 @@ def get_datasets_filtered(
                 dat_filts[preval_abund] = [
                     tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()]
         filt_datasets[(dat, mb)] = dat_filts
+
+    for dat_mb in drop_keys:
+        filtering[(dat_, mb)] = [x for x in filtering[(dat_, mb)] if x in drop_keys[dat_mb]]
     return filt_datasets, filt_jobs
 
 
