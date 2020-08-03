@@ -214,6 +214,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
     if mmvec_outputs:
         mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
+        mmvec_outputs_pd.to_csv('~/testtest.txt', index=False, sep='\t')
+        print(hfkjbd)
         for r, row in mmvec_outputs_pd.iterrows():
             pair = row['pair']
             omic1 = row['omic1']

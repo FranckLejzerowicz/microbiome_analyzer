@@ -404,8 +404,8 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
         omicn_songbirds = mmvec_songbird_pd[(pair_omic_filt + all_omic_sb)]
         omicn_songbirds = omicn_songbirds.set_index(pair_omic_filt)
         print("omicn_songbirds.loc[(ssu_foods, vioscreen_foods_consumed_grams_per_day_1800s_noLiquids, 0_0),:]")
-        print(omicn_songbirds.loc[('ssu_foods', 'vioscreen_foods_consumed_grams_per_day_1800s_noLiquids', '0_0'),:])
-        print(omicn_songbirds.loc[('ssu_foods', 'vioscreen_foods_consumed_grams_per_day_1800s_noLiquids', '0_0'),:].values)
+        print(omicn_songbirds.loc[('ssu_foods', 'vioscreen_foods_consumed_grams_per_day_1800s_noLiquids', '0_0'), :])
+        print(omicn_songbirds.loc[('ssu_foods', 'vioscreen_foods_consumed_grams_per_day_1800s_noLiquids', '0_0'), :].values)
         omicn_songbirds = omicn_songbirds.T.to_dict()
         for (pair, omic, filt), sb_head_diff_fp in omicn_songbirds.items():
             if (pair, omic, filt) not in [
