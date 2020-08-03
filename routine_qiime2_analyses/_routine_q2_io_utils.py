@@ -1083,7 +1083,7 @@ def get_datasets_filtered(
                         # tsv_qza_src = already_computed[tsv_hash][0][1]
                         # meta_out_src = already_computed[tsv_hash][0][2]
                         print('\t\t\t  [%s] Skip "%s" (same input as "%s")' % (
-                            analysis, basename(tsv_out_src), basename(tsv_out)))
+                            analysis, basename(tsv_out), basename(tsv_out_src)))
                         continue
                         # already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
                         # tsv_out_src = already_computed[tsv_hash][0][0]
@@ -1127,7 +1127,7 @@ def get_datasets_filtered(
                         # tsv_qza_src = already_computed[tsv_hash][0][1]
                         # meta_out_src = already_computed[tsv_hash][0][2]
                         print('\t\t\t  [%s] Skip "%s" (same input as "%s")' % (
-                            analysis, basename(tsv_out_src), basename(tsv_out)))
+                            analysis, basename(tsv_out), basename(tsv_out_src)))
                         continue
                         # if isfile(tsv_out):
                         #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
@@ -1151,7 +1151,7 @@ def get_datasets_filtered(
         filt_datasets[(dat, mb)] = dat_filts
 
     for dat_mb in drop_keys:
-        filtering[(dat_, mb)] = [x for x in filtering[(dat_, mb)] if x in drop_keys[dat_mb]]
+        filtering[dat_mb] = [x for x in filtering[dat_mb] if x in drop_keys[dat_mb]]
     return filt_datasets, filt_jobs
 
 
