@@ -954,7 +954,6 @@ def get_raref_table(dat_rt: str, raref: str, i_datasets_folder: str,
             meta = sorted(meta)[0]
     else:
         meta = sorted(meta)[0]
-    print(meta)
     tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
     return tsv_pd_, meta_pd_
 
@@ -1005,9 +1004,6 @@ def get_datasets_filtered(
                 if dat in datasets_filt:
                     dat = datasets_filt[dat]
                 tsv_pd_, meta_pd_ = get_raref_table(dat, raref, i_datasets_folder, analysis)
-                if analysis == 'songbird':
-                    print("meta_pd_.columns")
-                    print(meta_pd_.columns)
                 if not tsv_pd_.shape[0]:
                     continue
                 dat = '%s_%s' % (dat, raref)
@@ -1103,6 +1099,10 @@ def get_datasets_filtered(
                         # print(analysis, 'write (job): tsv_qza', tsv_qza)
                     already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
             else:
+                print("meta_out")
+                print(meta_out)
+                print("meta_pd_.columns")
+                print(meta_pd_.columns)
                 meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
                 if tsv_hash in already_computed:
                     already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
