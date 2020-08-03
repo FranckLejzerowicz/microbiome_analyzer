@@ -627,6 +627,7 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
         mmvec_songbird_pd = merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd)
     else:
         mmvec_songbird_pd = mmvec_outputs_pd.copy()
+    print(mmvec_songbird_pd.columns.tolist())
     print('Done.')
 
     q2s_pd = summarize_songbirds(i_datasets_folder)
