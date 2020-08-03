@@ -1082,7 +1082,7 @@ def get_datasets_filtered(
                         tsv_out_src = already_computed[tsv_hash][0][0]
                         # tsv_qza_src = already_computed[tsv_hash][0][1]
                         # meta_out_src = already_computed[tsv_hash][0][2]
-                        print('[%s] Skip "%s" (same input as "%s")' % (
+                        print('\t\t\t  [%s] Skip "%s" (same input as "%s")' % (
                             analysis, basename(tsv_out_src), basename(tsv_out)))
                         continue
                         # already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
@@ -1126,7 +1126,7 @@ def get_datasets_filtered(
                         tsv_out_src = already_computed[tsv_hash][0][0]
                         # tsv_qza_src = already_computed[tsv_hash][0][1]
                         # meta_out_src = already_computed[tsv_hash][0][2]
-                        print('[%s] Skip "%s" (same input as "%s")' % (
+                        print('\t\t\t  [%s] Skip "%s" (same input as "%s")' % (
                             analysis, basename(tsv_out_src), basename(tsv_out)))
                         continue
                         # if isfile(tsv_out):
@@ -1145,7 +1145,7 @@ def get_datasets_filtered(
                             cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
                             filt_jobs.append(cmd)
                         already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
-                print('\t\t\t*', '[TODO]', dat, mb, preval_abund, ':', tsv_pd.shape)
+                print('\t\t\t* [TODO]', dat, mb, preval_abund, ':', tsv_pd.shape)
                 dat_filts[preval_abund] = [
                     tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()]
         filt_datasets[(dat, mb)] = dat_filts
