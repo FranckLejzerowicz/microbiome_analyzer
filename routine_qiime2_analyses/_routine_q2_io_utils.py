@@ -1034,6 +1034,7 @@ def get_datasets_filtered(
             meta_alphas = get_meta_alpha(dirname(meta), dat, '')
             if meta_alphas and meta_alphas != meta:
                 meta_pd_ = read_meta_pd(meta_alphas)
+            print(meta_pd_.columns)
             input_to_filtered[dat_] = dat
 
         dat_filts = {}
