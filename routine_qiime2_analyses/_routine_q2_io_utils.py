@@ -1030,7 +1030,7 @@ def get_datasets_filtered(
         else:
             print('C')
             tsv_pd_, meta_pd_ = datasets_read[dat][0]
-            tsv, meta = datasets[dat]
+            tsv, meta = datasets[dat][0]
             meta_alphas = get_meta_alpha(dirname(meta), dat, '')
             if meta_alphas and meta_alphas != meta:
                 meta_pd_ = read_meta_pd(meta_alphas)
