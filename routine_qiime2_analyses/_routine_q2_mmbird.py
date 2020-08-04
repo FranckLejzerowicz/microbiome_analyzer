@@ -445,17 +445,16 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                                     for line in f:
                                         if 'Pseudo Q-squared' in line:
                                             q2 = line.split('Pseudo Q-squared:</a></strong> ')[-1].split('<')[0]
-                                            if float(q2) > 0.1:
+                                            if float(q2) > 0.01:
                                                 q2s[baseline] = q2
-                                                break
-                        else:
-                            q2s[''] = ''
-                        diff_cols = ['%s__%s__%s' % (
-                            model, x, '--'.join(['%s-Q2=%s' % (b, q) if b else 'noQ2' for b, q in q2s.items()])
-                        ) for x in diff_pd.columns]
-                        diff_pd.columns = diff_cols
-                        feats_diff_cols.extend(diff_cols)
-                        omic_diff_list.append(diff_pd)
+                                            break
+                        if q2s:
+                            diff_cols = ['%s__%s__%s' % (
+                                model, x, '--'.join(['%s-Q2=%s' % (b, q) if b else 'noQ2' for b, q in q2s.items()])
+                            ) for x in diff_pd.columns]
+                            diff_pd.columns = diff_cols
+                            feats_diff_cols.extend(diff_cols)
+                            omic_diff_list.append(diff_pd)
             if len(omic_diff_list):
                 omic_songbird_ranks = pd.concat(omic_diff_list, axis=1, sort=False).reset_index()
                 omic_songbird_ranks.rename(columns={omic_songbird_ranks.columns[0]: 'Feature ID'}, inplace=True)
@@ -523,68 +522,34 @@ def get_taxo_pds(i_datasets_folder, mmvec_songbird_pd, input_to_filtered):
     return taxo_pds
 
 
-def get_mp_corrs(args):
-    corrs, r, feats_sams, diff_cols, meta_pd, pair = args[:6]
-    omic, filt, meta_fp, omic_common_fp, ranks_fp = args[6:]
-    if len(diff_cols):
-        for model in diff_cols:
-            x = meta_pd.loc[
-                [x for x in meta_pd.index if x in feats_sams.index], model
-            ].astype(float)
-            x = x[x.notnull()]
-            y = feats_sams[x.index]
-            r2, p2 = spearmanr(x, y)
-            corrs.append([pair, omic, filt, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
-                          meta_fp, omic_common_fp, ranks_fp])
-
-
 def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
                            diff_cols1, meta_pd1, diff_cols2, meta_pd2,
                            meta_fp, omic1_common_fp, omic2_common_fp, ranks_fp):
-    do_mp = False
-    if do_mp:
-        manager = mp.Manager()
-        corrs = manager.list()
-        pool = mp.Pool(processes=6)
-        pool_runs = []
-    else:
-        corrs = []
-
+    corrs = []
     for r in range(3):
         feats = ordi.features[r]
-        if do_mp:
-            pool_runs.append((corrs, r, feats, diff_cols1, meta_pd1, pair, omic1, filt1, meta_fp,  omic1_common_fp, ranks_fp))
-        else:
-            if len(diff_cols1):
-                for model in diff_cols1:
-                    x = meta_pd1.loc[
-                        [x for x in meta_pd1.index if x in feats.index], model
-                    ].astype(float)
-                    x = x[x.notnull()]
-                    y = feats[x.index]
-                    r2, p2 = spearmanr(x, y)
-                    corrs.append([pair, omic1, filt1, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
-                                  meta_fp,  omic1_common_fp, ranks_fp])
+        if len(diff_cols1):
+            for model in diff_cols1:
+                x = meta_pd1.loc[
+                    [x for x in meta_pd1.index if x in feats.index], model
+                ].astype(float)
+                x = x[x.notnull()]
+                y = feats[x.index]
+                r2, p2 = spearmanr(x, y)
+                corrs.append([pair, omic1, filt1, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
+                              meta_fp,  omic1_common_fp, ranks_fp])
         sams = ordi.samples[r]
-        if do_mp:
-            pool_runs.append((corrs, r, sams, diff_cols2, meta_pd2, pair, omic2, filt2, meta_fp,  omic1_common_fp, ranks_fp))
-        else:
-            if len(diff_cols2):
-                for model in diff_cols2:
-                    x = meta_pd2.loc[
-                        [x for x in meta_pd2.index if x in sams.index], model
-                    ].astype(float)
-                    x = x[x.notnull()]
-                    y = sams[x.index]
-                    r2, p2 = spearmanr(x, y)
-                    corrs.append([pair, omic2, filt2, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
-                                  meta_fp, omic2_common_fp, ranks_fp])
-    if do_mp:
-        pool.map(get_mp_corrs, [x for x in pool_runs])
-        pool.close()
-        pool.join()
-
-    corrs_pd = pd.DataFrame(list(corrs), columns=[
+        if len(diff_cols2):
+            for model in diff_cols2:
+                x = meta_pd2.loc[
+                    [x for x in meta_pd2.index if x in sams.index], model
+                ].astype(float)
+                x = x[x.notnull()]
+                y = sams[x.index]
+                r2, p2 = spearmanr(x, y)
+                corrs.append([pair, omic2, filt2, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
+                              meta_fp, omic2_common_fp, ranks_fp])
+    corrs_pd = pd.DataFrame(corrs, columns=[
         'pair',
         'omic',
         'filt',
