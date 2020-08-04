@@ -81,7 +81,7 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                 xphate_clusters = dict(xphate_pd[cols].groupby(
                     ['knn', 'decay', 't', 'variable', 'factor']
                 ).apply(func=lambda x: x.sample_name.tolist()))
-
+                new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
                 # repeat DOC command for the clusters
                 for (knn, decay, t, k, cluster), samples_phate in xphate_clusters.items():
                     token = ''.join([str(random.choice(range(100))) for x in range(3)])
