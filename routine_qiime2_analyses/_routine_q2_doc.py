@@ -44,8 +44,6 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
             cur_rad_token = '%s/tmp/%s' % (i_dataset_folder, token)
             if not isdir(cur_rad_r):
                 os.makedirs(cur_rad_r)
-            if not isdir(cur_rad_token):
-                os.makedirs(cur_rad_token)
             new_meta = '%s/meta.tsv' % cur_rad
             new_qza = '%s/tab.qza' % cur_rad
             new_tsv = '%s/tab.tsv' % cur_rad
@@ -93,8 +91,6 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                     cur_rad_token = '%s/tmp/%s' % (i_dataset_folder, token)
                     if not isdir(cur_rad_phate_r):
                         os.makedirs(cur_rad_phate_r)
-                    if not isdir(cur_rad_token):
-                        os.makedirs(cur_rad_token)
                     new_meta = '%s/meta.tsv' % cur_rad_phate
                     new_qza = '%s/tab.qza' % cur_rad_phate
                     new_tsv = '%s/tab.tsv' % cur_rad_phate

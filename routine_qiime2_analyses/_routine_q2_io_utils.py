@@ -377,7 +377,7 @@ def get_doc_config(p_doc_config: str) -> (dict, dict, dict):
         if 'filtering' in doc_config:
             doc_filtering = doc_config['filtering']
         if 'subsets' in doc_config:
-            main_cases_dict = doc_config['subsets']
+            main_cases_dict.update(doc_config['subsets'])
         if 'params' in doc_config:
             doc_params.update(doc_config['params'])
     return doc_filtering, doc_params, main_cases_dict

@@ -745,8 +745,8 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
         cur_import_sh_o.write('echo "%s"\n' % cmd)
         cur_import_sh_o.write('%s\n' % cmd)
 
-    cmd = 'mkdir -p %s\n' % cur_rad_token
-    cmd += 'mkdir -p %s\n' % cur_rad
+    cmd = 'rm -rf %s\n' % cur_rad_token
+    cmd += 'mkdir -p %s\n' % cur_rad_token
     cmd += 'cp %s %s\n' % (new_tsv, new_tsv_token)
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
