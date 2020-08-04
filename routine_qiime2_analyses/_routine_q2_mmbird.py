@@ -11,6 +11,7 @@ import sys
 import glob
 import time
 import pandas as pd
+import multiprocessing as mp
 from os.path import dirname, isfile, splitext
 
 from scipy.stats import spearmanr, pearsonr
@@ -522,104 +523,41 @@ def get_taxo_pds(i_datasets_folder, mmvec_songbird_pd, input_to_filtered):
     return taxo_pds
 
 
-def correl_pc(omic1, filt1, omic2, filt2,
-              r, ordi, diff_cols1, meta_pd1,
-              diff_cols2, meta_pd2):
-
-    corrs = []
-    feats = ordi.features[r]
-    if len(diff_cols1):
-        for model in diff_cols1:
-            x = meta_pd1.loc[
-                # ordi.features.index,
-                [x for x in meta_pd1.index if x in ordi.features.index],
-                model
-            ].astype(float)
-            x = x[x.notnull()]
-            y = feats[x.index]
-            # r1, p1 = pearsonr(x, y)
-            r2, p2 = spearmanr(x, y)
-            # corrs.append([pair, omic1, filt1, 'PC%s' % (r+1), model, r1, p1, 'pearson',
-            #              meta_fp, omic1_common_fp, ranks_fp])
-            corrs.append([omic1, filt1, 'PC%s' % (r + 1), model, r2, p2, 'spearman'])
-    sams = ordi.samples[r]
-    if len(diff_cols2):
-        for model in diff_cols2:
-            x = meta_pd2.loc[
-                [x for x in meta_pd2.index if x in ordi.samples.index],
-                # ordi.samples.index,
-                model
-            ].astype(float)
-            x = x[x.notnull()]
-            y = sams[x.index]
-            # r1, p1 = pearsonr(x, y)
-            r2, p2 = spearmanr(x, y)
-            # corrs.append([pair, omic2, filt2, 'PC%s' % (r+1), model, r1, p1, 'pearson',
-            #               meta_fp, omic2_common_fp, ranks_fp])
-            corrs.append([omic2, filt2, 'PC%s' % (r + 1), model, r2, p2, 'spearman'])
-    corrs_pd = pd.DataFrame(corrs, columns=[
-        'pair',
-        'omic',
-        'filt',
-        'mmvec_pc',
-        'model',
-        'correlation_coefficient',
-        'pvalue',
-        'correlation_method',
-        'meta_fp',
-        'features_fp',
-        'ranks_fp'
-    ]).to_csv()
-
-
 def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
                            diff_cols1, meta_pd1, diff_cols2, meta_pd2,
                            meta_fp, omic1_common_fp, omic2_common_fp, ranks_fp):
-
     corrs = []
     for r in range(2):
         feats = ordi.features[r]
         if len(diff_cols1):
             meta_feats_pd1 = pd.concat([meta_pd1, feats], axis=1, sort=False)
-            print("meta_feats_pd1")
-            print(meta_feats_pd1[:4])
             for model in diff_cols1:
                 start = time.time()
+                model_meta_feats_pd1 = meta_feats_pd1[[model, r]].copy()
+                model_meta_feats_pd1 = model_meta_feats_pd1.loc[~model_meta_feats_pd1.isna().any(axis=1), :]
+
                 # x = meta_pd1.loc[
                 #     # ordi.features.index,
                 #     [x for x in meta_pd1.index if x in ordi.features.index],
                 #     model
                 # ].astype(float)
-                model_meta_feats_pd1 = meta_feats_pd1[[model, r]]
-                model_meta_feats_pd1 = model_meta_feats_pd1.loc[model_meta_feats_pd1.notnull(),:]
                 # x = x[x.notnull()]
                 # y = feats[x.index]
-                # r1, p1 = pearsonr(x, y)
                 # r2, p2 = spearmanr(x, y)
+
                 r2, p2 = spearmanr(model_meta_feats_pd1[model], model_meta_feats_pd1[r])
-                # corrs.append([pair, omic1, filt1, 'PC%s' % (r+1), model, r1, p1, 'pearson',
-                #              meta_fp, omic1_common_fp, ranks_fp])
                 corrs.append([pair, omic1, filt1, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
                               meta_fp,  omic1_common_fp, ranks_fp])
                 end = time.time()
                 print('1.', end - start)
         sams = ordi.samples[r]
-        print("sams")
-        print(sams)
-        print("len(diff_cols2)")
-        print(len(diff_cols2))
         if len(diff_cols2):
             meta_feats_pd2 = pd.concat([meta_pd2, sams], axis=1, sort=False)
-            print("meta_feats_pd2")
-            print(meta_feats_pd2[:4])
             for model in diff_cols2:
                 start = time.time()
-                model_meta_feats_pd2 = meta_feats_pd2[[model, r]]
-                model_meta_feats_pd2 = model_meta_feats_pd2.loc[model_meta_feats_pd2.notnull(),:]
-                # r1, p1 = pearsonr(x, y)
-                r2, p2 = spearmanr(model_meta_feats_pd1[model], model_meta_feats_pd1[r])
-                # corrs.append([pair, omic2, filt2, 'PC%s' % (r+1), model, r1, p1, 'pearson',
-                #               meta_fp, omic2_common_fp, ranks_fp])
+                model_meta_feats_pd2 = meta_feats_pd2[[model, r]].copy()
+                model_meta_feats_pd2 = model_meta_feats_pd2.loc[~model_meta_feats_pd2.isna().any(axis=1), :]
+                r2, p2 = spearmanr(model_meta_feats_pd2[model], model_meta_feats_pd2[r])
                 corrs.append([pair, omic2, filt2, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
                               meta_fp, omic2_common_fp, ranks_fp])
                 end = time.time()
