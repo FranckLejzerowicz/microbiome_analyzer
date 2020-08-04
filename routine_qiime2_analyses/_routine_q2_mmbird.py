@@ -523,6 +523,19 @@ def get_taxo_pds(i_datasets_folder, mmvec_songbird_pd, input_to_filtered):
     return taxo_pds
 
 
+def get_mp_corrs(args):
+    corrs, r, feats_sams, diff_cols, meta_pd, pair = args[:6]
+    omic, filt, meta_fp, omic_common_fp, ranks_fp = args[6:]
+    if len(diff_cols):
+        for model in diff_cols:
+            x = meta_pd.loc[
+                [x for x in meta_pd.index if x in feats_sams.index], model
+            ].astype(float)
+            x = x[x.notnull()]
+            y = feats_sams[x.index]
+            r2, p2 = spearmanr(x, y)
+            corrs.append([pair, omic, filt, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
+                             meta_fp, omic_common_fp, ranks_fp])
 
 
 def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
@@ -531,27 +544,16 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
     do_mp = True
     if do_mp:
         manager = mp.Manager()
-        def get_mp_corrs(r, feats_sams, diff_cols, meta_pd, pair, omic,
-                         filt, meta_fp, omic_common_fp, ranks_fp):
-            if len(diff_cols):
-                for model in diff_cols:
-                    x = meta_pd.loc[
-                        [x for x in meta_pd.index if x in feats_sams.index], model
-                    ].astype(float)
-                    x = x[x.notnull()]
-                    y = feats_sams[x.index]
-                    r2, p2 = spearmanr(x, y)
-                    corrs_mp.append([pair, omic, filt, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
-                                     meta_fp, omic_common_fp, ranks_fp])
-        corrs_mp = manager.list()
-        pool = mp.Pool(processes=4)
+        corrs = manager.list()
+        pool = mp.Pool(processes=6)
         pool_runs = []
+    else:
+        corrs = []
 
-    corrs = []
-    for r in range(2):
+    for r in range(3):
         feats = ordi.features[r]
         if do_mp:
-            pool_runs.append((r, feats, diff_cols1, meta_pd1, pair, omic1, filt1, meta_fp,  omic1_common_fp, ranks_fp))
+            pool_runs.append((corrs, r, feats, diff_cols1, meta_pd1, pair, omic1, filt1, meta_fp,  omic1_common_fp, ranks_fp))
         else:
             if len(diff_cols1):
                 for model in diff_cols1:
@@ -565,7 +567,7 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
                                   meta_fp,  omic1_common_fp, ranks_fp])
         sams = ordi.samples[r]
         if do_mp:
-            pool_runs.append((r, sams, diff_cols2, meta_pd2, pair, omic2, filt2, meta_fp,  omic1_common_fp, ranks_fp))
+            pool_runs.append((corrs, r, sams, diff_cols2, meta_pd2, pair, omic2, filt2, meta_fp,  omic1_common_fp, ranks_fp))
         else:
             if len(diff_cols2):
                 for model in diff_cols2:
@@ -581,10 +583,7 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
         pool.map(get_mp_corrs, [x for x in pool_runs])
         pool.close()
         pool.join()
-        print(corrs_mp)
-    else:
-        print(corrs)
-    print(kksdfk)
+
     corrs_pd = pd.DataFrame(corrs, columns=[
         'pair',
         'omic',
