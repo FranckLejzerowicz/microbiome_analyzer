@@ -168,7 +168,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
     job_folder = get_job_folder(i_datasets_folder, 'doc')
     main_sh = write_main_sh(job_folder, '3_run_import_doc%s' % filt_raref,
                             all_import_sh_pbs, '%s.doc.mpt%s' % (prjct_nm, filt_raref),
-                            "1", "1", "1", "250", "mb", qiime_env, chmod, noloc)
+                            "4", "1", "1", "500", "mb", qiime_env, chmod, noloc)
     if main_sh:
         if p_doc_config:
             if p_doc_config.startswith('/panfs'):
