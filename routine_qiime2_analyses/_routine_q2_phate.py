@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import os
-import random
+import glob
 import pandas as pd
 from os.path import isdir, isfile, splitext
 
@@ -46,6 +46,8 @@ def run_single_phate(dat: str, odir: str, tsv: str, meta_pd: pd.DataFrame, case_
             new_tsv = '%s/tab.tsv' % cur_rad
             phate_html = '%s/phate_%s_%s_%s.html' % (cur_rad, dat, filt, case)
             phate_tsv = '%s_xphate.tsv' % splitext(phate_html)[0]
+            if len(glob.glob('%s/TOO_FEW.*' % cur_rad)):
+                continue
             cases[case] = phate_tsv
             if force or not isfile(phate_html) or not isfile(phate_tsv):
                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)

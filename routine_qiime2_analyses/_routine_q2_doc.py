@@ -79,15 +79,15 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                               ' --> Be sure to run PHATE using few, desired sets of parameters!')
                     need_to_run_less_phate.append(
                         xphate_tsv.replace('%s/qiime/phate' % i_dataset_folder, '...'))
-                cols = ['sample_name', 'knn', 'decay', 't', 'variable']
+                cols = ['sample_name', 'knn', 'decay', 't', 'variable', 'factor']
                 xphate_clusters = dict(xphate_pd[cols].groupby(
-                    ['knn', 'decay', 't', 'variable']
+                    ['knn', 'decay', 't', 'variable', 'factor']
                 ).apply(func=lambda x: x.sample_name.tolist()))
-                print(xphate_clusters)
+
                 # repeat DOC command for the clusters
-                for (knn, decay, t, cluster), samples_phate in xphate_clusters.items():
+                for (knn, decay, t, k, cluster), samples_phate in xphate_clusters.items():
                     token = ''.join([str(random.choice(range(100))) for x in range(3)])
-                    cur_rad_phate = '%s/phate/%s_%s_%s_clust%s' % (cur_rad, knn, decay, t, cluster)
+                    cur_rad_phate = '%s/phate/%s_%s_%s_k%s_clust%s' % (cur_rad, knn, decay, t, k, cluster)
                     cases.append(cur_rad_phate)
                     cur_rad_phate_r = '%s/R' % cur_rad_phate
                     cur_rad_token = '%s/tmp/%s' % (i_dataset_folder, token)

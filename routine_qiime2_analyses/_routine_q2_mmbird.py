@@ -541,7 +541,7 @@ def get_mp_corrs(args):
 def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
                            diff_cols1, meta_pd1, diff_cols2, meta_pd2,
                            meta_fp, omic1_common_fp, omic2_common_fp, ranks_fp):
-    do_mp = True
+    do_mp = False
     if do_mp:
         manager = mp.Manager()
         corrs = manager.list()
@@ -597,7 +597,6 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
         'features_fp',
         'ranks_fp'
     ])
-    print(corrs_pd)
     return corrs_pd
 
 
