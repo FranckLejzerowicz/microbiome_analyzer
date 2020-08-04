@@ -436,6 +436,9 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                         diff_pd = diff_pd.rename(columns={index_header: 'Feature ID'}).set_index('Feature ID')
                         diff_pd = diff_pd.drop(columns=[x for x in diff_pd.columns if 'Intercept' in x])
 
+                        # print()
+                        # print("diff_pd.columns")
+                        # print(diff_pd.columns)
                         q2s = {}
                         diff_htmls = glob.glob('%s/*/tensorboard.html' % dirname(diff_fp))
                         if len(diff_htmls):
@@ -445,9 +448,13 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                                     for line in f:
                                         if 'Pseudo Q-squared' in line:
                                             q2 = line.split('Pseudo Q-squared:</a></strong> ')[-1].split('<')[0]
+                                            # print("q2")
+                                            # print(q2)
                                             if float(q2) > 0.01:
                                                 q2s[baseline] = q2
                                             break
+                        # print("q2s")
+                        # print(q2s)
                         if q2s:
                             diff_cols = ['%s__%s__%s' % (
                                 model, x, '--'.join(['%s-Q2=%s' % (b, q) if b else 'noQ2' for b, q in q2s.items()])
@@ -494,6 +501,10 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
             meta_omic_fp = '%s/feature_metadata_%s_%s__%s_%s.tsv' % (cur_mmvec_folder, omic, filt, omic_, filt_)
             drop_columns = [col for col in omic_songbird_ranks.columns if omic_songbird_ranks[col].unique().size == 1]
             meta_omic_pd = omic_songbird_ranks.drop(columns=drop_columns)
+            # print("meta_omic_pd.columns")
+            # print(meta_omic_pd.columns)
+            # print("feats_diff_cols")
+            # print(feats_diff_cols)
             meta_omic_pd.to_csv(meta_omic_fp, index=False, sep='\t')
             # print('<< written: %s >>' % meta_omic_fp)
             # print('-' *50)
