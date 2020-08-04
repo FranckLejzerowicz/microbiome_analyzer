@@ -776,11 +776,8 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 
-    cmd = 'rsync -am %s/ %s\n\n' % (cur_rad_token, cur_rad)
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n' % cmd)
-
-    cmd = 'rm -rf %s\n\n' % cur_rad_token
+    cmd = 'rsync -am %s/ %s\n' % (cur_rad_token, cur_rad)
+    cmd += 'rm -rf %s\n\n' % cur_rad_token
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 
