@@ -535,7 +535,7 @@ def get_mp_corrs(args):
             y = feats_sams[x.index]
             r2, p2 = spearmanr(x, y)
             corrs.append([pair, omic, filt, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
-                             meta_fp, omic_common_fp, ranks_fp])
+                          meta_fp, omic_common_fp, ranks_fp])
 
 
 def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
@@ -584,7 +584,7 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
         pool.close()
         pool.join()
 
-    corrs_pd = pd.DataFrame(corrs, columns=[
+    corrs_pd = pd.DataFrame(list(corrs), columns=[
         'pair',
         'omic',
         'filt',
@@ -597,6 +597,7 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
         'features_fp',
         'ranks_fp'
     ])
+    print(corrs_pd)
     return corrs_pd
 
 
