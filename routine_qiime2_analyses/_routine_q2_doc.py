@@ -213,10 +213,11 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                             case_r = '%s/R' % case
                             pdf = '%s/plot.pdf' % case_r
                             if not isfile(pdf):
-                                cur_r = 'echo "*** %s" >> %s\n' % (plot, log_error)
-                                cur_r += 'R -f %s/run_R_doc_%s_%s_%s_vanilla.R --vanilla 2>> %s\n' % (job_folder2, dat, case_var, cdx, log_error)
-                                cur_r += 'echo "end" >> %s\n' % log_error
-                                shs.append('%s\n' % cur_r)
+                                cur_r = '%s/run_R_doc_%s_%s_%s_vanilla.R' % (job_folder2, dat, case_var, cdx)
+                                cur_sh = 'echo "*** %s" >> %s\n' % (plot, log_error)
+                                cur_sh += 'R -f %s --vanilla 2>> %s\n' % (cur_r, log_error)
+                                cur_sh += 'echo "end" >> %s\n' % log_error
+                                shs.append(cur_sh)
                                 with open(cur_r, 'w') as o:
                                     o.write("library(DOC)\n")
                                     o.write("library(ggplot2)\n")
