@@ -201,15 +201,20 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
         main_sh = '%s/run_R_doc%s.sh' % (job_folder, filt_raref)
         with open(main_sh, 'w') as main_o:
             for dat, raref_case_var_cases in dat_cases_tabs.items():
+
                 shs = []
                 written = 0
+                odir = get_analysis_folder(i_datasets_folder, 'doc/%s' % dat)
+                log_error = '%s/log.error' % odir
                 for raref, case_var_cases in raref_case_var_cases.items():
                     for case_var, cases in case_var_cases.items():
                         for cdx, case in enumerate(cases):
                             plot = '%s_%s_%s_%s' % (dat, raref, case_var, cdx)
-                            pdf = '%s/R/plot.pdf' % case
+                            case_r = '%s/R' % case
+                            pdf = '%s/plot.pdf' % case_r
                             if not isfile(pdf):
-                                cur_r = '%s/run_R_doc_%s_%s_%s_vanilla.R' % (job_folder2, dat, case_var, cdx)
+                                cur_r = 'echo "%s" >> %s\n' % (plot, log_error)
+                                cur_r += '%s/run_R_doc_%s_%s_%s_vanilla.R 2>> %s' % (job_folder2, dat, case_var, cdx, log_error)
                                 shs.append('R -f %s --vanilla\n' % cur_r)
                                 with open(cur_r, 'w') as o:
                                     o.write("library(DOC)\n")
@@ -220,20 +225,22 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                                     o.write("if (dim(otu)[1] > 100) {\n")
                                     o.write("    res <- DOC(otu)\n")
                                     o.write("    res.null <- DOC.null(otu)\n")
-                                    o.write("    write.table(x=res$DO, file='%s/R/DO.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
-                                    o.write("    write.table(x=res$LME, file='%s/R/LME.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
+                                    o.write("    write.table(x=res$DO, file='%s/DO.tsv', sep='\\t', quote=F, row.names=F)\n" % case_r)
+                                    o.write("    write.table(x=res$LME, file='%s/LME.tsv', sep='\\t', quote=F, row.names=F)\n" % case_r)
                                     o.write("    colnames(res$NEG) <- c('Neg_Slope', 'Data')\n")
-                                    o.write("    write.table(x=res$NEG, file='%s/R/NEG.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
-                                    o.write("    write.table(x=res$FNS, file='%s/R/FNS.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
-                                    o.write("    write.table(x=res$BOOT, file='%s/R/BOOT.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
-                                    o.write("    write.table(x=res$CI, file='%s/R/CI.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
-                                    o.write("    write.table(x=res.null$DO, file='%s/R/null_DO.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
-                                    o.write("    write.table(x=res.null$LME, file='%s/R/null_LME.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
+                                    o.write("    write.table(x=res$NEG, file='%s/NEG.tsv', sep='\\t', quote=F, row.names=F)\n" % case_r)
+                                    o.write("    write.table(x=res$FNS, file='%s/FNS.tsv', sep='\\t', quote=F, row.names=F)\n" % case_r)
+                                    o.write("    write.table(x=res$BOOT, file='%s/BOOT.tsv', sep='\\t', quote=F, row.names=F)\n" % case_r)
+                                    o.write("    write.table(x=res$CI, file='%s/CI.tsv', sep='\\t', quote=F, row.names=F)\n" % case_r)
+                                    o.write("    write.table(x=res.null$DO, file='%s/null_DO.tsv', sep='\\t', quote=F, row.names=F)\n" % case_r)
+                                    o.write("    write.table(x=res.null$LME, file='%s/null_LME.tsv', sep='\\t', quote=F, row.names=F)\n" % case_r)
                                     o.write("    colnames(res.null$NEG) <- c('Neg_Slope', 'Data')\n")
-                                    o.write("    write.table(x=res.null$NEG, file='%s/R/null_NEG.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
-                                    o.write("    write.table(x=res.null$FNS, file='%s/R/null_FNS.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
-                                    o.write("    write.table(x=res.null$BOOT, file='%s/R/null_BOOT.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
-                                    o.write("    write.table(x=res.null$CI, file='%s/R/null_CI.tsv', sep='\\t', quote=F, row.names=F)\n" % case)
+                                    o.write("    write.table(x=res.null$NEG, file='%s/null_NEG.tsv', sep='\\t', quote=F, row.names=F)\n" % case_r)
+                                    o.write("    write.table(x=res.null$FNS, file='%s/null_FNS.tsv', sep='\\t', quote=F, row.names=F)\n" % case_r)
+                                    o.write("    write.table(x=res.null$BOOT, file='%s/null_BOOT.tsv', sep='\\t', quote=F, row.names=F)\n" % case_r)
+                                    o.write("    write.table(x=res.null$CI, file='%s/null_CI.tsv', sep='\\t', quote=F, row.names=F)\n" % case_r)
+                                    o.write("    colnames(res$NEG) <- c('Neg.Slope', 'Data')\n")
+                                    o.write("    colnames(res.null$NEG) <- c('Neg.Slope', 'Data')\n")
                                     o.write("    pdf('%s')\n" % pdf)
                                     o.write("    merged <- DOC.merge(list(s_%s = res, s_%s=res.null))\n" % (plot, plot))
                                     o.write("    plot(merged)\n")
