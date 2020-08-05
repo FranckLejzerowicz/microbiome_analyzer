@@ -213,8 +213,9 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                             case_r = '%s/R' % case
                             pdf = '%s/plot.pdf' % case_r
                             if not isfile(pdf):
-                                cur_r = 'echo "%s" >> %s\n' % (plot, log_error)
+                                cur_r = 'echo "*** %s" >> %s\n' % (plot, log_error)
                                 cur_r += '%s/run_R_doc_%s_%s_%s_vanilla.R 2>> %s' % (job_folder2, dat, case_var, cdx, log_error)
+                                cur_r += 'echo "end" >> %s\n' % (plot, log_error)
                                 shs.append('R -f %s --vanilla\n' % cur_r)
                                 with open(cur_r, 'w') as o:
                                     o.write("library(DOC)\n")
