@@ -61,6 +61,7 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
             if doc_phate and filt in dat_phates and case in dat_phates[filt]:
                 # get the clusters
                 xphate_tsv = dat_phates[filt][case]
+                print('xphate_tsv:', xphate_tsv)
                 if not isfile(xphate_tsv):
                     if not need_to_run_phate:
                         print('Unable to run DOC on a set of PHATE clusters:\n'

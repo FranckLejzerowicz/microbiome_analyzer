@@ -194,10 +194,10 @@ sourcetracking:
   mem_num: "4"
   mem_dim: "gb"
 doc:
-  time: "48"
+  time: "100"
   n_nodes: "1"
   n_procs: "4"
-  mem_num: "4"
+  mem_num: "10"
   mem_dim: "gb"
   env: "xdoc"
 mmbird:
