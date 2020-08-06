@@ -386,7 +386,8 @@ def get_doc_config(p_doc_config: str) -> (dict, dict, dict):
 def get_sourcetracking_config(p_sourcetracking_config: str) -> (dict, dict, dict, dict):
     sourcetracking_filtering = {}
     sourcetracking_params = {
-        'method': 'sourcetracker',
+        'method': ['sourcetracker'],
+        'times': 1,
         'iterations': None,
         'rarefaction': None
     }
