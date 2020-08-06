@@ -61,7 +61,6 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
             if doc_phate and filt in dat_phates and case in dat_phates[filt]:
                 # get the clusters
                 xphate_tsv = dat_phates[filt][case]
-                print('xphate_tsv:', xphate_tsv)
                 if not isfile(xphate_tsv):
                     if not need_to_run_phate:
                         print('Unable to run DOC on a set of PHATE clusters:\n'
@@ -84,26 +83,38 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                 ).apply(func=lambda x: x.sample_name.tolist()))
                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
                 # repeat DOC command for the clusters
+                cur_rad_phate = '%s/phate' % cur_rad
+                if not isdir(cur_rad_phate):
+                    os.makedirs(cur_rad_phate)
+                doc_phate_processed = []
                 for (knn, decay, t, k, cluster), samples_phate in xphate_clusters.items():
+                    if len(samples_phate) < 50:
+                        doc_phate_processed.append([knn, decay, t, k, cluster, len(samples_phate), 'TOO FEW'])
+                        continue
                     token = ''.join([str(random.choice(range(100))) for x in range(3)])
-                    cur_rad_phate = '%s/phate/%s_%s_%s_k%s_clust%s' % (cur_rad, knn, decay, t, k, cluster)
-                    cases.append(cur_rad_phate)
-                    cur_rad_phate_r = '%s/R' % cur_rad_phate
+                    cur_rad_phate_clust = '%s/%s_%s_%s_k%s_clust%s' % (cur_rad_phate, knn, decay, t, k, cluster)
+                    doc_phate_processed.append([knn, decay, t, k, cluster, len(samples_phate), cur_rad_phate_clust])
+                    cases.append(cur_rad_phate_clust)
+                    cur_rad_phate_clust_r = '%s/R' % cur_rad_phate_clust
                     cur_rad_token = '%s/tmp/%s' % (i_dataset_folder, token)
-                    if not isdir(cur_rad_phate_r):
-                        os.makedirs(cur_rad_phate_r)
-                    new_meta = '%s/meta.tsv' % cur_rad_phate
-                    new_qza = '%s/tab.qza' % cur_rad_phate
-                    new_tsv = '%s/tab.tsv' % cur_rad_phate
-                    new_tsv_token = '%s/tab.tsv' % cur_rad_token
-                    if force or not isfile('%s/DO.tsv' % cur_rad_phate):
+                    if not isdir(cur_rad_phate_clust_r):
+                        os.makedirs(cur_rad_phate_clust_r)
+                    new_meta = '%s/meta.tsv' % cur_rad_phate_clust
+                    new_qza = '%s/tab.qza' % cur_rad_phate_clust
+                    new_tsv = '%s/tab.tsv' % cur_rad_phate_clust
+                    new_tsv_token = '%s/tab.tsv' % cur_rad_phate_clust
+                    if force or not isfile('%s/DO.tsv' % cur_rad_phate_clust):
                         new_meta_pd_phate = new_meta_pd.loc[samples_phate, :].copy()
                         new_meta_pd_phate.reset_index().to_csv(new_meta, index=False, sep='\t')
                         write_doc(qza, fp, fa, new_meta, new_qza, new_tsv,
-                                  cur_rad_phate, new_tsv_token, cur_rad_token,
+                                  cur_rad_phate_clust, new_tsv_token, cur_rad_token,
                                   n_nodes, n_procs, doc_params,
                                   cur_sh_o, cur_import_sh_o)
                         remove = False
+                with open('%s/phate_processed.txt' % cur_rad_phate) as o:
+                    o.write('knn\tdecay\tt\tk\tcluster\tsamples\tfate\n')
+                    for doc_phate_proc in doc_phate_processed:
+                        o.write('%s\n' % '\t'.join(map(str, doc_phate_proc)))
     if remove:
         os.remove(cur_sh)
     return cases
