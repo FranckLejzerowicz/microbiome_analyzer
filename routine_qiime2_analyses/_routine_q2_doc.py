@@ -111,7 +111,7 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                                   n_nodes, n_procs, doc_params,
                                   cur_sh_o, cur_import_sh_o)
                         remove = False
-                with open('%s/phate_processed.txt' % cur_rad_phate) as o:
+                with open('%s/phate_processed.txt' % cur_rad_phate, 'w') as o:
                     o.write('knn\tdecay\tt\tk\tcluster\tsamples\tfate\n')
                     for doc_phate_proc in doc_phate_processed:
                         o.write('%s\n' % '\t'.join(map(str, doc_phate_proc)))
