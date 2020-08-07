@@ -936,6 +936,8 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
         cmd = run_export(new_qzv, new_html, 'perms')
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write(cmd)
+    cur_sh.write('rm %s\n' % new_mat_qza)
+
 
 
 def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
