@@ -7,10 +7,9 @@
 # ----------------------------------------------------------------------------
 
 import os
-import random
-import numpy as np
+import glob
 import pandas as pd
-from os.path import isdir, isfile, splitext
+from os.path import isdir, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
@@ -27,7 +26,7 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 
 def run_single_sourcetracking(
         odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
-        sourcetracking_params: dict, sourcetracking_sourcesink: dict,
+        sourcetracking_params: dict, method: str, sourcetracking_sourcesink: dict,
         case_vals_list: list, cur_sh: str, cur_import_sh: str,
         force: bool, filt: str, cur_raref: str, fp: str,  fa: str,
         n_nodes: str, n_procs: str) -> list:
@@ -38,43 +37,57 @@ def run_single_sourcetracking(
     with open(cur_sh, 'w') as cur_sh_o, open(cur_import_sh, 'w') as cur_import_sh_o:
         for case_vals in case_vals_list:
             case = get_case(case_vals, '', case_var)
-            cur_rad = '%s/%s_%s%s' % (odir, case.strip('_'), filt, cur_raref)
-            if not isdir(cur_rad):
-                os.makedirs(cur_rad)
+            for sourcesink_name, sourcesink_d in sourcetracking_sourcesink.items():
+                column = sourcesink_d['column']
+                sink = sourcesink_d['sink']
+                folder = '%s-%s' % (
+                    column,
+                    sink.replace(
+                        '/', '').replace(
+                        '(', '').replace(
+                        ')', '').replace(
+                        ' ', '')
+                )
+                sources = ['']
+                if 'source' in sourcesink_d:
+                    sources = sourcesink_d['source']
+                folder = '%s_%s' % (
+                    folder,
+                    '_'.join([source.replace(
+                        '/', '').replace(
+                        '(', '').replace(
+                        ')', '').replace(
+                        ' ', '') for source in sources])
+                )
+                new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+                if column not in new_meta_pd.columns:
+                    raise IOError('"%s" not in metadata...' % column)
+                if sink not in set(new_meta_pd[column].unique()):
+                    raise IOError('All sinks "%s" not in metadata column "%s"' % (sink, column))
+                if sources != [''] and not set(sources).issubset(set(new_meta_pd[column].unique())):
+                    raise IOError('All sources "%s" not in metadata column "%s"' % (sources, column))
 
-            new_meta = '%s/meta.tsv' % cur_rad
-            new_qza = '%s/tab.qza' % cur_rad
-            new_tsv = '%s/tab.tsv' % cur_rad
+                cur_rad = '%s/%s_%s%s/%s' % (odir, case.strip('_'), filt, cur_raref, sourcesink_name)
+                if not isdir(cur_rad):
+                    os.makedirs(cur_rad)
 
-            print("sourcetracking_sourcesink")
-            print(sourcetracking_sourcesink)
-            print(sourcetracking_sourcesinkvfd)
+                new_meta = '%s/meta.tsv' % cur_rad
+                new_qza = '%s/tab.qza' % cur_rad
+                new_tsv = '%s/tab.tsv' % cur_rad
+                new_meta_pd[[column]].reset_index().to_csv(new_meta, index=False, sep='\t')
 
-            for sdx, sourcesink_name in enumerate(sourcetracking_sourcesink):
-
-                cur_rad_sourcesink = '%s/%s' % (odir, sourcesink_name)
-                if not isdir(cur_rad_sourcesink):
-                    os.makedirs(cur_rad_sourcesink)
-
-                if force or not isfile('%s/DO.tsv' % cur_rad_sourcesink):
-
-                    column = sourcetracking_sourcesink[sourcesink_name]['column']
-                    sinks = sourcetracking_sourcesink[sourcesink_name]['sink']
-                    sources = sourcetracking_sourcesink[sourcesink_name]['source']
-
-                    new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-                    if column not in new_meta_pd.columns:
-                        raise IOError('"%s" not in metadata...' % column)
-                    if not set(sinks).issubset(set(new_meta_pd[column].unique())):
-                        raise IOError('All sinks "%s" not in metadata column "%s"' % (sinks, column))
-                    if not set(sources).issubset(set(new_meta_pd[column].unique())):
-                        raise IOError('All sources "%s" not in metadata column "%s"' % (sources, column))
-                    new_meta_pd.reset_index()[['sample_name', column]].to_csv(new_meta, index=False, sep='\t')
-
+                folder_method = folder + '/' + method
+                if method == 'q2':
+                    outs = folder_method + '/t0/r0/*/predictions.tsv'
+                elif method == 'feast':
+                    outs = folder_method + '/o.t*.c*'
+                elif method == 'sourcetracker':
+                    outs = folder_method + '/t0/r0/mixing_proportions.txt'
+                if force or not len(glob.glob(outs)):
                     write_sourcetracking(
-                        qza, fp, fa, new_meta, new_qza, new_tsv,
-                        cur_rad, n_nodes, n_procs, sourcetracking_params,
-                        column, sinks, sources, sdx, cur_sh_o, cur_import_sh_o)
+                        qza, new_qza, new_tsv, new_meta, method, fp, fa,
+                        cur_rad, column, sink, sources, sourcetracking_params,
+                        n_nodes, n_procs, cur_sh_o, cur_import_sh_o)
                     remove = False
     if remove:
         os.remove(cur_sh)
@@ -90,7 +103,6 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
     sourcetracking_sourcesink = sourcetracking_dicts[0]
     sourcetracking_filtering = sourcetracking_dicts[1]
     sourcetracking_params = sourcetracking_dicts[2]
-    method = sourcetracking_params['method']
     main_cases_dict = sourcetracking_dicts[3]
 
     all_sh_pbs = {}
@@ -108,34 +120,30 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
             cur_raref = datasets_rarefs[dat][idx]
             if not split:
                 out_sh = '%s/run_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
-                out_import_sh = '%s/run_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
+                out_import_sh = '%s/run_import_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
             odir = get_analysis_folder(i_datasets_folder, 'sourcetracking/%s' % dat)
-            for case_var, case_vals_list in cases_dict.items():
+            for method in sourcetracking_params['method']:
                 if split:
                     out_sh = '%s/run_sourcetracking_%s%s%s_%s.sh' % (
-                        job_folder2, dat, filt_raref, cur_raref, case_var)
+                        job_folder2, dat, filt_raref, cur_raref, method)
                     out_import_sh = '%s/run_import_sourcetracking_%s%s%s_%s.sh' % (
-                        job_folder2, dat, filt_raref, cur_raref, case_var)
-                for filt, (fp, fa) in filters.items():
-                    cur_sh = '%s/run_sourcetracking_%s_%s%s%s_%s.sh' % (
-                        job_folder2, dat, case_var, filt_raref, cur_raref, filt)
-                    cur_sh = cur_sh.replace(' ', '-')
-                    cur_import_sh = '%s/run_import_sourcetracking_%s_%s%s%s_%s.sh' % (
-                        job_folder2, dat, case_var, filt_raref, cur_raref, filt)
-                    cur_import_sh = cur_import_sh.replace(' ', '-')
-                    all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                    all_import_sh_pbs.setdefault((dat, out_import_sh), []).append(cur_import_sh)
-                    run_single_sourcetracking(
-                        odir, tsv, meta_pd, case_var, sourcetracking_params,
-                        sourcetracking_sourcesink, case_vals_list, cur_sh, cur_import_sh, force,
-                        filt, cur_raref, fp, fa, run_params["n_nodes"], run_params["n_procs"])
+                        job_folder2, dat, filt_raref, cur_raref, method)
+                for case_var, case_vals_list in cases_dict.items():
+                    for filt, (fp, fa) in filters.items():
+                        cur_sh = '%s/run_sourcetracking_%s_%s%s%s_%s.sh' % (
+                            job_folder2, dat, case_var, filt_raref, cur_raref, filt)
+                        cur_sh = cur_sh.replace(' ', '-')
+                        cur_import_sh = '%s/run_import_sourcetracking_%s_%s%s%s_%s.sh' % (
+                            job_folder2, dat, case_var, filt_raref, cur_raref, filt)
+                        cur_import_sh = cur_import_sh.replace(' ', '-')
+                        all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
+                        all_import_sh_pbs.setdefault((dat, out_import_sh), []).append(cur_import_sh)
+                        run_single_sourcetracking(
+                            odir, tsv, meta_pd, case_var, sourcetracking_params, method,
+                            sourcetracking_sourcesink, case_vals_list, cur_sh, cur_import_sh, force,
+                            filt, cur_raref, fp, fa, run_params["n_nodes"], run_params["n_procs"])
 
     job_folder = get_job_folder(i_datasets_folder, 'sourcetracking')
-    if method == 'sourcetracker':
-        qiime_env = 'sourcetracker2'
-    if method == 'feast':
-        qiime_env = 'feast'
-
     main_sh = write_main_sh(job_folder, '3_run_import_sourcetracking%s' % filt_raref,
                             all_import_sh_pbs, '%s.mpt.srctrk%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],

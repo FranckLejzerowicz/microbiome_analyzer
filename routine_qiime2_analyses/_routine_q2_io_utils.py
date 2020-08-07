@@ -386,7 +386,7 @@ def get_doc_config(p_doc_config: str) -> (dict, dict, dict):
 def get_sourcetracking_config(p_sourcetracking_config: str) -> (dict, dict, dict, dict):
     sourcetracking_filtering = {}
     sourcetracking_params = {
-        'method': ['sourcetracker'],
+        'method': ['q2'],
         'times': 1,
         'iterations': None,
         'rarefaction': None
@@ -404,7 +404,7 @@ def get_sourcetracking_config(p_sourcetracking_config: str) -> (dict, dict, dict
     if 'filtering' in sourcetracking_config:
         sourcetracking_filtering = sourcetracking_config['filtering']
     if 'subsets' in sourcetracking_config:
-        main_cases_dict = sourcetracking_config['subsets']
+        main_cases_dict.update(sourcetracking_config['subsets'])
     if 'params' in sourcetracking_config:
         sourcetracking_params.update(sourcetracking_config['params'])
     return sourcetracking_sourcesink, sourcetracking_filtering, sourcetracking_params, main_cases_dict
