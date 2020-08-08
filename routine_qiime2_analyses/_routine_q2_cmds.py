@@ -745,18 +745,27 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
         cur_import_sh_o.write('echo "%s"\n' % cmd)
         cur_import_sh_o.write('%s\n' % cmd)
 
-    cmd = 'rm -rf %s\n' % cur_rad_token
-    cmd += 'mkdir -p %s\n' % cur_rad_token
-    cmd += 'cp %s %s\n' % (new_tsv, new_tsv_token)
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n' % cmd)
+    if doc_params['use_mp']:
+        cmd = 'rm -rf %s\n' % cur_rad_token
+        cmd += 'mkdir -p %s\n' % cur_rad_token
+        cmd += 'cp %s %s\n' % (new_tsv, new_tsv_token)
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
 
     cmd = '\nXDOC \\\n'
-    cmd += '--i-otu %s \\\n' % new_tsv_token
-    cmd += '--o-outdir %s \\\n' % cur_rad_token
+    if doc_params['use_mp']:
+        cmd += '--i-otu %s \\\n' % new_tsv_token
+        cmd += '--o-outdir %s \\\n' % cur_rad_token
+    else:
+        cmd += '--i-otu %s \\\n' % new_tsv
+        cmd += '--o-outdir %s \\\n' % cur_rad
     cmd += '-fp %s \\\n' % fp
     cmd += '-fa %s \\\n' % fa
-    cmd += '--p-cpus %s \\\n' % (int(n_nodes) * int(n_procs))
+    if doc_params['use_mp']:
+        cmd += '--p-cpus %s \\\n' % (int(n_nodes) * int(n_procs))
+        cmd += '--use_mp \\\n'
+    else:
+        cmd += '--p-cpus 1 \\\n'
     cmd += '--p-r %s \\\n' % doc_params['r']
     cmd += '--p-subr %s \\\n' % doc_params['subr']
     cmd += '--p-mov-avg %s \\\n' % doc_params['mov_avg']
@@ -776,10 +785,11 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 
-    cmd = 'rsync -am %s/ %s\n' % (cur_rad_token, cur_rad)
-    cmd += 'rm -rf %s\n\n' % cur_rad_token
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n' % cmd)
+    if doc_params['use_mp']:
+        cmd = 'rsync -r %s/ %s\n' % (cur_rad_token, cur_rad)
+        cmd += 'rm -rf %s\n\n' % cur_rad_token
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
 
 
 def write_sourcetracking(
