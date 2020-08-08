@@ -80,7 +80,7 @@ def run_single_sourcetracking(
                 if method == 'q2':
                     outs = folder_method + '/t0/r0/*/predictions.tsv'
                 elif method == 'feast':
-                    outs = folder_method + '/o.t*.c*'
+                    outs = folder_method + '/t0/out.r0*'
                 elif method == 'sourcetracker':
                     outs = folder_method + '/t0/r0/mixing_proportions.txt'
                 if force or not len(glob.glob(outs)):
