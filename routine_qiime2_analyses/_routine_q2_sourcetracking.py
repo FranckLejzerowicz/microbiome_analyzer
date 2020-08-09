@@ -40,25 +40,9 @@ def run_single_sourcetracking(
             for sourcesink_name, sourcesink_d in sourcetracking_sourcesink.items():
                 column = sourcesink_d['column']
                 sink = sourcesink_d['sink']
-                folder = '%s-%s' % (
-                    column,
-                    sink.replace(
-                        '/', '').replace(
-                        '(', '').replace(
-                        ')', '').replace(
-                        ' ', '')
-                )
                 sources = ['']
                 if 'source' in sourcesink_d:
                     sources = sourcesink_d['source']
-                folder = '%s_%s' % (
-                    folder,
-                    '_'.join([source.replace(
-                        '/', '').replace(
-                        '(', '').replace(
-                        ')', '').replace(
-                        ' ', '') for source in sources])
-                )
                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
                 if column not in new_meta_pd.columns:
                     raise IOError('"%s" not in metadata...' % column)
@@ -70,6 +54,21 @@ def run_single_sourcetracking(
                 cur_rad = '%s/%s_%s%s/%s' % (odir, case.strip('_'), filt, cur_raref, sourcesink_name)
                 if not isdir(cur_rad):
                     os.makedirs(cur_rad)
+
+                folder = '%s/%s-%s_%s' % (
+                    cur_rad,
+                    column,
+                    sink.replace(
+                        '/', '').replace(
+                        '(', '').replace(
+                        ')', '').replace(
+                        ' ', ''),
+                    '_'.join([source.replace(
+                        '/', '').replace(
+                        '(', '').replace(
+                        ')', '').replace(
+                        ' ', '') for source in sources])
+                )
 
                 new_meta = '%s/meta.tsv' % cur_rad
                 new_qza = '%s/tab.qza' % cur_rad
@@ -89,8 +88,8 @@ def run_single_sourcetracking(
                         qza, new_qza, new_tsv, new_meta, method, fp, fa,
                         cur_rad, column, sink, sources, sourcetracking_params,
                         n_nodes, n_procs, cur_sh_o, cur_import_sh_o)
-                    cur_sh_o.write('\necho "sh %s/cmd_%s.sh"\n' % (folder_method, method))
-                    cur_sh_o.write('sh %s/cmd_%s.sh\n' % (folder_method, method))
+                    cur_sh_o.write('echo "sh %s/cmd_%s.sh"\n' % (folder_method, method))
+                    cur_sh_o.write('sh %s/cmd_%s.sh\n\n\n' % (folder_method, method))
                     remove = False
     if remove:
         os.remove(cur_sh)
