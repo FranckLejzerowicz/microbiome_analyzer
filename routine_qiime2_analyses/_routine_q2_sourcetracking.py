@@ -136,11 +136,11 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
                         job_folder2, dat, filt_raref, cur_raref, method)
                 for case_var, case_vals_list in cases_dict.items():
                     for filt, (fp, fa) in filters.items():
-                        cur_sh = '%s/run_sourcetracking_%s_%s%s%s_%s.sh' % (
-                            job_folder2, dat, case_var, filt_raref, cur_raref, filt)
+                        cur_sh = '%s/run_sourcetracking_%s_%s%s%s_%s_%s.sh' % (
+                            job_folder2, dat, case_var, filt_raref, cur_raref, method, filt)
                         cur_sh = cur_sh.replace(' ', '-')
-                        cur_import_sh = '%s/run_import_sourcetracking_%s_%s%s%s_%s.sh' % (
-                            job_folder2, dat, case_var, filt_raref, cur_raref, filt)
+                        cur_import_sh = '%s/run_import_sourcetracking_%s_%s%s%s_%s_%s.sh' % (
+                            job_folder2, dat, case_var, filt_raref, cur_raref, method, filt)
                         cur_import_sh = cur_import_sh.replace(' ', '-')
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                         all_import_sh_pbs.setdefault((dat, out_import_sh), []).append(cur_import_sh)
