@@ -55,20 +55,24 @@ def run_single_sourcetracking(
                 if not isdir(cur_rad):
                     os.makedirs(cur_rad)
 
-                folder = '%s/%s-%s_%s' % (
+                folder = '%s/%s-%s' % (
                     cur_rad,
                     column,
                     sink.replace(
                         '/', '').replace(
                         '(', '').replace(
                         ')', '').replace(
-                        ' ', ''),
-                    '_'.join([source.replace(
-                        '/', '').replace(
-                        '(', '').replace(
-                        ')', '').replace(
-                        ' ', '') for source in sources])
+                        ' ', '')
                 )
+                if sources != ['']:
+                    folder = '%s_%s' % (
+                        folder,
+                        '_'.join([source.replace(
+                            '/', '').replace(
+                            '(', '').replace(
+                            ')', '').replace(
+                            ' ', '') for source in sources])
+                    )
 
                 new_meta = '%s/meta.tsv' % cur_rad
                 new_qza = '%s/tab.qza' % cur_rad
