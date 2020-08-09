@@ -888,7 +888,7 @@ def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str, testing_group
     new_meta_pd.replace({testing_group: dict(
         (x, x.replace('(', '').replace(')', '').replace('/', ''))
         for x in new_meta_pd[testing_group].unique()
-        if x != x.replace('(', '').replace(')', '').replace('/', '')
+        if str(x) != 'nan' and x != x.replace('(', '').replace(')', '').replace('/', '')
     )})
     new_meta_pd[[col_index, testing_group]].to_csv(new_meta, index=False, sep='\t')
 
