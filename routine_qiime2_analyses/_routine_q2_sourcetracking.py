@@ -83,11 +83,14 @@ def run_single_sourcetracking(
                     outs = folder_method + '/t0/out.r0*'
                 elif method == 'sourcetracker':
                     outs = folder_method + '/t0/r0/mixing_proportions.txt'
+
                 if force or not len(glob.glob(outs)):
                     write_sourcetracking(
                         qza, new_qza, new_tsv, new_meta, method, fp, fa,
                         cur_rad, column, sink, sources, sourcetracking_params,
                         n_nodes, n_procs, cur_sh_o, cur_import_sh_o)
+                    cur_sh_o.write('\necho "sh %s/cmd_%s.sh"\n' % (folder_method, method))
+                    cur_sh_o.write('sh %s/cmd_%s.sh\n' % (folder_method, method))
                     remove = False
     if remove:
         os.remove(cur_sh)
