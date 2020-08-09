@@ -870,21 +870,27 @@ def write_deicode_biplot(qza: str, new_meta: str, new_qza: str, ordi_qza: str,
     cur_sh.write('%s\n' % cmd)
 
 
-def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str) -> None:
+def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str, testing_group: str) -> None:
     """
     Merge the q2-types to the metadata for PERMANOVA.
 
     :param new_meta_pd: metadata table.
     :param new_meta: metadata table file name.
     """
+    col_index = new_meta_pd.index.name
     q2types = pd.DataFrame(
         [(['#q2:types'] + ['categorical'] * new_meta_pd.shape[1])],
-        columns=new_meta_pd.reset_index().columns.tolist(),
+        columns=new_meta_pd.reset_index().columns.tolist()
     )
-    q2types.rename(columns={q2types.columns.tolist()[0]: new_meta_pd.index.name}, inplace=True)
-    q2types.set_index(new_meta_pd.index.name, inplace=True)
-    new_meta_pd = pd.concat([q2types, new_meta_pd])
-    new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
+    q2types.rename(columns={q2types.columns.tolist()[0]: col_index}, inplace=True)
+    q2types.set_index(col_index, inplace=True)
+    new_meta_pd = pd.concat([q2types, new_meta_pd]).reset_index()
+    new_meta_pd.replace({testing_group: dict(
+        (x, x.replace('(', '').replace(')', '').replace('/', ''))
+        for x in new_meta_pd[testing_group].unique()
+        if x != x.replace('(', '').replace(')', '').replace('/', '')
+    )})
+    new_meta_pd[[col_index, testing_group]].to_csv(new_meta, index=False, sep='\t')
 
 
 def check_absence_mat(mat_qzas: list, first_print: int, analysis: str) -> bool:
