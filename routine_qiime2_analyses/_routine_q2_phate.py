@@ -113,7 +113,7 @@ def run_phate(p_phate_config: str, i_datasets_folder: str, datasets: dict,
                         dat, odir, tsv, meta_pd, case_var, phate_labels,
                         phate_params, run_params, case_vals_list,
                         cur_sh, cur_import_sh, force, filt, cur_raref, fp, fa)
-                    raref_phates[filt] = phate
+                    raref_phates[filt][case_var] = phate
             phates[dat].append(raref_phates)
 
     job_folder = get_job_folder(i_datasets_folder, 'phate')

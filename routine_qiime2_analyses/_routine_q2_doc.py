@@ -36,9 +36,6 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
     cases = []
     with open(cur_sh, 'w') as cur_sh_o, open(cur_import_sh, 'w') as cur_import_sh_o:
         for case_vals in case_vals_list:
-            print()
-            print('case_vals')
-            print(case_vals)
             token = ''.join([str(random.choice(range(100))) for x in range(3)])
             case = get_case(case_vals, '', case_var)
             cur_rad = '%s/%s_%s%s' % (odir, case.strip('_'), filt, cur_raref)
@@ -61,10 +58,9 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                 remove = False
 
             # run DOC on each cluster from PHATE
-            if doc_phate and filt in dat_phates and case in dat_phates[filt]:
-                print('--->')
+            if doc_phate and filt in dat_phates and case_var in dat_phates[filt] and case in dat_phates[filt][case_var]:
                 # get the clusters
-                xphate_tsv = dat_phates[filt][case]
+                xphate_tsv = dat_phates[filt][case_var][case]
                 if not isfile(xphate_tsv):
                     if not need_to_run_phate:
                         print('Unable to run DOC on a set of PHATE clusters:\n'
@@ -91,7 +87,6 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                 if not isdir(cur_rad_phate):
                     os.makedirs(cur_rad_phate)
                 doc_phate_processed = []
-                print(xphate_tsv, cur_rad)
                 for (knn, decay, t, k, cluster), samples_phate in xphate_clusters.items():
                     if len(samples_phate) < 50:
                         doc_phate_processed.append([knn, decay, t, k, cluster, len(samples_phate), 'TOO FEW'])
@@ -117,7 +112,6 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                                   cur_sh_o, cur_import_sh_o)
                         remove = False
                 phate_doc_out = '%s/phate_processed.txt' % cur_rad_phate
-                print(phate_doc_out)
                 with open(phate_doc_out, 'w') as o:
                     o.write('knn\tdecay\tt\tk\tcluster\tsamples\tfate\n')
                     for doc_phate_proc in doc_phate_processed:
@@ -131,9 +125,6 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             datasets_rarefs: dict, force: bool, prjct_nm: str,
             qiime_env: str, chmod: str, noloc: bool, run_params: dict,
             filt_raref: str, phates: dict, doc_phate: bool, split: bool) -> None:
-
-    print(phates)
-    print(phatesfds)
 
     job_folder2 = get_job_folder(i_datasets_folder, 'doc/chunks')
     doc_filtering, doc_params, main_cases_dict = get_doc_config(p_doc_config)
@@ -158,31 +149,18 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             meta_pd = meta_pd.set_index('sample_name')
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'DOC')
             cur_raref = datasets_rarefs[dat][idx]
-            print()
-            print()
-            print()
-            print()
-            print()
-            print('----------')
-            print(idx, cur_raref)
-            print('----------')
             dat_cases_tabs[dat][cur_raref] = {}
             if not split:
                 out_sh = '%s/run_doc_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
                 out_import_sh = '%s/run_import_doc_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
             odir = get_analysis_folder(i_datasets_folder, 'doc/%s' % dat)
             for filt, (fp, fa) in filters.items():
-                print()
-                print()
-                print('filt', filt)
                 if split:
                     out_sh = '%s/run_doc_%s%s%s_%s.sh' % (
                         job_folder2, dat, filt_raref, cur_raref, filt)
                     out_import_sh = '%s/run_import_doc_%s%s%s_%s.sh' % (
                         job_folder2, dat, filt_raref, cur_raref, filt)
                 for case_var, case_vals_list in cases_dict.items():
-                    print()
-                    print('case_var', case_var)
                     cur_sh = '%s/run_doc_%s_%s%s%s_%s.sh' % (
                         job_folder2, dat, case_var, filt_raref, cur_raref, filt)
                     cur_sh = cur_sh.replace(' ', '-')
