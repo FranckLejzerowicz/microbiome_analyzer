@@ -132,6 +132,9 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             qiime_env: str, chmod: str, noloc: bool, run_params: dict,
             filt_raref: str, phates: dict, doc_phate: bool, split: bool) -> None:
 
+    print(phates)
+    print(phatesfds)
+
     job_folder2 = get_job_folder(i_datasets_folder, 'doc/chunks')
     doc_filtering, doc_params, main_cases_dict = get_doc_config(p_doc_config)
 
