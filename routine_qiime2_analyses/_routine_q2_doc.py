@@ -151,18 +151,31 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             meta_pd = meta_pd.set_index('sample_name')
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'DOC')
             cur_raref = datasets_rarefs[dat][idx]
+            print()
+            print()
+            print()
+            print()
+            print()
+            print('----------')
+            print(idx, cur_raref)
+            print('----------')
             dat_cases_tabs[dat][cur_raref] = {}
             if not split:
                 out_sh = '%s/run_doc_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
                 out_import_sh = '%s/run_import_doc_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
             odir = get_analysis_folder(i_datasets_folder, 'doc/%s' % dat)
             for filt, (fp, fa) in filters.items():
+                print()
+                print()
+                print('filt', filt)
                 if split:
                     out_sh = '%s/run_doc_%s%s%s_%s.sh' % (
                         job_folder2, dat, filt_raref, cur_raref, filt)
                     out_import_sh = '%s/run_import_doc_%s%s%s_%s.sh' % (
                         job_folder2, dat, filt_raref, cur_raref, filt)
                 for case_var, case_vals_list in cases_dict.items():
+                    print()
+                    print('case_var', case_var)
                     cur_sh = '%s/run_doc_%s_%s%s%s_%s.sh' % (
                         job_folder2, dat, case_var, filt_raref, cur_raref, filt)
                     cur_sh = cur_sh.replace(' ', '-')
