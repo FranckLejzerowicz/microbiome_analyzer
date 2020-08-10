@@ -885,7 +885,7 @@ def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str, testing_group
     q2types.rename(columns={q2types.columns.tolist()[0]: col_index}, inplace=True)
     q2types.set_index(col_index, inplace=True)
     new_meta_pd = pd.concat([q2types, new_meta_pd]).reset_index()
-    new_meta_pd.replace({testing_group: dict(
+    new_meta_pd = new_meta_pd.replace({testing_group: dict(
         (x, x.replace('(', '').replace(')', '').replace('/', ''))
         for x in new_meta_pd[testing_group].unique()
         if str(x) != 'nan' and x != x.replace('(', '').replace(')', '').replace('/', '')
