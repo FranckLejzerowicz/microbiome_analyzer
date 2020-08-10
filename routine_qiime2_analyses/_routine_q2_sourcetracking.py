@@ -167,7 +167,7 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
     main_sh = write_main_sh(job_folder, '3_run_sourcetracking%s' % filt_raref, all_sh_pbs,
                             '%s.srctrk%s' % (prjct_nm, filt_raref), run_params["time"],
                             run_params["n_nodes"], run_params["n_procs"], run_params["mem_num"],
-                            run_params["mem_dim"], 'sourcetracker', chmod, noloc, '~/.')
+                            run_params["mem_dim"], qiime_env, chmod, noloc, '~/.')
     if main_sh:
         if p_sourcetracking_config:
             if p_sourcetracking_config.startswith('/panfs'):
