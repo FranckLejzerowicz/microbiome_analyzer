@@ -88,6 +88,7 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
                     os.makedirs(cur_rad_phate)
                 doc_phate_processed = []
                 for (knn, decay, t, k, cluster), samples_phate in xphate_clusters.items():
+                    print(knn, decay, t, k, cluster)
                     if len(samples_phate) < 50:
                         doc_phate_processed.append([knn, decay, t, k, cluster, len(samples_phate), 'TOO FEW'])
                         continue
