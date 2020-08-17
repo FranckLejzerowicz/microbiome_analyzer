@@ -87,9 +87,6 @@ def run_single_sourcetracking(
                 elif method == 'sourcetracker':
                     outs = folder_method + '/t0/r0/mixing_proportions.txt'
 
-                print("imports")
-                print(imports)
-
                 if force or not len(glob.glob(outs)):
                     write_sourcetracking(
                         qza, new_qza, new_tsv, new_meta, method, fp, fa,
