@@ -796,9 +796,9 @@ def write_sourcetracking(
         qza: str, new_qza: str, new_tsv: str, new_meta: str,
         meth: str, fp: str, fa: str, cur_rad: str, column: str, sink: str,
         sources: list, sourcetracking_params: dict, n_nodes: str, n_procs: str,
-        cur_sh_o: TextIO, cur_import_sh_o: TextIO) -> None:
+        cur_sh_o: TextIO, cur_import_sh_o: TextIO, imports: set) -> None:
 
-    if not isfile(new_tsv):
+    if not isfile(new_tsv) and new_tsv not in imports:
         cmd = '\nqiime feature-table filter-samples'
         cmd += ' --i-table %s' % qza
         cmd += ' --m-metadata-file %s' % new_meta
@@ -807,9 +807,9 @@ def write_sourcetracking(
         cur_import_sh_o.write('%s\n' % cmd)
 
         cmd = run_export(new_qza, new_tsv, 'FeatureTable')
-        cmd += 'rm %s\n' % new_qza
         cur_import_sh_o.write('echo "%s"\n' % cmd)
         cur_import_sh_o.write('%s\n' % cmd)
+        imports.add(new_tsv)
 
     cmd = '\nXsourcetracking'
     cmd += ' -i %s' % new_tsv

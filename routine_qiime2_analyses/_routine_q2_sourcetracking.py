@@ -26,10 +26,10 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 
 def run_single_sourcetracking(
         odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str,
-        sourcetracking_params: dict, method: str, sourcetracking_sourcesink: dict,
-        case_vals_list: list, cur_sh: str, cur_import_sh: str,
-        force: bool, filt: str, cur_raref: str, fp: str,  fa: str,
-        n_nodes: str, n_procs: str) -> list:
+        sourcetracking_params: dict, method: str, imports: set,
+        sourcetracking_sourcesink: dict, case_vals_list: list, cur_sh: str,
+        cur_import_sh: str, force: bool, filt: str, cur_raref: str, fp: str,
+        fa: str, n_nodes: str, n_procs: str) -> list:
 
     cases = []
     remove = True
@@ -87,11 +87,14 @@ def run_single_sourcetracking(
                 elif method == 'sourcetracker':
                     outs = folder_method + '/t0/r0/mixing_proportions.txt'
 
+                print("imports")
+                print(imports)
+
                 if force or not len(glob.glob(outs)):
                     write_sourcetracking(
                         qza, new_qza, new_tsv, new_meta, method, fp, fa,
                         cur_rad, column, sink, sources, sourcetracking_params,
-                        n_nodes, n_procs, cur_sh_o, cur_import_sh_o)
+                        n_nodes, n_procs, cur_sh_o, cur_import_sh_o, imports)
                     cur_sh_o.write('echo "sh %s/cmd_%s.sh"\n' % (folder_method, method))
                     cur_sh_o.write('sh %s/cmd_%s.sh\n\n\n' % (folder_method, method))
                     remove = False
@@ -126,13 +129,12 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
             cur_raref = datasets_rarefs[dat][idx]
             if not split:
                 out_sh = '%s/run_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
-                out_import_sh = '%s/run_import_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
+            out_import_sh = '%s/run_import_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
+            imports = set()
             odir = get_analysis_folder(i_datasets_folder, 'sourcetracking/%s' % dat)
             for method in sourcetracking_params['method']:
                 if split:
                     out_sh = '%s/run_sourcetracking_%s%s%s_%s.sh' % (
-                        job_folder2, dat, filt_raref, cur_raref, method)
-                    out_import_sh = '%s/run_import_sourcetracking_%s%s%s_%s.sh' % (
                         job_folder2, dat, filt_raref, cur_raref, method)
                 for case_var, case_vals_list in cases_dict.items():
                     for filt, (fp, fa) in filters.items():
@@ -145,7 +147,7 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                         all_import_sh_pbs.setdefault((dat, out_import_sh), []).append(cur_import_sh)
                         run_single_sourcetracking(
-                            odir, tsv, meta_pd, case_var, sourcetracking_params, method,
+                            odir, tsv, meta_pd, case_var, sourcetracking_params, method, imports,
                             sourcetracking_sourcesink, case_vals_list, cur_sh, cur_import_sh, force,
                             filt, cur_raref, fp, fa, run_params["n_nodes"], run_params["n_procs"])
 
