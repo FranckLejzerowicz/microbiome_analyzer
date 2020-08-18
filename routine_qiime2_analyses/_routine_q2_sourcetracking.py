@@ -124,15 +124,12 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
             meta_pd = meta_pd.set_index('sample_name')
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'sourcetracking')
             cur_raref = datasets_rarefs[dat][idx]
-            if not split:
-                out_sh = '%s/run_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
             out_import_sh = '%s/run_import_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
             imports = set()
             odir = get_analysis_folder(i_datasets_folder, 'sourcetracking/%s' % dat)
             for method in sourcetracking_params['method']:
-                if split:
-                    out_sh = '%s/run_sourcetracking_%s%s%s_%s.sh' % (
-                        job_folder2, dat, filt_raref, cur_raref, method)
+                out_sh = '%s/run_sourcetracking_%s%s%s_%s.sh' % (
+                    job_folder2, dat, filt_raref, cur_raref, method)
                 for case_var, case_vals_list in cases_dict.items():
                     for filt, (fp, fa) in filters.items():
                         cur_sh = '%s/run_sourcetracking_%s_%s%s%s_%s_%s.sh' % (
