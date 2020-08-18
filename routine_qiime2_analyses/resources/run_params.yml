@@ -188,10 +188,10 @@ phate:
   mem_dim: "gb"
   env: "phate"
 sourcetracking:
-  time: "48"
+  time: "72"
   n_nodes: "1"
   n_procs: "2"
-  mem_num: "4"
+  mem_num: "60"
   mem_dim: "gb"
 doc:
   time: "150"
