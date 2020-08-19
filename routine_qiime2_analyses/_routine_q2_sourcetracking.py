@@ -81,7 +81,7 @@ def run_single_sourcetracking(
 
                 folder_method = folder + '/' + method
                 if method == 'q2':
-                    outs = folder_method + '/t0/r0/*/predictions.tsv'
+                    outs = folder_method + '/t0/r1/*/predictions.tsv'
                 elif method == 'feast':
                     outs = folder_method + '/t0/out.r0*'
                 elif method == 'sourcetracker':
