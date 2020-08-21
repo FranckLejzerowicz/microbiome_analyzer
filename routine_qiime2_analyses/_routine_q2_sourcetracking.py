@@ -79,17 +79,22 @@ def run_single_sourcetracking(
                 new_tsv = '%s/tab.tsv' % cur_rad
                 new_meta_pd[[column]].reset_index().to_csv(new_meta, index=False, sep='\t')
 
+                missing = False
                 folder_method = folder + '/' + method
                 if method == 'q2':
-                    outs = folder_method + '/t0/r1/*/predictions.tsv'
-                    print(outs)
-                    print(glob.glob(outs))
+                    for root, dirs, files in os.walk(folder_method):
+                        if len(root.split(folder_method)[-1].split('/')) == 4 and 'predictions.tsv' not in files:
+                            missing = True
+                    outs = folder_method + '/t0/r*/*/predictions.tsv'
                 elif method == 'feast':
                     outs = folder_method + '/t0/out.r0*'
                 elif method == 'sourcetracker':
                     outs = folder_method + '/t0/r0/mixing_proportions.txt'
+                    for root, dirs, files in os.walk(folder_method):
+                        if len(root.split(folder_method)[-1].split('/')) == 3 and 'mixing_proportions.txt' not in files:
+                            missing = True
 
-                if force or not len(glob.glob(outs)):
+                if force or not len(glob.glob(outs)) or missing:
                     write_sourcetracking(
                         qza, new_qza, new_tsv, new_meta, method, fp, fa,
                         cur_rad, column, sink, sources, sourcetracking_params,
