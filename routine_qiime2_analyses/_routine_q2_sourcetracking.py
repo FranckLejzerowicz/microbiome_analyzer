@@ -83,6 +83,8 @@ def run_single_sourcetracking(
                 folder_method = folder + '/' + method
                 if method == 'q2':
                     for root, dirs, files in os.walk(folder_method):
+                        print(method, root.split(folder_method)[-1].split('/'))
+                        print('\n'.join(files))
                         if len(root.split(folder_method)[-1].split('/')) == 4 and 'predictions.tsv' not in files:
                             missing = True
                     outs = folder_method + '/t0/r*/*/predictions.tsv'
@@ -91,6 +93,8 @@ def run_single_sourcetracking(
                 elif method == 'sourcetracker':
                     outs = folder_method + '/t0/r0/mixing_proportions.txt'
                     for root, dirs, files in os.walk(folder_method):
+                        print(method, root.split(folder_method)[-1].split('/'))
+                        print('\n'.join(files))
                         if len(root.split(folder_method)[-1].split('/')) == 3 and 'mixing_proportions.txt' not in files:
                             missing = True
 
