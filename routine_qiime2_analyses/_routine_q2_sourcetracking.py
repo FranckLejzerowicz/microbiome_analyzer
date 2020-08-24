@@ -83,20 +83,22 @@ def run_single_sourcetracking(
                 folder_method = folder + '/' + method
                 if method == 'q2':
                     for root, dirs, files in os.walk(folder_method):
-                        print(method, root.split(folder_method)[-1].split('/'))
-                        print('\n'.join(files))
-                        if len(root.split(folder_method)[-1].split('/')) == 4 and 'predictions.tsv' not in files:
-                            missing = True
+                        if len(root.split(folder_method)[-1].split('/')) == 4:
+                            print(method, root.split(folder_method)[-1].split('/'))
+                            if 'predictions.tsv' not in files:
+                                print('\n'.join(files))
+                                missing = True
                     outs = folder_method + '/t0/r*/*/predictions.tsv'
                 elif method == 'feast':
                     outs = folder_method + '/t0/out.r0*'
                 elif method == 'sourcetracker':
                     outs = folder_method + '/t0/r0/mixing_proportions.txt'
                     for root, dirs, files in os.walk(folder_method):
-                        print(method, root.split(folder_method)[-1].split('/'))
-                        print('\n'.join(files))
-                        if len(root.split(folder_method)[-1].split('/')) == 3 and 'mixing_proportions.txt' not in files:
-                            missing = True
+                        if len(root.split(folder_method)[-1].split('/')) == 3:
+                            print(method, root.split(folder_method)[-1].split('/'))
+                            if 'mixing_proportions.txt' not in files:
+                                print('\n'.join(files))
+                                missing = True
 
                 if force or not len(glob.glob(outs)) or missing:
                     write_sourcetracking(
