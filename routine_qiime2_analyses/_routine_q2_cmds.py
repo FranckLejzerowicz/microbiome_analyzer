@@ -816,10 +816,10 @@ def write_sourcetracking(
     cmd += ' -m %s' % new_meta
     cmd += ' -o %s' % cur_rad
     cmd += ' -c %s' % column
-    cmd += ' -si %s' % sink
+    cmd += ' -si "%s"' % sink
     for source in sources:
         if source:
-            cmd += ' -so %s' % source
+            cmd += ' -so "%s"' % source
     cmd += ' -fp %s' % fp
     cmd += ' -fa %s' % fa
     cmd += ' -meth %s' % meth
