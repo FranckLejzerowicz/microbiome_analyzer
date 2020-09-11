@@ -91,6 +91,7 @@ def run_single_sourcetracking(
                 new_meta_pd.replace({column: replacements}, inplace=True)
                 new_meta_pd.to_csv(new_meta, index=False, sep='\t')
 
+                loo = False
                 missing = False
                 folder_method = folder + '/' + method
                 if method == 'q2':
@@ -108,7 +109,6 @@ def run_single_sourcetracking(
                         loo = True
                         outs = folder_method + '/t0/loo/mixing_proportions.txt'
                     else:
-                        loo = False
                         outs = folder_method + '/t0/r0/mixing_proportions.txt'
                     for root, dirs, files in os.walk(folder_method):
                         if len(root.split(folder_method)[-1].split('/')) == 3:
