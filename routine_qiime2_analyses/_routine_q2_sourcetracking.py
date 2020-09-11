@@ -70,7 +70,7 @@ def run_single_sourcetracking(
                 sink = replacements[sink]
                 sources = [replacements[source] for source in sources]
 
-                folder = '%s/%s-%s' % (cur_rad, column, replacements[sink])
+                folder = '%s/%s-%s' % (cur_rad, column, sink)
                 if sources != ['']:
                     folder = '%s_%s' % (folder, '_'.join(sources))
 
