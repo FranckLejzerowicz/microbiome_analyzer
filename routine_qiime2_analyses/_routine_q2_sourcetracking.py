@@ -55,29 +55,41 @@ def run_single_sourcetracking(
                 if not isdir(cur_rad):
                     os.makedirs(cur_rad)
 
-                folder = '%s/%s-%s' % (
-                    cur_rad,
-                    column,
-                    sink.replace(
+                replacements = {
+                    sink: sink.replace(
                         '/', '').replace(
                         '(', '').replace(
                         ')', '').replace(
-                        ' ', '')
+                        ' ', '_')
+                }
+                for source in sources:
+                    replacements.update({source: source.replace(
+                        '/', '').replace(
+                        '(', '').replace(
+                        ')', '').replace(
+                        ' ', '_')
+                    })
+
+                folder = '%s/%s-%s' % (
+                    cur_rad,
+                    column,
+                    replacements[sink]
                 )
                 if sources != ['']:
                     folder = '%s_%s' % (
                         folder,
-                        '_'.join([source.replace(
-                            '/', '').replace(
-                            '(', '').replace(
-                            ')', '').replace(
-                            ' ', '') for source in sources])
+                        '_'.join([
+                            replacements[source]
+                            for source in sources
+                        ])
                     )
 
                 new_meta = '%s/meta.tsv' % cur_rad
                 new_qza = '%s/tab.qza' % cur_rad
                 new_tsv = '%s/tab.tsv' % cur_rad
-                new_meta_pd[[column]].reset_index().to_csv(new_meta, index=False, sep='\t')
+                new_meta_pd = new_meta_pd[[column]].reset_index()
+                new_meta_pd.replace({column: replacements}, inplace=True)
+                new_meta_pd.to_csv(new_meta, index=False, sep='\t')
 
                 missing = False
                 folder_method = folder + '/' + method
@@ -92,7 +104,12 @@ def run_single_sourcetracking(
                 elif method == 'feast':
                     outs = folder_method + '/t0/out.r0*'
                 elif method == 'sourcetracker':
-                    outs = folder_method + '/t0/r0/mixing_proportions.txt'
+                    if 'loo' in sourcetracking_params and sourcetracking_params['loo']:
+                        loo = True
+                        outs = folder_method + '/t0/loo/mixing_proportions.txt'
+                    else:
+                        loo = False
+                        outs = folder_method + '/t0/r0/mixing_proportions.txt'
                     for root, dirs, files in os.walk(folder_method):
                         if len(root.split(folder_method)[-1].split('/')) == 3:
                             print(method, root.split(folder_method)[-1].split('/'))
@@ -103,7 +120,7 @@ def run_single_sourcetracking(
                 if force or not len(glob.glob(outs)) or missing:
                     write_sourcetracking(
                         qza, new_qza, new_tsv, new_meta, method, fp, fa,
-                        cur_rad, column, sink, sources, sourcetracking_params,
+                        cur_rad, column, sink, sources, sourcetracking_params, loo,
                         n_nodes, n_procs, cur_sh_o, cur_import_sh_o, imports)
                     cur_sh_o.write('echo "sh %s/cmd_%s.sh"\n' % (folder_method, method))
                     cur_sh_o.write('sh %s/cmd_%s.sh\n\n\n' % (folder_method, method))

@@ -793,9 +793,9 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
 
 
 def write_sourcetracking(
-        qza: str, new_qza: str, new_tsv: str, new_meta: str,
-        meth: str, fp: str, fa: str, cur_rad: str, column: str, sink: str,
-        sources: list, sourcetracking_params: dict, n_nodes: str, n_procs: str,
+        qza: str, new_qza: str, new_tsv: str, new_meta: str, meth: str,
+        fp: str, fa: str, cur_rad: str, column: str, sink: str, sources: list,
+        sourcetracking_params: dict, loo: bool, n_nodes: str, n_procs: str,
         cur_sh_o: TextIO, cur_import_sh_o: TextIO, imports: set) -> None:
 
     if not isfile(new_tsv) and new_tsv not in imports:
@@ -816,10 +816,10 @@ def write_sourcetracking(
     cmd += ' -m %s' % new_meta
     cmd += ' -o %s' % cur_rad
     cmd += ' -c %s' % column
-    cmd += " -si '%s'" % sink
+    cmd += ' -si %s' % sink
     for source in sources:
         if source:
-            cmd += " -so '%s'" % source
+            cmd += ' -so %s' % source
     cmd += ' -fp %s' % fp
     cmd += ' -fa %s' % fa
     cmd += ' -meth %s' % meth
@@ -828,6 +828,8 @@ def write_sourcetracking(
         cmd += ' --p-rarefaction %s' % sourcetracking_params['rarefaction']
     if sourcetracking_params['iterations']:
         cmd += ' --p-iterations-burnins %s' % sourcetracking_params['iterations']
+    if meth == 'sourcetracker' and loo:
+        cmd += ' --loo \n'
     cmd += ' --verbose \n'
     cur_sh_o.write('echo "%s"\n' % cmd)
     cur_sh_o.write('%s\n' % cmd)
