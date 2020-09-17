@@ -1175,6 +1175,18 @@ def write_diversity_alpha(out_fp: str, datasets_phylo: dict, trees: dict, dat: s
     :param cur_sh: writing file handle.
     :return: whether the command is to be skipped or not.
     """
+
+    print()
+    print()
+    print()
+    print()
+    print()
+    print("dat")
+    print(dat)
+    print("trees.keys()")
+    print(trees.keys())
+    print()
+
     if metric in ['faith_pd']:
         if not datasets_phylo[dat][0] or dat not in trees:
             return True
@@ -1284,72 +1296,3 @@ def get_new_alpha_div(case: str, div_qza: str, cur_rad: str,
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
     return new_div
-
-
-def get_padded_new_rows_list(new_rows, max_new_rows):
-    # create a new 'Not available' matrix of shape (n_features x n_fields)
-    padded_new_rows_list = []
-    for padded_row in new_rows:
-        # update row if not of max length
-        n_pad = max_new_rows - len(padded_row)
-        if n_pad:
-            to_pad = ['Not_available']*n_pad
-            padded_row = padded_row + to_pad
-        padded_new_rows_list.append(padded_row)
-    return padded_new_rows_list
-
-
-def add_alpha_level_label(taxa, padded_new_rows_list, max_new_rows):
-    # add a alpha label for rank-identification prupose
-    ALPHA = 'ABCDEFGHIJKL'
-    cols = ['Node_level_%s' % (ALPHA[idx]) for idx in range(1, max_new_rows + 1)]
-    padded_new_rows_pd = pd.DataFrame(
-        padded_new_rows_list,
-        index = taxa,
-        columns = cols
-    )
-    return padded_new_rows_pd
-
-
-def extend_split_taxonomy(split_taxa_pd: pd.DataFrame):
-    to_concat = []
-    for col in split_taxa_pd.columns.tolist():
-        if split_taxa_pd[col].unique().size > 50:
-            continue
-        split_taxa_dummy = split_taxa_pd[col].str.get_dummies()
-        split_taxa_dummy.columns = ['%s__%s' % (x, col) for x in split_taxa_dummy.columns]
-        to_concat.append(split_taxa_dummy)
-    if len(to_concat):
-        return pd.concat(to_concat, axis=1)
-    else:
-        return pd.DataFrame()
-
-
-def get_split_taxonomy(taxa, taxo_sep=';'):
-
-    # get the taxon name split per "taxon" level
-    split_chars = taxo_sep
-    if len([1 for x in taxa if '|' in x]) > (0.5 * len(taxa)):
-        split_chars += "|\|"
-    if len([1 for x in taxa if '.' in x]) > (0.5 * len(taxa)):
-        split_chars += "|\."
-
-    split_taxa_pd = pd.DataFrame([
-        pd.Series(
-            [x.strip() for x in re.split(split_chars, str(taxon))
-             if len(x.strip()) and x[0] != 'x']
-        ) for taxon in taxa
-    ])
-    ALPHA = 'ABCDEFGHIJKL'
-    split_taxa_pd_cols =['Taxolevel_%s' % (ALPHA[idx]) for idx in range(split_taxa_pd.shape[1])]
-    split_taxa_pd.columns = split_taxa_pd_cols
-    # get the max number of fields
-    # max_new_rows = max([len(new_row) for new_row in new_rows])
-    # padded_new_rows_list = get_padded_new_rows_list(new_rows, max_new_rows)
-    # padded_new_rows_pd = add_alpha_level_label(taxa, padded_new_rows_list, max_new_rows)
-    padded_extended_pd = extend_split_taxonomy(split_taxa_pd)
-    if padded_extended_pd.shape[0]:
-        split_taxa_pd = pd.concat([split_taxa_pd, padded_extended_pd], axis=1)
-    # split_taxa_pd = split_taxa_pd.reset_index().rename(columns={'index': 'Taxon'})
-    return split_taxa_pd
-

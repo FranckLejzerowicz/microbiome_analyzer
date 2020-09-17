@@ -59,8 +59,8 @@ setup(
         "scikit-bio",
         "pyyaml",
         "plotly==4.8.2",
-        'phate',
-
+        "phate",
+        "biom-format"
     ],
     classifiers=classifiers,
     entry_points={'console_scripts': standalone},
