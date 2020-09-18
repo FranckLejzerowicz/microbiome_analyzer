@@ -213,13 +213,13 @@ def routine_qiime2_analyses(
                  datasets_rarefs, prjct_nm, i_sepp_tree, trees, force,
                  qiime_env, chmod, noloc, run_params['sepp'], filt_raref)
 
-    # split_taxa_pds = get_taxo_levels(taxonomies)
-    # datasets_collapsed = {}
-    # if p_collapse_taxo and 'collapse' not in p_skip:
-    #     run_collapse(i_datasets_folder, datasets, datasets_read,
-    #                  datasets_features, split_taxa_pds, taxonomies,
-    #                  p_collapse_taxo, datasets_collapsed, force, prjct_nm,
-    #                  qiime_env, chmod, noloc, run_params, filt_raref)
+    split_taxa_pds = get_taxo_levels(taxonomies)
+    datasets_collapsed = {}
+    if p_collapse_taxo and 'collapse' not in p_skip:
+        run_collapse(i_datasets_folder, datasets, datasets_read,
+                     datasets_features, split_taxa_pds, taxonomies,
+                     p_collapse_taxo, datasets_collapsed, force, prjct_nm,
+                     qiime_env, chmod, noloc, run_params, filt_raref)
 
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
