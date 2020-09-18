@@ -358,8 +358,9 @@ def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
 
 
 def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict,
-                       datasets_rarefs: dict, prjct_nm: str, qiime_env: str, chmod: str,
-                       noloc: bool, run_params: dict, filt_raref: str) -> None:
+                       split_taxa_pds: dict,  datasets_rarefs: dict, prjct_nm: str,
+                       qiime_env: str, chmod: str, noloc: bool, run_params: dict,
+                       filt_raref: str) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -381,6 +382,7 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
             written = 0
             if dat in taxonomies:
                 method, tax_qza, tax_tsv = taxonomies[dat]
+                split_taxa_pd = split_taxa_pds[dat]
             else:
                 tax_tsv = 'missing'
             out_sh = '%s/run_emperor_biplot_%s%s.sh' % (job_folder2, dat, filt_raref)
@@ -405,9 +407,9 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
                             if not os.path.isdir(out_dir):
                                 os.makedirs(out_dir)
                             if isfile(tsv_tax):
-                                write_emperor_biplot(meta, biplot, out_plot, cur_sh, tsv_tax)
+                                write_emperor_biplot(meta, biplot, out_plot, cur_sh, tsv_tax, split_taxa_pd)
                             else:
-                                write_emperor_biplot(meta, biplot, out_plot, cur_sh, tax_tsv)
+                                write_emperor_biplot(meta, biplot, out_plot, cur_sh, tax_tsv, {})
                             written += 1
                             main_written += 1
             run_xpbs(out_sh, out_pbs, '%s.mprr.bplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,

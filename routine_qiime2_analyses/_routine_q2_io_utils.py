@@ -13,10 +13,10 @@ import yaml
 import glob
 import pkg_resources
 import pandas as pd
+from biom import load_table
 
 from pandas.util import hash_pandas_object
 from os.path import basename, dirname, splitext, isfile, isdir, abspath
-
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_cmds import run_import, run_export
@@ -669,7 +669,10 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
         if not isfile(meta):
             print(meta, 'does not exist\n Skipping', dat)
             continue
-        path_pd = pd.read_csv(path, header=0, index_col=0, sep='\t')
+        if path.endswith('.biom'):
+            path_pd = load_table(path).to_dataframe()
+        else:
+            path_pd = pd.read_csv(path, header=0, index_col=0, sep='\t')
         meta_sam_col = get_sample_col(meta)
         meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str}, low_memory=False)
         meta_pd.rename(columns={meta_sam_col: 'sample_name'}, inplace=True)
@@ -1256,3 +1259,12 @@ def get_procrustes_dicts(p_procrustes):
         procrustes_subsets.update(procrustes_dict['subsets'])
 
     return procrustes_pairs, procrustes_subsets
+
+
+def get_collapse_taxo(p_collapse_taxo):
+    if not isfile(p_collapse_taxo):
+        print('yaml file for taxonomic collapse does not exist:\n%s\nExiting...' % p_collapse_taxo)
+        sys.exit(0)
+    with open(p_collapse_taxo) as handle:
+        collapse_taxo = yaml.load(handle, Loader=yaml.FullLoader)
+    return collapse_taxo

@@ -16,7 +16,8 @@ from routine_qiime2_analyses._routine_q2_filter import (import_datasets, filter_
 from routine_qiime2_analyses._routine_q2_rarefy import run_rarefy
 from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp, get_precomputed_trees
 from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
-from routine_qiime2_analyses._routine_q2_taxonomy import run_taxonomy, run_barplot, get_precomputed_taxonomies
+from routine_qiime2_analyses._routine_q2_taxonomy import (run_taxonomy, run_barplot, run_collapse,
+                                                          get_taxo_levels, get_precomputed_taxonomies)
 from routine_qiime2_analyses._routine_q2_doc import run_doc
 from routine_qiime2_analyses._routine_q2_sourcetracking import run_sourcetracking
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
@@ -49,6 +50,7 @@ def routine_qiime2_analyses(
         p_perm_groups: str,
         p_beta_type: tuple,
         p_procrustes: str,
+        p_collapse_taxo: str,
         p_formulas: str,
         p_doc_config: str,
         p_sourcetracking_config: str,
@@ -211,6 +213,14 @@ def routine_qiime2_analyses(
                  datasets_rarefs, prjct_nm, i_sepp_tree, trees, force,
                  qiime_env, chmod, noloc, run_params['sepp'], filt_raref)
 
+    # split_taxa_pds = get_taxo_levels(taxonomies)
+    # datasets_collapsed = {}
+    # if p_collapse_taxo and 'collapse' not in p_skip:
+    #     run_collapse(i_datasets_folder, datasets, datasets_read,
+    #                  datasets_features, split_taxa_pds, taxonomies,
+    #                  p_collapse_taxo, datasets_collapsed, force, prjct_nm,
+    #                  qiime_env, chmod, noloc, run_params, filt_raref)
+
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
         print('(diversities)')
@@ -266,11 +276,11 @@ def routine_qiime2_analyses(
         if 'emperor_biplot' not in p_skip:
             print('(run_biplots)')
             biplots = run_biplots(i_datasets_folder, betas,
-                                  datasets_rarefs,  taxonomies, force,
-                                  prjct_nm, qiime_env, chmod, noloc,
+                                  datasets_rarefs,  taxonomies,
+                                  force, prjct_nm, qiime_env, chmod, noloc,
                                   run_params['biplot'], filt_raref)
             print('(run_emperor_biplot)')
-            run_emperor_biplot(i_datasets_folder, biplots, taxonomies,
+            run_emperor_biplot(i_datasets_folder, biplots, taxonomies, split_taxa_pds,
                                datasets_rarefs, prjct_nm, qiime_env, chmod,
                                noloc, run_params['emperor_biplot'], filt_raref)
 

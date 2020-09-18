@@ -12,8 +12,6 @@ from typing import TextIO
 from os.path import dirname, isdir, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
-from routine_qiime2_analyses._routine_q2_taxonomy import get_split_taxonomy
-
 
 def get_subset(tsv_pd: pd.DataFrame, subset_regex: list) -> list:
     """
@@ -591,8 +589,8 @@ def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str,
     cur_sh.write('%s\n\n' % cmd)
 
 
-def write_emperor_biplot(meta: str, biplot: str, out_plot: str,
-                         cur_sh: TextIO, taxonomy: str) -> None:
+def write_emperor_biplot(meta: str, biplot: str, out_plot: str, cur_sh: TextIO,
+                         taxonomy: str, split_taxa_pd: dict) -> None:
     """
     Generates an interactive ordination plot where the user can visually
     integrate sample metadata.
@@ -621,8 +619,7 @@ def write_emperor_biplot(meta: str, biplot: str, out_plot: str,
         tax_tmp = '%s_taxonomy.tmp' % splitext(biplot)[0]
         tax_pd = pd.read_csv(taxonomy, header=0, sep='\t')
         if 'Taxon' in tax_pd:
-            tax_split_pd = get_split_taxonomy(tax_pd.Taxon.tolist())
-            tax_pd = pd.concat([tax_pd, tax_split_pd], axis=1, sort=False)
+            tax_pd = pd.concat([tax_pd, split_taxa_pd], axis=1, sort=False)
             tax_pd.to_csv(tax_tmp, index=False, sep='\t')
         else:
             tax_tmp = taxonomy
