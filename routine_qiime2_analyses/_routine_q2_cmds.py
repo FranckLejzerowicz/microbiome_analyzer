@@ -12,6 +12,8 @@ from typing import TextIO
 from os.path import dirname, isdir, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
+from routine_qiime2_analyses._routine_q2_taxonomy import get_split_taxonomy
+
 
 def get_subset(tsv_pd: pd.DataFrame, subset_regex: list) -> list:
     """

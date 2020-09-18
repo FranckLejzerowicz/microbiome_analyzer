@@ -19,7 +19,7 @@ from skbio.stats.ordination import OrdinationResults
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder, get_highlights
-from routine_qiime2_analyses._routine_q2_cmds import get_split_taxonomy
+from routine_qiime2_analyses._routine_q2_taxonomy import get_split_taxonomy
 
 
 def get_mmvec_outputs(mmvec_outputs: list):
@@ -493,7 +493,7 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                 omic_tax_pd = taxo_pds[omic]
                 if omic_tax_pd.shape[0]:
                     if 'Taxon' in omic_tax_pd.columns:
-                        omic_split_taxa_pd = get_split_taxonomy(omic_tax_pd.Taxon.tolist())
+                        omic_split_taxa_pd = get_split_taxonomy(omic_tax_pd.Taxon.tolist(), True)
                         omic_tax_pd = pd.concat([omic_tax_pd, omic_split_taxa_pd], axis=1, sort=False)
                     omic_songbird_ranks = omic_songbird_ranks.merge(
                         omic_tax_pd, on='Feature ID', how='left').drop_duplicates()
