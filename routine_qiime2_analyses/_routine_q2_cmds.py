@@ -509,7 +509,22 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
     cmd += '--o-distance-matrix %s\n' % out_fp
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
-    # return False
+
+
+def write_collapse_taxo(tab_qza: str, tax_qza: str,
+                        collapsed_qza: str, collapsed_tsv: str,
+                        level: int, cur_sh: TextIO) -> None:
+    if not isfile(collapsed_qza):
+        cmd = 'qiime taxa collapse \\\n'
+        cmd += '--i-table %s \\\n' % tab_qza
+        cmd += '--i-taxonomy %s \\\n' % tax_qza
+        cmd += '--p-level %s \\\n' % level
+        cmd += '--o-collapsed-table %s\n' % collapsed_qza
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n\n' % cmd)
+    if not isfile(collapsed_tsv):
+        cmd = run_export(collapsed_qza, collapsed_tsv, 'FeatureTable')
+        cur_sh.write('%s\n\n' % cmd)
 
 
 def write_diversity_pcoa(DM: str, out_pcoa: str, out_tsv: str, cur_sh: TextIO) -> None:

@@ -160,6 +160,16 @@ def routine_qiime2_analyses(
                             datasets_rarefs, datasets_filt, datasets_filt_map, datasets_phylo,
                             prjct_nm, qiime_env, p_filt_threshs, chmod, noloc,
                             run_params['filter'], filt_raref)
+
+    print()
+    print()
+    print("datasets_filt")
+    print(datasets_filt)
+    print()
+    print()
+    print("datasets_filt_map")
+    print(datasets_filt_map)
+
     eval_depths = {}
     if raref:
         print('(run_rarefy)')
@@ -189,7 +199,7 @@ def routine_qiime2_analyses(
     if 'taxonomy' not in p_skip:
         print('(run_taxonomy)')
         run_taxonomy(method, i_datasets_folder, datasets, datasets_read,
-                     datasets_phylo, datasets_features, i_classifier,
+                     datasets_phylo, datasets_features, datasets_filt_map, i_classifier,
                      taxonomies, force, prjct_nm, qiime_env, chmod, noloc,
                      run_params['taxonomy'], filt_raref)
         if 'barplot' not in p_skip:
@@ -213,13 +223,13 @@ def routine_qiime2_analyses(
                  datasets_rarefs, prjct_nm, i_sepp_tree, trees, force,
                  qiime_env, chmod, noloc, run_params['sepp'], filt_raref)
 
-    split_taxa_pds = get_taxo_levels(taxonomies)
     datasets_collapsed = {}
+    split_taxa_pds = get_taxo_levels(taxonomies)
     if p_collapse_taxo and 'collapse' not in p_skip:
         run_collapse(i_datasets_folder, datasets, datasets_read,
                      datasets_features, split_taxa_pds, taxonomies,
                      p_collapse_taxo, datasets_collapsed, force, prjct_nm,
-                     qiime_env, chmod, noloc, run_params, filt_raref)
+                     qiime_env, chmod, noloc, run_params["collapse"], filt_raref)
 
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:

@@ -158,7 +158,8 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                     for line in f:
                         break
                 meta_filt_pd = pd.read_csv(meta_filt_fp, header=0, sep='\t',
-                                           dtype={line.split('\t')[0]: str})
+                                           dtype={line.split('\t')[0]: str},
+                                           low_memory=False)
                 # datasets_read_update[dat_filt] = [tab_filt_pd, meta_filt_pd]
                 datasets_read_update[dat_filt] = [[tab_filt_pd, meta_filt_pd]]
                 datasets_phylo_update[dat_filt] = datasets_phylo[dat]
@@ -168,9 +169,6 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                 continue
 
             for tab_meta_pds in tab_meta_pds_:
-                print(type(tab_meta_pds))
-                print(len(tab_meta_pds))
-                print(tab_meta_pds)
                 tab_pd, meta_pd = tab_meta_pds
                 meta_pd = meta_pd.set_index('sample_name')
                 dat_filt = []
