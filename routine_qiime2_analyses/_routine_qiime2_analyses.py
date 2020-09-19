@@ -161,14 +161,12 @@ def routine_qiime2_analyses(
                             prjct_nm, qiime_env, p_filt_threshs, chmod, noloc,
                             run_params['filter'], filt_raref)
 
-    print()
-    print()
-    print("datasets_filt")
-    print(datasets_filt)
-    print()
-    print()
-    print("datasets_filt_map")
-    print(datasets_filt_map)
+    # print()
+    # print("datasets_filt")
+    # print(datasets_filt)
+    # print()
+    # print("datasets_filt_map")
+    # print(datasets_filt_map)
 
     eval_depths = {}
     if raref:
@@ -224,12 +222,15 @@ def routine_qiime2_analyses(
                  qiime_env, chmod, noloc, run_params['sepp'], filt_raref)
 
     datasets_collapsed = {}
+    datasets_collapsed_map = {}
     split_taxa_pds = get_taxo_levels(taxonomies)
     if p_collapse_taxo and 'collapse' not in p_skip:
         run_collapse(i_datasets_folder, datasets, datasets_read,
-                     datasets_features, split_taxa_pds, taxonomies,
-                     p_collapse_taxo, datasets_collapsed, force, prjct_nm,
-                     qiime_env, chmod, noloc, run_params["collapse"], filt_raref)
+                     datasets_features, datasets_phylo, split_taxa_pds,
+                     taxonomies, p_collapse_taxo, datasets_rarefs,
+                     datasets_collapsed, datasets_collapsed_map, force,
+                     prjct_nm, qiime_env, chmod, noloc,
+                     run_params["collapse"], filt_raref)
 
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:

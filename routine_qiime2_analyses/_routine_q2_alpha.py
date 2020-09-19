@@ -235,7 +235,7 @@ def export_meta_alpha(datasets: dict, filt_raref: str,
             cur_raref = datasets_rarefs[dat][idx]
             meta_alphas_fps_exist = [x for x in meta_alphas_fps if isfile(x)]
             if len(meta_alphas_fps_exist) != len(meta_alphas_fps):
-                if not first_print:
+                if first_print:
                     print('\nWarning: First make sure you run alpha -> alpha merge/export (2_run_merge_alphas.sh) '
                           ' before running volatility\n\t(if you need the alpha as a response variable)!')
                     first_print = False
@@ -286,23 +286,24 @@ def export_meta_alpha(datasets: dict, filt_raref: str,
                 meta_alpha_fpo = meta_alpha_fpo.replace(os.getcwd(), '')
             print(' -> Written:', meta_alpha_fpo)
 
-        all_meta_alphas_pd = pd.concat(all_meta_alphas_pds, axis=1, sort=False)
-        main_meta = datasets[dat][0][1]
-        meta_alpha_fpo = '%s_alphas_full.tsv' % splitext(main_meta)[0]
-        if isfile(meta_alpha_fpo):
-            meta_pd = read_meta_pd(meta_alpha_fpo)
-        else:
-            meta_pd = read_meta_pd(main_meta)
-        col_to_remove = all_meta_alphas_pd.columns.tolist()[1:]
-        if len(set(col_to_remove) & set(meta_pd.columns.tolist())):
-            meta_pd.drop(columns=[col for col in col_to_remove if col in meta_pd.columns], inplace=True)
-        all_meta_alphas_pd = all_meta_alphas_pd.reset_index()
-        all_meta_alphas_pd.rename(columns={all_meta_alphas_pd.columns[0]: 'sample_name'}, inplace=True)
-        all_meta_alphas_pd = meta_pd.merge(all_meta_alphas_pd, on='sample_name', how='left')
-        all_meta_alphas_pd.to_csv(meta_alpha_fpo, index=False, sep='\t')
-        if os.getcwd().startswith('/panfs'):
-            meta_alpha_fpo = meta_alpha_fpo.replace(os.getcwd(), '')
-        print(' -> Written:', meta_alpha_fpo)
+        if all_meta_alphas_pds:
+            all_meta_alphas_pd = pd.concat(all_meta_alphas_pds, axis=1, sort=False)
+            main_meta = datasets[dat][0][1]
+            meta_alpha_fpo = '%s_alphas_full.tsv' % splitext(main_meta)[0]
+            if isfile(meta_alpha_fpo):
+                meta_pd = read_meta_pd(meta_alpha_fpo)
+            else:
+                meta_pd = read_meta_pd(main_meta)
+            col_to_remove = all_meta_alphas_pd.columns.tolist()[1:]
+            if len(set(col_to_remove) & set(meta_pd.columns.tolist())):
+                meta_pd.drop(columns=[col for col in col_to_remove if col in meta_pd.columns], inplace=True)
+            all_meta_alphas_pd = all_meta_alphas_pd.reset_index()
+            all_meta_alphas_pd.rename(columns={all_meta_alphas_pd.columns[0]: 'sample_name'}, inplace=True)
+            all_meta_alphas_pd = meta_pd.merge(all_meta_alphas_pd, on='sample_name', how='left')
+            all_meta_alphas_pd.to_csv(meta_alpha_fpo, index=False, sep='\t')
+            if os.getcwd().startswith('/panfs'):
+                meta_alpha_fpo = meta_alpha_fpo.replace(os.getcwd(), '')
+            print(' -> Written:', meta_alpha_fpo)
 
 
 def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,

@@ -513,7 +513,19 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
 
 def write_collapse_taxo(tab_qza: str, tax_qza: str,
                         collapsed_qza: str, collapsed_tsv: str,
+                        meta_fp: str, collapsed_meta: str,
                         level: int, cur_sh: TextIO) -> None:
+    """
+    :param tab_qza:
+    :param tax_qza:
+    :param collapsed_qza:
+    :param collapsed_tsv:
+    :param meta_fp:
+    :param collapsed_meta:
+    :param level:
+    :param cur_sh:
+    :return:
+    """
     if not isfile(collapsed_qza):
         cmd = 'qiime taxa collapse \\\n'
         cmd += '--i-table %s \\\n' % tab_qza
@@ -524,6 +536,9 @@ def write_collapse_taxo(tab_qza: str, tax_qza: str,
         cur_sh.write('%s\n\n' % cmd)
     if not isfile(collapsed_tsv):
         cmd = run_export(collapsed_qza, collapsed_tsv, 'FeatureTable')
+        cur_sh.write('%s\n\n' % cmd)
+    if not isfile(collapsed_meta):
+        cmd = 'cp %s %s' % (meta_fp, collapsed_meta)
         cur_sh.write('%s\n\n' % cmd)
 
 
@@ -1189,17 +1204,6 @@ def write_diversity_alpha(out_fp: str, datasets_phylo: dict, trees: dict, dat: s
     :param cur_sh: writing file handle.
     :return: whether the command is to be skipped or not.
     """
-
-    print()
-    print()
-    print()
-    print()
-    print()
-    print("dat")
-    print(dat)
-    print("trees.keys()")
-    print(trees.keys())
-    print()
 
     if metric in ['faith_pd']:
         if not datasets_phylo[dat][0] or dat not in trees:

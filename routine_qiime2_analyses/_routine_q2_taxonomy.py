@@ -161,17 +161,19 @@ def get_split_levels(dat, collapse_taxo: dict, split_taxa_pds: dict):
 
 
 def run_collapse(i_datasets_folder: str, datasets: dict, datasets_read: dict,
-                 datasets_features: dict, split_taxa_pds: dict, taxonomies: dict,
-                 p_collapse_taxo: str, datasets_collapsed: dict, force: bool,
+                 datasets_features: dict, datasets_phylo: dict, split_taxa_pds: dict,
+                 taxonomies: dict, p_collapse_taxo: str, datasets_rarefs: dict,
+                 datasets_collapsed: dict, datasets_collapsed_map: dict, force: bool,
                  prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
                  run_params: dict, filt_raref: str) -> None:
 
     collapse_taxo = get_collapse_taxo(p_collapse_taxo)
 
-    written = 0
+    main_written = 0
     datasets_update = {}
     datasets_read_update = {}
     datasets_features_update = {}
+    datasets_phylo_update = {}
     job_folder = get_job_folder(i_datasets_folder, 'collapsed_taxo')
     job_folder2 = get_job_folder(i_datasets_folder, 'collapsed_taxo/chunks')
     run_pbs = '%s/3_run_collapsed_taxo%s.sh' % (job_folder, filt_raref)
@@ -179,26 +181,30 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_read: dict,
         for dat, tab_meta_fps in datasets.items():
             if dat not in collapse_taxo:
                 continue
+            written = 0
             out_sh = '%s/run_collapsed_taxo_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
-                datasets_collapsed[dat] = []
                 split_levels = get_split_levels(dat, collapse_taxo, split_taxa_pds)
                 tax_qza, tax_fp = taxonomies[dat][1:]
-                for tab_meta_fp in tab_meta_fps:
+                for idx, tab_meta_fp in enumerate(tab_meta_fps):
                     tab_fp, meta_fp = tab_meta_fp
                     tab_qza = '%s.qza' % splitext(tab_fp)[0]
                     for tax, level in split_levels.items():
-                        dat_collapsed = '%s-tx-%s' % (dat, tax)
-                        datasets_collapsed[dat].append(dat_collapsed)
-                        collapsed_tsv = '%s/data/tab_%s.tsv' % (i_datasets_folder, dat_collapsed)
+                        dat_tax = '%s_tx-%s' % (dat, tax)
+                        dat_collapsed = '%s_tx-%s' % (splitext(tab_fp)[0].split('/tab_')[-1], tax)
+                        datasets_collapsed.setdefault(dat, []).append(dat_collapsed)
+                        datasets_collapsed_map[dat_collapsed] = dat
+
+                        collapsed_tsv = '%s_tx-%s.tsv' % (splitext(tab_fp)[0], tax)
                         collapsed_qza = collapsed_tsv.replace('.tsv', '.qza')
-                        collapsed_meta = collapsed_tsv.replace(
-                            '%s/data/' % i_datasets_folder,
-                            '%s/metadata/' % i_datasets_folder
-                        ).replace('tab_', 'meta_')
+                        collapsed_meta = '%s_tx-%s.tsv' % (splitext(meta_fp)[0], tax)
+
+                        datasets_update.setdefault(dat_tax, []).append([collapsed_tsv, collapsed_meta])
+                        datasets_rarefs.setdefault(dat_tax, []).append(datasets_rarefs[dat][idx])
+                        datasets_phylo_update[dat_tax] = ('', 0)
+
                         if isfile(collapsed_tsv) and isfile(collapsed_meta):
-                            datasets_update[dat_collapsed] = [[collapsed_tsv, collapsed_meta]]
                             collapsed_pd = pd.read_csv(collapsed_tsv, index_col=0, header=0, sep='\t')
                             with open(collapsed_tsv) as f:
                                 for line in f:
@@ -207,13 +213,13 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                                 collapsed_meta, header=0, sep='\t',
                                 dtype={line.split('\t')[0]: str}
                             )
-                            datasets_read_update[dat_collapsed] = [[collapsed_pd, collapsed_meta_pd]]
+                            datasets_read_update.setdefault(dat_tax, []).append([collapsed_pd, collapsed_meta_pd])
                             continue
                         else:
-                            write_collapse_taxo(tab_qza, tax_qza, collapsed_qza,
-                                                collapsed_tsv, level, cur_sh)
                             written += 1
-
+                            main_written += 1
+                            write_collapse_taxo(tab_qza, tax_qza, collapsed_qza, collapsed_tsv,
+                                                meta_fp, collapsed_meta, level, cur_sh)
                             # meta_pd = meta_pd.set_index('sample_name')
                             # collapsed_meta_pd = meta_pd.loc[collapsed_pd.columns.tolist()].copy()
                             # collapsed_pd.reset_index().to_csv(collapsed_tsv, index=False, sep='\t')
@@ -223,19 +229,18 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                             #
                             # # EXPORT AND READ TO ADD HERE:
                             # datasets_read_update[dat_collapsed] = [[collapsed_pd, collapsed_meta_pd.reset_index()]]
-                            # datasets_collapsed[dat_collapsed] = ['']
-
-            run_xpbs(out_sh, out_pbs, '%s.cllps.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
-                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                     run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
-
-    if written:
+            if written:
+                run_xpbs(out_sh, out_pbs, '%s.cllps.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                         run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                         run_params["mem_num"], run_params["mem_dim"],
+                         chmod, written, 'single', o, noloc)
+    if main_written:
         print_message('# Collapse features for taxo levels defined in %s' % p_collapse_taxo, 'sh', run_pbs)
 
     datasets.update(datasets_update)
     datasets_read.update(datasets_read_update)
     datasets_features.update(datasets_features_update)
+    datasets_phylo.update(datasets_phylo_update)
 
 
 def run_taxonomy_others(force: bool, tsv_pd: pd.DataFrame,
