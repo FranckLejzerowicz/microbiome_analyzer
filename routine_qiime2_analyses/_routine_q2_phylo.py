@@ -171,7 +171,6 @@ def shear_tree(i_datasets_folder: str, datasets: dict, datasets_read: dict, data
                             datasets_read[dat][idx] = [tsv_pd, meta_pd]
                         else:
                             tsv_pd, meta_pd = datasets_read[dat][idx]
-
                         cur_raref = datasets_rarefs[dat][idx]
                         cur_datasets_features = dict(
                             gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tsv_pd.index)

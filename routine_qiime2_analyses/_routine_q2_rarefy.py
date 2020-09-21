@@ -57,7 +57,6 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     datasets_update = {}
     datasets_read_update = {}
     datasets_phylo_update = {}
-
     datasets_append = {}
 
     main_written = 0
@@ -66,16 +65,14 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     run_pbs = '%s/1_run_rarefy%s%s.sh' % (job_folder, evaluation, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
-
+            datasets_rarefs[dat] = ['']
             written = 0
             if dat in datasets_filt_map:
                 if dat not in datasets_raref_depths:
-                    datasets_rarefs[dat].append(0)
                     continue
                 datasets_raref_depths[dat] = datasets_raref_depths[datasets_filt_map[dat]]
 
             if dat not in datasets_raref_depths:
-                datasets_rarefs[dat].append(0)
                 continue
 
             odir = get_analysis_folder(i_datasets_folder, 'rarefy%s/%s' % (evaluation, dat))
