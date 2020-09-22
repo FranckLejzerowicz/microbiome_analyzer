@@ -131,9 +131,6 @@ def get_taxo_levels(taxonomies: dict) -> dict:
 
         ranks = {}
         for col in split_taxa_pd.columns:
-            print()
-            print(col)
-            print(split_taxa_pd[col].unique())
             rank = set([x.split('_')[0] for x in split_taxa_pd[col].unique() if str(x) != 'nan'])
             if len(rank) == 1:
                 ranks[col] = list(rank)[0]
