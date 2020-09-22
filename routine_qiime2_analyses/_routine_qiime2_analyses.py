@@ -166,9 +166,9 @@ def routine_qiime2_analyses(
     # print()
     # print("datasets_filt")
     # print(datasets_filt)
-    print()
-    print("datasets_filt_map")
-    print(datasets_filt_map)
+    # print()
+    # print("datasets_filt_map")
+    # print(datasets_filt_map)
 
     eval_depths = {}
     if raref:
