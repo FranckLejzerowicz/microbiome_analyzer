@@ -84,7 +84,12 @@ def get_split_taxonomy(taxa, extended=False, taxo_sep=';'):
              if len(x.strip()) and x[0] != 'x']
         ) for taxon in taxa
     ])
-    ALPHA = 'ABCDEFGHIJKLMNOPQRSTUV'
+    ALPHA = 'ABCDEFGHIJKLMNOPQRST'
+    print()
+    print(split_taxa_pd)
+    print(ALPHA)
+    print()
+    print()
     split_taxa_pd_cols = ['Taxolevel_%s' % (ALPHA[idx]) for idx in range(split_taxa_pd.shape[1])]
     split_taxa_pd.columns = split_taxa_pd_cols
     # get the max number of fields
