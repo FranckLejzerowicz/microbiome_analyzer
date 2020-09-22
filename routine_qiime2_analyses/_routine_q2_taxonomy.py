@@ -73,8 +73,8 @@ def get_split_taxonomy(taxa, extended=False, taxo_sep=';'):
 
     # get the taxon name split per "taxon" level
     split_chars = taxo_sep
-    if len([1 for x in taxa if '|' in x]) > (0.5 * len(taxa)):
-        split_chars += "|\|"
+    # if len([1 for x in taxa if '|' in x]) > (0.5 * len(taxa)):
+    #     split_chars += "|\|"
     # if len([1 for x in taxa if '.' in x]) > (0.5 * len(taxa)):
     #     split_chars += "|\."
 
