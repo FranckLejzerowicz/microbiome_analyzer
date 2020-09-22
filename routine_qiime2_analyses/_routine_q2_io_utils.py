@@ -677,12 +677,9 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
         meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str}, low_memory=False)
         meta_pd.rename(columns={meta_sam_col: 'sample_name'}, inplace=True)
         datasets[dat] = [[path, meta]]
-        # datasets[dat] = [path, meta]
         datasets_read[dat] = [[path_pd, meta_pd]]
-        # datasets_read[dat] = [path_pd, meta_pd]
         datasets_features[dat] = {}
         datasets_phylo[dat] = ('', 0)
-        # datasets_rarefs[dat] = ''
         datasets_rarefs[dat] = ['']
         gID_or_DNA(dat, path, path_pd, datasets_read, datasets_features, datasets_phylo)
     return datasets, datasets_read, datasets_features, datasets_phylo, datasets_rarefs
