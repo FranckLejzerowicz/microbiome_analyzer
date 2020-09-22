@@ -214,6 +214,10 @@ from routine_qiime2_analyses import __version__
          "and mmvec instead of running all of them."
 )
 @click.option(
+    "--filt-only/--no-filt-only", default=True, show_default=True,
+    help="Only process the filtered version (and not also the raw) version of datasets."
+)
+@click.option(
     "-filt3d_config", "--p-filt3d-config", required=False, show_default=False,
     help="Levels for the exploration of filtering. Must be a yaml file."
 )
@@ -261,7 +265,8 @@ def standalone_routine(
         dropout,
         doc_phate,
         filt3d,
-        p_filt3d_config
+        p_filt3d_config,
+        filt_only
 ):
 
     routine_qiime2_analyses(
@@ -305,7 +310,8 @@ def standalone_routine(
         dropout,
         doc_phate,
         filt3d,
-        p_filt3d_config
+        p_filt3d_config,
+        filt_only
     )
 
 

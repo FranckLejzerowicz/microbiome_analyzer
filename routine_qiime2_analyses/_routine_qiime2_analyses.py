@@ -12,7 +12,8 @@ from os.path import abspath, exists, isdir, isfile
 
 from routine_qiime2_analyses._routine_q2_io_utils import get_prjct_nm, get_datasets, get_run_params
 from routine_qiime2_analyses._routine_q2_filter import (import_datasets, filter_rare_samples,
-                                                        get_filt3d_params, explore_filtering)
+                                                        get_filt3d_params, explore_filtering,
+                                                        deleted_non_filt)
 from routine_qiime2_analyses._routine_q2_rarefy import run_rarefy
 from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp, get_precomputed_trees
 from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
@@ -77,7 +78,8 @@ def routine_qiime2_analyses(
         dropout: bool,
         doc_phate: bool,
         filt3d: bool,
-        p_filt3d_config: str) -> None:
+        p_filt3d_config: str,
+        filt_only: bool) -> None:
     """
     Main qiime2 functions writer.
 
@@ -164,9 +166,9 @@ def routine_qiime2_analyses(
     # print()
     # print("datasets_filt")
     # print(datasets_filt)
-    # print()
-    # print("datasets_filt_map")
-    # print(datasets_filt_map)
+    print()
+    print("datasets_filt_map")
+    print(datasets_filt_map)
 
     eval_depths = {}
     if raref:
@@ -175,7 +177,7 @@ def routine_qiime2_analyses(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_filt_map, datasets_rarefs, p_raref_depths, eval_rarefs, force,
             prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'],
-            filt_raref)
+            filt_raref, filt_only)
 
     # TAXONOMY ------------------------------------------------------------
     taxonomies = {}
@@ -184,7 +186,9 @@ def routine_qiime2_analyses(
     # method = 'consensus-blast'
     # method = 'consensus-vsearch'
     print('(get_precomputed_taxonomies)')
-    get_precomputed_taxonomies(i_datasets_folder, datasets, taxonomies, method)
+    get_precomputed_taxonomies(i_datasets_folder, datasets,
+                               datasets_filt_map, taxonomies,
+                               method)
     if i_qemistree and 'qemistree' not in p_skip:
         if isdir(i_qemistree):
             print('(run_qemistree)')
@@ -209,7 +213,9 @@ def routine_qiime2_analyses(
     # TREES ------------------------------------------------------------
     trees = {}
     print('(get_precomputed_trees)')
-    get_precomputed_trees(i_datasets_folder, datasets, datasets_filt_map, datasets_phylo, trees)
+    get_precomputed_trees(i_datasets_folder, datasets,
+                          datasets_filt_map, datasets_phylo,
+                          trees)
     if 'wol' not in p_skip:
         print('(shear_tree)')
         shear_tree(i_datasets_folder, datasets, datasets_read, datasets_phylo,
@@ -220,6 +226,10 @@ def routine_qiime2_analyses(
         run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo,
                  datasets_rarefs, prjct_nm, i_sepp_tree, trees, force,
                  qiime_env, chmod, noloc, run_params['sepp'], filt_raref)
+
+    if filt_only:
+        deleted_non_filt(datasets, datasets_read, datasets_features, datasets_phylo,
+                         datasets_rarefs, taxonomies, datasets_filt_map)
 
     datasets_collapsed = {}
     datasets_collapsed_map = {}

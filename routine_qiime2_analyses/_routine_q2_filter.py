@@ -74,6 +74,19 @@ def get_threshs(p_filt_threshs):
         return threshs_d
 
 
+def deleted_non_filt(datasets: dict, datasets_read: dict, datasets_features: dict,
+                     datasets_phylo: dict, datasets_rarefs: dict, taxonomies: dict,
+                     datasets_filt_map: dict):
+    for d in [datasets, datasets_read, datasets_features,
+              datasets_phylo, datasets_rarefs, taxonomies]:
+        to_delete = []
+        for dat in d:
+            if dat not in datasets_filt_map:
+                to_delete.append(dat)
+        for delete in to_delete:
+            d.pop(delete)
+
+
 def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                         datasets_features: dict, datasets_rarefs: dict, datasets_filt: dict,
                         datasets_filt_map: dict, datasets_phylo: dict, prjct_nm: str,

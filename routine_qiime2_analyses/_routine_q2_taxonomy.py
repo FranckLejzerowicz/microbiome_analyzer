@@ -457,7 +457,8 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
 
 
 def get_precomputed_taxonomies(i_datasets_folder: str, datasets: dict,
-                               taxonomies: dict, method: str) -> None:
+                               datasets_filt_map: dict, taxonomies: dict,
+                               method: str) -> None:
     """
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets: dataset -> [tsv/biom path, meta path]
@@ -465,14 +466,19 @@ def get_precomputed_taxonomies(i_datasets_folder: str, datasets: dict,
     """
     for dat in datasets:
 
-        analysis_folder = get_analysis_folder(i_datasets_folder, 'taxonomy/%s' % dat)
+        if dat in datasets_filt_map:
+            dat_tax = datasets_filt_map[dat]
+        else:
+            dat_tax = dat
 
-        tax_qza = '%s/tax_%s_%s.qza' % (analysis_folder, dat, method)
+        analysis_folder = get_analysis_folder(i_datasets_folder, 'taxonomy/%s' % dat_tax)
+
+        tax_qza = '%s/tax_%s_%s.qza' % (analysis_folder, dat_tax, method)
         tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
         if isfile(tax_qza):
             taxonomies[dat] = ['', tax_qza, tax_tsv]
 
-        tax_qza = '%s/tax_%s.qza' % (analysis_folder, dat)
+        tax_qza = '%s/tax_%s.qza' % (analysis_folder, dat_tax)
         tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
         if isfile(tax_qza):
             taxonomies[dat] = ['', tax_qza, tax_tsv]

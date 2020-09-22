@@ -30,7 +30,7 @@ def get_raref_depths(p_raref_depths):
 def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                datasets_phylo: dict, datasets_filt_map: dict, datasets_rarefs: dict,
                p_raref_depths: str, eval_rarefs: bool, force: bool, prjct_nm: str, qiime_env: str,
-               chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> dict:
+               chmod: str, noloc: bool, run_params: dict, filt_raref: str, filt_only: bool) -> dict:
     """
     Run rarefy: Rarefy table.
     https://docs.qiime2.org/2019.10/plugins/available/feature-table/rarefy/
@@ -69,10 +69,15 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
             # datasets_rarefs[dat] = ['']
 
             written = 0
+            is_filt = False
             if dat in datasets_filt_map:
+                is_filt = True
                 if dat not in datasets_raref_depths:
                     continue
                 datasets_raref_depths[dat] = datasets_raref_depths[datasets_filt_map[dat]]
+
+            if filt_only and not is_filt:
+                continue
 
             if dat not in datasets_raref_depths:
                 continue
