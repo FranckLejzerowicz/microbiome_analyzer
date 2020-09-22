@@ -987,7 +987,6 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     cur_sh.write('rm %s\n' % new_mat_qza)
 
 
-
 def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
                            formula: str, new_qzv: str, cur_sh: TextIO) -> None:
     """
