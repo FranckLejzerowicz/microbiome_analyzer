@@ -352,7 +352,7 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict, datasets_r
     amplicon_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'amplicon']
     wol_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'wol']
 
-    written = 0
+    main_written = 0
     run_pbs = '%s/1_run_taxonomy%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets_read.items():
@@ -361,6 +361,7 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict, datasets_r
             if dat in datasets_filt_map:
                 taxonomies[dat] = taxonomies[datasets_filt_map[dat]]
                 continue
+            written = 0
             with open(out_sh, 'w') as cur_sh:
                 for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
                     if idx:
@@ -417,12 +418,14 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict, datasets_r
                     if cmd:
                         cur_sh.write('echo "%s"\n' % cmd)
                         cur_sh.write('%s\n\n' % cmd)
+                        main_written += 1
                         written += 1
-            run_xpbs(out_sh, out_pbs, '%s.tx.sklrn.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
-                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                     run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
-    if written:
+            if written:
+                run_xpbs(out_sh, out_pbs, '%s.tx.sklrn.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                         run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                         run_params["mem_num"], run_params["mem_dim"],
+                         chmod, written, 'single', o, noloc)
+    if main_written:
         print_message('# Classify features using classify-sklearn', 'sh', run_pbs)
 
 
