@@ -113,6 +113,8 @@ def get_taxo_levels(taxonomies: dict) -> dict:
         tax_pd.rename(columns={tax_pd.columns[0]: 'Feature ID'}, inplace=True)
         features = tax_pd['Feature ID'].tolist()
         split_taxa_pd = get_split_taxonomy(tax_pd.Taxon.tolist())
+        if split_taxa_pd.shape[1] == 1:
+            continue
 
         torm = []
         for col in split_taxa_pd.columns:
