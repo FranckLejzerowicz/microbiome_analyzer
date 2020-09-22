@@ -209,7 +209,7 @@ def routine_qiime2_analyses(
     # TREES ------------------------------------------------------------
     trees = {}
     print('(get_precomputed_trees)')
-    get_precomputed_trees(i_datasets_folder, datasets, datasets_phylo, trees)
+    get_precomputed_trees(i_datasets_folder, datasets, datasets_filt_map, datasets_phylo, trees)
     if 'wol' not in p_skip:
         print('(shear_tree)')
         shear_tree(i_datasets_folder, datasets, datasets_read, datasets_phylo,

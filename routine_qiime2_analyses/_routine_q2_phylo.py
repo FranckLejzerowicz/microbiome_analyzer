@@ -66,10 +66,12 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                             if isfile(qza_raw_in) and not force:
                                 odir_sepp = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
                                 out_fp_sepp_tree = '%s/tree_%s.qza' % (odir_sepp, dat)
-                                if idx:
-                                    trees[dat].append((qza_raw_in, out_fp_sepp_tree))
-                                else:
-                                    trees[dat] = [(qza_raw_in, out_fp_sepp_tree)]
+                                # if idx:
+                                #     trees[dat].append((qza_raw_in, out_fp_sepp_tree))
+                                # else:
+                                #     trees[dat] = [(qza_raw_in, out_fp_sepp_tree)]
+                                if not idx:
+                                    trees[dat] = (qza_raw_in, out_fp_sepp_tree)
                                 print('Using the non rarefied tree (no need to recompute)...\nExiting')
                                 continue
                             elif not isfile(tsv):
@@ -98,10 +100,12 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                         out_fp_seqs_qza = '%s.qza' % out_fp_seqs_rad
 
                         out_fp_sepp_tree = '%s/tree_%s%s.qza' % (odir_sepp, dat, cur_raref)
-                        if idx:
-                            trees[dat].append((qza_in, out_fp_sepp_tree))
-                        else:
-                            trees[dat] = [(qza_in, out_fp_sepp_tree)]
+                        # if idx:
+                        #     trees[dat].append((qza_in, out_fp_sepp_tree))
+                        # else:
+                        #     trees[dat] = [(qza_in, out_fp_sepp_tree)]
+                        if not idx:
+                            trees[dat] = (qza_in, out_fp_sepp_tree)
                         out_fp_sepp_plac = '%s/plac_%s%s.qza' % (odir_sepp, dat, cur_raref)
 
                         written = 0
@@ -179,10 +183,12 @@ def shear_tree(i_datasets_folder: str, datasets: dict, datasets_read: dict, data
                         wol_features_fpo = '%s/tree_%s%s.nwk' % (analysis_folder, dat, cur_raref)
                         wol_features_qza = wol_features_fpo.replace('.nwk', '.qza')
 
-                        if idx:
-                            trees[dat].append(('', wol_features_qza))
-                        else:
-                            trees[dat] = [('', wol_features_qza)]
+                        # if idx:
+                        #     trees[dat].append(('', wol_features_qza))
+                        # else:
+                        #     trees[dat] = [('', wol_features_qza)]
+                        if not idx:
+                            trees[dat] = ('', wol_features_qza)
 
                         if force or not isfile(wol_features_qza):
                             wol_features = wol.shear(list(cur_datasets_features.keys()))
@@ -203,7 +209,7 @@ def shear_tree(i_datasets_folder: str, datasets: dict, datasets_read: dict, data
             print_message("# Shear Web of Life tree to features' genome IDs (%s)" % ', '.join(wol_datasets), 'sh', main_sh)
 
 
-def get_precomputed_trees(i_datasets_folder: str, datasets: dict,
+def get_precomputed_trees(i_datasets_folder: str, datasets: dict, datasets_filt_map: dict,
                           datasets_phylo: dict, trees: dict) -> None:
     """
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
@@ -212,8 +218,12 @@ def get_precomputed_trees(i_datasets_folder: str, datasets: dict,
     :param trees: to be update with tree to use for a dataset phylogenetic analyses.
     """
     for dat in datasets:
-        analysis_folder = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
-        tree_qza = '%s/tree_%s.qza' % (analysis_folder, dat)
+        if dat in datasets_filt_map:
+            dat_tree = datasets_filt_map[dat]
+        else:
+            dat_tree = dat
+        analysis_folder = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat_tree)
+        tree_qza = '%s/tree_%s.qza' % (analysis_folder, dat_tree)
         if isfile(tree_qza):
             trees[dat] = ('', tree_qza)
             datasets_phylo[dat] = ('precpu', 0)
