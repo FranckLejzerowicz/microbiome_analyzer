@@ -127,35 +127,37 @@ def get_taxo_levels(taxonomies: dict) -> dict:
             split_taxa_pd = split_taxa_pd.drop(columns=torm)
 
         ranks = {}
-        collapsable = True
+        not_collapsable = True
         for col in split_taxa_pd.columns:
             rank = [x.split('_')[0] for x in split_taxa_pd[col] if str(x) not in ['nan', 'None']]
             if len(rank) == split_taxa_pd.shape[0]:
                 if len(set(rank)) == 1:
                     ranks[col] = list(rank)[0]
             else:
-                collapsable = False
+                not_collapsable = False
 
-        if collapsable:
-            if len(ranks) == split_taxa_pd.shape[1]:
-                split_taxa_pd = split_taxa_pd.rename(columns=ranks)
-            else:
-                rewrite = True
-                alpha = 'ABCDEFGHIJKLMNOPQRST'
-                cols = [alpha[x] for x in range(split_taxa_pd.shape[1])]
-                split_taxa_pd = pd.DataFrame(
-                    [['%s__%s' % (cols[idx], str(x).replace(' ', '_')) for idx, x in enumerate(row)]
-                      for row in split_taxa_pd.values],
-                    columns=cols
-                )
-            split_taxa_pds[dat] = split_taxa_pd
-            if rewrite:
-                split_taxa_pd = pd.DataFrame({
-                    'Feature ID': features,
-                    'Taxon': [';'.join([x for x in row if str(x)]) for row in split_taxa_pd.values]
-                })
-                split_taxa_fpo = '%s_taxSplit.tsv' % splitext(tax_fp[-1])[0]
-                split_taxa_pd.to_csv(split_taxa_fpo, index=False, sep='\t')
+        if not_collapsable:
+            continue
+
+        if len(ranks) == split_taxa_pd.shape[1]:
+            split_taxa_pd = split_taxa_pd.rename(columns=ranks)
+        else:
+            rewrite = True
+            alpha = 'ABCDEFGHIJKLMNOPQRST'
+            cols = [alpha[x] for x in range(split_taxa_pd.shape[1])]
+            split_taxa_pd = pd.DataFrame(
+                [['%s__%s' % (cols[idx], str(x).replace(' ', '_')) for idx, x in enumerate(row)]
+                  for row in split_taxa_pd.values],
+                columns=cols
+            )
+        split_taxa_pds[dat] = split_taxa_pd
+        if rewrite:
+            split_taxa_pd = pd.DataFrame({
+                'Feature ID': features,
+                'Taxon': [';'.join([x for x in row if str(x)]) for row in split_taxa_pd.values]
+            })
+            split_taxa_fpo = '%s_taxSplit.tsv' % splitext(tax_fp[-1])[0]
+            split_taxa_pd.to_csv(split_taxa_fpo, index=False, sep='\t')
 
     return split_taxa_pds
 
