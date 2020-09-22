@@ -120,13 +120,8 @@ def get_taxo_levels(taxonomies: dict) -> dict:
             split_taxa_pd = split_taxa_pd.drop(columns=torm)
 
         ranks = {}
-        print()
-        print()
-        print(dat)
-        print()
-        print(split_taxa_pd.columns)
         for col in split_taxa_pd.columns:
-            rank = set([x.split('_')[0] for x in split_taxa_pd[col].unique()])
+            rank = set([x.split('_')[0] for x in split_taxa_pd[col].unique() if str(x) != 'nan'])
             if len(rank) == 1:
                 ranks[col] = list(rank)[0]
         if len(ranks) == split_taxa_pd.shape[1]:
