@@ -227,7 +227,7 @@ def routine_qiime2_analyses(
                  datasets_rarefs, prjct_nm, i_sepp_tree, trees, force,
                  qiime_env, chmod, noloc, run_params['sepp'], filt_raref)
 
-    if filt_only:
+    if filt_only and datasets_filt_map:
         deleted_non_filt(datasets, datasets_read, datasets_features, datasets_phylo,
                          datasets_rarefs, taxonomies, datasets_filt_map)
 
