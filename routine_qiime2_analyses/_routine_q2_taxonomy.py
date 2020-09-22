@@ -78,18 +78,18 @@ def get_split_taxonomy(taxa, extended=False, taxo_sep=';'):
     # if len([1 for x in taxa if '.' in x]) > (0.5 * len(taxa)):
     #     split_chars += "|\."
 
-    split_taxa_pd = pd.DataFrame([
-        pd.Series(
-            [x.strip() for x in re.split(split_chars, str(taxon))
-             if len(x.strip()) and x[0] != 'x']
-        ) for taxon in taxa
-    ])
+    split_lens = set()
+    split_taxa = []
+    for taxon in taxa:
+        taxon_split = [x.strip() for x in re.split(split_chars, str(taxon)) if len(x.strip()) and x[0] != 'x']
+        split_lens.add(len(taxon_split))
+        split_taxa.append(taxon_split)
+
+    if len(split_lens) > 5 or max(split_lens) > 15:
+        return pd.DataFrame([[x] for x in taxa])
+
+    split_taxa_pd = pd.DataFrame(split_taxa)
     ALPHA = 'ABCDEFGHIJKLMNOPQRST'
-    print()
-    print(split_taxa_pd)
-    print(ALPHA)
-    print()
-    print()
     split_taxa_pd_cols = ['Taxolevel_%s' % (ALPHA[idx]) for idx in range(split_taxa_pd.shape[1])]
     split_taxa_pd.columns = split_taxa_pd_cols
     # get the max number of fields
