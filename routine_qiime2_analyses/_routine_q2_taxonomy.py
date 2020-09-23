@@ -137,6 +137,7 @@ def get_taxo_levels(taxonomies: dict) -> dict:
                 not_collapsable = False
 
         if not_collapsable:
+            split_taxa_pds[dat] = split_taxa_pd
             continue
 
         if len(ranks) == split_taxa_pd.shape[1]:
