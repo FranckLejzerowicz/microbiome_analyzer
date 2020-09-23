@@ -346,9 +346,8 @@ def routine_qiime2_analyses(
     if 'beta' not in p_skip and p_procrustes:
         if betas and 'procrustes' not in p_skip:
             print('(run_procrustes)')
-            run_procrustes(i_datasets_folder, datasets, datasets_filt,
-                           p_procrustes, betas, force, prjct_nm, qiime_env,
-                           chmod, noloc, split, run_params['procrustes'],
+            run_procrustes(i_datasets_folder, p_procrustes, betas, force, prjct_nm,
+                           qiime_env, chmod, noloc, split, run_params['procrustes'],
                            filt_raref, eval_depths)
     else:
         print('(skip_procrustes)')

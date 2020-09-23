@@ -67,10 +67,10 @@ def get_dm_meta(dat, dm, meta, raref, metric, i_datasets_folder, skip):
     return dm, meta
 
 
-def run_procrustes(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
-                   p_procrustes: str, betas: dict, force: bool, prjct_nm: str,
-                   qiime_env: str, chmod: str, noloc: bool, split: bool,
-                   run_params: dict, filt_raref: str, eval_depths: dict) -> None:
+def run_procrustes(i_datasets_folder: str, p_procrustes: str, betas: dict,
+                   force: bool, prjct_nm: str, qiime_env: str, chmod: str,
+                   noloc: bool, split: bool, run_params: dict, filt_raref: str,
+                   eval_depths: dict) -> None:
     """
     """
     evaluation = ''

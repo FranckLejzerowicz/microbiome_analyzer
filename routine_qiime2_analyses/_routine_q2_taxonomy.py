@@ -72,7 +72,7 @@ def extend_split_taxonomy(split_taxa_pd: pd.DataFrame):
 def get_split_taxonomy(taxa, extended=False, taxo_sep=';'):
 
     # get the taxon name split per "taxon" level
-    split_chars = taxo_sep
+    # split_chars = taxo_sep
     # if len([1 for x in taxa if '|' in x]) > (0.5 * len(taxa)):
     #     split_chars += "|\|"
     # if len([1 for x in taxa if '.' in x]) > (0.5 * len(taxa)):
@@ -81,12 +81,13 @@ def get_split_taxonomy(taxa, extended=False, taxo_sep=';'):
     split_lens = set()
     split_taxa = []
     for taxon in taxa:
-        taxon_split = [x.strip() for x in re.split(split_chars, str(taxon)) if len(x.strip()) and x[0] != 'x']
+        taxon_split = [x.strip() for x in str(taxon).split(taxo_sep) if len(x.strip()) and not x.startswith('x__')]
+        # taxon_split = [x.strip() for x in re.split(split_chars, str(taxon)) if len(x.strip()) and not x.startswith('x__')]
         split_lens.add(len(taxon_split))
         split_taxa.append(taxon_split)
 
-    if len(split_lens) > 5 or max(split_lens) > 15:
-        return pd.DataFrame([[x] for x in taxa])
+    if len(split_lens) > 15 or max(split_lens) > 15:
+        return pd.DataFrame([[x] for x in taxa], columns=['not_really_taxon'])
 
     split_taxa_pd = pd.DataFrame(split_taxa)
     ALPHA = 'ABCDEFGHIJKLMNOPQRST'
@@ -114,6 +115,10 @@ def get_taxo_levels(taxonomies: dict) -> dict:
         features = tax_pd['Feature ID'].tolist()
         split_taxa_pd = get_split_taxonomy(tax_pd.Taxon.tolist())
         if split_taxa_pd.shape[1] == 1:
+            print("if split_taxa_pd.shape[1] == 1:")
+            print("dat", dat)
+            print(split_taxa_pd)
+            split_taxa_pds[dat] = split_taxa_pd
             continue
 
         torm = []
@@ -137,6 +142,9 @@ def get_taxo_levels(taxonomies: dict) -> dict:
                 not_collapsable = False
 
         if not_collapsable:
+            print("if not_collapsable:")
+            print("dat", dat)
+            print(split_taxa_pd)
             split_taxa_pds[dat] = split_taxa_pd
             continue
 
