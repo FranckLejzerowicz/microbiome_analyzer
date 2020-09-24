@@ -132,14 +132,14 @@ def get_taxo_levels(taxonomies: dict) -> dict:
             split_taxa_pd = split_taxa_pd.drop(columns=torm)
 
         ranks = {}
-        not_collapsable = True
+        not_collapsable = False
         for col in split_taxa_pd.columns:
             rank = [x.split('_')[0] for x in split_taxa_pd[col] if str(x) not in ['nan', 'None']]
             if len(rank) == split_taxa_pd.shape[0]:
                 if len(set(rank)) == 1:
                     ranks[col] = list(rank)[0]
             else:
-                not_collapsable = False
+                not_collapsable = True
 
         if not_collapsable:
             print("if not_collapsable:")
