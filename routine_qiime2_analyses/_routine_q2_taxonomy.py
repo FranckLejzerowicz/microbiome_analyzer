@@ -115,9 +115,6 @@ def get_taxo_levels(taxonomies: dict) -> dict:
         features = tax_pd['Feature ID'].tolist()
         split_taxa_pd = get_split_taxonomy(tax_pd.Taxon.tolist())
         if split_taxa_pd.shape[1] == 1:
-            print("if split_taxa_pd.shape[1] == 1:")
-            print("dat", dat)
-            print(split_taxa_pd)
             split_taxa_pds[dat] = split_taxa_pd
             continue
 
@@ -142,9 +139,6 @@ def get_taxo_levels(taxonomies: dict) -> dict:
                 not_collapsable = True
 
         if not_collapsable:
-            print("if not_collapsable:")
-            print("dat", dat)
-            print(split_taxa_pd)
             split_taxa_pds[dat] = split_taxa_pd
             continue
 
