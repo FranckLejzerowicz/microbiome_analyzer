@@ -333,9 +333,9 @@ def explore_filtering(i_datasets_folder, datasets, datasets_read,
                     print('Must have run rarefaction to use it further...\nExiting')
                     sys.exit(0)
                 tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
-                datasets_read[dat] = [tsv_pd_, meta_pd_]
+                datasets_read[dat] = [[tsv_pd_, meta_pd_]]
             else:
-                tsv_pd_, meta_pd_ = datasets_read[dat]
+                tsv_pd_, meta_pd_ = datasets_read[dat][0]
 
             res = []
             rdx = 0
