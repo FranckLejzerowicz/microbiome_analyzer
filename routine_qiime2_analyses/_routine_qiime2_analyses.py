@@ -179,6 +179,9 @@ def routine_qiime2_analyses(
             prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'],
             filt_raref, filt_only)
 
+
+    print()
+
     # TAXONOMY ------------------------------------------------------------
     taxonomies = {}
     method = 'sklearn'
