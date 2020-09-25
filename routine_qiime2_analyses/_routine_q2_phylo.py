@@ -83,6 +83,7 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                             print()
                             print(dat)
                             print(datasets_read[dat])
+                            print(len(datasets_read[dat]))
                             tsv_pd = datasets_read[dat][0]
                             meta_pd = datasets_read[dat][1]
 
