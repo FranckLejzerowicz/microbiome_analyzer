@@ -182,8 +182,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                 )
                 continue
 
-            for tab_meta_pds in tab_meta_pds_:
-                tab_pd, meta_pd = tab_meta_pds
+            for (tab_pd, meta_pd) in tab_meta_pds_:
                 meta_pd = meta_pd.set_index('sample_name')
                 dat_filt = []
                 if names:

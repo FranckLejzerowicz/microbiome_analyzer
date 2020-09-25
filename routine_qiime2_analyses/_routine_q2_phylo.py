@@ -80,6 +80,9 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict, datase
                             tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
                             datasets_read[dat][idx] = [tsv_pd, meta_pd]
                         else:
+                            print()
+                            print(dat)
+                            print(datasets_read[dat])
                             tsv_pd = datasets_read[dat][0]
                             meta_pd = datasets_read[dat][1]
 
