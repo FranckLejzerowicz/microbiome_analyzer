@@ -463,6 +463,8 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
             cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
         elif 'songbird' in typ:
             cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
+        elif 'mantel' in typ:
+            cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
         else:
             cmd += 'mv %s/*.tsv %s\n' % (splitext(output_path)[0], output_path)
         cmd += 'rm -rf %s\n' % splitext(output_path)[0]
@@ -1104,6 +1106,9 @@ def write_procrustes_mantel(
             cmd += '--p-label1 %s \\\n' % dat1
             cmd += '--p-label2 %s \\\n' % dat2
             cmd += '--o-visualization %s\n' % output
+            output_html = output.replace('.qzv', '.html')
+            cmd += run_export(output, output_html, 'mantel')
+
     if isfile(common_meta_fp):
         cmd += 'rm %s\n' % common_meta_fp
     if isfile(dm_out1):
