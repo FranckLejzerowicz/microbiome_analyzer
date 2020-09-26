@@ -173,6 +173,13 @@ procrustes:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2020.2"
+mantel:
+  time: "72"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "10"
+  mem_dim: "gb"
+  env: "qiime2-2020.2"
 procrustes_R:
   time: "120"
   n_nodes: "1"

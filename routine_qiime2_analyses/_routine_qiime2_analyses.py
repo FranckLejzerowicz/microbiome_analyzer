@@ -27,7 +27,7 @@ from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alp
 from routine_qiime2_analyses._routine_q2_beta import (run_beta, export_beta,
                                                       run_pcoas, run_biplots,
                                                       run_emperor, run_emperor_biplot)
-from routine_qiime2_analyses._routine_q2_procrustes import run_procrustes
+from routine_qiime2_analyses._routine_q2_procrustes_mantel import (run_procrustes, run_mantel)
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
 from routine_qiime2_analyses._routine_q2_permanova import run_permanova
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
@@ -51,6 +51,7 @@ def routine_qiime2_analyses(
         p_perm_groups: str,
         p_beta_type: tuple,
         p_procrustes: str,
+        p_mantel: str,
         p_collapse_taxo: str,
         p_formulas: str,
         p_doc_config: str,
@@ -354,6 +355,15 @@ def routine_qiime2_analyses(
                            filt_raref, eval_depths)
     else:
         print('(skip_procrustes)')
+
+    if 'beta' not in p_skip and p_mantel:
+        if betas and 'mantel' not in p_skip:
+            print('(run_mantel)')
+            run_mantel(i_datasets_folder, p_mantel, betas, force, prjct_nm,
+                       qiime_env, chmod, noloc, split, run_params['mantel'],
+                       filt_raref, eval_depths)
+    else:
+        print('(skip_mantel)')
 
     # PHATE ---------------------------------------------------------------------
     if p_phate_config and 'phate' not in p_skip:

@@ -87,6 +87,11 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/procrustes_subsets.yml' and README)."
 )
 @click.option(
+    "-mtl", "--p-mantel", required=False, show_default=True, default=False,
+    help="Pairs and subsets for mantel test. Must be a yaml file, e.g.\n"
+         "(see example in 'examples/procrustes_subsets.yml' and README)."
+)
+@click.option(
     "-coll", "--p-collapse-taxo", required=False, show_default=True, default=False,
     help="Nominative or rank-based taxonmic collapse per dataset. Must be a yaml file, e.g.\n"
          "(see example in 'examples/collapse_taxo.yml' and README)."
@@ -238,6 +243,7 @@ def standalone_routine(
         p_perm_groups,
         p_beta_type,
         p_procrustes,
+        p_mantel,
         p_collapse_taxo,
         p_adonis_formulas,
         p_doc_config,
@@ -283,6 +289,7 @@ def standalone_routine(
         p_perm_groups,
         p_beta_type,
         p_procrustes,
+        p_mantel,
         p_collapse_taxo,
         p_adonis_formulas,
         p_doc_config,

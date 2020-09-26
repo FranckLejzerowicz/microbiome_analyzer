@@ -1231,31 +1231,31 @@ def check_datasets_filtered(
     return filt_datasets_pass
 
 
-def get_procrustes_dicts(p_procrustes):
-    if not isfile(p_procrustes):
-        print('yaml file for procrustes pairs does not exist:\n%s\nExiting...' % p_procrustes)
+def get_procrustes_mantel_dicts(p_procrustes_mantel):
+    if not isfile(p_procrustes_mantel):
+        print('yaml file for procrustes pairs does not exist:\n%s\nExiting...' % p_procrustes_mantel)
         sys.exit(0)
-    with open(p_procrustes) as handle:
-        procrustes_dict = yaml.load(handle, Loader=yaml.FullLoader)
+    with open(p_procrustes_mantel) as handle:
+        procrustes_mantel_dict = yaml.load(handle, Loader=yaml.FullLoader)
 
-    if 'pairs' not in procrustes_dict:
-        print('No datasets pairs specified in %s:\nExiting\n' % p_procrustes)
+    if 'pairs' not in procrustes_mantel_dict:
+        print('No datasets pairs specified in %s:\nExiting\n' % p_procrustes_mantel)
         sys.exit(0)
 
-    procrustes_pairs = {}
-    for pair, paired_datasets in procrustes_dict['pairs'].items():
+    procrustes_mantel_pairs = {}
+    for pair, paired_datasets in procrustes_mantel_dict['pairs'].items():
         n_dats = len(paired_datasets)
         if n_dats != 2:
             print('Must be two datasets per mmvec pair (found %s in %s)\n'
-                  'Exiting\n' % (n_dats, p_procrustes))
+                  'Exiting\n' % (n_dats, p_procrustes_mantel))
             sys.exit(0)
-        procrustes_pairs[pair] = paired_datasets
+        procrustes_mantel_pairs[pair] = paired_datasets
 
-    procrustes_subsets = {'ALL': [[]]}
-    if 'subsets' in procrustes_dict:
-        procrustes_subsets.update(procrustes_dict['subsets'])
+    procrustes_mantel_subsets = {'ALL': [[]]}
+    if 'subsets' in procrustes_mantel_dict:
+        procrustes_mantel_subsets.update(procrustes_mantel_dict['subsets'])
 
-    return procrustes_pairs, procrustes_subsets
+    return procrustes_mantel_pairs, procrustes_mantel_subsets
 
 
 def get_collapse_taxo(p_collapse_taxo):
