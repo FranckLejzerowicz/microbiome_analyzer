@@ -78,7 +78,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
             if filt_only and not is_filt:
                 continue
-
+            print(datasets_raref_depths)
             if dat not in datasets_raref_depths:
                 continue
 
