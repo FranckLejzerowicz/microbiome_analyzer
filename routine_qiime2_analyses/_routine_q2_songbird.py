@@ -290,7 +290,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                         params = 'filt_f%s_s%s/%s_%s_%s_%s_%s' % (
                             thresh_feat, thresh_sample, batch, learn, epoch,
                             diff_prior.replace('.', ''), train.replace('.', '') )
-                        case = get_case(case_vals, case_var, str(idx))
+                        case = get_case(case_vals, case_var)
 
                         if uni:
                             pass
