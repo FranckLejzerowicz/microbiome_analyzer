@@ -16,7 +16,6 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_job_folder,
     get_analysis_folder,
     get_subsets,
-    get_procrustes_dicts,
     get_raref_tab_meta_pds
 )
 from routine_qiime2_analyses._routine_q2_cmds import (
