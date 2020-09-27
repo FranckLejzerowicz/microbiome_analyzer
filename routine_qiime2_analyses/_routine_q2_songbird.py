@@ -9,7 +9,8 @@
 import os
 import random
 import itertools
-import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
 from os.path import isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import print_message
@@ -36,25 +37,39 @@ from routine_qiime2_analyses._routine_q2_mmvec import (
 )
 
 
-def get_train_column(new_meta_pd, train):
+def get_train_column(new_meta_pd, meta_vars, train):
     if train.isdigit() or train.replace('.', '').isdigit():
         train_column = 'TrainTest'
         if train.isdigit():
-
-            ### TAKE COMPREHENSIVE SET FO SAM;PLES TO WARRANT q2 COMPARISONS
-
-            train_samples = random.sample(
-                new_meta_pd.index.tolist(),
-                k=int(train))
+            train_int = int(train)
+            if train_int < (0.1 * new_meta_pd.shape[0]):
+                train_perc = 0.1
+            else:
+                train_perc = train_int / new_meta_pd.shape[0]
         else:
             train_float = float(train)
             if 0 < train_float < 1:
-                train_samples = random.sample(
-                    new_meta_pd.index.tolist(),
-                    k=int(train_float * new_meta_pd.shape[0]))
+                train_perc = train_float
+                # train_samples = random.sample(
+                #     new_meta_pd.index.tolist(),
+                #     k=int(train_float * new_meta_pd.shape[0]))
             else:
                 raise IOError('Float passed as percent of samples for'
                               ' training not valid (must be in range 0-1)')
+        meta_var = meta_vars[0]
+        if len(meta_vars) == 1 and str(new_meta_pd[meta_var].dtype) == 'object' and max(new_meta_pd[meta_var].value_counts()) > 1:
+            ### TAKE COMPREHENSIVE SET FO SAMPLES TO WARRANT q2 COMPARISONS
+            X = np.array(new_meta_pd.values)
+            y = new_meta_pd.index.tolist()
+            _, __, test_samples, train_samples = train_test_split(
+                X, y, test_size=train_perc,
+                stratify=new_meta_pd[meta_var].tolist()
+            )
+        else:
+            train_samples = random.sample(
+                new_meta_pd.index.tolist(),
+                k=int(train_perc * new_meta_pd.shape[0])
+            )
         new_meta_pd[train_column] = ['Train' if x in train_samples else
                                      'Test' for x in new_meta_pd.index]
     else:
@@ -144,7 +159,7 @@ def get_songbird_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
     new_meta_pd = rename_duplicate_columns(new_meta_pd)
     if len(drop):
         new_meta_pd = new_meta_pd.loc[(~new_meta_pd[meta_var.lower()].isin(drop)), :]
-    new_meta_pd, train_column = get_train_column(new_meta_pd, train)
+    new_meta_pd, train_column = get_train_column(new_meta_pd, meta_vars, train)
     new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
     return train_column
 
