@@ -155,6 +155,7 @@ def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame,
         print(variable)
         if variable not in main_testing:
             print('  [%s] variable %s not in %s' % (analysis, variable, basename(meta)))
+    print(gfds)
     return main_testing
 
 
