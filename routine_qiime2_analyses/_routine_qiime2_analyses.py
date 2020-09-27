@@ -164,12 +164,12 @@ def routine_qiime2_analyses(
                             prjct_nm, qiime_env, p_filt_threshs, chmod, noloc,
                             run_params['filter'], filt_raref)
 
-    # print()
-    # print("datasets_filt")
-    # print(datasets_filt)
-    # print()
-    # print("datasets_filt_map")
-    # print(datasets_filt_map)
+    print()
+    print("datasets_filt")
+    print(datasets_filt)
+    print()
+    print("datasets_filt_map")
+    print(datasets_filt_map)
 
     eval_depths = {}
     if raref:
