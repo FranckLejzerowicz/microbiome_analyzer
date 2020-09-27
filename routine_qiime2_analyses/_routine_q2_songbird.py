@@ -140,6 +140,7 @@ def get_songbird_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
     else:
         meta_vars = list(meta_vars_)
     new_meta_pd = new_meta_pd[meta_vars]
+    new_meta_pd = new_meta_pd.loc[~new_meta_pd.isna().any(1)]
     new_meta_pd = rename_duplicate_columns(new_meta_pd)
     if len(drop):
         new_meta_pd = new_meta_pd.loc[(~new_meta_pd[meta_var.lower()].isin(drop)), :]
