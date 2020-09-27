@@ -75,7 +75,12 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
         for dat, tsv_meta_pds_ in datasets.items():
 
             # datasets_rarefs[dat] = ['']
-
+            print()
+            print()
+            print("dat")
+            print("=================")
+            print(dat)
+            print("=================")
             written = 0
             is_filt = False
             if dat in datasets_filt_map:
