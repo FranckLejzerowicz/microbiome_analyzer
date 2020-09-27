@@ -142,9 +142,17 @@ def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame,
     :param analysis: current qiime2 analysis.
     :return: checked testing groups.
     """
+    print("meta_pd")
+    print(meta_pd)
     meta_pd_vars = set(meta_pd.columns.tolist())
+    print("meta_pd_vars")
+    print(meta_pd_vars)
     main_testing = [variable for variable in main_testing_groups if variable in meta_pd_vars]
+    print("main_testing")
+    print(main_testing)
     for variable in main_testing_groups:
+        print("variable")
+        print(variable)
         if variable not in main_testing:
             print('  [%s] variable %s not in %s' % (analysis, variable, basename(meta)))
     return main_testing
