@@ -148,7 +148,7 @@ def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame,
         if variable not in meta_pd_vars:
             print('  [%s] variable %s not in %s' % (analysis, variable, basename(meta)))
             continue
-        if max(meta_pd[variable].value_counts()) < 2:
+        if meta_pd[variable].unique().size > (meta_pd.shape[0] * .8):
             print('  [%s] variable %s from %s not suitable for permanova' % (analysis, variable, basename(meta)))
             continue
         main_testing.append(variable)
