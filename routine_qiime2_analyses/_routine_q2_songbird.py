@@ -57,7 +57,8 @@ def get_train_column(new_meta_pd, meta_vars, train):
                 raise IOError('Float passed as percent of samples for'
                               ' training not valid (must be in range 0-1)')
         meta_var = meta_vars[0]
-        if len(meta_vars) == 1 and str(new_meta_pd[meta_var].dtype) == 'object' and max(new_meta_pd[meta_var].value_counts()) > 1:
+        vc = new_meta_pd[meta_var].value_counts()
+        if len(meta_vars) == 1 and str(new_meta_pd[meta_var].dtype) == 'object' and min(vc) > 1:
             ### TAKE COMPREHENSIVE SET FO SAMPLES TO WARRANT q2 COMPARISONS
             X = np.array(new_meta_pd.values)
             y = new_meta_pd.index.tolist()
