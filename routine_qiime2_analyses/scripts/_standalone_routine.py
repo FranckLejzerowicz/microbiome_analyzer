@@ -76,7 +76,7 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
-    "-bt", "--p-beta-type", required=False, show_default=False, multiple=True, default=('permanova',),
+    "-bt", "--p-beta-type", required=False, show_default=False, multiple=True, default=('permanova', 'permdisp',),
     type=click.Choice(['permanova', 'anosim', 'permdisp']),
     help="Type of beta group significance, one of"
          " 'permanova', 'anosim', 'permdisp'"
