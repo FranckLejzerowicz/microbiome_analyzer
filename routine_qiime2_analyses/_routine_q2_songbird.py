@@ -10,6 +10,7 @@ import os
 import random
 import itertools
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
 from os.path import isfile, splitext
 
@@ -160,6 +161,13 @@ def get_songbird_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
     new_meta_pd = rename_duplicate_columns(new_meta_pd)
     if len(drop):
         new_meta_pd = new_meta_pd.loc[(~new_meta_pd[meta_var.lower()].isin(drop)), :]
+    new_meta_pd_ = new_meta_pd.copy()
+
+    new_meta_pd_['tmptmptmp'] = [''.join(x) for x in new_meta_pd_.values]
+    print(new_meta_pd_.tmptmptmp.value_counts())
+    if 1 in new_meta_pd_.tmptmptmp.value_counts():
+        return None
+
     new_meta_pd, train_column = get_train_column(new_meta_pd, meta_vars, train)
     new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
     return train_column
@@ -352,6 +360,11 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             train_column = get_songbird_metadata_train_test(
                                 meta_pd, meta_vars, meta_var, new_meta,
                                 train, case, case_var, case_vals, drop)
+                            if not train_column:
+                                new_meta_invalid = '%s/metadata_invalid' % odir
+                                with open(new_meta_invalid, 'w') as invalid:
+                                    pass
+                                continue
 
                             baselines = {}
                             metadatas = {}
