@@ -157,10 +157,11 @@ def get_taxo_levels(taxonomies: dict) -> dict:
         if rewrite:
             split_taxa_pd = pd.DataFrame({
                 'Feature ID': features,
-                'Taxon': [';'.join([x for x in row if str(x)]) for row in split_taxa_pd.values]
+                'Taxon_edit': [';'.join([x for x in row if str(x)]) for row in split_taxa_pd.values]
             })
             split_taxa_fpo = '%s_taxSplit.tsv' % splitext(tax_fp[-1])[0]
-            split_taxa_pd.to_csv(split_taxa_fpo, index=False, sep='\t')
+            tax_extended_pd = tax_pd.merge(split_taxa_pd, on='Feature ID', how='left')
+            tax_extended_pd.to_csv(split_taxa_fpo, index=False, sep='\t')
 
     return split_taxa_pds
 
