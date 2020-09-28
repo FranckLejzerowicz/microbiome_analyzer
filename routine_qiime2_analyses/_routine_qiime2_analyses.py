@@ -237,8 +237,8 @@ def routine_qiime2_analyses(
 
     datasets_collapsed = {}
     datasets_collapsed_map = {}
-    split_taxa_pds = get_taxo_levels(taxonomies)
     print(fjkjsdkjb)
+    split_taxa_pds = get_taxo_levels(taxonomies)
     if p_collapse_taxo and 'collapse' not in p_skip:
         run_collapse(i_datasets_folder, datasets, datasets_read,
                      datasets_features, datasets_phylo, split_taxa_pds,
