@@ -216,6 +216,7 @@ def routine_qiime2_analyses(
 
     # TREES ------------------------------------------------------------
     trees = {}
+    print(datasets_phylo)
     print('(get_precomputed_trees)')
     get_precomputed_trees(i_datasets_folder, datasets,
                           datasets_filt_map, datasets_phylo,
