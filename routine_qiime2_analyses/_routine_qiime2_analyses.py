@@ -201,6 +201,7 @@ def routine_qiime2_analyses(
                           chmod, noloc, run_params['qemistree'], filt_raref)
         else:
             print('[Warning] The Qemistree path %s is not a folder.')
+    print(fjkjsdkjb)
 
     if 'taxonomy' not in p_skip:
         print('(run_taxonomy)')
@@ -238,7 +239,6 @@ def routine_qiime2_analyses(
 
     datasets_collapsed = {}
     datasets_collapsed_map = {}
-    print(fjkjsdkjb)
     split_taxa_pds = get_taxo_levels(taxonomies)
     if p_collapse_taxo and 'collapse' not in p_skip:
         run_collapse(i_datasets_folder, datasets, datasets_read,
