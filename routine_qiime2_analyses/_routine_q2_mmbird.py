@@ -494,7 +494,15 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                 if omic_tax_pd.shape[0]:
                     if 'Taxon' in omic_tax_pd.columns:
                         omic_split_taxa_pd = get_split_taxonomy(omic_tax_pd.Taxon.tolist(), True)
+                        print()
+                        print()
+                        print()
+                        print()
+                        print("omic_split_taxa_pd")
+                        print(omic_split_taxa_pd)
                         omic_tax_pd = pd.concat([omic_tax_pd, omic_split_taxa_pd], axis=1, sort=False)
+                        print("omic_tax_pd")
+                        print(omic_tax_pd)
                     omic_songbird_ranks = omic_songbird_ranks.merge(
                         omic_tax_pd, on='Feature ID', how='left').drop_duplicates()
             # print('3.', omic_songbird_ranks.shape)
