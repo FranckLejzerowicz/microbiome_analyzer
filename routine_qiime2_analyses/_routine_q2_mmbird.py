@@ -527,6 +527,11 @@ def get_taxo_pds(i_datasets_folder, mmvec_songbird_pd, input_to_filtered):
                 omic_tax_pd.rename(columns={omic_tax_pd.columns[0]: 'Feature ID'}, inplace=True)
             else:
                 omic_tax_pd = pd.DataFrame()
+            print()
+            print()
+            print(omicn)
+            print(omic)
+            print(omic_tax_pd)
             # print("omic_tax_pd.iloc[:3,:3]")
             # print(omic_tax_pd.iloc[:3, :3])
             taxo_pds[omic] = omic_tax_pd
@@ -538,9 +543,15 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
                            meta_fp, omic1_common_fp, omic2_common_fp, ranks_fp):
     corrs = []
     for r in range(3):
+        print("r")
+        print(r)
         feats = ordi.features[r]
+        print("feats")
+        print(feats)
         if len(diff_cols1):
             for model in diff_cols1:
+                print("model1")
+                print(model)
                 x = meta_pd1.loc[
                     [x for x in meta_pd1.index if x in feats.index], model
                 ].astype(float)
@@ -552,6 +563,8 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
         sams = ordi.samples[r]
         if len(diff_cols2):
             for model in diff_cols2:
+                print("model2")
+                print(model)
                 x = meta_pd2.loc[
                     [x for x in meta_pd2.index if x in sams.index], model
                 ].astype(float)
@@ -676,6 +689,13 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
 
     out_folder = get_analysis_folder(i_datasets_folder, 'mmbird')
     out_correlations = '%s/pc_vs_songbird_correlations.tsv' % out_folder
+    print()
+    print()
+    print()
+    print()
+    print(pc_sb_correlations_pd.columns.tolist())
+    print()
+    print(pc_sb_correlations_pd)
     pc_sb_correlations_pd.to_csv(out_correlations, index=False, sep='\t')
     print('\t\t==> Written:', out_correlations)
 
