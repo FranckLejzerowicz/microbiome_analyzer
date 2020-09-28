@@ -163,8 +163,7 @@ def get_songbird_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
         new_meta_pd = new_meta_pd.loc[(~new_meta_pd[meta_var.lower()].isin(drop)), :]
     new_meta_pd_ = new_meta_pd.copy()
 
-    new_meta_pd_['tmptmptmp'] = [''.join(x) for x in new_meta_pd_.values]
-    print(new_meta_pd_.tmptmptmp.value_counts())
+    new_meta_pd_['tmptmptmp'] = [''.join(x) for x in new_meta_pd_.values if str(x) != 'nan']
     if 1 in new_meta_pd_.tmptmptmp.value_counts():
         return None
 
