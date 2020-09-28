@@ -193,7 +193,6 @@ def routine_qiime2_analyses(
     get_precomputed_taxonomies(i_datasets_folder, datasets,
                                datasets_filt_map, taxonomies,
                                method)
-    print(taxonomies)
     if i_qemistree and 'qemistree' not in p_skip:
         if isdir(i_qemistree):
             print('(run_qemistree)')
@@ -209,7 +208,6 @@ def routine_qiime2_analyses(
                      datasets_phylo, datasets_features, datasets_filt_map, i_classifier,
                      taxonomies, force, prjct_nm, qiime_env, chmod, noloc,
                      run_params['taxonomy'], filt_raref)
-        print(fjkjsdkjb)
         if 'barplot' not in p_skip:
             print('(run_barplot)')
             run_barplot(i_datasets_folder, datasets, taxonomies,

@@ -272,10 +272,11 @@ def run_taxonomy_others(force: bool, tsv_pd: pd.DataFrame,
     """
     cmd = ''
     if force or not isfile(out_qza):
-        with open(out_tsv, 'w') as o:
-            o.write('Feature ID\tTaxon\n')
-            for feat in tsv_pd.index:
-                o.write('%s\t%s\n' % (feat, feat))
+        if not isfile(out_tsv):
+            with open(out_tsv, 'w') as o:
+                o.write('Feature ID\tTaxon\n')
+                for feat in tsv_pd.index:
+                    o.write('%s\t%s\n' % (feat, feat))
         cmd = run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
     return cmd
 
@@ -293,13 +294,14 @@ def run_taxonomy_wol(force: bool, tsv_pd: pd.DataFrame, out_qza: str,
     if force or not isfile(out_qza):
         g2lineage = parse_g2lineage()
         rev_cur_datasets_features = dict((y, x) for x, y in cur_datasets_features.items())
-        with open(out_tsv, 'w') as o:
-            o.write('Feature ID\tTaxon\n')
-            for feat in tsv_pd.index:
-                if rev_cur_datasets_features[feat] in g2lineage:
-                    o.write('%s\t%s\n' % (feat, g2lineage[rev_cur_datasets_features[feat]]))
-                else:
-                    o.write('%s\t%s\n' % (feat, feat.replace('|', '; ')))
+        if not isfile(out_tsv):
+            with open(out_tsv, 'w') as o:
+                o.write('Feature ID\tTaxon\n')
+                for feat in tsv_pd.index:
+                    if rev_cur_datasets_features[feat] in g2lineage:
+                        o.write('%s\t%s\n' % (feat, g2lineage[rev_cur_datasets_features[feat]]))
+                    else:
+                        o.write('%s\t%s\n' % (feat, feat.replace('|', '; ')))
         cmd = run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
     return cmd
 
@@ -497,10 +499,10 @@ def get_precomputed_taxonomies(i_datasets_folder: str, datasets: dict,
 
         tax_qza = '%s/tax_%s_%s.qza' % (analysis_folder, dat_tax, method)
         tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
-        if isfile(tax_qza):
+        if isfile(tax_tsv):
             taxonomies[dat] = ['', tax_qza, tax_tsv]
 
         tax_qza = '%s/tax_%s.qza' % (analysis_folder, dat_tax)
         tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
-        if isfile(tax_qza):
+        if isfile(tax_tsv):
             taxonomies[dat] = ['', tax_qza, tax_tsv]
