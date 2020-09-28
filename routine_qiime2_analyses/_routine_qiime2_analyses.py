@@ -201,7 +201,6 @@ def routine_qiime2_analyses(
                           chmod, noloc, run_params['qemistree'], filt_raref)
         else:
             print('[Warning] The Qemistree path %s is not a folder.')
-    print(fjkjsdkjb)
 
     if 'taxonomy' not in p_skip:
         print('(run_taxonomy)')
@@ -209,6 +208,7 @@ def routine_qiime2_analyses(
                      datasets_phylo, datasets_features, datasets_filt_map, i_classifier,
                      taxonomies, force, prjct_nm, qiime_env, chmod, noloc,
                      run_params['taxonomy'], filt_raref)
+        print(fjkjsdkjb)
         if 'barplot' not in p_skip:
             print('(run_barplot)')
             run_barplot(i_datasets_folder, datasets, taxonomies,
