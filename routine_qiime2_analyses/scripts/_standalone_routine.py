@@ -127,9 +127,14 @@ from routine_qiime2_analyses import __version__
          "MUST BE YAML FILE, see 'examples/mmvec_pairs.yml' and README."
 )
 @click.option(
-    "-h", "--p-mmvec-highlights", required=False, default=False, show_default=True,
+    "-hlg", "--p-mmvec-highlights", required=False, default=False, show_default=True,
     help="Features to highlights on mmvec biplot (per dataset).\n"
-         "MUST BE YAML FILE, see 'examples/mmvec_highlights.yml' and README."
+         "MUST BE YAML FILE, see 'examples/mmvec_highlight.yml' and README."
+)
+@click.option(
+    "-mm", "--p-xmmvec", required=False, default=False, show_default=True,
+    help="Config for Xmmvec.\n"
+         "MUST BE YAML FILE, see 'examples/xmmvec.yml' and README."
 )
 @click.option(
     "-l", "--p-longi-column", required=False, default=False, show_default=True,
@@ -257,6 +262,7 @@ def standalone_routine(
         p_diff_models,
         p_mmvec_pairs,
         p_mmvec_highlights,
+        p_xmmvec,
         p_qiime2_env,
         p_run_params,
         p_chmod,
@@ -303,6 +309,7 @@ def standalone_routine(
         p_diff_models,
         p_mmvec_pairs,
         p_mmvec_highlights,
+        p_xmmvec,
         p_qiime2_env,
         p_run_params,
         p_chmod,

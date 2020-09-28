@@ -65,6 +65,7 @@ def routine_qiime2_analyses(
         p_diff_models: str,
         p_mmvec_pairs: str,
         p_mmvec_highlights: str,
+        p_xmmvec: str,
         qiime_env: str,
         p_run_params: str,
         chmod: str,
@@ -434,7 +435,7 @@ def routine_qiime2_analyses(
         print('(run_mmbird)')
         run_mmbird(
             i_datasets_folder, songbird_outputs, p_mmvec_highlights,
-            mmvec_outputs, force, prjct_nm, qiime_env, chmod,
+            p_xmmvec, mmvec_outputs, force, prjct_nm, qiime_env, chmod,
             noloc, filt_raref, run_params['mmbird'],
             input_to_filtered)
     else:

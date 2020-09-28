@@ -290,12 +290,12 @@ def get_songbird_models(p_diff_models: str, diff_dict: dict) -> dict:
     return diff_dict['models']
 
 
-def get_highlights(highlights_fp: str) -> dict:
-    highlights = {}
-    if isfile(highlights_fp):
-        with open(highlights_fp) as handle:
-            highlights = yaml.load(handle, Loader=yaml.FullLoader)
-    return highlights
+def get_highlights_mmbird(highlights_mmbird_fp: str) -> dict:
+    highlights_mmbird = {}
+    if isfile(highlights_mmbird_fp):
+        with open(highlights_mmbird_fp) as handle:
+            highlights_mmbird = yaml.load(handle, Loader=yaml.FullLoader)
+    return highlights_mmbird
 
 
 def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict, dict):
