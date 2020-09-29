@@ -135,6 +135,7 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
 
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor_html):
+            print('WRITE')
             write_songbird_cmd(
                 qza, new_qza, new_meta, formula, epoch, batch, diff_prior,
                 learn, thresh_sample, thresh_feat, train_column, metadatas,
@@ -364,6 +365,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             # print(gfds)
 
                         for model, formula_meta_var_drop in models.items():
+                            print(' - model')
+                            print(model)
 
                             datdir = '%s/%s/%s/%s/%s' % (dat_pair_path, filt, case, params, model)
                             odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
@@ -371,6 +374,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             new_meta = '%s/metadata.tsv' % odir
 
                             formula, meta_vars, meta_var, drop = formula_meta_var_drop
+                            print(' - formula')
+                            print(formula)
                             train_column = get_songbird_metadata_train_test(
                                 meta_pd, meta_vars, meta_var, new_meta,
                                 train, case, case_var, case_vals, drop)
@@ -387,6 +392,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                 model_baselines = models_baselines[dat][model]
 
                             for model_baseline, baseline_formula in model_baselines.items():
+                                print('    - model_baseline')
+                                print(model_baseline, baseline_formula)
 
                                 odir_base = get_analysis_folder(i_datasets_folder, 'songbird/%s/b-%s' % (datdir, model_baseline))
 
