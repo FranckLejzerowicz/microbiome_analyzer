@@ -412,6 +412,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                                          diffs, model_baseline, tensor_html, pair])
 
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
+    print(all_sh_pbs)
     main_sh = write_main_sh(job_folder, '2_songbird%s' % filt_raref, all_sh_pbs,
                             '%s.sngbrd%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
