@@ -527,7 +527,7 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
                             for line in f:
                                 sh.write(line)
                                 cur_written = True
-                        os.remove(cur_sh)
+                        # os.remove(cur_sh)
             continue
             if cur_written:
                 out_pbs = '%s.pbs' % splitext(out_sh)[0]
