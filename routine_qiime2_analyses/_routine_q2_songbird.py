@@ -261,19 +261,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     first_print = 0
     songbird_outputs = []
     for dat, filts_tsvs_metas_pair in songbirds.items():
-        print()
-        print()
-        print()
-        print("dat")
-        print(dat)
         if not split:
             out_sh = '%s/run_songbird_%s%s.sh' % (job_folder2, dat, filt_raref)
         for (filt, tsv, meta_, pair) in filts_tsvs_metas_pair:
-            print()
-            print()
-            print()
-            print("filt, pair")
-            print(filt, pair)
             if split:
                 if pair:
                     out_sh = '%s/run_songbird_%s_%s_%s%s.sh' % (job_folder2, dat, filt, pair, filt_raref)
@@ -312,13 +302,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
             for case_var, case_vals_list in cases_dict.items():
-                print()
-                print()
-                print("case_var")
-                print(case_var)
                 for case_vals in case_vals_list:
-                    print("case_vals")
-                    print(case_vals)
 
                     #####################################################################
                     # snakemake here: config to organise the inputs/depedencies (joblib)
@@ -331,8 +315,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             thresh_feat, thresh_sample, batch, learn, epoch,
                             diff_prior.replace('.', ''), train.replace('.', '') )
                         case = get_case(case_vals, case_var)
-                        print("params")
-                        print(params)
                         if uni:
                             pass
                             # TO DEVELOP: RUN ALL MODELS BASED ON THE SAME SET OF TESTTRAIN SAMPLES
@@ -366,8 +348,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             # print(gfds)
 
                         for model, formula_meta_var_drop in models.items():
-                            print(' - model')
-                            print(model)
 
                             datdir = '%s/%s/%s/%s/%s' % (dat_pair_path, filt, case, params, model)
                             odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
@@ -375,8 +355,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             new_meta = '%s/metadata.tsv' % odir
 
                             formula, meta_vars, meta_var, drop = formula_meta_var_drop
-                            print(' - formula')
-                            print(formula)
                             train_column = get_songbird_metadata_train_test(
                                 meta_pd, meta_vars, meta_var, new_meta,
                                 train, case, case_var, case_vals, drop)
@@ -393,9 +371,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                 model_baselines = models_baselines[dat][model]
 
                             for model_baseline, baseline_formula in model_baselines.items():
-                                print('    - model_baseline')
-                                print(model_baseline, baseline_formula)
-
                                 odir_base = get_analysis_folder(i_datasets_folder, 'songbird/%s/b-%s' % (datdir, model_baseline))
 
                                 cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s.sh' % (
@@ -412,7 +387,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                                          diffs, model_baseline, tensor_html, pair])
 
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
-    print(all_sh_pbs)
     main_sh = write_main_sh(job_folder, '2_songbird%s' % filt_raref, all_sh_pbs,
                             '%s.sngbrd%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
