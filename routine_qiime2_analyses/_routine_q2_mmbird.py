@@ -188,8 +188,9 @@ def get_order_omics(
 
 def get_xmmvec_commands(
         ordi_edit_fp, omic1, omic2,
-        meta1_fp, meta2_fp, xmmvecs
+        meta1_fp, meta2_fp, xmmvecs, pair
 ):
+
     cmd = '\n'
     ranks_fp = ordi_edit_fp.replace('ordination.txt', 'ranks.tsv')
     ranks_html = ordi_edit_fp.replace('ordination.txt', 'ranks.html')
@@ -197,12 +198,13 @@ def get_xmmvec_commands(
         cmd += '\nXmmvec'
         cmd += ' --i-ranks-path %s' % ranks_fp
         cmd += ' --o-ranks-explored %s' % ranks_html
-        cmd += ' --p-omic1-metadata %s' % meta1_fp
-        cmd += ' --p-omic2-metadata %s' % meta2_fp
-        cmd += ' --p-omic1-column %s' % xmmvecs[omic1]['color_variable']
-        cmd += ' --p-omic2-column %s' % xmmvecs[omic2]['color_variable']
         cmd += ' --p-omic1-name %s' % omic1
         cmd += ' --p-omic2-name %s' % omic2
+        if xmmvecs and pair in xmmvecs:
+            cmd += ' --p-omic1-metadata %s' % meta1_fp
+            cmd += ' --p-omic2-metadata %s' % meta2_fp
+            cmd += ' --p-omic1-column %s' % xmmvecs[pair][omic1]['color_variable']
+            cmd += ' --p-omic2-column %s' % xmmvecs[pair][omic2]['color_variable']
     return cmd
 
 
@@ -385,13 +387,11 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
                 omic_feature, omic_sample,
                 meta1, meta2, n_ordi_feats)
 
-        if xmmvecs and pair in xmmvecs:
-            cmd += get_xmmvec_commands(
-                ordi_edit_fp, omic1, omic2,
-                meta1, meta2, xmmvecs[pair]
-            )
-        if cmd:
-            pair_cmds.setdefault(pair, []).append(cmd)
+        cmd += get_xmmvec_commands(
+            ordi_edit_fp, omic1, omic2,
+            meta1, meta2, xmmvecs, pair
+        )
+        pair_cmds.setdefault(pair, []).append(cmd)
 
     pc_sb_correlations_pd = pd.concat(pc_sb_correlations)
     return pair_cmds, pc_sb_correlations_pd
