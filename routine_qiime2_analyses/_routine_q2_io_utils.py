@@ -519,7 +519,6 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
         for (dat, out_sh), cur_shs in all_sh_pbs.items():
             print(dat)
             print(out_sh)
-            print(datfds)
             cur_written = False
             with open(out_sh, 'w') as sh:
                 for cur_sh in cur_shs:
