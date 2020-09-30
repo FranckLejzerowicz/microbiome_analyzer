@@ -517,8 +517,6 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
     warning = 0
     with open(main_sh, 'w') as main_o:
         for (dat, out_sh), cur_shs in all_sh_pbs.items():
-            print(dat)
-            print(out_sh)
             cur_written = False
             with open(out_sh, 'w') as sh:
                 for cur_sh in cur_shs:
@@ -527,8 +525,7 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
                             for line in f:
                                 sh.write(line)
                                 cur_written = True
-                        # os.remove(cur_sh)
-            continue
+                        os.remove(cur_sh)
             if cur_written:
                 out_pbs = '%s.pbs' % splitext(out_sh)[0]
                 run_xpbs(out_sh, out_pbs, '%s.%s' % (prjct_nm, dat), qiime_env,

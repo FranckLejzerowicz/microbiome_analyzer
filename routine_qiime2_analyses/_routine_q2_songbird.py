@@ -370,8 +370,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             for model_baseline, baseline_formula in model_baselines.items():
                                 odir_base = get_analysis_folder(i_datasets_folder, 'songbird/%s/b-%s' % (datdir, model_baseline))
 
-                                cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s.sh' % (
-                                    job_folder2, dat_pair, filt, case, model, model_baseline)
+                                cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s_%s.sh' % (
+                                    job_folder2, dat_pair, filt, case, model, model_baseline, idx)
                                 cur_sh = cur_sh.replace(' ', '-')
                                 all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
 
