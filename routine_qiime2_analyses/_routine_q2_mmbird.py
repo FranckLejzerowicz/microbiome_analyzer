@@ -203,8 +203,12 @@ def get_xmmvec_commands(
         if xmmvecs and pair in xmmvecs:
             cmd += ' --p-omic1-metadata %s' % meta1_fp
             cmd += ' --p-omic2-metadata %s' % meta2_fp
-            cmd += ' --p-omic1-column %s' % xmmvecs[pair][omic1]['color_variable']
-            cmd += ' --p-omic2-column %s' % xmmvecs[pair][omic2]['color_variable']
+            if omic1 in xmmvecs[pair]:
+                if 'color_variable' in xmmvecs[pair][omic1]:
+                    cmd += ' --p-omic1-column %s' % xmmvecs[pair][omic1]['color_variable']
+            if omic2 in xmmvecs[pair]:
+                if 'color_variable' in xmmvecs[pair][omic2]:
+                    cmd += ' --p-omic2-column %s' % xmmvecs[pair][omic2]['color_variable']
     return cmd
 
 
