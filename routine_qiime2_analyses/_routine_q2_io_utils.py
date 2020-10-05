@@ -1262,6 +1262,7 @@ def get_procrustes_mantel_dicts(p_procrustes_mantel):
 
     procrustes_mantel_subsets = {'ALL': [[]]}
     if 'subsets' in procrustes_mantel_dict:
+        print(procrustes_mantel_dict['subsets'])
         procrustes_mantel_subsets.update(procrustes_mantel_dict['subsets'])
 
     return procrustes_mantel_pairs, procrustes_mantel_subsets
