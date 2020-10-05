@@ -493,6 +493,8 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                     'omic%s_common_fp' % omicn
                 ].tolist()[0]
                 omic_tax_list = []
+                if not isfile(omic_common_fp):
+                    continue
                 # print('2.', omic_common_fp)
                 with open(omic_common_fp) as f:
                     for ldx, line in enumerate(f):
