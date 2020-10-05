@@ -34,7 +34,6 @@ def check_metadata_cases_dict(meta: str, meta_pd: pd.DataFrame,
                 if factors_list[0][0] in ['>', '<']:
                     continue
                 factors_common = set(factors_list) & factors
-                print(factors_common, factors_list, factors)
                 if sorted(factors_common) != sorted(factors_list):
                     factors_print = ', '.join([factor for factor in factors_list[:5]])
                     if len(factors_list) > 5:
