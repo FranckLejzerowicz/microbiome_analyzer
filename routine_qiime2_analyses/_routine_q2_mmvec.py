@@ -22,9 +22,8 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
 )
 from routine_qiime2_analyses._routine_q2_metadata import rename_duplicate_columns
 from routine_qiime2_analyses._routine_q2_cmds import (
-    filter_feature_table,
-    run_export,
-    write_mmvec_cmd
+    filter_feature_table, get_case,
+    run_export, write_mmvec_cmd
 )
 
 
@@ -73,7 +72,7 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame,
 
 def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict, filtering: dict,
                         filt_datasets: dict, common_datasets_done: dict,
-                        input_to_filtered: dict, force: bool) -> (dict, list):
+                        input_to_filtered: dict, force: bool, subsets:dict) -> (dict, list):
     """
     :param i_datasets_folder:
     :param mmvec_pairs:
@@ -87,91 +86,93 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict, filtering: di
         # print("pair, pair_datasets")
         # print(pair, pair_datasets)
 
-        data_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s' % pair)
-        meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
         (omic1_, bool1), (omic2_, bool2) = pair_datasets
         omic1 = input_to_filtered[omic1_]
         omic2 = input_to_filtered[omic2_]
         if (omic1, bool1) not in filt_datasets or (omic2, bool2) not in filt_datasets:
             continue
-
         pair_filtering = filtering[pair]
-        for preval_abund, preval_abund_dats in pair_filtering.items():
-            preval_filt1, abund_filter1 = preval_abund_dats[(omic1, bool1)]
-            preval_filt2, abund_filter2 = preval_abund_dats[(omic2, bool2)]
-            filt1 = '%s_%s' % (preval_filt1, abund_filter1)
-            filt2 = '%s_%s' % (preval_filt2, abund_filter2)
-            if preval_abund not in filt_datasets[(omic1, bool1)] or preval_abund not in filt_datasets[(omic2, bool2)]:
-                continue
-            tsv1, qza1, meta1, meta_pd1, sams1 = filt_datasets[(omic1, bool1)][preval_abund]
-            tsv2, qza2, meta2, meta_pd2, sams2 = filt_datasets[(omic2, bool2)][preval_abund]
-            # print()
-            # print()
-            # print('omic_filt1', omic_filt1)
-            # print('omic_filt2', omic_filt2)
-            # print('tsv1, qza1, meta1')
-            # print(' -', tsv1)
-            # print(' -', qza1)
-            # print(' -', meta1)
-            # print('tsv2, qza2, meta2')
-            # print(' -', tsv2)
-            # print(' -', qza2)
-            # print(' -', meta2)
-            common_sams = sorted(set(sams1) & set(sams2))
-            len_common_sams = len(common_sams)
-            if len_common_sams < 10:
-                print('Not enough samples: %s (%s) vs %s (%s) -> skipping' % (omic1, filt1, omic2, filt2))
-                continue
+        for case_var, case_vals_list in subsets.items():
+            for case_vals in case_vals_list:
+                case = get_case(case_vals, case_var)
+                data_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s/%s' % (pair, case))
+                meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s/%s' % (pair, case))
+                for preval_abund, preval_abund_dats in pair_filtering.items():
+                    preval_filt1, abund_filter1 = preval_abund_dats[(omic1, bool1)]
+                    preval_filt2, abund_filter2 = preval_abund_dats[(omic2, bool2)]
+                    filt1 = '%s_%s' % (preval_filt1, abund_filter1)
+                    filt2 = '%s_%s' % (preval_filt2, abund_filter2)
+                    if (case, preval_abund) not in filt_datasets[(omic1, bool1)] or (case, preval_abund) not in filt_datasets[(omic2, bool2)]:
+                        continue
+                    tsv1, qza1, meta1, meta_pd1, sams1 = filt_datasets[(omic1, bool1)][(case, preval_abund)]
+                    tsv2, qza2, meta2, meta_pd2, sams2 = filt_datasets[(omic2, bool2)][(case, preval_abund)]
+                    # print()
+                    # print()
+                    # print('omic_filt1', omic_filt1)
+                    # print('omic_filt2', omic_filt2)
+                    # print('tsv1, qza1, meta1')
+                    # print(' -', tsv1)
+                    # print(' -', qza1)
+                    # print(' -', meta1)
+                    # print('tsv2, qza2, meta2')
+                    # print(' -', tsv2)
+                    # print(' -', qza2)
+                    # print(' -', meta2)
+                    common_sams = sorted(set(sams1) & set(sams2))
+                    len_common_sams = len(common_sams)
+                    if len_common_sams < 10:
+                        print('Not enough samples: %s (%s) vs %s (%s) -> skipping' % (omic1, filt1, omic2, filt2))
+                        continue
 
-            meta_fp = '%s/meta_%s_%s_%s__%s_%s_%s__%s_%ss.tsv' % (
-                meta_dir, omic1, preval_filt1, abund_filter1,
-                omic2, preval_filt2, abund_filter2,
-                pair, len_common_sams
-            )
-            new_tsv1 = '%s/tab_%s_%s_%s__%s_%ss.tsv' % (
-                data_dir, omic1, preval_filt1,
-                abund_filter1, pair, len_common_sams
-            )
-            new_qza1 = '%s.qza' % splitext(new_tsv1)[0]
-            new_tsv2 = '%s/tab_%s_%s_%s__%s_%ss.tsv' % (
-                data_dir, omic2, preval_filt2,
-                abund_filter2, pair, len_common_sams
-            )
-            new_qza2 = '%s.qza' % splitext(new_tsv2)[0]
+                    meta_fp = '%s/meta_%s_%s_%s__%s_%s_%s__%s_%ss.tsv' % (
+                        meta_dir, omic1, preval_filt1, abund_filter1,
+                        omic2, preval_filt2, abund_filter2,
+                        pair, len_common_sams
+                    )
+                    new_tsv1 = '%s/tab_%s_%s_%s__%s_%ss.tsv' % (
+                        data_dir, omic1, preval_filt1,
+                        abund_filter1, pair, len_common_sams
+                    )
+                    new_qza1 = '%s.qza' % splitext(new_tsv1)[0]
+                    new_tsv2 = '%s/tab_%s_%s_%s__%s_%ss.tsv' % (
+                        data_dir, omic2, preval_filt2,
+                        abund_filter2, pair, len_common_sams
+                    )
+                    new_qza2 = '%s.qza' % splitext(new_tsv2)[0]
 
-            common_datasets.setdefault(pair, []).append(
-                [meta_fp, omic1, omic2, filt1, filt2,
-                 new_tsv1, new_tsv2, new_qza1,
-                 new_qza2, len_common_sams]
-            )
-            meta_subset1 = get_meta_common_sorted(meta_pd1, common_sams)
-            meta_subset2 = get_meta_common_sorted(meta_pd2, common_sams)
-            merge_and_write_metas(meta_subset1, meta_subset2, meta_fp)
-            if meta_fp in common_datasets_done[pair]:
-                print('\t\t\t* [DONE]', pair, ':', omic1, filt1, omic2, filt2)
-                continue
-            if force or not isfile(new_qza1):
-                cmd = filter_feature_table(qza1, new_qza1, meta_fp)
-                common_jobs.append(cmd)
-            if force or not isfile(new_tsv1):
-                cmd = run_export(new_qza1, new_tsv1, 'FeatureTable')
-                common_jobs.append(cmd)
-            if force or not isfile(new_qza2):
-                cmd = filter_feature_table(qza2, new_qza2, meta_fp)
-                common_jobs.append(cmd)
-            if force or not isfile(new_tsv2):
-                cmd = run_export(new_qza2, new_tsv2, 'FeatureTable')
-                common_jobs.append(cmd)
-            print(
-                '\t\t\t* [TODO]', pair, ':',
-                omic1, '[%s: %s]' % (filt1, meta_subset1.shape[0]),
-                omic2, '[%s: %s]' % (filt2, meta_subset2.shape[0]))
+                    common_datasets.setdefault(pair, []).append(
+                        [meta_fp, omic1, omic2, filt1, filt2,
+                         new_tsv1, new_tsv2, new_qza1,
+                         new_qza2, len_common_sams, case]
+                    )
+                    meta_subset1 = get_meta_common_sorted(meta_pd1, common_sams)
+                    meta_subset2 = get_meta_common_sorted(meta_pd2, common_sams)
+                    merge_and_write_metas(meta_subset1, meta_subset2, meta_fp)
+                    if meta_fp in common_datasets_done[pair]:
+                        print('\t\t\t* [DONE]', pair, ':', omic1, filt1, omic2, filt2)
+                        continue
+                    if force or not isfile(new_qza1):
+                        cmd = filter_feature_table(qza1, new_qza1, meta_fp)
+                        common_jobs.append(cmd)
+                    if force or not isfile(new_tsv1):
+                        cmd = run_export(new_qza1, new_tsv1, 'FeatureTable')
+                        common_jobs.append(cmd)
+                    if force or not isfile(new_qza2):
+                        cmd = filter_feature_table(qza2, new_qza2, meta_fp)
+                        common_jobs.append(cmd)
+                    if force or not isfile(new_tsv2):
+                        cmd = run_export(new_qza2, new_tsv2, 'FeatureTable')
+                        common_jobs.append(cmd)
+                    print(
+                        '\t\t\t* [TODO]', pair, ':',
+                        omic1, '[%s: %s]' % (filt1, meta_subset1.shape[0]),
+                        omic2, '[%s: %s]' % (filt2, meta_subset2.shape[0]))
     return common_datasets, common_jobs
 
 
 def check_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
                           mmvec_filtering: dict, filt_datasets_pass: dict,
-                          input_to_filtered: dict) -> (dict, list):
+                          input_to_filtered: dict, mmvec_subsets: dict) -> (dict, list):
     """
     :param i_datasets_folder:
     :param mmvec_pairs:
@@ -182,40 +183,45 @@ def check_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
     for pair, pair_datasets in mmvec_pairs.items():
         pair_filtering = mmvec_filtering[pair]
         common_datasets_pass[pair] = []
-        data_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s' % pair)
-        meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
+        data_dir_ = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s' % pair)
+        meta_dir_ = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
         (omic1_, bool1), (omic2_, bool2) = pair_datasets
         omic1 = input_to_filtered[omic1_]
         omic2 = input_to_filtered[omic2_]
         if (omic1, bool1) not in filt_datasets_pass or (omic2, bool2) not in filt_datasets_pass:
             continue
-        for preval_abund in pair_filtering:
-            preval_filt1, abund_filter1 = pair_filtering[preval_abund][(omic1, bool1)]
-            preval_filt2, abund_filter2 = pair_filtering[preval_abund][(omic2, bool2)]
-            if not filt_datasets_pass[(omic1, bool1)][preval_abund] or not filt_datasets_pass[(omic2, bool2)][preval_abund]:
-                continue
-            filt1 = '_'.join([preval_filt1, abund_filter1])
-            filt2 = '_'.join([preval_filt2, abund_filter2])
-            tsv1, qza1, meta1, meta_pd1, sams1 = filt_datasets_pass[(omic1, bool1)][preval_abund]
-            tsv2, qza2, meta2, meta_pd2, sams2 = filt_datasets_pass[(omic2, bool2)][preval_abund]
-            common_sams = sorted(set(sams1) & set(sams2))
-            if len(common_sams) < 10:
-                print('Not enough samples: %s (%s) vs %s (%s) -> skipping' % (omic1, filt1, omic2, filt2))
-                continue
-            meta_fp = '%s/meta_%s_%s_%s__%s_%s_%s__%s_%ss.tsv' % (
-                meta_dir, omic1, preval_filt1, abund_filter1,
-                omic2, preval_filt2, abund_filter2, pair, len(common_sams)
-            )
-            new_tsv1 = '%s/tab_%s_%s_%s__%s_%ss.tsv' % (
-                data_dir, omic1, preval_filt1, abund_filter1, pair, len(common_sams)
-            )
-            new_qza1 = '%s.qza' % splitext(new_tsv1)[0]
-            new_tsv2 = '%s/tab_%s_%s_%s__%s_%ss.tsv' % (
-                data_dir, omic2, preval_filt2, abund_filter2, pair, len(common_sams)
-            )
-            new_qza2 = '%s.qza' % splitext(new_tsv2)[0]
-            if isfile(meta_fp) and isfile(new_qza1) and isfile(new_qza2):
-                common_datasets_pass[pair].append(meta_fp)
+        for case_var, case_vals_list in mmvec_subsets.items():
+            for case_vals in case_vals_list:
+                case = get_case(case_vals, case_var)
+                data_dir = data_dir_ + '/' + case
+                meta_dir = meta_dir_ + '/' + case
+                for preval_abund in pair_filtering:
+                    preval_filt1, abund_filter1 = pair_filtering[preval_abund][(omic1, bool1)]
+                    preval_filt2, abund_filter2 = pair_filtering[preval_abund][(omic2, bool2)]
+                    if not filt_datasets_pass[(omic1, bool1)][(case, preval_abund)] or not filt_datasets_pass[(omic2, bool2)][(case, preval_abund)]:
+                        continue
+                    filt1 = '_'.join([preval_filt1, abund_filter1])
+                    filt2 = '_'.join([preval_filt2, abund_filter2])
+                    tsv1, qza1, meta1, meta_pd1, sams1 = filt_datasets_pass[(omic1, bool1)][(case, preval_abund)]
+                    tsv2, qza2, meta2, meta_pd2, sams2 = filt_datasets_pass[(omic2, bool2)][(case, preval_abund)]
+                    common_sams = sorted(set(sams1) & set(sams2))
+                    if len(common_sams) < 10:
+                        print('Not enough samples: %s (%s) vs %s (%s) -> skipping' % (omic1, filt1, omic2, filt2))
+                        continue
+                    meta_fp = '%s/meta_%s_%s_%s__%s_%s_%s__%s_%ss.tsv' % (
+                        meta_dir, omic1, preval_filt1, abund_filter1,
+                        omic2, preval_filt2, abund_filter2, pair, len(common_sams)
+                    )
+                    new_tsv1 = '%s/tab_%s_%s_%s__%s_%ss.tsv' % (
+                        data_dir, omic1, preval_filt1, abund_filter1, pair, len(common_sams)
+                    )
+                    new_qza1 = '%s.qza' % splitext(new_tsv1)[0]
+                    new_tsv2 = '%s/tab_%s_%s_%s__%s_%ss.tsv' % (
+                        data_dir, omic2, preval_filt2, abund_filter2, pair, len(common_sams)
+                    )
+                    new_qza2 = '%s.qza' % splitext(new_tsv2)[0]
+                    if isfile(meta_fp) and isfile(new_qza1) and isfile(new_qza2):
+                        common_datasets_pass[pair].append(meta_fp)
     return common_datasets_pass
 
 
@@ -269,7 +275,8 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str,
 def check_filtered_and_common_dataset(
         i_datasets_folder:str, datasets: dict, datasets_filt: dict,
         unique_datasets: list, mmvec_pairs: dict, mmvec_filtering: dict,
-        unique_filterings: dict, analysis: str, input_to_filtered: dict) -> (dict, dict):
+        unique_filterings: dict, analysis: str, input_to_filtered: dict,
+        subsets: dict) -> (dict, dict):
     """
     :param i_datasets_folder:
     :param datasets: list of data_sets.
@@ -288,7 +295,7 @@ def check_filtered_and_common_dataset(
     filt_datasets_pass = check_datasets_filtered(
         i_datasets_folder, datasets, datasets_filt,
         unique_datasets, unique_filterings, analysis,
-        input_to_filtered
+        input_to_filtered, subsets
     )
     filt_datasets_todo = [x for x, y in filt_datasets_pass.items() if not len(y)]
     if len(filt_datasets_todo):
@@ -301,13 +308,14 @@ def check_filtered_and_common_dataset(
         print('\t-> [mmvec] Check common datasets...')
         common_datasets_pass = check_common_datasets(
             i_datasets_folder, mmvec_pairs, mmvec_filtering,
-            filt_datasets_pass, input_to_filtered
+            filt_datasets_pass, input_to_filtered, subsets
         )
         common_datasets_todo = [x for x, y in common_datasets_pass.items() if not len(y)]
         if len(common_datasets_todo):
             print('\t\t--> %s common dataset(s) to prepare:' % len(common_datasets_todo))
             for common_datasets_td in common_datasets_todo:
                 print('\t\t\t*', common_datasets_td)
+
     return filt_datasets_pass, common_datasets_pass
 
 
@@ -319,7 +327,7 @@ def make_filtered_and_common_dataset(
         prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
         analysis: str, filt_raref: str, filt_datasets_done: dict,
         common_datasets_done: dict, input_to_filtered: dict,
-        already_computed: dict) -> (dict, dict):
+        already_computed: dict, subsets: dict) -> (dict, dict):
     """
     :param i_datasets_folder:
     :param datasets: list of data_sets.
@@ -338,7 +346,7 @@ def make_filtered_and_common_dataset(
     filt_datasets, filt_jobs = get_datasets_filtered(
         i_datasets_folder, datasets, datasets_read, datasets_filt,
         unique_datasets, unique_filterings, force, analysis,
-        filt_datasets_done, input_to_filtered, already_computed)
+        filt_datasets_done, input_to_filtered, already_computed, subsets)
 
     common_jobs = []
     common_datasets = {}
@@ -346,7 +354,7 @@ def make_filtered_and_common_dataset(
         print('\t-> [mmvec] Get common datasets...')
         common_datasets, common_jobs = get_common_datasets(
             i_datasets_folder, mmvec_pairs, filtering, filt_datasets,
-            common_datasets_done, input_to_filtered, force)
+            common_datasets_done, input_to_filtered, force, subsets)
 
     pre_jobs = filt_jobs + common_jobs
     if len(pre_jobs):
@@ -406,7 +414,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     filt_datasets_done, common_datasets_done = check_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_filt,
         unique_datasets, mmvec_pairs, mmvec_filtering,
-        unique_filterings, 'mmvec', input_to_filtered)
+        unique_filterings, 'mmvec', input_to_filtered, mmvec_subsets)
 
     already_computed = {}
     job_folder = get_job_folder(i_datasets_folder, 'mmvec')
@@ -415,7 +423,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         unique_datasets, mmvec_pairs, mmvec_filtering, unique_filterings, job_folder,
         force, prjct_nm, qiime_env, chmod, noloc, 'mmvec',
         filt_raref, filt_datasets_done, common_datasets_done,
-        input_to_filtered, already_computed)
+        input_to_filtered, already_computed, mmvec_subsets)
 
     jobs = []
     all_sh_pbs = {}
@@ -427,7 +435,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         if not split:
             out_sh = '%s/chunks/run_mmvec_%s%s.sh' % (job_folder, pair, filt_raref)
 
-        for (meta_fp, omic1, omic2, filt1, filt2, tsv1, tsv2, qza1, qza2, ncommon) in pair_data:
+        for (meta_fp, omic1, omic2, filt1, filt2, tsv1, tsv2, qza1, qza2, ncommon, case) in pair_data:
             train_columns = mmvec_params['train_column']
             n_examples = mmvec_params['n_examples']
             batches = mmvec_params['batches']
@@ -437,8 +445,8 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
             thresh_feats = mmvec_params['thresh_feats']
             latent_dims = mmvec_params['latent_dims']
             if split:
-                out_sh = '%s/chunks/run_mmvec_%s_%s_%s_%s_%s%s.sh' % (job_folder, pair, omic1, filt1,
-                                                                      omic2, filt2, filt_raref)
+                out_sh = '%s/chunks/run_mmvec_%s_%s_%s_%s_%s_%s%s.sh' % (job_folder, pair, case, omic1,
+                                                                         filt1, omic2, filt2, filt_raref)
             for idx, it in enumerate(itertools.product(train_columns, n_examples, batches, learns,
                                                        epochs, priors, thresh_feats, latent_dims)):
                 train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = [str(x) for x in it]
@@ -447,15 +455,15 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                     thresh_feat, latent_dim, train_column,
                     n_example, str(gpu)[0]
                 )
-                odir = get_analysis_folder(i_datasets_folder, 'mmvec/paired/%s/%s_%s__%s_%s/%s' % (
-                    pair, omic1, filt1, omic2, filt2, res_dir
+                odir = get_analysis_folder(i_datasets_folder, 'mmvec/paired/%s/%s/%s_%s__%s_%s/%s' % (
+                    pair, case, omic1, filt1, omic2, filt2, res_dir
                 ))
                 mmvec_outputs.append([
-                    pair, omic1, omic2, filt1, filt2,
+                    pair, case, omic1, omic2, filt1, filt2,
                     ncommon, meta_fp, tsv1, tsv2, qza1, qza2,
                     'mmvec_out__%s' % res_dir, odir
                 ])
-                cur_sh = '%s/run_mmvec_%s_%s_%s_%s%s.sh' % (job_folder2, pair, filt1, filt2, res_dir, filt_raref)
+                cur_sh = '%s/run_mmvec_%s_%s_%s_%s_%s%s.sh' % (job_folder2, pair, case, filt1, filt2, res_dir, filt_raref)
                 all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
                 run_single_mmvec(
                     odir, pair, meta_fp,

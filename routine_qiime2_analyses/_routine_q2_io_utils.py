@@ -19,7 +19,8 @@ from pandas.util import hash_pandas_object
 from os.path import basename, dirname, splitext, isfile, isdir, abspath
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
-from routine_qiime2_analyses._routine_q2_cmds import run_import, run_export
+from routine_qiime2_analyses._routine_q2_cmds import run_import, run_export, get_case, get_new_meta_pd
+from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
 
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
@@ -175,16 +176,10 @@ def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
     return params
 
 
-def get_mmvec_subsets(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
-    mmvec_subsets = {}
+def get_mmvec_subsets(mmvec_pairs: dict, mmvec_dict: dict) -> dict:
+    mmvec_subsets = {'ALL': [[]]}
     if 'subsets' in mmvec_dict:
-        for pair, paired_datasets in mmvec_dict['subsets'].items():
-            n_dats = len(paired_datasets)
-            if n_dats != 2:
-                print('Must be two datasets per mmvec pair (found %s in %s)\n'
-                      'Exiting\n' % (n_dats, p_mmvec_pairs))
-                sys.exit(0)
-            mmvec_subsets[pair] = [(dat[:-1], 1) if dat[-1] == '*' else (dat, 0) for dat in paired_datasets]
+        mmvec_subsets.update(mmvec_dict['subsets'])
     return mmvec_subsets
 
 
@@ -231,7 +226,7 @@ def get_mmvec_dicts(p_mmvec_pairs: str) -> (dict, dict, dict, dict):
     mmvec_pairs = get_mmvec_pairs(p_mmvec_pairs, mmvec_dict)
     mmvec_filtering = get_filtering(p_mmvec_pairs, mmvec_dict, mmvec_pairs, 'mmvec')
     mmvec_params = get_mmvec_params(p_mmvec_pairs, mmvec_dict)
-    mmvec_subsets = get_mmvec_subsets(p_mmvec_pairs, mmvec_dict)
+    mmvec_subsets = get_mmvec_subsets(mmvec_pairs, mmvec_dict)
     return mmvec_pairs, mmvec_filtering, mmvec_params, mmvec_subsets
 
 
@@ -949,7 +944,7 @@ def get_meta_alpha(raref_dir, dat_rt, raref):
 
 
 def get_raref_table(dat_rt: str, raref: str, i_datasets_folder: str,
-                    analysis: str) -> (pd.DataFrame, pd.DataFrame):
+                    analysis: str) -> (pd.DataFrame, pd.DataFrame, str):
     raref_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat_rt)
     tsv_rgx = '%s/tab_%s%s*.tsv' % (raref_dir, dat_rt, raref)
     tsv_globbed = glob.glob(tsv_rgx)
@@ -961,9 +956,9 @@ def get_raref_table(dat_rt: str, raref: str, i_datasets_folder: str,
         sys.exit(0)
     meta = get_meta_alpha(raref_dir, dat_rt, raref)
     if not meta:
-        return pd.DataFrame(), pd.DataFrame()
+        return pd.DataFrame(), pd.DataFrame(), ''
     tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
-    return tsv_pd_, meta_pd_
+    return tsv_pd_, meta_pd_, meta
 
 
 def write_filtered_tsv(tsv_out: str, tsv_pd: pd.DataFrame) -> None:
@@ -984,7 +979,7 @@ def get_datasets_filtered(
         unique_datasets: list, filtering: dict, force: bool,
         analysis: str, filt_datasets_done: dict,
         input_to_filtered: dict,
-        already_computed: dict) -> (dict, dict, list):
+        already_computed: dict, subsets: dict) -> (dict, dict, list):
     """
     Filter the datasets for use in mmvec.
 
@@ -1001,6 +996,7 @@ def get_datasets_filtered(
     filt_jobs = []
     filt_datasets = {}
     for (dat_, mb) in unique_datasets:
+
         if dat_ in datasets_filt:
             dat = datasets_filt[dat_]
         else:
@@ -1012,7 +1008,7 @@ def get_datasets_filtered(
                 raref = '_raref%s' % '__raref'.join(split[-1:])
                 if dat in datasets_filt:
                     dat = datasets_filt[dat]
-                tsv_pd_, meta_pd_ = get_raref_table(dat, raref, i_datasets_folder, analysis)
+                tsv_pd_, meta_pd_, meta = get_raref_table(dat, raref, i_datasets_folder, analysis)
                 if not tsv_pd_.shape[0]:
                     continue
                 dat = '%s_%s' % (dat, raref)
@@ -1020,6 +1016,7 @@ def get_datasets_filtered(
             else:
                 print('%s dataset "%s" not found...' % (analysis, dat))
                 continue
+
         elif not isinstance(datasets_read[dat][0], pd.DataFrame) and datasets_read[dat][0] == 'raref':
             tsv, meta = datasets[dat]
             if not isfile(tsv):
@@ -1037,119 +1034,128 @@ def get_datasets_filtered(
             input_to_filtered[dat_] = dat
 
         dat_filts = {}
-        dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
-        prevals_abunds = filtering[(dat_, mb)]
-        for (preval_abund, preval, abund) in prevals_abunds:
-            # make sure there's no empty row / column
-            tsv_pd = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :].copy()
-            tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
-            if mb:
-                tsv_pd, res = filter_mb_table(preval, abund, tsv_pd)
-            else:
-                tsv_pd, res = filter_non_mb_table(preval, abund, tsv_pd)
+        cases_dict = check_metadata_cases_dict(meta, meta_pd_, dict(subsets), 'songbird')
+        for case_var, case_vals_list in cases_dict.items():
+            for case_vals in case_vals_list:
+                case = get_case(case_vals, case_var)
 
-            rad_out = '%s_%s_%ss' % (dat, preval_abund, tsv_pd.shape[1])
-            tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
-            tsv_qza = '%s.qza' % splitext(tsv_out)[0]
-            meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
+                # THIS IS PASTED FROM SONGBIRD -- JUST CHECK HOW IT IS USED THERE ....!!!
+                case_meta_pd = get_new_meta_pd(meta_pd_, case, case_var, case_vals)
 
-            tsv_hash = hash_pandas_object(tsv_pd).sum()
-
-            if len(filt_datasets_done[(dat, mb)][preval_abund]):
-                print('\t\t\t*', '[DONE]', dat, mb, preval_abund)
-                dat_filts[preval_abund] = filt_datasets_done[(dat, mb)][preval_abund]
-                meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
-            else:
-                if analysis == 'songbird':
-                    meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
-                    tsv_out_mmvec = tsv_out.replace('/songbird/', '/mmvec/')
-                    tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
-                    if isfile(meta_out_mmvec):
-                        meta_out = meta_out_mmvec
-                        # print('USE MMVECs meta')
-                        # print(' - - -', meta_out)
-                        with open(meta_out) as f:
-                            for line in f:
-                                break
-                        meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
-                                              dtype={line.split('\t')[0]: str},
-                                              low_memory=False)
-                        # print(analysis, 'has mmvec', meta_out, meta_pd.shape)
+                dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s/%s' % (analysis, dat, case))
+                prevals_abunds = filtering[(dat_, mb)]
+                for (preval_abund, preval, abund) in prevals_abunds:
+                    # make sure there's no empty row / column
+                    tsv_pd = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :].copy()
+                    tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
+                    tsv_pd = tsv_pd[case_meta_pd.sample_name.tolist()]
+                    if mb:
+                        tsv_pd, res = filter_mb_table(preval, abund, tsv_pd)
                     else:
-                        meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
+                        tsv_pd, res = filter_non_mb_table(preval, abund, tsv_pd)
 
-                    if tsv_hash in already_computed:
-                        drop_keys.setdefault((dat_, mb), []).append((preval_abund, preval, abund))
-                        already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
-                        tsv_out_src = already_computed[tsv_hash][0][0]
-                        # tsv_qza_src = already_computed[tsv_hash][0][1]
-                        # meta_out_src = already_computed[tsv_hash][0][2]
-                        print('\t\t\t  [%s] Skip "%s" (same input as "%s")' % (
-                            analysis, basename(tsv_out), basename(tsv_out_src)))
-                        continue
-                        # already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
-                        # tsv_out_src = already_computed[tsv_hash][0][0]
-                        # tsv_qza_src = already_computed[tsv_hash][0][1]
-                        # meta_out_src = already_computed[tsv_hash][0][2]
-                        # if isfile(tsv_out):
-                        #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
-                        #     filt_jobs.append(cmd)
-                        # # if isfile(tsv_qza):
-                        # #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_qza, tsv_qza_src, tsv_qza)
-                        # #     filt_jobs.append(cmd)
-                        # if isfile(meta_out):
-                        #     cmd = '\nrm %s\nln -s %s %s\n' % (meta_out, meta_out_src, meta_out)
-                        #     filt_jobs.append(cmd)
-                    else:
-                        if isfile(tsv_out_mmvec):
-                            # print(analysis, 'is file: tsv_out_mmvec', tsv_out_mmvec)
-                            # print('USE MMVECs tsv')
-                            # print(' - - -', tsv_out_mmvec)
-                            tsv_out = tsv_out_mmvec
-                        elif force or not isfile(tsv_out):
-                            # print(analysis, 'write: tsv_out', tsv_out)
-                            write_filtered_tsv(tsv_out, tsv_pd)
+                    rad_out = '%s_%s_%ss' % (dat, preval_abund, tsv_pd.shape[1])
+                    tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
+                    tsv_qza = '%s.qza' % splitext(tsv_out)[0]
+                    meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
 
-                        if isfile(tsv_qza_mmvec):
-                            # print('USE MMVECs qza')
-                            # print(' - - -', tsv_qza_mmvec)
-                            # print(analysis, 'is file: tsv_qza_mmvec', tsv_qza_mmvec)
-                            tsv_qza = tsv_qza_mmvec
-                        elif force or not isfile(tsv_qza):
-                            cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
-                            filt_jobs.append(cmd)
-                            # print(analysis, 'write (job): tsv_qza', tsv_qza)
-                        already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
-                else:
-                    meta_pd = write_filtered_meta(meta_out, meta_pd_, tsv_pd)
-                    if tsv_hash in already_computed:
-                        drop_keys.setdefault((dat_, mb), []).append((preval_abund, preval, abund))
-                        already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
-                        tsv_out_src = already_computed[tsv_hash][0][0]
-                        # tsv_qza_src = already_computed[tsv_hash][0][1]
-                        # meta_out_src = already_computed[tsv_hash][0][2]
-                        print('\t\t\t  [%s] Skip "%s" (same input as "%s")' % (
-                            analysis, basename(tsv_out), basename(tsv_out_src)))
-                        continue
-                        # if isfile(tsv_out):
-                        #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
-                        #     filt_jobs.append(cmd)
-                        # # if isfile(tsv_qza):
-                        # #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_qza, tsv_qza_src, tsv_qza)
-                        # #     filt_jobs.append(cmd)
-                        # if isfile(meta_out):
-                        #     cmd = '\nrm %s\nln -s %s %s\n' % (meta_out, meta_out_src, meta_out)
-                        #     filt_jobs.append(cmd)
+                    tsv_hash = hash_pandas_object(tsv_pd).sum()
+
+                    if len(filt_datasets_done[(dat, mb)][(case, preval_abund)]):
+                        print('\t\t\t*', '[DONE]', dat, mb, case, preval_abund)
+                        dat_filts[(case, preval_abund)] = filt_datasets_done[(dat, mb)][(case, preval_abund)]
+                        meta_pd = write_filtered_meta(meta_out, case_meta_pd, tsv_pd)
                     else:
-                        if force or not isfile(tsv_out):
-                            write_filtered_tsv(tsv_out, tsv_pd)
-                        if force or not isfile(tsv_qza):
-                            cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
-                            filt_jobs.append(cmd)
-                        already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
-                print('\t\t\t* [TODO]', dat, mb, preval_abund, ':', tsv_pd.shape)
-                dat_filts[preval_abund] = [
-                    tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()]
+                        if analysis == 'songbird':
+                            meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
+                            tsv_out_mmvec = tsv_out.replace('/songbird/', '/mmvec/')
+                            tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
+                            if isfile(meta_out_mmvec):
+                                meta_out = meta_out_mmvec
+                                # print('USE MMVECs meta')
+                                # print(' - - -', meta_out)
+                                with open(meta_out) as f:
+                                    for line in f:
+                                        break
+                                meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
+                                                      dtype={line.split('\t')[0]: str},
+                                                      low_memory=False)
+                                # print(analysis, 'has mmvec', meta_out, meta_pd.shape)
+                            else:
+                                meta_pd = write_filtered_meta(meta_out, case_meta_pd, tsv_pd)
+
+                            if tsv_hash in already_computed:
+                                drop_keys.setdefault((dat_, mb), []).append((preval_abund, preval, abund))
+                                already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
+                                tsv_out_src = already_computed[tsv_hash][0][0]
+                                # tsv_qza_src = already_computed[tsv_hash][0][1]
+                                # meta_out_src = already_computed[tsv_hash][0][2]
+                                print('\t\t\t  [%s] Skip "%s" (same input as "%s")' % (
+                                    analysis, basename(tsv_out), basename(tsv_out_src)))
+                                continue
+                                # already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
+                                # tsv_out_src = already_computed[tsv_hash][0][0]
+                                # tsv_qza_src = already_computed[tsv_hash][0][1]
+                                # meta_out_src = already_computed[tsv_hash][0][2]
+                                # if isfile(tsv_out):
+                                #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
+                                #     filt_jobs.append(cmd)
+                                # # if isfile(tsv_qza):
+                                # #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_qza, tsv_qza_src, tsv_qza)
+                                # #     filt_jobs.append(cmd)
+                                # if isfile(meta_out):
+                                #     cmd = '\nrm %s\nln -s %s %s\n' % (meta_out, meta_out_src, meta_out)
+                                #     filt_jobs.append(cmd)
+                            else:
+                                if isfile(tsv_out_mmvec):
+                                    # print(analysis, 'is file: tsv_out_mmvec', tsv_out_mmvec)
+                                    # print('USE MMVECs tsv')
+                                    # print(' - - -', tsv_out_mmvec)
+                                    tsv_out = tsv_out_mmvec
+                                elif force or not isfile(tsv_out):
+                                    # print(analysis, 'write: tsv_out', tsv_out)
+                                    write_filtered_tsv(tsv_out, tsv_pd)
+
+                                if isfile(tsv_qza_mmvec):
+                                    # print('USE MMVECs qza')
+                                    # print(' - - -', tsv_qza_mmvec)
+                                    # print(analysis, 'is file: tsv_qza_mmvec', tsv_qza_mmvec)
+                                    tsv_qza = tsv_qza_mmvec
+                                elif force or not isfile(tsv_qza):
+                                    cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
+                                    filt_jobs.append(cmd)
+                                    # print(analysis, 'write (job): tsv_qza', tsv_qza)
+                                already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
+                        else:
+                            meta_pd = write_filtered_meta(meta_out, case_meta_pd, tsv_pd)
+                            if tsv_hash in already_computed:
+                                drop_keys.setdefault((dat_, mb), []).append((preval_abund, preval, abund))
+                                already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])
+                                tsv_out_src = already_computed[tsv_hash][0][0]
+                                # tsv_qza_src = already_computed[tsv_hash][0][1]
+                                # meta_out_src = already_computed[tsv_hash][0][2]
+                                print('\t\t\t  [%s] Skip "%s" (same input as "%s")' % (
+                                    analysis, basename(tsv_out), basename(tsv_out_src)))
+                                continue
+                                # if isfile(tsv_out):
+                                #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_out, tsv_out_src, tsv_out)
+                                #     filt_jobs.append(cmd)
+                                # # if isfile(tsv_qza):
+                                # #     cmd = '\nrm %s\nln -s %s %s\n' % (tsv_qza, tsv_qza_src, tsv_qza)
+                                # #     filt_jobs.append(cmd)
+                                # if isfile(meta_out):
+                                #     cmd = '\nrm %s\nln -s %s %s\n' % (meta_out, meta_out_src, meta_out)
+                                #     filt_jobs.append(cmd)
+                            else:
+                                if force or not isfile(tsv_out):
+                                    write_filtered_tsv(tsv_out, tsv_pd)
+                                if force or not isfile(tsv_qza):
+                                    cmd = run_import(tsv_out, tsv_qza, 'FeatureTable[Frequency]')
+                                    filt_jobs.append(cmd)
+                                already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
+                        print('\t\t\t* [TODO]', dat, mb, case, preval_abund, ':', tsv_pd.shape)
+                        dat_filts[(case, preval_abund)] = [
+                            tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()]
         filt_datasets[(dat, mb)] = dat_filts
     return filt_datasets, filt_jobs
 
@@ -1157,7 +1163,7 @@ def get_datasets_filtered(
 def check_datasets_filtered(
         i_datasets_folder: str, datasets: dict, datasets_filt: dict,
         unique_datasets: list, unique_filterings: dict,
-        analysis: str, input_to_filtered: dict) -> (dict, dict, list):
+        analysis: str, input_to_filtered: dict, subsets: dict) -> (dict, dict, list):
     """
     Filter the datasets for use in mmvec.
 
@@ -1190,43 +1196,46 @@ def check_datasets_filtered(
         input_to_filtered[dat_] = dat
 
         dat_filts_pass = {}
-        dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s' % (analysis, dat))
+        for case_var, case_vals_list in subsets.items():
+            for case_vals in case_vals_list:
+                case = get_case(case_vals, case_var)
+                dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s/%s' % (analysis, dat, case))
 
-        prevals_abunds = unique_filterings[(dat, mb)]
-        for (preval_abund, preval, abund) in prevals_abunds:
-            # make sure there's no empty row / column
-            rad_out = '%s_%s_*s' % (dat, preval_abund)
-            tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
-            tsv_qza = '%s.qza' % splitext(tsv_out)[0]
-            meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
+                prevals_abunds = unique_filterings[(dat, mb)]
+                for (preval_abund, preval, abund) in prevals_abunds:
+                    # make sure there's no empty row / column
+                    rad_out = '%s_%s_*s' % (dat, preval_abund)
+                    tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
+                    tsv_qza = '%s.qza' % splitext(tsv_out)[0]
+                    meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
 
-            if analysis == 'songbird':
-                meta_outs = glob.glob(meta_out.replace('/songbird/', '/mmvec/'))
-                tsv_outs = glob.glob(tsv_out.replace('/songbird/', '/mmvec/'))
-                tsv_qzas = glob.glob(tsv_qza.replace('/songbird/', '/mmvec/'))
-            else:
-                meta_outs = glob.glob(meta_out)
-                tsv_outs = glob.glob(tsv_out)
-                tsv_qzas = glob.glob(tsv_qza)
+                    if analysis == 'songbird':
+                        meta_outs = glob.glob(meta_out.replace('/songbird/', '/mmvec/'))
+                        tsv_outs = glob.glob(tsv_out.replace('/songbird/', '/mmvec/'))
+                        tsv_qzas = glob.glob(tsv_qza.replace('/songbird/', '/mmvec/'))
+                    else:
+                        meta_outs = glob.glob(meta_out)
+                        tsv_outs = glob.glob(tsv_out)
+                        tsv_qzas = glob.glob(tsv_qza)
 
-            if len(meta_outs) == 1 and len(tsv_outs) == 1 and len(tsv_qzas) == 1:
-                meta_out = meta_outs[0]
-                tsv_out = tsv_outs[0]
-                tsv_qza = tsv_qzas[0]
-                with open(meta_out) as f:
-                    for line in f:
-                        sample_name = line.split('\t')[0]
-                        break
-                meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
-                                      dtype={sample_name: str},
-                                      low_memory=False)
-                dat_filts_pass[preval_abund] = [
-                # dat_filts_pass[(preval, abund)] = [
-                    tsv_out, tsv_qza, meta_out,
-                    meta_pd, meta_pd[sample_name].tolist()]
-            else:
-                dat_filts_pass[preval_abund] = []
-                # dat_filts_pass[(preval, abund)] = []
+                    if len(meta_outs) == 1 and len(tsv_outs) == 1 and len(tsv_qzas) == 1:
+                        meta_out = meta_outs[0]
+                        tsv_out = tsv_outs[0]
+                        tsv_qza = tsv_qzas[0]
+                        with open(meta_out) as f:
+                            for line in f:
+                                sample_name = line.split('\t')[0]
+                                break
+                        meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
+                                              dtype={sample_name: str},
+                                              low_memory=False)
+                        dat_filts_pass[(case, preval_abund)] = [
+                        # dat_filts_pass[(preval, abund)] = [
+                            tsv_out, tsv_qza, meta_out,
+                            meta_pd, meta_pd[sample_name].tolist()]
+                    else:
+                        dat_filts_pass[(case, preval_abund)] = []
+                        # dat_filts_pass[(preval, abund)] = []
         filt_datasets_pass[(dat, mb)] = dat_filts_pass
     return filt_datasets_pass
 

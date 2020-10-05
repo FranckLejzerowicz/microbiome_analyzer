@@ -31,6 +31,7 @@ def get_mmvec_outputs(mmvec_outputs: list):
         mmvec_outputs,
         columns=[
              'pair',
+             'case',
              'omic1',
              'omic2',
              'filt1',
@@ -48,10 +49,12 @@ def get_mmvec_outputs(mmvec_outputs: list):
         mmvec_outputs_pd.columns.tolist()[:-1]).unstack()
     mmvec_outputs_pd.columns = mmvec_outputs_pd.columns.droplevel()
     mmvec_outputs_pd.reset_index(inplace=True)
-    mmvec_outputs_pd['omic_filt1'] = mmvec_outputs_pd['omic1'] + '__' + mmvec_outputs_pd['filt1']
-    mmvec_outputs_pd['omic_filt2'] = mmvec_outputs_pd['omic2'] + '__' + mmvec_outputs_pd['filt2']
-    mmvec_outputs_pd['pair_omic_filt1'] = mmvec_outputs_pd['pair'] + '__' + mmvec_outputs_pd['omic_filt1']
-    mmvec_outputs_pd['pair_omic_filt2'] = mmvec_outputs_pd['pair'] + '__' + mmvec_outputs_pd['omic_filt2']
+    mmvec_outputs_pd['omic_case_filt1'] = mmvec_outputs_pd[
+        'omic1'] + '__' + mmvec_outputs_pd['case'] + '__' + mmvec_outputs_pd['filt1']
+    mmvec_outputs_pd['omic_case_filt2'] = mmvec_outputs_pd[
+        'omic2'] + '__' + mmvec_outputs_pd['case'] + '__' + mmvec_outputs_pd['filt2']
+    mmvec_outputs_pd['pair_case_omic_filt1'] = mmvec_outputs_pd['pair'] + '__' + mmvec_outputs_pd['omic_case_filt1']
+    mmvec_outputs_pd['pair_case_omic_filt2'] = mmvec_outputs_pd['pair'] + '__' + mmvec_outputs_pd['omic_case_filt2']
     return mmvec_outputs_pd
 
 
@@ -68,21 +71,35 @@ def get_songbird_outputs(songbird_outputs: list) -> pd.DataFrame:
             'songbird_q2',
             'pair'
         ])
-    songbird_outputs_pd['pair_omic_filt'] = songbird_outputs_pd['pair'] + '__' + songbird_outputs_pd[
-        'songbird_dat'] + '__' + songbird_outputs_pd['songbird_filt']
-    songbird_outputs_pd['case_params'] = songbird_outputs_pd['songbird_case'] + '__' + songbird_outputs_pd[
-        'songbird_parameters']
-    songbird_outputs_pd['case_params_baseline'] = songbird_outputs_pd[
-        'case_params'] + '__' + songbird_outputs_pd['songbird_baseline']
+    songbird_outputs_pd['pair_case_omic_filt'] = songbird_outputs_pd['pair'] + '__' + songbird_outputs_pd[
+        'songbird_case'] + '__' + songbird_outputs_pd['songbird_dat'] + '__' + songbird_outputs_pd['songbird_filt']
+    songbird_outputs_pd['params'] = songbird_outputs_pd['songbird_parameters']
+    songbird_outputs_pd['baseline'] = songbird_outputs_pd['songbird_baseline']
     songbird_outputs_drop_pd = songbird_outputs_pd.drop(
-        columns=['pair', 'songbird_dat', 'songbird_filt', 'songbird_case',
+        columns=['pair', 'songbird_case', 'songbird_dat', 'songbird_filt',
                  'songbird_parameters', 'songbird_baseline'])
 
     songbird_outputs_pd = songbird_outputs_drop_pd[
-        ['case_params', 'pair_omic_filt', 'songbird_fp']
+        ['params', 'pair_case_omic_filt', 'songbird_fp']
     ].drop_duplicates().pivot(
-        columns='case_params', index='pair_omic_filt'
+        columns='params', index='pair_case_omic_filt'
     )
+
+    # songbird_outputs_pd['pair_omic_filt'] = songbird_outputs_pd['pair'] + '__' + songbird_outputs_pd[
+    #     'songbird_dat'] + '__' + songbird_outputs_pd['songbird_filt']
+    # songbird_outputs_pd['case_params'] = songbird_outputs_pd['songbird_case'] + '__' + songbird_outputs_pd[
+    #     'songbird_parameters']
+    # songbird_outputs_pd['case_params_baseline'] = songbird_outputs_pd[
+    #     'case_params'] + '__' + songbird_outputs_pd['songbird_baseline']
+    # songbird_outputs_drop_pd = songbird_outputs_pd.drop(
+    #     columns=['pair', 'songbird_dat', 'songbird_filt', 'songbird_case',
+    #              'songbird_parameters', 'songbird_baseline'])
+    #
+    # songbird_outputs_pd = songbird_outputs_drop_pd[
+    #     ['case_params', 'pair_omic_filt', 'songbird_fp']
+    # ].drop_duplicates().pivot(
+    #     columns='case_params', index='pair_omic_filt'
+    # )
     songbird_outputs_pd.columns = songbird_outputs_pd.columns.droplevel()
     songbird_outputs_pd = songbird_outputs_pd.reset_index()
     return songbird_outputs_pd
@@ -91,17 +108,17 @@ def get_songbird_outputs(songbird_outputs: list) -> pd.DataFrame:
 def merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd):
 
     rename_dic1 = dict((x, '%s_omic1_songbird_common_fp' % x) for x in songbird_outputs_pd.columns)
-    rename_dic1.update({'pair_omic_filt': 'pair_omic_filt1'})
+    rename_dic1.update({'pair_case_omic_filt': 'pair_case_omic_filt1'})
     mmvec_songbird_pd = mmvec_outputs_pd.merge(
         songbird_outputs_pd.rename(columns=rename_dic1),
-        on='pair_omic_filt1',
+        on='pair_case_omic_filt1',
         how='left'
     )
     rename_dic2 = dict((x, '%s_omic2_songbird_common_fp' % x) for x in songbird_outputs_pd.columns)
-    rename_dic2.update({'pair_omic_filt': 'pair_omic_filt2'})
+    rename_dic2.update({'pair_case_omic_filt': 'pair_case_omic_filt2'})
     mmvec_songbird_pd = mmvec_songbird_pd.merge(
         songbird_outputs_pd.rename(columns=rename_dic2),
-        on='pair_omic_filt2',
+        on='pair_case_omic_filt2',
         how='left'
     )
     return mmvec_songbird_pd
@@ -113,6 +130,7 @@ def get_mmvec_res(mmvec_songbird_pd):
     # for ech row of the main table that also contain the mmvec output folders
     for r, row in mmvec_songbird_pd.iterrows():
         pair = row['pair']
+        case = row['case']
         omic1 = row['omic1']
         omic2 = row['omic2']
         filt1 = row['filt1']
@@ -137,13 +155,13 @@ def get_mmvec_res(mmvec_songbird_pd):
             mmvec_out_ranks = mmvec_out + '/ranks.tsv'
             mmvec_out_ordi = mmvec_out + '/ordination.txt'
             if not isfile(mmvec_out_ranks) or not isfile(mmvec_out_ordi):
-                print('[ - mmvec] %s (%s) %s (%s)' % (omic1, filt1, omic2, filt2))
+                print('\t\t[run mmvec first] %s (%s) %s (%s)' % (omic1, filt1, omic2, filt2))
                 continue
 
             # collect the ranks + ordination + songbirds for each pair of omics and parameters
             mmvec_res[
                 (
-                    pair, omic1, omic2,
+                    pair, case, omic1, omic2,
                     filt1, filt2, n_common,
                     mmvec_out_col.replace('mmvec_out__', '')
                 )
@@ -190,7 +208,6 @@ def get_xmmvec_commands(
         ordi_edit_fp, omic1, omic2,
         meta1_fp, meta2_fp, xmmvecs, pair
 ):
-
     cmd = '\n'
     ranks_fp = ordi_edit_fp.replace('ordination.txt', 'ranks.tsv')
     ranks_html = ordi_edit_fp.replace('ordination.txt', 'ranks.html')
@@ -330,7 +347,7 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
     pair_cmds = {}
     for keys, values in mmvec_res.items():
 
-        pair, omic1, omic2, filt1, filt2, sams, mmvec = keys
+        pair, case, omic1, omic2, filt1, filt2, sams, mmvec = keys
         # print()
         # print(pair, omic1, omic2, filt1, filt2, sams)
         # print(mmvec)
@@ -347,15 +364,15 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         omic_metabolite = order_omics[7]
 
         # get differentials
-        meta1, meta_pd1, diff_cols1 = omics_pairs_metas[(pair, omic1, filt1, omic2, filt2)]
-        meta2, meta_pd2, diff_cols2 = omics_pairs_metas[(pair, omic2, filt2, omic1, filt1)]
+        meta1, meta_pd1, diff_cols1 = omics_pairs_metas[(pair, case, omic1, filt1, omic2, filt2)]
+        meta2, meta_pd2, diff_cols2 = omics_pairs_metas[(pair, case, omic2, filt2, omic1, filt1)]
 
         # features are biplot, samples are dots
         ordi = OrdinationResults.read(ordi_fp)
 
         # start = time.time()
         cur_pc_sb_correlations = get_pc_sb_correlations(
-            pair, ordi, omic1, omic2, filt1, filt2,
+            pair, case, ordi, omic1, omic2, filt1, filt2,
             diff_cols1, meta_pd1, diff_cols2, meta_pd2,
             meta_fp,  omic1_common_fp, omic2_common_fp, ranks_fp)
         pc_sb_correlations.append(cur_pc_sb_correlations)
@@ -404,10 +421,10 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
 def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
     omics_pairs_metas = {}
     for omicn in ['1', '2']:
-        pair_omics_filts = ['pair', 'omic1', 'filt1', 'omic2', 'filt2']
+        pair_case_omics_filts = ['pair', 'case', 'omic1', 'filt1', 'omic2', 'filt2']
         all_omic_sb = [x for x in mmvec_songbird_pd.columns if x.endswith('omic%s_songbird_common_fp' % omicn)]
-        omicn_songbirds = mmvec_songbird_pd[(pair_omics_filts + all_omic_sb)].set_index(pair_omics_filts).T.to_dict()
-        for (pair, omic1, filt1, omic2, filt2), sb_head_diff_fp in omicn_songbirds.items():
+        omicn_songbirds = mmvec_songbird_pd[(pair_case_omics_filts + all_omic_sb)].set_index(pair_case_omics_filts).T.to_dict()
+        for (pair, case, omic1, filt1, omic2, filt2), sb_head_diff_fp in omicn_songbirds.items():
             if omicn == '1':
                 omic = omic1
                 omic_ = omic2
@@ -419,7 +436,7 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                 filt = filt2
                 filt_ = filt1
             feats_diff_cols = []
-            cur_mmvec_folder = get_analysis_folder(i_datasets_folder, 'mmvec/metadata/%s' % pair)
+            cur_mmvec_folder = get_analysis_folder(i_datasets_folder, 'mmvec/metadata/%s/%s' % (pair, case))
             omic_diff_list = []
             if len(sb_head_diff_fp):
                 for sb_head, diff_fp in sb_head_diff_fp.items():
@@ -468,6 +485,7 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
             else:
                 omic_common_fp = mmvec_songbird_pd.loc[
                     (mmvec_songbird_pd['pair'] == pair) &
+                    (mmvec_songbird_pd['case'] == case) &
                     (mmvec_songbird_pd['omic1'] == omic1) &
                     (mmvec_songbird_pd['filt1'] == filt1) &
                     (mmvec_songbird_pd['omic2'] == omic2) &
@@ -491,37 +509,37 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
                 if omic_tax_pd.shape[0]:
                     if 'Taxon' in omic_tax_pd.columns:
                         omic_split_taxa_pd = get_split_taxonomy(omic_tax_pd.Taxon.tolist(), True)
-                        print()
-                        print()
-                        print()
-                        print()
-                        print("omic_split_taxa_pd")
-                        print(omic_split_taxa_pd)
-                        print()
-                        print()
-                        print("omic_tax_pd")
-                        print(omic_tax_pd)
+                        # print()
+                        # print()
+                        # print()
+                        # print()
+                        # print("omic_split_taxa_pd")
+                        # print(omic_split_taxa_pd)
+                        # print()
+                        # print()
+                        # print("omic_tax_pd")
+                        # print(omic_tax_pd)
                         omic_tax_pd = pd.concat([omic_tax_pd, omic_split_taxa_pd], axis=1, sort=False)
-                        print("omic_tax_pd ------------")
-                        print(omic_tax_pd)
+                        # print("omic_tax_pd ------------")
+                        # print(omic_tax_pd)
                     omic_songbird_ranks = omic_songbird_ranks.merge(
                         omic_tax_pd, on='Feature ID', how='left').drop_duplicates()
             # print('3.', omic_songbird_ranks.shape)
             meta_omic_fp = '%s/feature_metadata_%s_%s__%s_%s.tsv' % (cur_mmvec_folder, omic, filt, omic_, filt_)
             drop_columns = [col for col in omic_songbird_ranks.columns if omic_songbird_ranks[col].unique().size == 1]
             meta_omic_pd = omic_songbird_ranks.drop(columns=drop_columns)
-            print("------------")
-            print("------------")
-            print("------------")
-            print("------------")
-            print("------------")
-            print("meta_omic_pd")
-            print(meta_omic_pd)
-            print("------------")
-            print("------------")
-            print("------------")
-            print("------------")
-            print("------------")
+            # print("------------")
+            # print("------------")
+            # print("------------")
+            # print("------------")
+            # print("------------")
+            # print("meta_omic_pd")
+            # print(meta_omic_pd)
+            # print("------------")
+            # print("------------")
+            # print("------------")
+            # print("------------")
+            # print("------------")
             # print("meta_omic_pd.columns")
             # print(meta_omic_pd.columns)
             # print("feats_diff_cols")
@@ -530,7 +548,7 @@ def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
             # print('<< written: %s >>' % meta_omic_fp)
             # print('-' *50)
             meta_omic_pd.set_index('Feature ID', inplace=True)
-            omics_pairs_metas[(pair, omic, filt, omic_, filt_)] = (meta_omic_fp, meta_omic_pd, feats_diff_cols)
+            omics_pairs_metas[(pair, case, omic, filt, omic_, filt_)] = (meta_omic_fp, meta_omic_pd, feats_diff_cols)
     return omics_pairs_metas
 
 
@@ -554,7 +572,7 @@ def get_taxo_pds(i_datasets_folder, mmvec_songbird_pd, input_to_filtered):
     return taxo_pds
 
 
-def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
+def get_pc_sb_correlations(pair, case, ordi, omic1, omic2, filt1, filt2,
                            diff_cols1, meta_pd1, diff_cols2, meta_pd2,
                            meta_fp, omic1_common_fp, omic2_common_fp, ranks_fp):
     corrs = []
@@ -568,7 +586,7 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
                 x = x[x.notnull()]
                 y = feats[x.index]
                 r2, p2 = spearmanr(x, y)
-                corrs.append([pair, omic1, filt1, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
+                corrs.append([pair, case, omic1, filt1, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
                               meta_fp,  omic1_common_fp, ranks_fp])
         sams = ordi.samples[r]
         if len(diff_cols2):
@@ -579,10 +597,11 @@ def get_pc_sb_correlations(pair, ordi, omic1, omic2, filt1, filt2,
                 x = x[x.notnull()]
                 y = sams[x.index]
                 r2, p2 = spearmanr(x, y)
-                corrs.append([pair, omic2, filt2, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
+                corrs.append([pair, case, omic2, filt2, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
                               meta_fp, omic2_common_fp, ranks_fp])
     corrs_pd = pd.DataFrame(corrs, columns=[
         'pair',
+        'case',
         'omic',
         'filt',
         'mmvec_pc',
@@ -674,7 +693,8 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
     q2s_pd.to_csv(q2s_fp, index=False, sep='\t')
     print('\t\t==> Written:', q2s_fp)
 
-    omics_pairs = [tuple(x) for x in mmvec_songbird_pd[['omic_filt1', 'omic_filt2']].values.tolist()]
+    omics_pairs = [tuple(x) for x in mmvec_songbird_pd[
+        ['omic_case_filt1', 'omic_case_filt2']].values.tolist()]
 
     print('\t-> [mmbird] Get taxonomy (feature metadata)...', end=' ')
     taxo_pds = get_taxo_pds(
@@ -686,7 +706,7 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
         i_datasets_folder, mmvec_songbird_pd, taxo_pds)
     print('Done.')
 
-    print('\t-> [mmbird] Get res dict...', end=' ')
+    print('\t-> [mmbird] Get res dict...')
     mmvec_res = get_mmvec_res(mmvec_songbird_pd)
     print('Done.')
 

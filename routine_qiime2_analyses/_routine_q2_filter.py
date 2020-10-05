@@ -320,7 +320,7 @@ def explore_filtering(i_datasets_folder, datasets, datasets_read,
                     raref = '_raref%s' % '__raref'.join(split[-1:])
                     if dat in datasets_filt:
                         dat = datasets_filt[dat]
-                    tsv_pd_, meta_pd_ = get_raref_table(dat, raref, i_datasets_folder, 'filter3D')
+                    tsv_pd_, meta_pd_, meta = get_raref_table(dat, raref, i_datasets_folder, 'filter3D')
                     if not tsv_pd_.shape[0]:
                         continue
                     dat = '%s_%s' % (dat, raref)
