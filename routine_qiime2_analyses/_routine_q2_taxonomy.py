@@ -531,4 +531,6 @@ def create_feature_metadata(i_datasets_folder: str, taxonomies: dict, q2_pd: pd.
             print(tax_sbs_pd.columns)
             odir = get_analysis_folder(i_datasets_folder, 'taxonomy/%s' % dat)
             fpo = '%s/tax-sb_%s.tsv' % (odir, dat)
-            tax_sbs_pd.to_csv(fpo, index=True, sep='\t')
+            tax_sbs_pd.reset_index().rename(
+                columns={tax_sbs_pd.reset_index().columns.tolist()[0]: 'Feature ID'}
+            ).to_csv(fpo, index=True, sep='\t')
