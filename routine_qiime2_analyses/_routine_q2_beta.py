@@ -420,8 +420,8 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                                 print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
                                       '\t(if you want alpha diversity as a variable in the PCoA biplot)!')
                                 first_print += 1
-                        for biplot, tsv_tax, _, __ in biplots_taxs_qzas_trees:
-                            biplot2, tsv_tax2 = biplots_taxs_qzas_trees2[:2]
+                        for bdx, (biplot, tsv_tax, _, __) in enumerate(biplots_taxs_qzas_trees):
+                            biplot2, tsv_tax2 = biplots_taxs_qzas_trees2[bdx][:2]
                             out_plot = '%s_emperor_biplot.qzv' % splitext(biplot)[0].replace('/biplot/', '/emperor_biplot/')
                             out_dir = dirname(out_plot)
                             if not os.path.isdir(out_dir):

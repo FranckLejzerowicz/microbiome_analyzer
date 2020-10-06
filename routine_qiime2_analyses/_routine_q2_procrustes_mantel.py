@@ -94,8 +94,11 @@ def run_procrustes(i_datasets_folder: str, p_procrustes: str, betas: dict,
 
     dms_tab = []
     all_sh_pbs = {}
+    print()
+    print()
+    print(betas.keys())
     for pair, (dat1_, dat2_) in procrustes_pairs.items():
-
+        print(pair, dat1_, dat2_)
         if evaluation:
             dat1, dat2 = dat1_, dat2_
             metrics_groups_metas_qzas_dms_trees1 = betas[dat1]
