@@ -519,7 +519,7 @@ def create_feature_metadata(i_datasets_folder: str, taxonomies: dict, q2_pd: pd.
         dat_sbs = []
         for (pair, dat, dataset_filter, subset, model, songbird_filter,
              parameters, baseline, differentials, Pseudo_Q_squared) in dat_q2_pd.values:
-            sb_pd = pd.read_table(differentials, index_col=0)
+            sb_pd = pd.read_table(differentials, index_col=0).iloc[1:]
             sb_pd.columns = ['%s__%s__%s__%s__%s__%s__%s (Q2=%s): %s' % (
                 dat, dataset_filter, subset, model, songbird_filter,
                 parameters, baseline, Pseudo_Q_squared, x
@@ -528,7 +528,7 @@ def create_feature_metadata(i_datasets_folder: str, taxonomies: dict, q2_pd: pd.
         if len(dat_sbs):
             dat_sbs_pd = pd.concat(dat_sbs, axis=1, sort=False)
             tax_sbs_pd = pd.concat([tax_pd, dat_sbs_pd], axis=1, sort=False)
-            print(tax_sbs_pd)
+            print(tax_sbs_pd.columns)
             odir = get_analysis_folder(i_datasets_folder, 'taxonomy/%s' % dat)
             fpo = '%s/tax-sb_%s.tsv' % (odir, dat)
             tax_sbs_pd.to_csv(fpo, index=True, sep='\t')
