@@ -394,8 +394,8 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
     first_print = 0
     run_pbs = '%s/4_run_emperor_biplot%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
-        for dat, raref_meta_biplots_taxs in biplots_d.items():
-            raref_meta_biplots_taxs2 = biplots_d2[dat]
+        for dat, raref_meta_biplots_taxs_qzas_trees in biplots_d.items():
+            raref_meta_biplots_taxs_qzas_trees2 = biplots_d2[dat]
             written = 0
             if dat in taxonomies:
                 method, tax_qza, tax_tsv = taxonomies[dat]
@@ -405,12 +405,12 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
             out_sh = '%s/run_emperor_biplot_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
-                for idx, meta_biplots_taxs in enumerate(raref_meta_biplots_taxs):
-                    meta_biplots_taxs2 = raref_meta_biplots_taxs2[idx]
+                for idx, meta_biplots_taxs_qzas_trees in enumerate(raref_meta_biplots_taxs_qzas_trees):
+                    meta_biplots_taxs_qzas_trees2 = raref_meta_biplots_taxs_qzas_trees2[idx]
                     cur_raref = datasets_rarefs[dat][idx]
                     get_analysis_folder(i_datasets_folder, 'emperor_biplot/%s%s' % (dat, cur_raref))
-                    for meta_, biplots_taxs in meta_biplots_taxs.items():
-                        biplots_taxs2 = meta_biplots_taxs2[meta_]
+                    for meta_, biplots_taxs_qzas_trees in meta_biplots_taxs_qzas_trees.items():
+                        biplots_taxs_qzas_trees2 = meta_biplots_taxs_qzas_trees2[meta_]
                         meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
                         if isfile(meta_alphas):
                             meta = meta_alphas
@@ -420,8 +420,8 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                                 print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
                                       '\t(if you want alpha diversity as a variable in the PCoA biplot)!')
                                 first_print += 1
-                        for biplot, tsv_tax, _, __ in biplots_taxs:
-                            biplot2, tsv_tax2 = biplots_taxs2[:2]
+                        for biplot, tsv_tax, _, __ in biplots_taxs_qzas_trees:
+                            biplot2, tsv_tax2 = biplots_taxs_qzas_trees2[:2]
                             out_plot = '%s_emperor_biplot.qzv' % splitext(biplot)[0].replace('/biplot/', '/emperor_biplot/')
                             out_dir = dirname(out_plot)
                             if not os.path.isdir(out_dir):
@@ -433,7 +433,7 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                             if isfile(tsv_tax2):
                                 write_emperor_biplot(meta, biplot2, out_plot, cur_sh, tsv_tax2, split_taxa_pd)
                             else:
-                                write_emperor_biplot(meta, biplot2, out_plot, cur_sh, tax_tsv2, {})
+                                write_emperor_biplot(meta, biplot2, out_plot, cur_sh, tax_tsv, {})
                             written += 1
                             main_written += 1
             run_xpbs(out_sh, out_pbs, '%s.mprr.bplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
