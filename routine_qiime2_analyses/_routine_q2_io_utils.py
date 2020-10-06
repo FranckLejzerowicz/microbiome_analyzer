@@ -25,6 +25,80 @@ from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_di
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
 
+def summarize_songbirds(i_datasets_folder) -> pd.DataFrame:
+    q2s = []
+    songbird_folder = get_analysis_folder(i_datasets_folder, 'songbird')
+    for root, dirs, files in os.walk(songbird_folder):
+        for fil in files:
+            if fil == 'tensorboard.html':
+                path = root + '/' + fil
+                diff = '%s/differentials.tsv' % dirname(root)
+                root_split = root.split('%s/' % songbird_folder)[-1].split('/')
+                if len(root_split) == 8:
+                    dat, pair, dataset_filter, subset, songbird_filter, parameters, model, baseline = root_split
+                else:
+                    pair = 'no_pair'
+                    dat, dataset_filter, subset, songbird_filter, parameters, model, baseline = root_split
+                with open(path) as f:
+                    for line in f:
+                        if 'Pseudo Q-squared' in line:
+                            q2s.append([
+                                pair, dat, dataset_filter, subset, model, songbird_filter, parameters, baseline, diff,
+                                float(line.split('Pseudo Q-squared:</a></strong> ')[-1].split('<')[0])
+                            ])
+    q2s_pd = pd.DataFrame(q2s, columns=['pair', 'dat', 'dataset_filter', 'subset', 'model',
+                                        'songbird_filter', 'parameters', 'baseline',
+                                        'differentials', 'Pseudo_Q_squared'])
+    return q2s_pd
+
+
+def get_songbird_outputs(songbird_outputs: list) -> pd.DataFrame:
+    songbird_outputs_pd = pd.DataFrame(
+        songbird_outputs,
+        columns=[
+            'songbird_dat',
+            'songbird_filt',
+            'songbird_parameters',
+            'songbird_case',
+            'songbird_fp',
+            'songbird_baseline',
+            'songbird_q2',
+            'pair'
+        ])
+    songbird_outputs_pd['pair_case_omic_filt'] = songbird_outputs_pd['pair'] + '__' + songbird_outputs_pd[
+        'songbird_case'] + '__' + songbird_outputs_pd['songbird_dat'] + '__' + songbird_outputs_pd['songbird_filt']
+    songbird_outputs_pd['params'] = songbird_outputs_pd['songbird_parameters']
+    songbird_outputs_pd['baseline'] = songbird_outputs_pd['songbird_baseline']
+    songbird_outputs_drop_pd = songbird_outputs_pd.drop(
+        columns=['pair', 'songbird_case', 'songbird_dat', 'songbird_filt',
+                 'songbird_parameters', 'songbird_baseline'])
+
+    songbird_outputs_pd = songbird_outputs_drop_pd[
+        ['params', 'pair_case_omic_filt', 'songbird_fp']
+    ].drop_duplicates().pivot(
+        columns='params', index='pair_case_omic_filt'
+    )
+
+    # songbird_outputs_pd['pair_omic_filt'] = songbird_outputs_pd['pair'] + '__' + songbird_outputs_pd[
+    #     'songbird_dat'] + '__' + songbird_outputs_pd['songbird_filt']
+    # songbird_outputs_pd['case_params'] = songbird_outputs_pd['songbird_case'] + '__' + songbird_outputs_pd[
+    #     'songbird_parameters']
+    # songbird_outputs_pd['case_params_baseline'] = songbird_outputs_pd[
+    #     'case_params'] + '__' + songbird_outputs_pd['songbird_baseline']
+    # songbird_outputs_drop_pd = songbird_outputs_pd.drop(
+    #     columns=['pair', 'songbird_dat', 'songbird_filt', 'songbird_case',
+    #              'songbird_parameters', 'songbird_baseline'])
+    #
+    # songbird_outputs_pd = songbird_outputs_drop_pd[
+    #     ['case_params', 'pair_omic_filt', 'songbird_fp']
+    # ].drop_duplicates().pivot(
+    #     columns='case_params', index='pair_omic_filt'
+    # )
+    songbird_outputs_pd.columns = songbird_outputs_pd.columns.droplevel()
+    songbird_outputs_pd = songbird_outputs_pd.reset_index()
+    return songbird_outputs_pd
+
+
 def get_subsets(p_subsets: str) -> dict:
     """
     :param p_subsets: Subsets for alpha diversity.

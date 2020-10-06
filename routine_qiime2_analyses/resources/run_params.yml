@@ -124,6 +124,13 @@ emperor:
   mem_num: "5"
   mem_dim: "gb"
   env: "qiime2-2020.2"
+empress:
+  time: "10"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "5"
+  mem_dim: "gb"
+  env: "qiime2-2020.2"
 biplot:
   time: "10"
   n_nodes: "1"
@@ -132,6 +139,13 @@ biplot:
   mem_dim: "gb"
   env: "qiime2-2020.2"
 emperor_biplot:
+  time: "10"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "20"
+  mem_dim: "gb"
+  env: "qiime2-2020.2"
+empress_biplot:
   time: "10"
   n_nodes: "1"
   n_procs: "1"

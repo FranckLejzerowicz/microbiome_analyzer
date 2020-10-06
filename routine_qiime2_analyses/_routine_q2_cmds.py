@@ -472,7 +472,7 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
 
 
 def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: str,
-                         qza: str, metric: str, cur_sh: TextIO, subset: bool) -> None:
+                         qza: str, metric: str, cur_sh: TextIO, subset: bool) -> str:
     """
     Computes a user-specified beta diversity metric for all pairs of samples
     in a feature table.
@@ -491,6 +491,7 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
     :param cur_sh: writing file handle.
     :return: whether the command is to be skipped or not.
     """
+    tree = ''
     if 'unifrac' in metric:
         # if not datasets_phylo[dat][0] or dat not in trees:
         #     return True
@@ -502,7 +503,8 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
                 cmd += '--i-table %s \\\n' % trees[dat][0]
             else:
                 cmd += '--i-table %s \\\n' % qza
-        cmd += '--i-phylogeny %s \\\n' % trees[dat][1]
+        tree = trees[dat][1]
+        cmd += '--i-phylogeny %s \\\n' % tree
     else:
         cmd = 'qiime diversity beta \\\n'
         cmd += '--i-table %s \\\n' % qza
@@ -511,7 +513,7 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
     cmd += '--o-distance-matrix %s\n' % out_fp
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
-
+    return tree
 
 def write_collapse_taxo(tab_qza: str, tax_qza: str,
                         collapsed_qza: str, collapsed_tsv: str,
@@ -676,6 +678,59 @@ def write_emperor(meta: str, pcoa: str, out_plot: str, cur_sh: TextIO) -> None:
     cmd = 'qiime emperor plot \\\n'
     cmd += '--i-pcoa %s \\\n' % pcoa
     cmd += '--m-metadata-file %s \\\n' % meta
+    cmd += '--o-visualization %s\n' % out_plot
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n\n' % cmd)
+
+
+def write_empress_biplot(sam_meta: str, feat_table: str, feat_meta: str,
+                         biplot: str, tree: str, out_plot: str, cur_sh: TextIO,
+                         taxonomy: str, split_taxa_pd: dict) -> None:
+
+    biplot_txt = '%s.txt' % splitext(biplot)[0]
+    if isfile(biplot_txt):
+        ordi = OrdinationResults.read(biplot_txt)
+        ordi.features = ordi.features.iloc[:, :3]
+        ordi.samples = ordi.samples.iloc[:, :3]
+        ordi.eigvals = ordi.eigvals[:3]
+        ordi.proportion_explained = ordi.proportion_explained[:3]
+        ordi.write(biplot_txt)
+    cmd = run_import(biplot_txt, biplot, "PCoAResults % Properties('biplot')")
+    cur_sh.write('%s\n\n' % cmd)
+
+    cmd = 'qiime empress community-plot \\\n'
+    cmd += '--i-tree %s \\\n' % tree
+    cmd += '--i-pcoa %s \\\n' % biplot
+    cmd += '--i-feature-table %s \\\n' % feat_table
+    cmd += '--m-sample-metadata-file %s\n' % sam_meta
+    cmd += '--o-visualization %s\n' % out_plot
+    # if taxonomy != 'missing':
+    #     tax_tmp = '%s_taxonomy.tmp' % splitext(biplot)[0]
+    #     tax_pd = pd.read_csv(taxonomy, header=0, sep='\t')
+    #     if 'Taxon' in tax_pd:
+    #         tax_pd = pd.concat([tax_pd, split_taxa_pd], axis=1, sort=False)
+    #         tax_pd.to_csv(tax_tmp, index=False, sep='\t')
+    #     else:
+    #         tax_tmp = taxonomy
+    #     cmd += '--m-feature-metadata-file %s \\\n' % tax_tmp
+    cmd += '--m-feature-metadata-file %s \\\n' % feat_meta
+    cmd += '--p-number-of-features 15 \\\n'
+    cmd += '--o-visualization %s\n' % out_plot
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n\n' % cmd)
+
+
+def write_empress(sam_meta: str, feat_table: str, tax_qza: str,
+                  pcoa: str, tree: str, out_plot: str, cur_sh: TextIO) -> None:
+    """
+    """
+    cmd = 'qiime empress community-plot \\\n'
+    cmd += '--i-tree %s \\\n' % tree
+    cmd += '--i-pcoa %s \\\n' % pcoa
+    cmd += '--i-feature-table %s \\\n' % feat_table
+    cmd += '--m-sample-metadata-file %s\n' % sam_meta
+    cmd += '--m-feature-metadata-file %s\n' % tax_qza
+    cmd += '--p-number-of-features 15\n'
     cmd += '--o-visualization %s\n' % out_plot
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)

@@ -18,7 +18,8 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_analysis_folder,
     parse_g2lineage,
     get_raref_tab_meta_pds,
-    get_collapse_taxo
+    get_collapse_taxo,
+    get_songbird_outputs
 )
 from routine_qiime2_analyses._routine_q2_cmds import (
     write_barplots,
@@ -506,3 +507,28 @@ def get_precomputed_taxonomies(i_datasets_folder: str, datasets: dict,
         tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
         if isfile(tax_tsv):
             taxonomies[dat] = ['', tax_qza, tax_tsv]
+
+
+def create_feature_metadata(i_datasets_folder: str, taxonomies: dict, q2_pd: pd.DataFrame):
+    q2_pd = q2_pd.loc[(q2_pd.pair == 'no_pair') & (q2_pd.Pseudo_Q_squared > 0)]
+    for dat, tax_fps in taxonomies.items():
+        tax_tsv = tax_fps[-1]
+        tax_pd = pd.read_table(tax_tsv, index_col=0)
+
+        dat_q2_pd = q2_pd.loc[q2_pd.dat.str.contains(dat)]
+        dat_sbs = []
+        for (pair, dat, dataset_filter, subset, model, songbird_filter,
+             parameters, baseline, differentials, Pseudo_Q_squared) in dat_q2_pd.values:
+            sb_pd = pd.read_table(differentials, index_col=0)
+            sb_pd.columns = ['%s__%s__%s__%s__%s__%s__%s (Q2=%s): %s' % (
+                dat, dataset_filter, subset, model, songbird_filter,
+                parameters, baseline, Pseudo_Q_squared, x
+            ) for x in sb_pd.columns]
+            dat_sbs.append(sb_pd)
+        if len(dat_sbs):
+            dat_sbs_pd = pd.concat(dat_sbs, axis=1, sort=False)
+            tax_sbs_pd = pd.concat([tax_pd, dat_sbs_pd], axis=1, sort=False)
+            print(tax_sbs_pd)
+            odir = get_analysis_folder(i_datasets_folder, 'taxonomy/%s' % dat)
+            fpo = '%s/tax-sb_%s.tsv' % (odir, dat)
+            tax_sbs_pd.to_csv(fpo, index=True, sep='\t')

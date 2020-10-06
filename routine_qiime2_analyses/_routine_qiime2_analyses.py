@@ -10,7 +10,9 @@ import sys
 import subprocess
 from os.path import abspath, exists, isdir, isfile
 
-from routine_qiime2_analyses._routine_q2_io_utils import get_prjct_nm, get_datasets, get_run_params
+from routine_qiime2_analyses._routine_q2_io_utils import (get_prjct_nm, get_datasets,
+                                                          get_run_params, summarize_songbirds,
+                                                          get_analysis_folder)
 from routine_qiime2_analyses._routine_q2_filter import (import_datasets, filter_rare_samples,
                                                         get_filt3d_params, explore_filtering,
                                                         deleted_non_filt)
@@ -18,7 +20,8 @@ from routine_qiime2_analyses._routine_q2_rarefy import run_rarefy
 from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp, get_precomputed_trees
 from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
 from routine_qiime2_analyses._routine_q2_taxonomy import (run_taxonomy, run_barplot, run_collapse,
-                                                          get_taxo_levels, get_precomputed_taxonomies)
+                                                          get_taxo_levels, get_precomputed_taxonomies,
+                                                          create_feature_metadata)
 from routine_qiime2_analyses._routine_q2_doc import run_doc
 from routine_qiime2_analyses._routine_q2_sourcetracking import run_sourcetracking
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
@@ -26,7 +29,8 @@ from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alp
                                                        run_alpha_group_significance)
 from routine_qiime2_analyses._routine_q2_beta import (run_beta, export_beta,
                                                       run_pcoas, run_biplots,
-                                                      run_emperor, run_emperor_biplot)
+                                                      run_emperor, run_emperor_biplot,
+                                                      run_empress, run_empress_biplot)
 from routine_qiime2_analyses._routine_q2_procrustes_mantel import (run_procrustes, run_mantel)
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
 from routine_qiime2_analyses._routine_q2_permanova import run_permanova
@@ -290,25 +294,37 @@ def routine_qiime2_analyses(
             export_beta(i_datasets_folder, betas, datasets_rarefs,
                         force, prjct_nm, qiime_env, chmod, noloc,
                         run_params['export_beta'], filt_raref)
-        if 'emperor' not in p_skip:
+        if 'pcoas' not in p_skip:
             print('(run_pcoas)')
             pcoas = run_pcoas(i_datasets_folder, betas, datasets_rarefs,
                               force, prjct_nm, qiime_env, chmod, noloc,
                               run_params['pcoa'], filt_raref)
-            print('(run_emperor)')
-            run_emperor(i_datasets_folder, pcoas, datasets_rarefs,
-                        prjct_nm, qiime_env, chmod, noloc,
-                        run_params['emperor'], filt_raref)
-        if 'emperor_biplot' not in p_skip:
+            if 'emperor' not in p_skip:
+                print('(run_emperor)')
+                run_emperor(i_datasets_folder, pcoas, datasets_rarefs,
+                            prjct_nm, qiime_env, chmod, noloc,
+                            run_params['emperor'], filt_raref)
+            if 'empress' not in p_skip:
+                print('(run_empress)')
+                run_empress(i_datasets_folder, pcoas, trees, datasets_phylo,
+                            datasets_rarefs, taxonomies, prjct_nm, qiime_env, chmod,
+                            noloc, run_params['empress'], filt_raref)
+        if 'biplot' not in p_skip:
             print('(run_biplots)')
             biplots = run_biplots(i_datasets_folder, betas,
                                   datasets_rarefs,  taxonomies,
                                   force, prjct_nm, qiime_env, chmod, noloc,
                                   run_params['biplot'], filt_raref)
-            print('(run_emperor_biplot)')
-            run_emperor_biplot(i_datasets_folder, biplots, taxonomies, split_taxa_pds,
-                               datasets_rarefs, prjct_nm, qiime_env, chmod,
-                               noloc, run_params['emperor_biplot'], filt_raref)
+            if 'emperor_biplot' not in p_skip:
+                print('(run_emperor_biplot)')
+                run_emperor_biplot(i_datasets_folder, biplots, taxonomies, split_taxa_pds,
+                                   datasets_rarefs, prjct_nm, qiime_env, chmod,
+                                   noloc, run_params['emperor_biplot'], filt_raref)
+            if 'empress_biplot' not in p_skip:
+                print('(run_empress_biplot)')
+                run_empress_biplot(i_datasets_folder, biplots, trees, datasets_phylo, taxonomies,
+                                   split_taxa_pds, datasets_rarefs, prjct_nm, qiime_env, chmod,
+                                   noloc, run_params['empress_biplot'], filt_raref)
 
     # STATS ------------------------------------------------------------------
     if 'beta' not in p_skip and 'deicode' not in p_skip:
@@ -422,6 +438,12 @@ def routine_qiime2_analyses(
                                             input_to_filtered, mmvec_outputs, force, prjct_nm,
                                             qiime_env, chmod, noloc, split,
                                             run_params['songbird'], filt_raref)
+            q2s_pd = summarize_songbirds(i_datasets_folder)
+            out_folder = get_analysis_folder(i_datasets_folder, 'songbird')
+            q2s_fp = '%s/songbird_q2.tsv' % out_folder
+            q2s_pd.to_csv(q2s_fp, index=False, sep='\t')
+            print('\t\t==> Written:', q2s_fp)
+            create_feature_metadata(i_datasets_folder, taxonomies, q2s_pd)
     else:
         print('(skip_songbird)')
 

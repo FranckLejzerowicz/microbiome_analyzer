@@ -8,7 +8,7 @@
 
 import os, sys
 import pandas as pd
-from os.path import basename, isfile, splitext
+from os.path import basename, dirname, isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
@@ -23,7 +23,9 @@ from routine_qiime2_analyses._routine_q2_cmds import (
     write_diversity_pcoa,
     write_diversity_biplot,
     write_emperor,
+    write_empress,
     write_emperor_biplot,
+    write_empress_biplot,
     get_subset,
 )
 from routine_qiime2_analyses._routine_q2_cmds import run_export, run_import
@@ -91,11 +93,15 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                         odir = get_analysis_folder(i_datasets_folder, 'beta%s/%s%s' % (evaluation, dat, cur_raref))
                         out_fp = '%s/%s_%s_DM.qza' % (odir, basename(splitext(qza)[0]), metric)
                         if force or not os.path.isfile(out_fp):
-                            write_diversity_beta(out_fp, datasets_phylo, trees,
-                                                 dat, qza, metric, cur_sh, False)
+                            tree = write_diversity_beta(out_fp, datasets_phylo, trees,
+                                                        dat, qza, metric, cur_sh, False)
                             written += 1
                             main_written += 1
-                        divs[metric][''] = (meta, qza, out_fp)
+                        else:
+                            tree = ''
+                            if 'unifrac' in metric:
+                                tree = trees[dat][1]
+                        divs[metric][''] = (meta, qza, out_fp, tree)
 
                     if beta_subsets and dat in beta_subsets:
                         for subset, subset_regex in beta_subsets[dat].items():
@@ -134,12 +140,17 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                     subset_done.add(tsv_subset)
                                 out_fp = '%s/%s__%s_DM.qza' % (odir, basename(splitext(qza_subset)[0]), metric)
                                 if force or not isfile(out_fp):
-                                    write_diversity_beta(out_fp, {dat: [1, 0]}, trees,
-                                                         dat, qza_subset, metric,
-                                                         cur_sh, True)
+                                    tree = write_diversity_beta(out_fp, {dat: [1, 0]}, trees,
+                                                                dat, qza_subset, metric,
+                                                                cur_sh, True)
                                     written += 1
                                     main_written += 1
-                                divs[metric][subset] = (meta, qza_subset, out_fp)
+                                else:
+                                    tree = ''
+                                    if 'unifrac' in metric:
+                                        tree = trees[dat][1]
+
+                                divs[metric][subset] = (meta, qza_subset, out_fp, tree)
                     betas[dat].append(divs)
             run_xpbs(out_sh, out_pbs, '%s.bt%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
@@ -172,7 +183,7 @@ def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
         for dat, metric_group_meta_dms_ in betas.items():
             for idx, metric_group_meta_dms in enumerate(metric_group_meta_dms_):
                 for metric, group_meta_dms in metric_group_meta_dms.items():
-                    for group, (meta, qza, dm) in group_meta_dms.items():
+                    for group, (meta, qza, dm, tree) in group_meta_dms.items():
                         mat_export = '%s.tsv' % splitext(dm)[0]
                         if force or not isfile(mat_export):
                             cmd = run_export(dm, mat_export, '')
@@ -220,13 +231,13 @@ def run_pcoas(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                     cur_depth = datasets_rarefs[dat][idx]
                     get_analysis_folder(i_datasets_folder, 'pcoa/%s%s' % (dat, cur_depth))
                     for metric, group_meta_dms in metric_groups_metas_dms.items():
-                        for group, (meta, qza, dm) in group_meta_dms.items():
+                        for group, (meta, qza, dm, tree) in group_meta_dms.items():
                             out = '%s_PCoA.qza' % splitext(dm)[0].replace('/beta/', '/pcoa/')
                             out_tsv = '%s.tsv' % splitext(out)[0]
                             out_dir = os.path.dirname(out)
                             if not os.path.isdir(out_dir):
                                 os.makedirs(out_dir)
-                            dat_pcoas.append((meta, out))
+                            dat_pcoas.append((meta, out, qza, tree))
                             if force or not isfile(out) or not isfile(out_tsv):
                                 write_diversity_pcoa(dm, out, out_tsv, cur_sh)
                                 written += 1
@@ -269,7 +280,7 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, datasets_rarefs: dict,
                 for idx, metas_pcoas in enumerate(metas_pcoas_):
                     cur_depth = datasets_rarefs[dat][idx]
                     get_analysis_folder(i_datasets_folder, 'emperor/%s%s' % (dat, cur_depth))
-                    for meta_, pcoa in metas_pcoas:
+                    for meta_, pcoa, _, __ in metas_pcoas:
                         meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
                         if isfile(meta_alphas):
                             meta = meta_alphas
@@ -332,7 +343,7 @@ def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                     cur_depth = datasets_rarefs[dat][idx]
                     get_analysis_folder(i_datasets_folder, 'biplot/%s%s' % (dat, cur_depth))
                     for metric, group_meta_dms in metric_groups_metas_dms.items():
-                        for group, (meta, qza, dm) in group_meta_dms.items():
+                        for group, (meta, qza, dm, tree) in group_meta_dms.items():
                             tsv = '%s.tsv' % splitext(qza)[0]
                             out_pcoa = '%s_PCoA.qza' % splitext(dm)[0].replace('/beta/', '/pcoa/')
                             out_biplot = '%s_biplot.qza' % splitext(dm)[0].replace('/beta/', '/biplot/')
@@ -345,7 +356,7 @@ def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                                                        tax_qza, tsv_tax, cur_sh)
                                 written += 1
                                 main_written += 1
-                            dat_biplots.setdefault(meta, []).append((out_biplot, tsv_tax))
+                            dat_biplots.setdefault(meta, []).append((out_biplot, tsv_tax, qza, tree))
                     biplots_d[dat].append(dat_biplots)
             run_xpbs(out_sh, out_pbs, '%s.bplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
@@ -400,9 +411,9 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
                                 print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
                                       '\t(if you want alpha diversity as a variable in the PCoA biplot)!')
                                 first_print += 1
-                        for biplot, tsv_tax in biplots_taxs:
+                        for biplot, tsv_tax, _, __ in biplots_taxs:
                             out_plot = '%s_emperor_biplot.qzv' % splitext(biplot)[0].replace('/biplot/', '/emperor_biplot/')
-                            out_dir = os.path.dirname(out_plot)
+                            out_dir = dirname(out_plot)
                             if not os.path.isdir(out_dir):
                                 os.makedirs(out_dir)
                             if isfile(tsv_tax):
@@ -417,3 +428,144 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, taxonomies: dict
                      chmod, written, 'single', o, noloc)
     if main_written:
         print_message('# Make EMPeror biplots', 'sh', run_pbs)
+
+
+def run_empress(i_datasets_folder: str, pcoas_d: dict,
+                trees: dict, datasets_phylo: dict, datasets_rarefs: dict,
+                taxonomies: dict, prjct_nm: str, qiime_env: str, chmod: str,
+                noloc: bool, run_params: dict, filt_raref: str) -> None:
+    """
+    Run empress.
+    https://docs.qiime2.org/2019.10/plugins/available/empress/
+
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param pcoas_d: principal coordinates ordinations.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    :param chmod: whether to change permission of output files (default: 775).
+    """
+    job_folder = get_job_folder(i_datasets_folder, 'empress')
+    job_folder2 = get_job_folder(i_datasets_folder, 'empress/chunks')
+
+    main_written = 0
+    first_print = 0
+    run_pbs = '%s/4_run_empress%s.sh' % (job_folder, filt_raref)
+    with open(run_pbs, 'w') as o:
+        for dat, metas_pcoas_qzas_trees_ in pcoas_d.items():
+            written = 0
+            out_sh = '%s/run_empress_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            print(trees)
+            print(datasets_phylo[dat])
+            if not datasets_phylo[dat][0] or dat not in trees:
+                continue
+            with open(out_sh, 'w') as cur_sh:
+                for idx, metas_pcoas_qzas_trees in enumerate(metas_pcoas_qzas_trees_):
+                    cur_depth = datasets_rarefs[dat][idx]
+                    if dat in taxonomies:
+                        _, tax_qza, tax_tsv = taxonomies[dat]
+                        tax_tsv_sb = '%s/tax-sb_%s' % (dirname(tax_tsv), basename(tax_tsv)[4:])
+                        if isfile(tax_tsv_sb):
+                            tax_tsv = tax_tsv_sb
+                            tax_qza = '%s.qza' % splitext(tax_tsv_sb)[0]
+                            if not isfile(tax_qza):
+                                run_import(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
+                    get_analysis_folder(i_datasets_folder, 'empress/%s%s' % (dat, cur_depth))
+                    for meta_, pcoa, qza, tree in metas_pcoas_qzas_trees:
+                        meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
+                        if isfile(meta_alphas):
+                            sam_meta = meta_alphas
+                        else:
+                            sam_meta = meta_
+                            if not first_print:
+                                print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
+                                      '\t(if you want alpha diversity as a variable in the PCoA)!')
+                                first_print += 1
+                        out_plot = '%s_empress.qzv' % splitext(pcoa)[0].replace('/pcoa/', '/empress/')
+                        out_dir = os.path.dirname(out_plot)
+                        if not os.path.isdir(out_dir):
+                            os.makedirs(out_dir)
+                        write_empress(sam_meta, qza, tax_qza, pcoa, tree, out_plot, cur_sh)
+                        written += 1
+                        main_written += 1
+            run_xpbs(out_sh, out_pbs, '%s.mprss.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                     run_params["mem_num"], run_params["mem_dim"],
+                     chmod, written, 'single', o, noloc)
+    if main_written:
+        print_message('# Make empress plots', 'sh', run_pbs)
+
+
+def run_empress_biplot(i_datasets_folder: str, biplots_d: dict,
+                       trees: dict, datasets_phylo: dict, taxonomies: dict,
+                       split_taxa_pds: dict,  datasets_rarefs: dict, prjct_nm: str,
+                       qiime_env: str, chmod: str, noloc: bool, run_params: dict,
+                       filt_raref: str) -> None:
+    """
+    Run empress.
+    https://docs.qiime2.org/2019.10/plugins/available/empress/
+
+    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+    :param biplot_d: principal coordinates ordinations.
+    :param prjct_nm: Nick name for your project.
+    :param qiime_env: qiime2-xxxx.xx conda environment.
+    :param chmod: whether to change permission of output files (defalt: 775).
+    """
+    job_folder = get_job_folder(i_datasets_folder, 'empress_biplot')
+    job_folder2 = get_job_folder(i_datasets_folder, 'empress_biplot/chunks')
+
+    main_written = 0
+    first_print = 0
+    run_pbs = '%s/4_run_empress_biplot%s.sh' % (job_folder, filt_raref)
+    with open(run_pbs, 'w') as o:
+        for dat, raref_meta_biplots_taxs_qzas_trees in biplots_d.items():
+            written = 0
+            if not datasets_phylo[dat][0] or dat not in trees:
+                continue
+            if dat in taxonomies:
+                method, tax_qza, tax_tsv = taxonomies[dat]
+                split_taxa_pd = split_taxa_pds[dat]
+            else:
+                tax_tsv = 'missing'
+            out_sh = '%s/run_empress_biplot_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            with open(out_sh, 'w') as cur_sh:
+                for idx, meta_biplots_taxs_qzas_trees in enumerate(raref_meta_biplots_taxs_qzas_trees):
+                    cur_raref = datasets_rarefs[dat][idx]
+                    get_analysis_folder(i_datasets_folder, 'empress_biplot/%s%s' % (dat, cur_raref))
+                    for meta_, biplots_taxs_qzas_trees in meta_biplots_taxs_qzas_trees.items():
+                        meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
+                        if isfile(meta_alphas):
+                            meta = meta_alphas
+                        else:
+                            meta = meta_
+                            if not first_print:
+                                print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
+                                      '\t(if you want alpha diversity as a variable in the PCoA biplot)!')
+                                first_print += 1
+                        for biplot, tsv_tax, qza, tree in biplots_taxs_qzas_trees:
+                            out_plot = '%s_empress_biplot.qzv' % splitext(biplot)[0].replace('/biplot/', '/empress_biplot/')
+                            out_dir = os.path.dirname(out_plot)
+                            if not os.path.isdir(out_dir):
+                                os.makedirs(out_dir)
+
+                            tax_tsv_sb = '%s/tax-sb_%s' % (dirname(tax_tsv), basename(tax_tsv)[4:])
+                            if isfile(tax_tsv_sb):
+                                tax_tsv = tax_tsv_sb
+                                tax_qza = '%s.qza' % splitext(tax_tsv_sb)[0]
+                                if not isfile(tax_qza):
+                                    run_import(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
+
+                            if isfile(tsv_tax):
+                                write_empress_biplot(meta, qza, tax_qza, biplot, tree, out_plot, cur_sh, tsv_tax, split_taxa_pd)
+                            else:
+                                write_empress_biplot(meta, qza, tax_qza, biplot, tree, out_plot, cur_sh, tax_tsv, {})
+                            written += 1
+                            main_written += 1
+
+            run_xpbs(out_sh, out_pbs, '%s.mprss.bplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                     run_params["mem_num"], run_params["mem_dim"],
+                     chmod, written, 'single', o, noloc)
+    if main_written:
+        print_message('# Make empress biplots', 'sh', run_pbs)

@@ -17,7 +17,8 @@ from scipy.stats import spearmanr
 from skbio.stats.ordination import OrdinationResults
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
-from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder, get_highlights_mmbird
+from routine_qiime2_analyses._routine_q2_io_utils import (
+    get_job_folder, get_analysis_folder, get_highlights_mmbird, get_songbird_outputs)
 from routine_qiime2_analyses._routine_q2_taxonomy import get_split_taxonomy
 
 
@@ -56,53 +57,6 @@ def get_mmvec_outputs(mmvec_outputs: list):
     mmvec_outputs_pd['pair_case_omic_filt1'] = mmvec_outputs_pd['pair'] + '__' + mmvec_outputs_pd['omic_case_filt1']
     mmvec_outputs_pd['pair_case_omic_filt2'] = mmvec_outputs_pd['pair'] + '__' + mmvec_outputs_pd['omic_case_filt2']
     return mmvec_outputs_pd
-
-
-def get_songbird_outputs(songbird_outputs: list) -> pd.DataFrame:
-    songbird_outputs_pd = pd.DataFrame(
-        songbird_outputs,
-        columns=[
-            'songbird_dat',
-            'songbird_filt',
-            'songbird_parameters',
-            'songbird_case',
-            'songbird_fp',
-            'songbird_baseline',
-            'songbird_q2',
-            'pair'
-        ])
-    songbird_outputs_pd['pair_case_omic_filt'] = songbird_outputs_pd['pair'] + '__' + songbird_outputs_pd[
-        'songbird_case'] + '__' + songbird_outputs_pd['songbird_dat'] + '__' + songbird_outputs_pd['songbird_filt']
-    songbird_outputs_pd['params'] = songbird_outputs_pd['songbird_parameters']
-    songbird_outputs_pd['baseline'] = songbird_outputs_pd['songbird_baseline']
-    songbird_outputs_drop_pd = songbird_outputs_pd.drop(
-        columns=['pair', 'songbird_case', 'songbird_dat', 'songbird_filt',
-                 'songbird_parameters', 'songbird_baseline'])
-
-    songbird_outputs_pd = songbird_outputs_drop_pd[
-        ['params', 'pair_case_omic_filt', 'songbird_fp']
-    ].drop_duplicates().pivot(
-        columns='params', index='pair_case_omic_filt'
-    )
-
-    # songbird_outputs_pd['pair_omic_filt'] = songbird_outputs_pd['pair'] + '__' + songbird_outputs_pd[
-    #     'songbird_dat'] + '__' + songbird_outputs_pd['songbird_filt']
-    # songbird_outputs_pd['case_params'] = songbird_outputs_pd['songbird_case'] + '__' + songbird_outputs_pd[
-    #     'songbird_parameters']
-    # songbird_outputs_pd['case_params_baseline'] = songbird_outputs_pd[
-    #     'case_params'] + '__' + songbird_outputs_pd['songbird_baseline']
-    # songbird_outputs_drop_pd = songbird_outputs_pd.drop(
-    #     columns=['pair', 'songbird_dat', 'songbird_filt', 'songbird_case',
-    #              'songbird_parameters', 'songbird_baseline'])
-    #
-    # songbird_outputs_pd = songbird_outputs_drop_pd[
-    #     ['case_params', 'pair_omic_filt', 'songbird_fp']
-    # ].drop_duplicates().pivot(
-    #     columns='case_params', index='pair_omic_filt'
-    # )
-    songbird_outputs_pd.columns = songbird_outputs_pd.columns.droplevel()
-    songbird_outputs_pd = songbird_outputs_pd.reset_index()
-    return songbird_outputs_pd
 
 
 def merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd):
@@ -637,33 +591,6 @@ def get_log_ratios(pc_sb_correlations_pd, correlation_threshold = 0.75):
                 meta_fp, features_fp, ranks_fp = row[-3:]
 
 
-def summarize_songbirds(i_datasets_folder) -> pd.DataFrame:
-    q2s = []
-    songbird_folder = get_analysis_folder(i_datasets_folder, 'songbird')
-    for root, dirs, files in os.walk(songbird_folder):
-        for fil in files:
-            if fil == 'tensorboard.html':
-                path = root + '/' + fil
-                diff = '%s/differentials.tsv' % dirname(root)
-                root_split = root.split('%s/' % songbird_folder)[-1].split('/')
-                if len(root_split) == 8:
-                    dat, pair, dataset_filter, subset, songbird_filter, parameters, model, baseline = root_split
-                else:
-                    pair = 'no_pair'
-                    dat, dataset_filter, subset, songbird_filter, parameters, model, baseline = root_split
-                with open(path) as f:
-                    for line in f:
-                        if 'Pseudo Q-squared' in line:
-                            q2s.append([
-                                pair, dat, dataset_filter, subset, model, songbird_filter, parameters, baseline, diff,
-                                float(line.split('Pseudo Q-squared:</a></strong> ')[-1].split('<')[0])
-                            ])
-    q2s_pd = pd.DataFrame(q2s, columns=['pair', 'dat', 'dataset_filter', 'subset', 'model',
-                                        'songbird_filter', 'parameters', 'baseline',
-                                        'differentials', 'Pseudo_Q_squared'])
-    return q2s_pd
-
-
 def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlights: str,
                p_xmmvec: str, mmvec_outputs: list, force: bool, prjct_nm: str,
                qiime_env: str, chmod: str, noloc: bool, filt_raref: str,
@@ -688,12 +615,6 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
     else:
         mmvec_songbird_pd = mmvec_outputs_pd.copy()
     print('Done.')
-
-    q2s_pd = summarize_songbirds(i_datasets_folder)
-    out_folder = get_analysis_folder(i_datasets_folder, 'songbird')
-    q2s_fp = '%s/songbird_q2.tsv' % out_folder
-    q2s_pd.to_csv(q2s_fp, index=False, sep='\t')
-    print('\t\t==> Written:', q2s_fp)
 
     omics_pairs = [tuple(x) for x in mmvec_songbird_pd[
         ['omic_case_filt1', 'omic_case_filt2']].values.tolist()]
