@@ -21,7 +21,7 @@ from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp, get_
 from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
 from routine_qiime2_analyses._routine_q2_taxonomy import (run_taxonomy, run_barplot, run_collapse,
                                                           get_taxo_levels, get_precomputed_taxonomies,
-                                                          create_feature_metadata)
+                                                          create_songbird_feature_metadata)
 from routine_qiime2_analyses._routine_q2_doc import run_doc
 from routine_qiime2_analyses._routine_q2_sourcetracking import run_sourcetracking
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
@@ -443,7 +443,7 @@ def routine_qiime2_analyses(
             q2s_fp = '%s/songbird_q2.tsv' % out_folder
             q2s_pd.to_csv(q2s_fp, index=False, sep='\t')
             print('\t\t==> Written:', q2s_fp)
-            create_feature_metadata(i_datasets_folder, taxonomies, q2s_pd)
+            create_songbird_feature_metadata(i_datasets_folder, taxonomies, q2s_pd)
     else:
         print('(skip_songbird)')
 
