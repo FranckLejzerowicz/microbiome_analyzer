@@ -455,8 +455,6 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
             written = 0
             out_sh = '%s/run_empress_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
-            print(trees)
-            print(datasets_phylo[dat])
             if not datasets_phylo[dat][0] or dat not in trees:
                 continue
             with open(out_sh, 'w') as cur_sh:
