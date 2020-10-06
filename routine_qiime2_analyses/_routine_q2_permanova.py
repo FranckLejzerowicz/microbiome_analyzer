@@ -99,16 +99,16 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
     all_sh_pbs = {}
     first_print = 0
 
-    for dat, metric_groups_metas_dms_ in betas.items():
+    for dat, metric_groups_metas_qzas_dms_trees_ in betas.items():
         if not split:
             out_sh = '%s/run_beta_group_significance_%s%s.sh' % (job_folder2, dat, filt_raref)
-        for idx, metric_groups_metas_dms in enumerate(metric_groups_metas_dms_):
+        for idx, metric_groups_metas_qzas_dms_trees in enumerate(metric_groups_metas_qzas_dms_trees_):
             cur_depth = datasets_rarefs[dat][idx]
             odir = get_analysis_folder(i_datasets_folder, 'permanova/%s%s' % (dat, cur_depth))
-            for metric, subset_files in metric_groups_metas_dms.items():
+            for metric, subset_files in metric_groups_metas_qzas_dms_trees.items():
                 if split:
                     out_sh = '%s/run_beta_group_significance_%s_%s%s.sh' % (job_folder2, dat, metric, filt_raref)
-                for subset, (meta, qza, mat_qza) in subset_files.items():
+                for subset, (meta, qza, mat_qza, tree) in subset_files.items():
                     if not isfile(mat_qza):
                         if not first_print:
                             print('Beta diversity, distances matrices must be generated already to automatise PERMANOVA\n'

@@ -529,8 +529,8 @@ def create_feature_metadata(i_datasets_folder: str, taxonomies: dict, q2_pd: pd.
             dat_sbs_pd = pd.concat(dat_sbs, axis=1, sort=False)
             tax_sbs_pd = pd.concat([tax_pd, dat_sbs_pd], axis=1, sort=False)
             print(tax_sbs_pd.columns)
-            odir = get_analysis_folder(i_datasets_folder, 'taxonomy/%s' % dat)
-            fpo = '%s/tax-sb_%s.tsv' % (odir, dat)
+            odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % dat)
+            fpo = '%s/sb_%s.tsv' % (odir, dat)
             tax_sbs_pd.reset_index().rename(
                 columns={tax_sbs_pd.reset_index().columns.tolist()[0]: 'Feature ID'}
             ).to_csv(fpo, index=True, sep='\t')

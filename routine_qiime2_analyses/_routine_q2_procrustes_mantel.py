@@ -98,26 +98,26 @@ def run_procrustes(i_datasets_folder: str, p_procrustes: str, betas: dict,
 
         if evaluation:
             dat1, dat2 = dat1_, dat2_
-            metrics_groups_metas_qzas1 = betas[dat1]
-            metrics_groups_metas_qzas2 = betas[dat2]
+            metrics_groups_metas_qzas_dms_trees1 = betas[dat1]
+            metrics_groups_metas_qzas_dms_trees2 = betas[dat2]
         else:
             dat1, raref1 = get_dat_idx(dat1_)
             dat2, raref2 = get_dat_idx(dat2_)
-            metrics_groups_metas_qzas1 = betas[dat1][0]
-            metrics_groups_metas_qzas2 = betas[dat2][0]
+            metrics_groups_metas_qzas_dms_trees1 = betas[dat1][0]
+            metrics_groups_metas_qzas_dms_trees2 = betas[dat2][0]
 
         job_folder2 = get_job_folder(i_datasets_folder, 'procrustes%s/chunks/%s' % (evaluation, pair))
         if not split:
             out_sh = '%s/run_procrustes%s_%s%s.sh' % (job_folder2, evaluation, pair, filt_raref)
 
-        for metric, groups_metas_qzas1 in metrics_groups_metas_qzas1.items():
+        for metric, groups_metas_qzas_dms_trees1 in metrics_groups_metas_qzas_dms_trees1.items():
             if split:
                 out_sh = '%s/run_procrustes%s_%s_%s%s.sh' % (job_folder2, evaluation, pair, metric, filt_raref)
-            if metric not in metrics_groups_metas_qzas2:
+            if metric not in metrics_groups_metas_qzas_dms_trees2:
                 continue
-            groups_metas_qzas2 = metrics_groups_metas_qzas2[metric]
-            groups1 = sorted(groups_metas_qzas1.keys())
-            groups2 = sorted(groups_metas_qzas2.keys())
+            groups_metas_qzas_dms_trees2 = metrics_groups_metas_qzas_dms_trees2[metric]
+            groups1 = sorted(groups_metas_qzas_dms_trees1.keys())
+            groups2 = sorted(groups_metas_qzas_dms_trees2.keys())
             for (group1_, group2_) in itertools.product(*[groups1, groups2]):
                 if group1_ == '':
                     group1 = 'full'
@@ -128,8 +128,8 @@ def run_procrustes(i_datasets_folder: str, p_procrustes: str, betas: dict,
                 else:
                     group2 = group2_
 
-                meta1, qza1, dm1 = groups_metas_qzas1[group1_]
-                meta2, qza2, dm2 = groups_metas_qzas2[group2_]
+                meta1, qza1, dm1, tree1 = groups_metas_qzas_dms_trees1[group1_]
+                meta2, qza2, dm2, tree2 = groups_metas_qzas_dms_trees2[group2_]
 
                 skip = 0
                 if not evaluation:
