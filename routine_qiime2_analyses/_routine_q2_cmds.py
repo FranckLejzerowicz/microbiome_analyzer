@@ -702,8 +702,7 @@ def write_empress_biplot(sam_meta: str, feat_table: str, feat_meta: str,
     cmd += '--i-tree %s \\\n' % tree
     cmd += '--i-pcoa %s \\\n' % biplot
     cmd += '--i-feature-table %s \\\n' % feat_table
-    cmd += '--m-sample-metadata-file %s\n' % sam_meta
-    cmd += '--o-visualization %s\n' % out_plot
+    cmd += '--m-sample-metadata-file %s \\\n' % sam_meta
     # if taxonomy != 'missing':
     #     tax_tmp = '%s_taxonomy.tmp' % splitext(biplot)[0]
     #     tax_pd = pd.read_csv(taxonomy, header=0, sep='\t')
@@ -728,9 +727,9 @@ def write_empress(sam_meta: str, feat_table: str, tax_qza: str,
     cmd += '--i-tree %s \\\n' % tree
     cmd += '--i-pcoa %s \\\n' % pcoa
     cmd += '--i-feature-table %s \\\n' % feat_table
-    cmd += '--m-sample-metadata-file %s\n' % sam_meta
-    cmd += '--m-feature-metadata-file %s\n' % tax_qza
-    cmd += '--p-number-of-features 15\n'
+    cmd += '--m-sample-metadata-file %s \\\n' % sam_meta
+    cmd += '--m-feature-metadata-file %s \\\n' % tax_qza
+    cmd += '--p-number-of-features 15 \\\n'
     cmd += '--o-visualization %s\n' % out_plot
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
