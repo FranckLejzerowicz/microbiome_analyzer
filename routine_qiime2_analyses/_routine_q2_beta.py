@@ -470,22 +470,23 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
                                 run_import(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
                     get_analysis_folder(i_datasets_folder, 'empress/%s%s' % (dat, cur_depth))
                     for meta_, pcoa, qza, tree in metas_pcoas_qzas_trees:
-                        meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
-                        if isfile(meta_alphas):
-                            sam_meta = meta_alphas
-                        else:
-                            sam_meta = meta_
-                            if not first_print:
-                                print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
-                                      '\t(if you want alpha diversity as a variable in the PCoA)!')
-                                first_print += 1
-                        out_plot = '%s_empress.qzv' % splitext(pcoa)[0].replace('/pcoa/', '/empress/')
-                        out_dir = os.path.dirname(out_plot)
-                        if not os.path.isdir(out_dir):
-                            os.makedirs(out_dir)
-                        write_empress(sam_meta, qza, tax_qza, pcoa, tree, out_plot, cur_sh)
-                        written += 1
-                        main_written += 1
+                        if tree:
+                            meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
+                            if isfile(meta_alphas):
+                                sam_meta = meta_alphas
+                            else:
+                                sam_meta = meta_
+                                if not first_print:
+                                    print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
+                                          '\t(if you want alpha diversity as a variable in the PCoA)!')
+                                    first_print += 1
+                            out_plot = '%s_empress.qzv' % splitext(pcoa)[0].replace('/pcoa/', '/empress/')
+                            out_dir = os.path.dirname(out_plot)
+                            if not os.path.isdir(out_dir):
+                                os.makedirs(out_dir)
+                            write_empress(sam_meta, qza, tax_qza, pcoa, tree, out_plot, cur_sh)
+                            written += 1
+                            main_written += 1
             run_xpbs(out_sh, out_pbs, '%s.mprss.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
@@ -542,24 +543,25 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict,
                                       '\t(if you want alpha diversity as a variable in the PCoA biplot)!')
                                 first_print += 1
                         for biplot, tsv_tax, qza, tree in biplots_taxs_qzas_trees:
-                            out_plot = '%s_empress_biplot.qzv' % splitext(biplot)[0].replace('/biplot/', '/empress_biplot/')
-                            out_dir = os.path.dirname(out_plot)
-                            if not os.path.isdir(out_dir):
-                                os.makedirs(out_dir)
+                            if tree:
+                                out_plot = '%s_empress_biplot.qzv' % splitext(biplot)[0].replace('/biplot/', '/empress_biplot/')
+                                out_dir = os.path.dirname(out_plot)
+                                if not os.path.isdir(out_dir):
+                                    os.makedirs(out_dir)
 
-                            tax_tsv_sb = '%s/tax-sb_%s' % (dirname(tax_tsv), basename(tax_tsv)[4:])
-                            if isfile(tax_tsv_sb):
-                                tax_tsv = tax_tsv_sb
-                                tax_qza = '%s.qza' % splitext(tax_tsv_sb)[0]
-                                if not isfile(tax_qza):
-                                    run_import(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
+                                tax_tsv_sb = '%s/tax-sb_%s' % (dirname(tax_tsv), basename(tax_tsv)[4:])
+                                if isfile(tax_tsv_sb):
+                                    tax_tsv = tax_tsv_sb
+                                    tax_qza = '%s.qza' % splitext(tax_tsv_sb)[0]
+                                    if not isfile(tax_qza):
+                                        run_import(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
 
-                            if isfile(tsv_tax):
-                                write_empress_biplot(meta, qza, tax_qza, biplot, tree, out_plot, cur_sh, tsv_tax, split_taxa_pd)
-                            else:
-                                write_empress_biplot(meta, qza, tax_qza, biplot, tree, out_plot, cur_sh, tax_tsv, {})
-                            written += 1
-                            main_written += 1
+                                if isfile(tsv_tax):
+                                    write_empress_biplot(meta, qza, tax_qza, biplot, tree, out_plot, cur_sh, tsv_tax, split_taxa_pd)
+                                else:
+                                    write_empress_biplot(meta, qza, tax_qza, biplot, tree, out_plot, cur_sh, tax_tsv, {})
+                                written += 1
+                                main_written += 1
 
             run_xpbs(out_sh, out_pbs, '%s.mprss.bplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
