@@ -323,8 +323,8 @@ def routine_qiime2_analyses(
             if 'empress_biplot' not in p_skip:
                 print('(run_empress_biplot)')
                 run_empress_biplot(i_datasets_folder, biplots, biplots_raw, trees, datasets_phylo,
-                                   taxonomies, split_taxa_pds, datasets_rarefs, prjct_nm, qiime_env,
-                                   chmod, noloc, run_params['empress_biplot'], filt_raref)
+                                   taxonomies, datasets_rarefs, prjct_nm, qiime_env, chmod,
+                                   noloc, run_params['empress_biplot'], filt_raref)
 
     # STATS ------------------------------------------------------------------
     if 'beta' not in p_skip and 'deicode' not in p_skip:

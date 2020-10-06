@@ -479,7 +479,7 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
                 for idx, metas_pcoas_qzas_trees in enumerate(metas_pcoas_qzas_trees_):
                     cur_depth = datasets_rarefs[dat][idx]
 
-                    odir = get_analysis_folder(i_datasets_folder, 'songbird/%s%s' % (dat, cur_raref))
+                    odir = get_analysis_folder(i_datasets_folder, 'songbird/%s%s' % (dat, cur_depth))
                     sb_qza = '%s/sb_%s.qza' % (odir, dat)
                     if not isfile(sb_qza):
                         sb_qza = ''
@@ -513,9 +513,8 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
 
 def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict,
                        trees: dict, datasets_phylo: dict, taxonomies: dict,
-                       split_taxa_pds: dict,  datasets_rarefs: dict, prjct_nm: str,
-                       qiime_env: str, chmod: str, noloc: bool, run_params: dict,
-                       filt_raref: str) -> None:
+                       datasets_rarefs: dict, prjct_nm: str, qiime_env: str,
+                       chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
     """
     Run empress.
     https://docs.qiime2.org/2019.10/plugins/available/empress/
