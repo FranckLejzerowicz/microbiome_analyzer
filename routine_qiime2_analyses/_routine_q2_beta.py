@@ -471,17 +471,19 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             if not datasets_phylo[dat][0] or dat not in trees:
                 continue
+            tax_qza = ''
+            if dat in taxonomies:
+                method, tax_qza, tax_tsv = taxonomies[dat]
+
             with open(out_sh, 'w') as cur_sh:
                 for idx, metas_pcoas_qzas_trees in enumerate(metas_pcoas_qzas_trees_):
                     cur_depth = datasets_rarefs[dat][idx]
-                    if dat in taxonomies:
-                        _, tax_qza, tax_tsv = taxonomies[dat]
-                        tax_tsv_sb = '%s/tax-sb_%s' % (dirname(tax_tsv), basename(tax_tsv)[4:])
-                        if isfile(tax_tsv_sb):
-                            tax_tsv = tax_tsv_sb
-                            tax_qza = '%s.qza' % splitext(tax_tsv_sb)[0]
-                            if not isfile(tax_qza):
-                                run_import(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
+
+                    odir = get_analysis_folder(i_datasets_folder, 'songbird/%s%s' % (dat, cur_raref))
+                    sb_qza = '%s/sb_%s.qza' % (odir, dat)
+                    if not isfile(sb_qza):
+                        sb_qza = ''
+
                     get_analysis_folder(i_datasets_folder, 'empress/%s%s' % (dat, cur_depth))
                     for meta_, pcoa, qza, tree in metas_pcoas_qzas_trees:
                         if tree:
@@ -498,7 +500,7 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
                             out_dir = os.path.dirname(out_plot)
                             if not os.path.isdir(out_dir):
                                 os.makedirs(out_dir)
-                            write_empress(sam_meta, qza, tax_qza, pcoa, tree, out_plot, cur_sh)
+                            write_empress(sam_meta, qza, tax_qza, sb_qza, pcoa, tree, out_plot, cur_sh)
                             written += 1
                             main_written += 1
             run_xpbs(out_sh, out_pbs, '%s.mprss.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
@@ -539,14 +541,7 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
             tax_qza = ''
             if dat in taxonomies:
                 method, tax_qza, tax_tsv = taxonomies[dat]
-                tax_tsv_sb = '%s/tax-sb_%s' % (dirname(tax_tsv).replace('/taxonomy/', '/songbird/'),
-                                               basename(tax_tsv)[4:])
-                if isfile(tax_tsv_sb):
-                    tax_tsv = tax_tsv_sb
-                    tax_qza = '%s.qza' % splitext(tax_tsv_sb)[0]
-                split_taxa_pd = split_taxa_pds[dat]
-            else:
-                tax_tsv = 'missing'
+
             out_sh = '%s/run_empress_biplot_%s%s.sh' % (job_folder2, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
@@ -554,6 +549,12 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                     meta_biplots_taxs_qzas_trees2 = raref_meta_biplots_taxs_qzas_trees2[idx]
                     cur_raref = datasets_rarefs[dat][idx]
                     get_analysis_folder(i_datasets_folder, 'empress_biplot/%s%s' % (dat, cur_raref))
+
+                    odir = get_analysis_folder(i_datasets_folder, 'songbird/%s%s' % (dat, cur_raref))
+                    sb_qza = '%s/sb_%s.qza' % (odir, dat)
+                    if not isfile(sb_qza):
+                        sb_qza = ''
+
                     for meta_, biplots_taxs_qzas_trees in meta_biplots_taxs_qzas_trees.items():
                         biplots_taxs_qzas_trees2 = meta_biplots_taxs_qzas_trees2[meta_]
                         meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
@@ -575,11 +576,11 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                                 if not os.path.isdir(out_dir):
                                     os.makedirs(out_dir)
                                 if isfile(tsv_tax):
-                                    write_empress_biplot(meta, qza, tax_qza, biplot, tree,
-                                                         out_plot, cur_sh, tsv_tax, split_taxa_pd)
+                                    write_empress_biplot(meta, qza, tax_qza, sb_qza, biplot,
+                                                         tree, out_plot, cur_sh)
                                 else:
-                                    write_empress_biplot(meta, qza, tax_qza, biplot, tree,
-                                                         out_plot, cur_sh, tax_tsv, {})
+                                    write_empress_biplot(meta, qza, tax_qza, sb_qza, biplot,
+                                                         tree, out_plot, cur_sh)
                                 written += 1
                                 main_written += 1
                             if tree2:
@@ -589,11 +590,11 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                                 if not os.path.isdir(out_dir2):
                                     os.makedirs(out_dir2)
                                 if isfile(tsv_tax2):
-                                    write_empress_biplot(meta, qza2, tax_qza, biplot2, tree2,
-                                                         out_plot2, cur_sh, tsv_tax2, split_taxa_pd)
+                                    write_empress_biplot(meta, qza2, tax_qza, sb_qza, biplot2,
+                                                         tree2, out_plot2, cur_sh)
                                 else:
-                                    write_empress_biplot(meta, qza2, tax_qza, biplot2, tree2,
-                                                         out_plot2, cur_sh, tsv_tax2, {})
+                                    write_empress_biplot(meta, qza2, tax_qza, sb_qza, biplot2,
+                                                         tree2, out_plot2, cur_sh)
                                 written += 1
                                 main_written += 1
 

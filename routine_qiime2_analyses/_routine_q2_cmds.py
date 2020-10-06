@@ -691,9 +691,8 @@ def write_emperor(meta: str, pcoa: str, out_plot: str, cur_sh: TextIO) -> None:
     cur_sh.write('%s\n\n' % cmd)
 
 
-def write_empress_biplot(sam_meta: str, feat_table: str, feat_meta: str,
-                         biplot: str, tree: str, out_plot: str, cur_sh: TextIO,
-                         taxonomy: str, split_taxa_pd: dict) -> None:
+def write_empress_biplot(sam_meta: str, feat_table: str, feat_meta: str, sb_qza: str,
+                         biplot: str, tree: str, out_plot: str, cur_sh: TextIO) -> None:
 
     biplot_txt = '%s.txt' % splitext(biplot)[0]
     if isfile(biplot_txt):
@@ -711,23 +710,17 @@ def write_empress_biplot(sam_meta: str, feat_table: str, feat_meta: str,
     cmd += '--i-pcoa %s \\\n' % biplot
     cmd += '--i-feature-table %s \\\n' % feat_table
     cmd += '--m-sample-metadata-file %s \\\n' % sam_meta
-    # if taxonomy != 'missing':
-    #     tax_tmp = '%s_taxonomy.tmp' % splitext(biplot)[0]
-    #     tax_pd = pd.read_csv(taxonomy, header=0, sep='\t')
-    #     if 'Taxon' in tax_pd:
-    #         tax_pd = pd.concat([tax_pd, split_taxa_pd], axis=1, sort=False)
-    #         tax_pd.to_csv(tax_tmp, index=False, sep='\t')
-    #     else:
-    #         tax_tmp = taxonomy
-    #     cmd += '--m-feature-metadata-file %s \\\n' % tax_tmp
-    cmd += '--m-feature-metadata-file %s \\\n' % feat_meta
+    if feat_meta:
+        cmd += '--m-feature-metadata-file %s \\\n' % feat_meta
+    if sb_qza:
+        cmd += '--m-feature-metadata-file %s \\\n' % sb_qza
     cmd += '--p-number-of-features 15 \\\n'
     cmd += '--o-visualization %s\n' % out_plot
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 
 
-def write_empress(sam_meta: str, feat_table: str, tax_qza: str,
+def write_empress(sam_meta: str, feat_table: str, tax_qza: str, sb_qza: str,
                   pcoa: str, tree: str, out_plot: str, cur_sh: TextIO) -> None:
     """
     """
@@ -736,7 +729,10 @@ def write_empress(sam_meta: str, feat_table: str, tax_qza: str,
     cmd += '--i-pcoa %s \\\n' % pcoa
     cmd += '--i-feature-table %s \\\n' % feat_table
     cmd += '--m-sample-metadata-file %s \\\n' % sam_meta
-    cmd += '--m-feature-metadata-file %s \\\n' % tax_qza
+    if tax_qza:
+        cmd += '--m-feature-metadata-file %s \\\n' % tax_qza
+    if sb_qza:
+        cmd += '--m-feature-metadata-file %s \\\n' % sb_qza
     cmd += '--p-number-of-features 15 \\\n'
     cmd += '--o-visualization %s\n' % out_plot
     cur_sh.write('echo "%s"\n' % cmd)
