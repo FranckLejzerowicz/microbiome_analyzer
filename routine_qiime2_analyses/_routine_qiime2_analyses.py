@@ -311,20 +311,20 @@ def routine_qiime2_analyses(
                             noloc, run_params['empress'], filt_raref)
         if 'biplot' not in p_skip:
             print('(run_biplots)')
-            biplots = run_biplots(i_datasets_folder, betas,
-                                  datasets_rarefs,  taxonomies,
-                                  force, prjct_nm, qiime_env, chmod, noloc,
-                                  run_params['biplot'], filt_raref)
+            biplots, biplots_raw = run_biplots(i_datasets_folder, betas,
+                                               datasets_rarefs,  taxonomies,
+                                               force, prjct_nm, qiime_env, chmod, noloc,
+                                               run_params['biplot'], filt_raref)
             if 'emperor_biplot' not in p_skip:
                 print('(run_emperor_biplot)')
-                run_emperor_biplot(i_datasets_folder, biplots, taxonomies, split_taxa_pds,
-                                   datasets_rarefs, prjct_nm, qiime_env, chmod,
+                run_emperor_biplot(i_datasets_folder, biplots, biplots_raw, taxonomies,
+                                   split_taxa_pds, datasets_rarefs, prjct_nm, qiime_env, chmod,
                                    noloc, run_params['emperor_biplot'], filt_raref)
             if 'empress_biplot' not in p_skip:
                 print('(run_empress_biplot)')
-                run_empress_biplot(i_datasets_folder, biplots, trees, datasets_phylo, taxonomies,
-                                   split_taxa_pds, datasets_rarefs, prjct_nm, qiime_env, chmod,
-                                   noloc, run_params['empress_biplot'], filt_raref)
+                run_empress_biplot(i_datasets_folder, biplots, biplots_raw, trees, datasets_phylo,
+                                   taxonomies, split_taxa_pds, datasets_rarefs, prjct_nm, qiime_env,
+                                   chmod, noloc, run_params['empress_biplot'], filt_raref)
 
     # STATS ------------------------------------------------------------------
     if 'beta' not in p_skip and 'deicode' not in p_skip:

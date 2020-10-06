@@ -567,8 +567,9 @@ def write_diversity_pcoa(DM: str, out_pcoa: str, out_tsv: str, cur_sh: TextIO) -
 
 
 def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str,
-                           out_biplot: str, tax_qza: str,
-                           tsv_tax: str, cur_sh: TextIO) -> None:
+                           out_biplot: str, out_biplot2: str,
+                           tax_qza: str, tsv_tax: str,
+                           cur_sh: TextIO) -> None:
     """
     pcoa-biplot: Principal Coordinate Analysis Biplot.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa-biplot/
@@ -619,6 +620,13 @@ def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str,
 
     out_biplot_txt = '%s.txt' % splitext(out_biplot)[0]
     cmd = run_export(out_biplot, out_biplot_txt, 'biplot')
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n\n' % cmd)
+
+    cmd = 'qiime diversity pcoa-biplot \\\n'
+    cmd += '--i-pcoa %s \\\n' % out_pcoa
+    cmd += '--i-features %s \\\n' % qza
+    cmd += '--o-biplot %s\n' % out_biplot2
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 
