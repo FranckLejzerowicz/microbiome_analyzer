@@ -509,12 +509,9 @@ def get_precomputed_taxonomies(i_datasets_folder: str, datasets: dict,
             taxonomies[dat] = ['', tax_qza, tax_tsv]
 
 
-def create_feature_metadata(i_datasets_folder: str, taxonomies: dict, q2_pd: pd.DataFrame):
+def create_songbird_feature_metadata(i_datasets_folder: str, taxonomies: dict, q2_pd: pd.DataFrame):
     q2_pd = q2_pd.loc[(q2_pd.pair == 'no_pair') & (q2_pd.Pseudo_Q_squared > 0)]
-    for dat, tax_fps in taxonomies.items():
-        tax_tsv = tax_fps[-1]
-        tax_pd = pd.read_table(tax_tsv, index_col=0)
-
+    for dat in taxonomies.keys():
         dat_q2_pd = q2_pd.loc[q2_pd.dat.str.contains(dat)]
         dat_sbs = []
         for (pair, dat, dataset_filter, subset, model, songbird_filter,
@@ -527,10 +524,10 @@ def create_feature_metadata(i_datasets_folder: str, taxonomies: dict, q2_pd: pd.
             dat_sbs.append(sb_pd)
         if len(dat_sbs):
             dat_sbs_pd = pd.concat(dat_sbs, axis=1, sort=False)
-            tax_sbs_pd = pd.concat([tax_pd, dat_sbs_pd], axis=1, sort=False)
-            print(tax_sbs_pd.columns)
             odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % dat)
-            fpo = '%s/sb_%s.tsv' % (odir, dat)
-            tax_sbs_pd.reset_index().rename(
-                columns={tax_sbs_pd.reset_index().columns.tolist()[0]: 'Feature ID'}
-            ).to_csv(fpo, index=True, sep='\t')
+            fpo_tsv = '%s/sb_%s.tsv' % (odir, dat)
+            fpo_qza = '%s/sb_%s.qza' % (odir, dat)
+            dat_sbs_pd.reset_index().rename(
+                columns={dat_sbs_pd.reset_index().columns.tolist()[0]: 'Feature ID'}
+            ).to_csv(fpo_tsv, index=True, sep='\t')
+            run_import(fpo_tsv, fpo_qza, 'FeatureData[Differential]')
