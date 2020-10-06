@@ -368,8 +368,7 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         )
         pair_cmds.setdefault(pair, []).append(cmd)
 
-    pc_sb_correlations_pd = pd.concat(pc_sb_correlations)
-    return pair_cmds, pc_sb_correlations_pd
+    return pair_cmds, pc_sb_correlations
 
 
 def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
@@ -636,17 +635,19 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
     print('\t-> [mmbird] Get commands...')
     highlights = get_highlights_mmbird(p_mmvec_highlights)
     xmmvecs = get_highlights_mmbird(p_xmmvec)
-    pair_cmds, pc_sb_correlations_pd = get_pair_cmds(
+    pair_cmds, pc_sb_correlations = get_pair_cmds(
         mmvec_res, omics_pairs_metas, omics_pairs, force, highlights, xmmvecs)
 
-    out_folder = get_analysis_folder(i_datasets_folder, 'mmbird')
-    out_correlations = '%s/pc_vs_songbird_correlations.tsv' % out_folder
-    if pc_sb_correlations_pd.shape[0]:
-        pc_sb_correlations_pd.to_csv(out_correlations, index=False, sep='\t')
-        print('\t\t==> Written:', out_correlations)
-    else:
-        print('\t\t==> No good songbird model to make correlations with mmvec PCs...')
-    # get_log_ratios(pc_sb_correlations_pd)
+    if len(pc_sb_correlations):
+        out_folder = get_analysis_folder(i_datasets_folder, 'mmbird')
+        out_correlations = '%s/pc_vs_songbird_correlations.tsv' % out_folder
+        pc_sb_correlations_pd = pd.concat(pc_sb_correlations)
+        if pc_sb_correlations_pd.shape[0]:
+            pc_sb_correlations_pd.to_csv(out_correlations, index=False, sep='\t')
+            print('\t\t==> Written:', out_correlations)
+        else:
+            print('\t\t==> No good songbird model to make correlations with mmvec PCs...')
+        # get_log_ratios(pc_sb_correlations_pd)
 
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
     job_folder2 = get_job_folder(i_datasets_folder, 'mmbird/chunks')
@@ -666,4 +667,3 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
                      chmod, written, 'single', o, noloc)
     if written:
         print_message('# Generate mmvec biplot with songbird models', 'sh', run_pbs)
-    return pc_sb_correlations_pd
