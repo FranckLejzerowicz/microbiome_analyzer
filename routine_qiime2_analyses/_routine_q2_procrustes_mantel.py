@@ -40,38 +40,57 @@ def run_single_procrustes_mantel(procrustes_mantel: str, odir: str, dm1: str, dm
         os.remove(cur_sh)
 
 
+def get_dat_idx(dat__, evaluation, datasets_filt, filt_only) -> (str, str):
+    if evaluation:
+        return dat__, ''
+    else:
+        if '__raref' in dat__:
+            split = dat__.split('__raref')
+            dat_ = '__raref'.join(split[:-1])
+            raref = '_raref%s' % '__raref'.join(split[-1:])
+        else:
+            dat_ = dat__
+            raref = ''
 
-def get_dat_idx(dat_) -> (str, str):
-    if '__raref' in dat_:
-        split = dat_.split('__raref')
-        dat = '__raref'.join(split[:-1])
-        raref = '_raref%s' % '__raref'.join(split[-1:])
+    if dat_ in datasets_filt and filt_only:
+        dat = datasets_filt[dat_]
     else:
         dat = dat_
-        raref = ''
     return dat, raref
 
 
-def get_dm_meta(dat, dm, meta, raref, metric, i_datasets_folder, skip):
-    dm_rgx = '%s%s*/*%s_DM.qza' % (dirname(dm), raref, metric)
-    dm_rgx_glob = glob.glob(dm_rgx)
-    if len(dm_rgx_glob) >= 1:
-        dm = sorted(dm_rgx_glob)[0]
-    else:
-        skip += 1
-    meta_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat)
-    meta_rgx = '%s/meta_%s%s*tsv' % (meta_dir, dat, raref)
-    meta_rgx_glob = glob.glob(meta_rgx)
-    if len(meta_rgx_glob) >= 1:
-        meta = sorted(meta_rgx_glob)[0]
-    else:
-        skip += 1
-    return dm, meta
+# def get_dm_meta(dat, dm, meta, raref, metric, i_datasets_folder, skip):
+#     dm_rgx = '%s%s*/*%s_DM.qza' % (dirname(dm), raref, metric)
+#     dm_rgx_glob = glob.glob(dm_rgx)
+#     if len(dm_rgx_glob) >= 1:
+#         dm = sorted(dm_rgx_glob)[0]
+#     else:
+#         skip += 1
+#     meta_dir = get_analysis_folder(i_datasets_folder, 'rarefy/%s' % dat)
+#     meta_rgx = '%s/meta_%s%s*tsv' % (meta_dir, dat, raref)
+#     meta_rgx_glob = glob.glob(meta_rgx)
+#     if len(meta_rgx_glob) >= 1:
+#         meta = sorted(meta_rgx_glob)[0]
+#     else:
+#         skip += 1
+#     return dm, meta
 
 
-def run_procrustes(i_datasets_folder: str, p_procrustes: str, betas: dict,
-                   force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-                   noloc: bool, split: bool, run_params: dict, filt_raref: str,
+def get_betas_raref(betas, dat, raref):
+    if raref:
+        if raref == '_raref':
+            metrics_groups_metas_qzas_dms_trees = betas[dat][1]
+        else:
+            metrics_groups_metas_qzas_dms_trees = [
+                x for x in betas[dat] if x[list(x.keys())[0]][''][0].endswith('%s.tsv' % raref)][0]
+    else:
+        metrics_groups_metas_qzas_dms_trees = betas[dat][0]
+    return metrics_groups_metas_qzas_dms_trees
+
+
+def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: str,
+                   betas: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
+                   noloc: bool, split: bool, run_params: dict, filt_raref: str, filt_only: bool,
                    eval_depths: dict) -> None:
     """
     """
@@ -94,20 +113,23 @@ def run_procrustes(i_datasets_folder: str, p_procrustes: str, betas: dict,
 
     dms_tab = []
     all_sh_pbs = {}
-    print()
-    print()
-    print(betas.keys())
     for pair, (dat1_, dat2_) in procrustes_pairs.items():
-        print(pair, dat1_, dat2_)
+
+        dat1, raref1 = get_dat_idx(dat1_, evaluation, datasets_filt, filt_only)
+        dat2, raref2 = get_dat_idx(dat2_, evaluation, datasets_filt, filt_only)
+
         if evaluation:
-            dat1, dat2 = dat1_, dat2_
             metrics_groups_metas_qzas_dms_trees1 = betas[dat1]
             metrics_groups_metas_qzas_dms_trees2 = betas[dat2]
         else:
-            dat1, raref1 = get_dat_idx(dat1_)
-            dat2, raref2 = get_dat_idx(dat2_)
-            metrics_groups_metas_qzas_dms_trees1 = betas[dat1][0]
-            metrics_groups_metas_qzas_dms_trees2 = betas[dat2][0]
+            metrics_groups_metas_qzas_dms_trees1 = get_betas_raref(betas, dat1, raref1)
+            if not metrics_groups_metas_qzas_dms_trees1:
+                print('[procrustes] no corresponding data for %s' % dat1_)
+                continue
+            metrics_groups_metas_qzas_dms_trees2 = get_betas_raref(betas, dat2, raref2)
+            if not metrics_groups_metas_qzas_dms_trees2:
+                print('[procrustes] no corresponding data for %s' % dat2_)
+                continue
 
         job_folder2 = get_job_folder(i_datasets_folder, 'procrustes%s/chunks/%s' % (evaluation, pair))
         if not split:
@@ -134,15 +156,15 @@ def run_procrustes(i_datasets_folder: str, p_procrustes: str, betas: dict,
                 meta1, qza1, dm1, tree1 = groups_metas_qzas_dms_trees1[group1_]
                 meta2, qza2, dm2, tree2 = groups_metas_qzas_dms_trees2[group2_]
 
-                skip = 0
-                if not evaluation:
-                    if '__raref' in dat1_:
-                        dm1, meta1 = get_dm_meta(dat1, dm1, meta1, raref1, metric, i_datasets_folder, skip)
-                    if '__raref' in dat2_:
-                        dm2, meta2 = get_dm_meta(dat2, dm2, meta2, raref2, metric, i_datasets_folder, skip)
-                if skip:
-                    print('[Proscustes] One desired rarefaction depth not run (pair %s)' % pair)
-                    continue
+                # skip = 0
+                # if not evaluation:
+                #     if '__raref' in dat1_:
+                #         dm1, meta1 = get_dm_meta(dat1, dm1, meta1, raref1, metric, i_datasets_folder, skip)
+                #     if '__raref' in dat2_:
+                #         dm2, meta2 = get_dm_meta(dat2, dm2, meta2, raref2, metric, i_datasets_folder, skip)
+                # if skip:
+                #     print('[Proscustes] One desired rarefaction depth not run (pair %s)' % pair)
+                #     continue
 
                 meta_pd1 = read_meta_pd(meta1)
                 meta_pd2 = read_meta_pd(meta2)
@@ -249,9 +271,9 @@ def run_procrustes(i_datasets_folder: str, p_procrustes: str, betas: dict,
         print('%s exists (remove to re-run)' % out_R)
 
 
-def run_mantel(i_datasets_folder: str, p_mantel: str, betas: dict,
-               force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-               noloc: bool, split: bool, run_params: dict, filt_raref: str,
+def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,
+               betas: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
+               noloc: bool, split: bool, run_params: dict, filt_raref: str, filt_only: bool,
                eval_depths: dict) -> None:
     """
     """
@@ -275,28 +297,34 @@ def run_mantel(i_datasets_folder: str, p_mantel: str, betas: dict,
     all_sh_pbs = {}
     for pair, (dat1_, dat2_) in mantel_pairs.items():
 
+        dat1, raref1 = get_dat_idx(dat1_, evaluation, datasets_filt, filt_only)
+        dat2, raref2 = get_dat_idx(dat2_, evaluation, datasets_filt, filt_only)
+
         if evaluation:
-            dat1, dat2 = dat1_, dat2_
-            metrics_groups_metas_qzas1 = betas[dat1]
-            metrics_groups_metas_qzas2 = betas[dat2]
+            metrics_groups_metas_qzas_dms_trees1 = betas[dat1]
+            metrics_groups_metas_qzas_dms_trees2 = betas[dat2]
         else:
-            dat1, raref1 = get_dat_idx(dat1_)
-            dat2, raref2 = get_dat_idx(dat2_)
-            metrics_groups_metas_qzas1 = betas[dat1][0]
-            metrics_groups_metas_qzas2 = betas[dat2][0]
+            metrics_groups_metas_qzas_dms_trees1 = get_betas_raref(betas, dat1, raref1)
+            if not metrics_groups_metas_qzas_dms_trees1:
+                print('[procrustes] no corresponding data for %s' % dat1_)
+                continue
+            metrics_groups_metas_qzas_dms_trees2 = get_betas_raref(betas, dat2, raref2)
+            if not metrics_groups_metas_qzas_dms_trees2:
+                print('[procrustes] no corresponding data for %s' % dat2_)
+                continue
 
         job_folder2 = get_job_folder(i_datasets_folder, 'mantel%s/chunks/%s' % (evaluation, pair))
         if not split:
             out_sh = '%s/run_mantel%s_%s%s.sh' % (job_folder2, evaluation, pair, filt_raref)
 
-        for metric, groups_metas_qzas1 in metrics_groups_metas_qzas1.items():
+        for metric, groups_metas_qzas_dms_trees1 in metrics_groups_metas_qzas_dms_trees1.items():
             if split:
                 out_sh = '%s/run_mantel%s_%s_%s%s.sh' % (job_folder2, evaluation, pair, metric, filt_raref)
-            if metric not in metrics_groups_metas_qzas2:
+            if metric not in metrics_groups_metas_qzas_dms_trees2:
                 continue
-            groups_metas_qzas2 = metrics_groups_metas_qzas2[metric]
-            groups1 = sorted(groups_metas_qzas1.keys())
-            groups2 = sorted(groups_metas_qzas2.keys())
+            groups_metas_qzas_dms_trees2 = metrics_groups_metas_qzas_dms_trees2[metric]
+            groups1 = sorted(groups_metas_qzas_dms_trees1.keys())
+            groups2 = sorted(groups_metas_qzas_dms_trees2.keys())
             for (group1_, group2_) in itertools.product(*[groups1, groups2]):
                 if group1_ == '':
                     group1 = 'full'
@@ -307,18 +335,18 @@ def run_mantel(i_datasets_folder: str, p_mantel: str, betas: dict,
                 else:
                     group2 = group2_
 
-                meta1, qza1, dm1 = groups_metas_qzas1[group1_]
-                meta2, qza2, dm2 = groups_metas_qzas2[group2_]
+                meta1, qza1, dm1, tree1 = groups_metas_qzas_dms_trees1[group1_]
+                meta2, qza2, dm2, tree2 = groups_metas_qzas_dms_trees2[group2_]
 
-                skip = 0
-                if not evaluation:
-                    if '__raref' in dat1_:
-                        dm1, meta1 = get_dm_meta(dat1, dm1, meta1, raref1, metric, i_datasets_folder, skip)
-                    if '__raref' in dat2_:
-                        dm2, meta2 = get_dm_meta(dat2, dm2, meta2, raref2, metric, i_datasets_folder, skip)
-                if skip:
-                    print('[Mantels] One desired rarefaction depth not run (pair %s)' % pair)
-                    continue
+                # skip = 0
+                # if not evaluation:
+                #     if '__raref' in dat1_:
+                #         dm1, meta1 = get_dm_meta(dat1, dm1, meta1, raref1, metric, i_datasets_folder, skip)
+                #     if '__raref' in dat2_:
+                #         dm2, meta2 = get_dm_meta(dat2, dm2, meta2, raref2, metric, i_datasets_folder, skip)
+                # if skip:
+                #     print('[Mantels] One desired rarefaction depth not run (pair %s)' % pair)
+                #     continue
 
                 meta_pd1 = read_meta_pd(meta1)
                 meta_pd2 = read_meta_pd(meta2)

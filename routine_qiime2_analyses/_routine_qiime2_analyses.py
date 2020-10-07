@@ -367,18 +367,18 @@ def routine_qiime2_analyses(
     if 'beta' not in p_skip and p_procrustes:
         if betas and 'procrustes' not in p_skip:
             print('(run_procrustes)')
-            run_procrustes(i_datasets_folder, p_procrustes, betas, force, prjct_nm,
-                           qiime_env, chmod, noloc, split, run_params['procrustes'],
-                           filt_raref, eval_depths)
+            run_procrustes(i_datasets_folder, datasets_filt, p_procrustes, betas,
+                           force, prjct_nm, qiime_env, chmod, noloc, split,
+                           run_params['procrustes'], filt_raref,  filt_only, eval_depths)
     else:
         print('(skip_procrustes)')
 
     if 'beta' not in p_skip and p_mantel:
         if betas and 'mantel' not in p_skip:
             print('(run_mantel)')
-            run_mantel(i_datasets_folder, p_mantel, betas, force, prjct_nm,
-                       qiime_env, chmod, noloc, split, run_params['mantel'],
-                       filt_raref, eval_depths)
+            run_mantel(i_datasets_folder, datasets_filt, p_mantel, betas,
+                       force,  prjct_nm, qiime_env, chmod, noloc, split,
+                       run_params['mantel'], filt_raref,  filt_only, eval_depths)
     else:
         print('(skip_mantel)')
 
