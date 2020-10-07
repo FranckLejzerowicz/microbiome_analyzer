@@ -196,8 +196,8 @@ def check_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
                 data_dir = data_dir_ + '/' + case
                 meta_dir = meta_dir_ + '/' + case
                 for preval_abund in pair_filtering:
-                    preval_filt1, abund_filter1 = pair_filtering[preval_abund][(omic1, bool1)]
-                    preval_filt2, abund_filter2 = pair_filtering[preval_abund][(omic2, bool2)]
+                    preval_filt1, abund_filter1 = pair_filtering[preval_abund][(omic1_, bool1)]
+                    preval_filt2, abund_filter2 = pair_filtering[preval_abund][(omic2_, bool2)]
                     if not filt_datasets_pass[(omic1, bool1)][(case, preval_abund)] or not filt_datasets_pass[(omic2, bool2)][(case, preval_abund)]:
                         continue
                     filt1 = '_'.join([preval_filt1, abund_filter1])
@@ -225,10 +225,9 @@ def check_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
     return common_datasets_pass
 
 
-def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str,
-                     qza2: str,  res_dir: str, cur_sh: str, batch: str,
-                     learn: str, epoch: str,  prior: str, thresh_feat: str,
-                     latent_dim: str, train_column: str, n_example: str,
+def run_single_mmvec(odir: str, meta_fp: str, qza1: str, qza2: str, res_dir: str,
+                     cur_sh: str, batch: str, learn: str, epoch: str, prior: str,
+                     thresh_feat: str, latent_dim: str, train_column: str, n_example: str,
                      gpu: bool, force: bool, standalone: bool, qiime_env: str) -> None:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
@@ -256,8 +255,6 @@ def run_single_mmvec(odir: str, pair: str, meta_fp: str, qza1: str,
     """
     remove = True
     with open(cur_sh, 'w') as cur_sh_o:
-        # ranks_tsv = '%s/%s_ranks.tsv' % (pair, odir)
-        # ordination_tsv = '%s/%s_ordination.txt' % (pair, odir)
         ranks_tsv = '%s/ranks.tsv' % odir
         ordination_tsv = '%s/ordination.txt' % odir
         if force or not isfile(ordination_tsv) or not isfile(ranks_tsv):
@@ -466,8 +463,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                 cur_sh = '%s/run_mmvec_%s_%s_%s_%s_%s%s.sh' % (job_folder2, pair, case, filt1, filt2, res_dir, filt_raref)
                 all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
                 run_single_mmvec(
-                    odir, pair, meta_fp,
-                    qza1, qza2, res_dir, cur_sh,
+                    odir, meta_fp, qza1, qza2, res_dir, cur_sh,
                     batch, learn, epoch, prior, thresh_feat,
                     latent_dim, train_column, n_example,
                     gpu, force, standalone, qiime_env
