@@ -649,6 +649,12 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
             print('\t\t==> No good songbird model to make correlations with mmvec PCs...')
         # get_log_ratios(pc_sb_correlations_pd)
 
+    print("pair_cmds")
+    print("pair_cmds")
+    print("pair_cmds")
+    print("pair_cmds")
+    print(pair_cmds)
+
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
     job_folder2 = get_job_folder(i_datasets_folder, 'mmbird/chunks')
     written = 0
