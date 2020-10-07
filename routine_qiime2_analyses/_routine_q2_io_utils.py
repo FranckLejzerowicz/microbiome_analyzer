@@ -1275,16 +1275,7 @@ def check_datasets_filtered(
                 case = get_case(case_vals, case_var)
                 dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s/%s' % (analysis, dat, case))
 
-                print()
-                print()
-                print("dat, mb")
-                print(dat, mb)
-                print()
-                print()
-                print("unique_filterings")
-                print(unique_filterings)
-
-                prevals_abunds = unique_filterings[(dat, mb)]
+                prevals_abunds = unique_filterings[(dat_, mb)]
                 for (preval_abund, preval, abund) in prevals_abunds:
                     # make sure there's no empty row / column
                     rad_out = '%s_%s_*s' % (dat, preval_abund)
