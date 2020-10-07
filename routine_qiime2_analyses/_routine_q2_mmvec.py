@@ -98,8 +98,8 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict, filtering: di
                 data_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s/%s' % (pair, case))
                 meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s/%s' % (pair, case))
                 for preval_abund, preval_abund_dats in pair_filtering.items():
-                    preval_filt1, abund_filter1 = preval_abund_dats[(omic1, bool1)]
-                    preval_filt2, abund_filter2 = preval_abund_dats[(omic2, bool2)]
+                    preval_filt1, abund_filter1 = preval_abund_dats[(omic1_, bool1)]
+                    preval_filt2, abund_filter2 = preval_abund_dats[(omic2_, bool2)]
                     filt1 = '%s_%s' % (preval_filt1, abund_filter1)
                     filt2 = '%s_%s' % (preval_filt2, abund_filter2)
                     if (case, preval_abund) not in filt_datasets[(omic1, bool1)] or (case, preval_abund) not in filt_datasets[(omic2, bool2)]:
