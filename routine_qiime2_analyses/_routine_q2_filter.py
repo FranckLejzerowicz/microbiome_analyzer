@@ -83,7 +83,6 @@ def deleted_non_filt(datasets: dict, datasets_read: dict, datasets_features: dic
         for dat in d:
             if dat not in datasets_filt_map and dat in datasets_filt:
                 to_delete.append(dat)
-            else:
         for delete in to_delete:
             d.pop(delete)
         break
