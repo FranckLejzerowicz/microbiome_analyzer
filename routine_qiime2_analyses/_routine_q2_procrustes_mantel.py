@@ -77,6 +77,8 @@ def get_dat_idx(dat__, evaluation, datasets_filt, filt_only) -> (str, str):
 
 
 def get_betas_raref(betas, dat, raref):
+    print("betas.keys()")
+    print(betas.keys())
     if raref:
         if raref == '_raref':
             metrics_groups_metas_qzas_dms_trees = betas[dat][1]
