@@ -238,7 +238,7 @@ def routine_qiime2_analyses(
 
     if filt_only and datasets_filt_map:
         deleted_non_filt(datasets, datasets_read, datasets_features, datasets_phylo,
-                         datasets_rarefs, taxonomies, datasets_filt_map)
+                         datasets_rarefs, taxonomies, datasets_filt, datasets_filt_map)
 
     datasets_collapsed = {}
     datasets_collapsed_map = {}

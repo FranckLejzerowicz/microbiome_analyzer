@@ -76,19 +76,17 @@ def get_threshs(p_filt_threshs):
 
 def deleted_non_filt(datasets: dict, datasets_read: dict, datasets_features: dict,
                      datasets_phylo: dict, datasets_rarefs: dict, taxonomies: dict,
-                     datasets_filt_map: dict):
+                     datasets_filt: dict, datasets_filt_map: dict):
     for d in [datasets, datasets_read, datasets_features,
               datasets_phylo, datasets_rarefs, taxonomies]:
         to_delete = []
         for dat in d:
-            print(dat)
-            if dat not in datasets_filt_map:
-                print('...')
+            if dat not in datasets_filt_map and dat in datasets_filt:
                 to_delete.append(dat)
             else:
-                print('---')
         for delete in to_delete:
             d.pop(delete)
+        break
 
 
 def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: dict,
