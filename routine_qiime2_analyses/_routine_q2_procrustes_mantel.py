@@ -77,7 +77,9 @@ def get_dat_idx(dat__, evaluation, datasets_filt, filt_only) -> (str, str):
 
 
 def get_betas_raref(betas, dat, raref):
-    print("betas.keys()")
+    print("betas.keys(), dat")
+    print()
+    print(dat)
     print(betas.keys())
     if raref:
         if raref == '_raref':
