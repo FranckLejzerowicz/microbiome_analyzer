@@ -81,8 +81,12 @@ def deleted_non_filt(datasets: dict, datasets_read: dict, datasets_features: dic
               datasets_phylo, datasets_rarefs, taxonomies]:
         to_delete = []
         for dat in d:
+            print(dat)
             if dat not in datasets_filt_map:
+                print('...')
                 to_delete.append(dat)
+            else:
+                print('---')
         for delete in to_delete:
             d.pop(delete)
 
