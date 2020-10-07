@@ -213,10 +213,10 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
         ]
     )
     odir = get_analysis_folder(i_datasets_folder, 'procrustes%s/R' % evaluation)
-    dms_tab_fp = '%s/pairs%s.tsv' % (odir, evaluation)
+    dms_tab_fp = '%s/pairs%s%s.tsv' % (odir, evaluation, filt_raref)
     dms_tab_pd.to_csv(dms_tab_fp, index=False, sep='\t')
 
-    out_R = '%s/pairs_proscrustes_results%s.tsv' % (odir, evaluation)
+    out_R = '%s/pairs_proscrustes_results%s%s.tsv' % (odir, evaluation, filt_raref)
     if not isfile(out_R):
         job_folder = get_job_folder(i_datasets_folder, 'procrustes/R')
         R_script = '%s/4_run_procrustes%s.R' % (job_folder, filt_raref)
