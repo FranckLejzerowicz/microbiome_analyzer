@@ -623,9 +623,14 @@ def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str,
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 
-    cmd = 'qiime diversity pcoa-biplot \\\n'
+    rel_qza = '%s_rel_qza_raw.qza' % splitext(out_biplot)[0]
+    cmd = '\nqiime feature-table relative-frequency \\\n'
+    cmd += '--i-table %s \\\n' % qza
+    cmd += '--o-relative-frequency-table %s\n' % rel_qza
+
+    cmd += 'qiime diversity pcoa-biplot \\\n'
     cmd += '--i-pcoa %s \\\n' % out_pcoa
-    cmd += '--i-features %s \\\n' % qza
+    cmd += '--i-features %s \\\n' % rel_qza
     cmd += '--o-biplot %s\n' % out_biplot2
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
