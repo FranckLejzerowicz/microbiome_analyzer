@@ -277,9 +277,10 @@ def export_meta_alpha(datasets: dict, filt_raref: str,
                 meta_pd = read_meta_pd(meta_alpha_fpo)
             else:
                 meta_pd = read_meta_pd(meta)
-            col_to_remove = meta_alphas_pd.columns.tolist()[1:]
-            if len(set(col_to_remove) & set(meta_pd.columns.tolist())):
-                meta_pd.drop(columns=[col for col in col_to_remove if col in meta_pd.columns], inplace=True)
+            col_to_remove = meta_alphas_pd.columns.tolist()
+            shared_cols = list(set(col_to_remove) & set(meta_pd.columns.tolist()))
+            if len(shared_cols):
+                meta_pd.drop(columns=shared_cols, inplace=True)
             meta_alphas_pd = meta_pd.merge(meta_alphas_pd, on='sample_name', how='left')
             meta_alphas_pd.to_csv(meta_alpha_fpo, index=False, sep='\t')
             if os.getcwd().startswith('/panfs'):
@@ -288,11 +289,6 @@ def export_meta_alpha(datasets: dict, filt_raref: str,
 
         if all_meta_alphas_pds:
             all_meta_alphas_pd = pd.concat(all_meta_alphas_pds, axis=1, sort=False)
-            print()
-            print()
-            print()
-            print("all_meta_alphas_pd.columns")
-            print(list(all_meta_alphas_pd.columns))
             main_meta = datasets[dat][0][1]
             meta_alpha_fpo = '%s_alphas_full.tsv' % splitext(main_meta)[0]
             if isfile(meta_alpha_fpo):
