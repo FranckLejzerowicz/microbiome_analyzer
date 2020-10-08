@@ -277,7 +277,7 @@ def export_meta_alpha(datasets: dict, filt_raref: str,
                 meta_pd = read_meta_pd(meta_alpha_fpo)
             else:
                 meta_pd = read_meta_pd(meta)
-            col_to_remove = meta_alphas_pd.columns.tolist()
+            col_to_remove = meta_alphas_pd.columns.tolist()[1:]
             shared_cols = list(set(col_to_remove) & set(meta_pd.columns.tolist()))
             if len(shared_cols):
                 meta_pd.drop(columns=shared_cols, inplace=True)
