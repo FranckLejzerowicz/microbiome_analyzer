@@ -171,7 +171,7 @@ from routine_qiime2_analyses import __version__
     type=click.Choice(['alpha', 'merge_alpha', 'export_alpha', 'alpha_correlations',
                        'wol', 'taxonomy', 'barplot', 'volatility', 'beta', 'export_beta',
                        'pcoa', 'biplot', 'emperor', 'emperor_biplot', 'empress',
-                       'empress_biplot', 'phate', 'doc', 'deicode', 'sepp',
+                       'empress_biplot', 'phate', 'doc', 'deicode', 'sepp', 'do_pies',
                        'alpha_kw', 'permanova', 'procrustes', 'mantel',
                        'nestedness', 'adonis', 'songbird', 'mmvec', 'mmbird']),
     help="Steps to skip (e.g. if already done or not necessary)."

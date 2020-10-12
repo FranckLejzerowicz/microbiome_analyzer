@@ -41,7 +41,9 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
 
         new_meta = '%s.meta' % cur_rad
         new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-        new_meta_pd[nodfs].to_csv(new_meta, index=True, sep='\t')
+        new_meta_pd = new_meta_pd[nodfs].reset_index()
+        new_meta_pd.columns = (['#SampleID'] + nodfs)
+        new_meta_pd.to_csv(new_meta, index=False, sep='\t')
         new_qza = '%s.qza' % cur_rad
         new_biom = '%s.biom' % cur_rad
         new_tsv = '%s.tsv' % cur_rad

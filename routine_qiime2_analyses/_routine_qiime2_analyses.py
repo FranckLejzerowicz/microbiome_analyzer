@@ -243,11 +243,13 @@ def routine_qiime2_analyses(
         deleted_non_filt(datasets, datasets_read, datasets_features, datasets_phylo,
                          datasets_rarefs, taxonomies, datasets_filt, datasets_filt_map)
 
+    split_taxa_pds = get_taxo_levels(taxonomies)
+    if 'do_pies' in p_skip:
+        pies_data = make_pies(i_datasets_folder, split_taxa_pds,
+                              datasets_rarefs, datasets_read)
+
     datasets_collapsed = {}
     datasets_collapsed_map = {}
-    split_taxa_pds = get_taxo_levels(taxonomies)
-    pies_data = make_pies(i_datasets_folder, split_taxa_pds,
-                          datasets_rarefs, datasets_read)
     if p_collapse_taxo and 'collapse' not in p_skip:
         run_collapse(i_datasets_folder, datasets, datasets_read,
                      datasets_features, datasets_phylo, split_taxa_pds,
