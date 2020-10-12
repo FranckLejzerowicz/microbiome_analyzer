@@ -100,10 +100,13 @@ def run_nestedness(i_datasets_folder: str, betas: dict, split_taxa_pds: dict,
     if 'soft' not in nestedness_config:
         print('Must provide the path to the Nestedness soft (containing bin/Autocorrelation.jar)')
         return None
-    binary = '%s/bin/Autocorrelation.jar' % nestedness_config['soft']
-    if not isfile(binary):
-        print('Must provide the path to the Nestedness soft (containing bin/Autocorrelation.jar)')
-        return None
+    if nestedness_config['soft'].endswith('Autocorrelation.jar') and isfile(nestedness_config['soft']):
+        binary = nestedness_config['soft']
+    else:
+        binary = '%s/bin/Autocorrelation.jar' % nestedness_config['soft']
+        if not isfile(binary):
+            print('Must provide the path to the Nestedness soft (containing bin/Autocorrelation.jar)')
+            return None
     subsets, nodfs, colors, nulls, modes = get_nestedness_config(nestedness_config)
 
     all_sh_pbs = {}
