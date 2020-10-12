@@ -9,6 +9,8 @@
 import sys
 import re
 import pandas as pd
+import numpy as np
+import seaborn as sns
 from os.path import isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
@@ -29,6 +31,8 @@ from routine_qiime2_analyses._routine_q2_cmds import (
     run_export,
     run_import
 )
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
 
 
 def get_padded_new_rows_list(new_rows, max_new_rows):
@@ -132,10 +136,10 @@ def get_taxo_levels(taxonomies: dict) -> dict:
         ranks = {}
         not_collapsable = False
         for col in split_taxa_pd.columns:
-            rank = [x.split('_')[0] for x in split_taxa_pd[col] if str(x) not in ['nan', 'None']]
-            if len(rank) == split_taxa_pd.shape[0]:
-                if len(set(rank)) == 1:
-                    ranks[col] = list(rank)[0]
+            rank = [x.split('_')[0] for x in split_taxa_pd[col] if str(x) not in ['nan', 'None', 'Unassigned']]
+            # if len(rank) == split_taxa_pd.shape[0]:
+            if len(set(rank)) == 1:
+                ranks[col] = list(rank)[0]
             else:
                 not_collapsable = True
 
@@ -154,6 +158,7 @@ def get_taxo_levels(taxonomies: dict) -> dict:
                   for row in split_taxa_pd.values],
                 columns=cols
             )
+        split_taxa_pd.index = features
         split_taxa_pds[dat] = split_taxa_pd
         if rewrite:
             split_taxa_pd = pd.DataFrame({
@@ -178,6 +183,106 @@ def get_split_levels(dat, collapse_taxo: dict, split_taxa_pds: dict):
         else:
             split_levels[taxo_name] = split_taxa_pd.columns.tolist().index(taxo_header)+1
     return split_levels
+
+
+def make_pies(i_datasets_folder: str, split_taxa_pds: dict,
+              datasets_rarefs: dict, datasets_read: dict) -> dict:
+
+    pies_data = {}
+    for dat in split_taxa_pds:
+        pies_data[dat] = []
+        odir = get_analysis_folder(i_datasets_folder, 'nestedness/%s' % dat)
+        out_pdf = '%s/pies_%s.pdf' % (odir, dat)
+        with PdfPages(out_pdf) as pdf:
+            split_taxa = split_taxa_pds[dat]
+            ranks = split_taxa.columns.tolist()
+            ranks_col = []
+            for row in split_taxa.values:
+                ranks_col.append(ranks[(len([x for idx, x in enumerate(row)
+                                             if str(x).lstrip('%s_' % ranks[idx]).strip('_')])-1)])
+            split_taxa['rank'] = ranks_col
+            for idx, (tab_, meta) in enumerate(datasets_read[dat]):
+                nsams = tab_.shape[1]
+                cur_raref = datasets_rarefs[dat][idx]
+                tab_sum = tab_.sum(1)
+                tab_bool = tab_.astype(bool).sum(1)
+                tab = pd.concat([
+                    tab_sum,
+                    tab_sum / tab_sum.sum(),
+                    tab_bool,
+                    (tab_bool / nsams) * 100,
+                    split_taxa[['rank']]
+                ], axis=1)
+                tab.columns = ['abundance', 'abundance_percent',
+                               'prevalence', 'prevalence_percent', 'rank']
+                pies_data_raref = {}
+                for min_abundance in [1, 2, 5, 10, 100]:
+                    tab_min = tab.loc[tab.abundance >= min_abundance].copy()
+                    abundance_bins = [int(x) for x in np.logspace(0, np.log10(tab_min['abundance'].max()+1), num=16)]
+                    tab_min['abundance_bin'] = [
+                        '%s-%s' % (abundance_bins[x], abundance_bins[x+1]) for x in
+                        np.digitize(tab_min['abundance'], bins=abundance_bins[1:], right=True)
+                    ]
+
+                    prevalence_bins = [1, 2, 5] + list(range(10, 101, 10))
+                    tab_min['prevalence_percent_bin'] = [
+                        '%s-%s' % (prevalence_bins[x], prevalence_bins[x+1]) for x in
+                        np.digitize(tab_min['prevalence_percent'], bins=prevalence_bins[1:], right=True)
+                    ]
+
+                    abundances = tab_min[
+                              ['rank', 'abundance_bin', 'abundance']
+                          ].groupby(['rank', 'abundance_bin']).count().unstack().fillna(0)
+                    abundances.columns = abundances.columns.droplevel()
+                    pies_data_raref['abundances'] = abundances
+
+                    prevalences = tab_min[
+                        ['rank', 'prevalence_percent_bin', 'prevalence']
+                    ].groupby(['rank', 'prevalence_percent_bin']).count().unstack().fillna(0)
+                    prevalences.columns = prevalences.columns.droplevel()
+                    pies_data_raref['prevalences'] = prevalences
+
+                    tab_gb = pd.concat([
+                        tab_min.groupby('rank').count().iloc[:, 0],
+                        tab_min[['rank', 'abundance']].groupby('rank').sum(),
+                        tab_min[['rank', 'abundance_percent']].groupby('rank').sum(),
+                    ], axis=1)
+                    tab_gb.columns = ['count', 'abundance_sum', 'abundance_percent_sum']
+                    pies_data_raref['tab_gb'] = tab_gb
+
+                    f = plt.figure(figsize=(6, 6))
+                    plt.pie([x[0] for x in tab_gb.values],
+                            labels=['%s (%s)\n%s reads' % (r, row.iloc[0], row.iloc[1])
+                                    for r, row in tab_gb.iterrows()], autopct='%1.2f',
+                            startangle=90)
+                    plt.title("Number of features assigned per taxon level: %s%s\nmin %s reads, %s features" % (
+                        dat, cur_raref, min_abundance, tab_min.shape[0]), size=12)
+                    plt.close()
+                    pdf.savefig(f, bbox_inches='tight')
+
+                    if abundances.shape[0]:
+                        cols = sorted(abundances.columns.tolist(), key=lambda x: int(x.split('-')[0]))
+                        ax = abundances.plot(kind='bar', stacked=True)
+                        plt.ylabel('Number of features')
+                        plt.title("Features per abundance group: %s%s\nmin %s reads, %s features" % (
+                            dat, cur_raref, min_abundance, tab_min.shape[0]), size=12)
+                        handles, _ = ax.get_legend_handles_labels()
+                        plt.legend(handles, cols)
+                        pdf.savefig(bbox_inches='tight')
+                        plt.close()
+
+                    if prevalences.shape[0]:
+                        cols = sorted(prevalences.columns.tolist(), key=lambda x: int(x.split('-')[0]))
+                        ax = prevalences.plot(kind='bar', stacked=True)
+                        plt.ylabel('Number of features')
+                        plt.title("Features per prevalence group: %s%s\nmin %s reads, %s features" % (
+                            dat, cur_raref, min_abundance, tab_min.shape[0]), size=12)
+                        handles, _ = ax.get_legend_handles_labels()
+                        plt.legend(handles, cols)
+                        pdf.savefig(bbox_inches='tight')
+                        plt.close()
+                pies_data[dat].append(pies_data_raref)
+    return pies_data
 
 
 def run_collapse(i_datasets_folder: str, datasets: dict, datasets_read: dict,

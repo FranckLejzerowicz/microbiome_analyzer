@@ -10,6 +10,7 @@ import yaml
 import os, sys, glob
 import subprocess
 import numpy as np
+import pandas as pd
 from scipy.stats import skew
 from os.path import isfile, splitext
 
@@ -124,7 +125,18 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                             datasets_phylo_update['%s_%s' % (dat, depth)] = datasets_phylo[dat]
                         else:
                             datasets_append.setdefault(dat, []).append([tsv_out, meta_out])
-                            datasets_read[dat].append(('raref', depth))
+
+                            if isfile(tsv_out) and isfile(meta_out):
+                                tab_filt_pd = pd.read_csv(tsv_out, index_col=0, header=0, sep='\t')
+                                with open(meta_out) as f:
+                                    for line in f:
+                                        break
+                                meta_filt_pd = pd.read_csv(meta_out, header=0, sep='\t',
+                                                           dtype={line.split('\t')[0]: str},
+                                                           low_memory=False)
+                                datasets_read[dat].append([tab_filt_pd, meta_filt_pd])
+                            else:
+                                datasets_read[dat].append(('raref', depth))
                             datasets_rarefs.setdefault(dat, []).append('_raref%s%s' % (evaluation, depth))
 
                             # if ddx:

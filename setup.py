@@ -60,7 +60,8 @@ setup(
         "pyyaml",
         "plotly==4.8.2",
         "phate",
-        "biom-format"
+        "biom-format",
+        "seaborn"
     ],
     classifiers=classifiers,
     entry_points={'console_scripts': standalone},

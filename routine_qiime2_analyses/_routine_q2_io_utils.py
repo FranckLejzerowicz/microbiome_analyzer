@@ -99,20 +99,20 @@ def get_songbird_outputs(songbird_outputs: list) -> pd.DataFrame:
     return songbird_outputs_pd
 
 
-def get_subsets(p_subsets: str) -> dict:
+def read_yaml_file(p_yaml_file: str) -> dict:
     """
     :param p_subsets: Subsets for alpha diversity.
     """
-    if p_subsets:
-        if not isfile(p_subsets):
-            print('[Warning] yaml file for subsets does not exist: %s\n' % p_subsets)
+    if p_yaml_file:
+        if not isfile(p_yaml_file):
+            print('[Warning] yaml file for subsets does not exist: %s\n' % p_yaml_file)
         else:
-            with open(p_subsets) as handle:
-                subsets = yaml.load(handle, Loader=yaml.FullLoader)
-            if not isinstance(subsets, dict):
-                print('[Warning] %s must be a dictionary\n' % p_subsets)
+            with open(p_yaml_file) as handle:
+                yaml_content = yaml.load(handle, Loader=yaml.FullLoader)
+            if not isinstance(yaml_content, dict):
+                print('[Warning] %s must be a dictionary\n' % p_yaml_file)
             else:
-                return subsets
+                return yaml_content
     return {}
 
 

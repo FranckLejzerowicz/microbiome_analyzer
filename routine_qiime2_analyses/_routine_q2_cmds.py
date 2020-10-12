@@ -7,10 +7,13 @@
 # ----------------------------------------------------------------------------
 
 import re
+import pkg_resources
 import pandas as pd
 from typing import TextIO
 from os.path import dirname, isdir, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
+
+RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
 
 def get_subset(tsv_pd: pd.DataFrame, subset_regex: list) -> list:
@@ -415,6 +418,14 @@ def run_import(input_path: str, output_path: str, typ: str) -> str:
         cmd += '  --input-path %s \\\n' % input_path
         cmd += '  --output-path %s \\\n' % output_path
         cmd += '  --type "%s"\n' % typ
+    return cmd
+
+
+def run_add_metadata(input_path: str, output_path: str, meta: str) -> str:
+    cmd = 'biom add-metadata \\\n'
+    cmd += '  -i %s \\\n' % input_path
+    cmd += '  -o %s \\\n' % output_path
+    cmd += '  --sample-metadata-fp %s\n' % meta
     return cmd
 
 
@@ -1006,6 +1017,36 @@ def check_absence_mat(mat_qzas: list, first_print: int, analysis: str) -> bool:
             first_print += 1
         return True
     return False
+
+
+def write_nestedness(new_biom_meta: str, null_mode: str, binary: str,
+                     nodfs: list, null: str, mode: str, cur_sh: TextIO) -> None:
+    """
+    https://github.com/jladau/Nestedness
+    """
+    script = '%s/nestedness.sh' % RESOURCES
+    if not isfile(null_mode):
+        with open(script) as f:
+            for line in f:
+                if 'SOFT' in line:
+                    cur_sh.write(line.replace('SOFT', binary))
+                elif 'BIOM' in line:
+                    cur_sh.write(line.replace('BIOM', new_biom_meta))
+                elif 'OUTPUTDIR' in line:
+                    cur_sh.write(line.replace('OUTPUTDIR', null_mode))
+                elif 'NULLMODEL' in line:
+                    cur_sh.write(line.replace('NULLMODEL', null))
+                elif 'AXIS' in line:
+                    cur_sh.write(line.replace('AXIS', 'sample'))
+                elif 'COMPARISONMODE' in line:
+                    cur_sh.write(line.replace('COMPARISONMODE', mode))
+                elif 'METAS' in line:
+                    cur_sh.write(line.replace('METAS', ','.join(nodfs)))
+                elif 'METADATAFIELD' in line:
+                    for nodf in nodfs:
+                        cur_sh.write(line.replace('METADATAFIELD', nodf))
+                else:
+                    cur_sh.write(line)
 
 
 def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat_qza: str,

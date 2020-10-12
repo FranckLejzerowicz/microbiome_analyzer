@@ -180,6 +180,13 @@ mmvec:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2020.2"
+nestedness:
+  time: "48"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "20"
+  mem_dim: "gb"
+  env: "qiime2-2020.2"
 procrustes:
   time: "48"
   n_nodes: "1"

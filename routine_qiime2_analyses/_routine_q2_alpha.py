@@ -15,7 +15,7 @@ from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics, get_job_folder, get_analysis_folder,
     write_main_sh, get_main_cases_dict, read_meta_pd,
-    get_subsets, get_raref_tab_meta_pds
+    read_yaml_file, get_raref_tab_meta_pds
 )
 from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
 from routine_qiime2_analyses._routine_q2_cmds import (
@@ -53,7 +53,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     if len(eval_depths):
         evaluation = '_eval'
     alpha_metrics = get_metrics('alpha_metrics', As)
-    alpha_subsets = get_subsets(p_alpha_subsets)
+    alpha_subsets = read_yaml_file(p_alpha_subsets)
     job_folder = get_job_folder(i_datasets_folder, 'alpha%s' % evaluation)
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha%s/chunks' % evaluation)
     diversities = {}

@@ -15,7 +15,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics,
     get_job_folder,
     get_analysis_folder,
-    get_subsets,
+    read_yaml_file,
     get_raref_tab_meta_pds
 )
 from routine_qiime2_analyses._routine_q2_cmds import (
@@ -27,8 +27,9 @@ from routine_qiime2_analyses._routine_q2_cmds import (
     write_emperor_biplot,
     write_empress_biplot,
     get_subset,
+    run_export,
+    run_import
 )
-from routine_qiime2_analyses._routine_q2_cmds import run_export, run_import
 
 
 def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
@@ -55,7 +56,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
     if len(eval_depths):
         evaluation = '_eval'
     beta_metrics = get_metrics('beta_metrics', Bs)
-    beta_subsets = get_subsets(p_beta_subsets)
+    beta_subsets = read_yaml_file(p_beta_subsets)
     job_folder = get_job_folder(i_datasets_folder, 'beta%s' % evaluation)
     job_folder2 = get_job_folder(i_datasets_folder, 'beta%s/chunks' % evaluation)
 

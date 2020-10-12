@@ -98,7 +98,6 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
     metric_check = set()
     all_sh_pbs = {}
     first_print = 0
-
     for dat, metric_groups_metas_qzas_dms_trees_ in betas.items():
         if not split:
             out_sh = '%s/run_beta_group_significance_%s%s.sh' % (job_folder2, dat, filt_raref)
@@ -125,15 +124,15 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
                     for case_var, case_vals_list in cases_dict.items():
                         testing_groups_case_var = list(set(testing_groups + [case_var]))
                         for case_vals in case_vals_list:
-                            case_ = get_case(case_vals, case_var).replace(' ', '_')
+                            case = get_case(case_vals, case_var).replace(' ', '_')
                             for testing_group in testing_groups_case_var:
                                 if testing_group == 'ALL':
                                     continue
                                 cur_sh = '%s/run_beta_group_significance_%s%s_%s_%s_%s_%s%s.sh' % (
-                                    job_folder2, dat, cur_depth, metric, subset, case_, testing_group, filt_raref)
+                                    job_folder2, dat, cur_depth, metric, subset, case, testing_group, filt_raref)
                                 cur_sh = cur_sh.replace(' ', '-')
                                 all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                                run_single_perm(odir, subset, meta_pd, cur_sh, metric, case_,
+                                run_single_perm(odir, subset, meta_pd, cur_sh, metric, case,
                                                 testing_group, p_beta_type, qza, mat_qza,
                                                 case_var, case_vals, force)
 

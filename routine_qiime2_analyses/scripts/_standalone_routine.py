@@ -76,6 +76,11 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
+    "-nstd", "--p-nestedness-groups", required=False, show_default=True, default=False,
+    help="Nestedness analysis config. Must be a yaml file, e.g.\n"
+         "(see example in 'examples/nestedness.yml' and README)."
+)
+@click.option(
     "-bt", "--p-beta-type", required=False, show_default=False, multiple=True, default=('permanova', 'permdisp',),
     type=click.Choice(['permanova', 'anosim', 'permdisp']),
     help="Type of beta group significance, one of"
@@ -164,11 +169,11 @@ from routine_qiime2_analyses import __version__
 @click.option(
     "-skip", "--p-skip", default=None, show_default=True, multiple=True,
     type=click.Choice(['alpha', 'merge_alpha', 'export_alpha', 'alpha_correlations',
-                       'wol', 'taxonomy', 'barplot', 'volatility', 'beta',
-                       'export_beta', 'emperor', 'emperor_biplot', 'empress',
+                       'wol', 'taxonomy', 'barplot', 'volatility', 'beta', 'export_beta',
+                       'pcoa', 'biplot', 'emperor', 'emperor_biplot', 'empress',
                        'empress_biplot', 'phate', 'doc', 'deicode', 'sepp',
-                       'alpha_kw', 'permanova', 'procrustes', 'adonis',
-                       'songbird', 'mmvec', 'mmbird']),
+                       'alpha_kw', 'permanova', 'procrustes', 'mantel',
+                       'nestedness', 'adonis', 'songbird', 'mmvec', 'mmbird']),
     help="Steps to skip (e.g. if already done or not necessary)."
          "\nSkipping 'alpha' will also skip 'merge_alpha', 'export_alpha',"
          "'alpha_correlations', 'alpha_kw' and 'volatility'."
@@ -247,6 +252,7 @@ def standalone_routine(
         p_beta_subsets,
         p_perm_tests,
         p_perm_groups,
+        p_nestedness_groups,
         p_beta_type,
         p_procrustes,
         p_mantel,
@@ -294,6 +300,7 @@ def standalone_routine(
         p_beta_subsets,
         p_perm_tests,
         p_perm_groups,
+        p_nestedness_groups,
         p_beta_type,
         p_procrustes,
         p_mantel,

@@ -89,8 +89,8 @@ def get_betas_raref(betas, dat, raref):
 
 def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: str,
                    betas: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-                   noloc: bool, split: bool, run_params: dict, filt_raref: str, filt_only: bool,
-                   eval_depths: dict) -> None:
+                   noloc: bool, split: bool, run_params: dict, filt_raref: str,
+                   filt_only: bool, eval_depths: dict) -> None:
     """
     """
     evaluation = ''
@@ -123,7 +123,7 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
             metrics_groups_metas_qzas_dms_trees1 = betas[dat1][0]
             metrics_groups_metas_qzas_dms_trees2 = betas[dat2][0]
 
-        job_folder2 = get_job_folder(i_datasets_folder, 'procrustes%s/chunks/%s' % (evaluation, pair))
+        job_folder2 = get_job_folder(i_datasets_folder, 'procrustes%s/chunks/%s%s' % (evaluation, pair, filt_raref))
         if not split:
             out_sh = '%s/run_procrustes%s_%s%s.sh' % (job_folder2, evaluation, pair, filt_raref)
 
@@ -168,9 +168,9 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
                 cases_dict = check_metadata_cases_dict(
                     meta1, meta_pd, dict(procrustes_subsets), 'procrustes')
                 odir = get_analysis_folder(i_datasets_folder,
-                                           'procrustes%s/%s/%s_vs_%s' % (evaluation, pair, group1, group2))
+                                           'procrustes%s/%s%s/%s_vs_%s' % (evaluation, pair, filt_raref, group1, group2))
                 job_folder3 = get_job_folder(i_datasets_folder,
-                                             'procrustes%s/chunks/%s/%s_vs_%s' % (evaluation, pair, group1, group2))
+                                             'procrustes%s/chunks/%s%s/%s_vs_%s' % (evaluation, pair, filt_raref, group1, group2))
                 for case_var, case_vals_list in cases_dict.items():
                     for case_vals in case_vals_list:
                         case_ = get_case(case_vals, case_var).replace(' ', '_')
@@ -299,7 +299,7 @@ def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,
             metrics_groups_metas_qzas_dms_trees1 = betas[dat1][0]
             metrics_groups_metas_qzas_dms_trees2 = betas[dat2][0]
 
-        job_folder2 = get_job_folder(i_datasets_folder, 'mantel%s/chunks/%s' % (evaluation, pair))
+        job_folder2 = get_job_folder(i_datasets_folder, 'mantel%s/chunks/%s%s' % (evaluation, pair, filt_raref))
         if not split:
             out_sh = '%s/run_mantel%s_%s%s.sh' % (job_folder2, evaluation, pair, filt_raref)
 
@@ -344,9 +344,9 @@ def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,
                 cases_dict = check_metadata_cases_dict(
                     meta1, meta_pd, dict(mantel_subsets), 'mantel')
                 odir = get_analysis_folder(i_datasets_folder,
-                                           'mantel%s/%s/%s_vs_%s' % (evaluation, pair, group1, group2))
+                                           'mantel%s/%s%s/%s_vs_%s' % (evaluation, pair, filt_raref, group1, group2))
                 job_folder3 = get_job_folder(i_datasets_folder,
-                                             'mantel%s/chunks/%s/%s_vs_%s' % (evaluation, pair, group1, group2))
+                                             'mantel%s/chunks/%s%s/%s_vs_%s' % (evaluation, pair, filt_raref, group1, group2))
 
                 for case_var, case_vals_list in cases_dict.items():
                     for case_vals in case_vals_list:

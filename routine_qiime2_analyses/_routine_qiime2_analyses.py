@@ -20,7 +20,8 @@ from routine_qiime2_analyses._routine_q2_rarefy import run_rarefy
 from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp, get_precomputed_trees
 from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
 from routine_qiime2_analyses._routine_q2_taxonomy import (run_taxonomy, run_barplot, run_collapse,
-                                                          get_taxo_levels, get_precomputed_taxonomies,
+                                                          make_pies, get_taxo_levels,
+                                                          get_precomputed_taxonomies,
                                                           create_songbird_feature_metadata)
 from routine_qiime2_analyses._routine_q2_doc import run_doc
 from routine_qiime2_analyses._routine_q2_sourcetracking import run_sourcetracking
@@ -34,6 +35,7 @@ from routine_qiime2_analyses._routine_q2_beta import (run_beta, export_beta,
 from routine_qiime2_analyses._routine_q2_procrustes_mantel import (run_procrustes, run_mantel)
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
 from routine_qiime2_analyses._routine_q2_permanova import run_permanova
+from routine_qiime2_analyses._routine_q2_nestedness import run_nestedness
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
 from routine_qiime2_analyses._routine_q2_phate import run_phate
 from routine_qiime2_analyses._routine_q2_songbird import run_songbird
@@ -53,6 +55,7 @@ def routine_qiime2_analyses(
         p_beta_subsets: str,
         p_perm_tests: tuple,
         p_perm_groups: str,
+        p_nestedness_groups: str,
         p_beta_type: tuple,
         p_procrustes: str,
         p_mantel: str,
@@ -243,6 +246,8 @@ def routine_qiime2_analyses(
     datasets_collapsed = {}
     datasets_collapsed_map = {}
     split_taxa_pds = get_taxo_levels(taxonomies)
+    pies_data = make_pies(i_datasets_folder, split_taxa_pds,
+                          datasets_rarefs, datasets_read)
     if p_collapse_taxo and 'collapse' not in p_skip:
         run_collapse(i_datasets_folder, datasets, datasets_read,
                      datasets_features, datasets_phylo, split_taxa_pds,
@@ -294,7 +299,7 @@ def routine_qiime2_analyses(
             export_beta(i_datasets_folder, betas, datasets_rarefs,
                         force, prjct_nm, qiime_env, chmod, noloc,
                         run_params['export_beta'], filt_raref)
-        if 'pcoas' not in p_skip:
+        if 'pcoa' not in p_skip:
             print('(run_pcoas)')
             pcoas = run_pcoas(i_datasets_folder, betas, datasets_rarefs,
                               force, prjct_nm, qiime_env, chmod, noloc,
@@ -327,14 +332,6 @@ def routine_qiime2_analyses(
                                    noloc, run_params['empress_biplot'], filt_raref)
 
     # STATS ------------------------------------------------------------------
-    if 'beta' not in p_skip and 'deicode' not in p_skip:
-        print('(run_deicode)')
-        run_deicode(i_datasets_folder, datasets, datasets_rarefs,
-                    p_perm_groups, force, prjct_nm, qiime_env, chmod,
-                    noloc, run_params['deicode'], filt_raref)
-    else:
-        print('(skip_deicode)')
-
     if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
         print('(run_alpha_group_significance)')
         run_alpha_group_significance(i_datasets_folder, datasets, diversities,
@@ -344,43 +341,54 @@ def routine_qiime2_analyses(
     else:
         print('(skip_alpha_kw)')
 
-    if p_perm_tests:
-        if 'beta' not in p_skip and 'permanova' not in p_skip:
-            print('(run_permanova)')
-            run_permanova(i_datasets_folder, betas, p_perm_tests, p_beta_type,
-                          datasets_rarefs, p_perm_groups, force, prjct_nm,
-                          qiime_env, chmod, noloc, split,
-                          run_params['permanova'], filt_raref)
+    if 'beta' not in p_skip and 'deicode' not in p_skip:
+        print('(run_deicode)')
+        run_deicode(i_datasets_folder, datasets, datasets_rarefs,
+                    p_perm_groups, force, prjct_nm, qiime_env, chmod,
+                    noloc, run_params['deicode'], filt_raref)
+    else:
+        print('(skip_deicode)')
+
+    if 'beta' not in p_skip and p_perm_tests and 'permanova' not in p_skip:
+        print('(run_permanova)')
+        run_permanova(i_datasets_folder, betas, p_perm_tests, p_beta_type,
+                      datasets_rarefs, p_perm_groups, force, prjct_nm,
+                      qiime_env, chmod, noloc, split,
+                      run_params['permanova'], filt_raref)
     else:
         print('(skip_permanova)')
 
-    if p_formulas:
-        if 'beta' not in p_skip and 'adonis' not in p_skip:
-            print('(run_adonis)')
-            run_adonis(p_formulas, i_datasets_folder, betas, datasets_rarefs,
-                       p_perm_groups, force, prjct_nm, qiime_env, chmod,
-                       noloc, split, run_params['adonis'], filt_raref)
-
+    if 'beta' not in p_skip and p_formulas and 'adonis' not in p_skip:
+        print('(run_adonis)')
+        run_adonis(p_formulas, i_datasets_folder, betas, datasets_rarefs,
+                   p_perm_groups, force, prjct_nm, qiime_env, chmod,
+                   noloc, split, run_params['adonis'], filt_raref)
     else:
         print('(skip_adonis)')
 
-    if 'beta' not in p_skip and p_procrustes:
-        if betas and 'procrustes' not in p_skip:
-            print('(run_procrustes)')
-            run_procrustes(i_datasets_folder, datasets_filt, p_procrustes, betas,
-                           force, prjct_nm, qiime_env, chmod, noloc, split,
-                           run_params['procrustes'], filt_raref,  filt_only, eval_depths)
+    if 'beta' not in p_skip and p_procrustes and 'procrustes' not in p_skip:
+        print('(run_procrustes)')
+        run_procrustes(i_datasets_folder, datasets_filt, p_procrustes, betas,
+                       force, prjct_nm, qiime_env, chmod, noloc, split,
+                       run_params['procrustes'], filt_raref,  filt_only, eval_depths)
     else:
         print('(skip_procrustes)')
 
-    if 'beta' not in p_skip and p_mantel:
-        if betas and 'mantel' not in p_skip:
-            print('(run_mantel)')
-            run_mantel(i_datasets_folder, datasets_filt, p_mantel, betas,
-                       force,  prjct_nm, qiime_env, chmod, noloc, split,
-                       run_params['mantel'], filt_raref,  filt_only, eval_depths)
+    if 'beta' not in p_skip and p_mantel and 'mantel' not in p_skip:
+        print('(run_mantel)')
+        run_mantel(i_datasets_folder, datasets_filt, p_mantel, betas,
+                   force,  prjct_nm, qiime_env, chmod, noloc, split,
+                   run_params['mantel'], filt_raref,  filt_only, eval_depths)
     else:
         print('(skip_mantel)')
+
+    if 'beta' not in p_skip and p_nestedness_groups and 'nestedness' not in p_skip:
+        print('(run_nestedness)')
+        run_nestedness(i_datasets_folder, betas, split_taxa_pds, p_nestedness_groups,
+                       datasets_rarefs, force, prjct_nm, qiime_env, chmod,
+                       noloc, split, run_params['nestedness'], filt_raref)
+    else:
+        print('(skip_nestedness)')
 
     # PHATE ---------------------------------------------------------------------
     if p_phate_config and 'phate' not in p_skip:
