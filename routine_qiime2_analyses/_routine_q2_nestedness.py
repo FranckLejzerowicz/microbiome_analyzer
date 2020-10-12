@@ -76,17 +76,17 @@ def get_nestedness_config(nestedness_config: dict) -> (dict, dict, dict, dict, d
     if 'subsets' in nestedness_config:
         subsets.update(nestedness_config['subsets'])
     nodfs = []
-    if 'nodf' in nestedness_config:
-        nodfs.extend(nestedness_config['nodf'])
+    if 'nodfs' in nestedness_config:
+        nodfs.extend(nestedness_config['nodfs'])
     colors = []
     if 'colors' in nestedness_config:
         colors.extend(nestedness_config['colors'])
     nulls = ['equiprobablefixed']
-    if 'null' in nestedness_config:
-        nulls = nestedness_config['null']
+    if 'nulls' in nestedness_config:
+        nulls = nestedness_config['nulls']
     modes = ['betweeneachpairoftypes']
-    if 'mode' in nestedness_config:
-        modes = nestedness_config['mode']
+    if 'modes' in nestedness_config:
+        modes = nestedness_config['modes']
     return subsets, nodfs, colors, nulls, modes
 
 
