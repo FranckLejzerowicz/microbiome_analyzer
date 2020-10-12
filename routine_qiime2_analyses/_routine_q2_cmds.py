@@ -1030,8 +1030,8 @@ def write_nestedness(new_biom_meta: str, null_mode: str, binary: str,
             for line in f:
                 if 'SOFT' in line:
                     cur_sh.write(line.replace('SOFT', binary))
-                elif 'BIOM' in line:
-                    cur_sh.write(line.replace('BIOM', new_biom_meta))
+                elif 'BIOMPATH' in line:
+                    cur_sh.write(line.replace('BIOMPATH', new_biom_meta))
                 elif 'OUTPUTDIR' in line:
                     cur_sh.write(line.replace('OUTPUTDIR', null_mode))
                 elif 'NULLMODEL' in line:

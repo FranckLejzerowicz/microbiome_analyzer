@@ -1,7 +1,7 @@
 #!/bin/bash
 
 sJavaPath=SOFT
-sBiomPath=BIOM
+sBiomPath=BIOMPATH
 sOutputDir=OUTPUTDIR
 sNullModel=NULLMODEL
 sAxis=AXIS
