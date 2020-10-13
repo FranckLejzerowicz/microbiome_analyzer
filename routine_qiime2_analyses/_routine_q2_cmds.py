@@ -961,8 +961,8 @@ def write_deicode_biplot(qza: str, new_meta: str, new_qza: str, ordi_qza: str,
     if not isfile(ordi_qza) or not isfile(new_mat_qza):
         cmd += 'qiime deicode rpca \\\n'
         cmd += '--i-table %s \\\n' % new_qza
-        cmd += '--p-min-feature-count 10 \\\n'
-        cmd += '--p-min-sample-count 500 \\\n'
+        # cmd += '--p-min-feature-count 10 \\\n'
+        # cmd += '--p-min-sample-count 500 \\\n'
         cmd += '--o-biplot %s \\\n' % ordi_qza
         cmd += '--o-distance-matrix %s\n' % new_mat_qza
     cmd += 'qiime emperor biplot \\\n'
