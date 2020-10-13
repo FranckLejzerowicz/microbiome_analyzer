@@ -62,7 +62,7 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
     run_xpbs(out_sh, out_pbs, '%s.mprt%s' % (prjct_nm, filt_raref), qiime_env,
              run_params["time"], run_params["n_nodes"], run_params["n_procs"],
              run_params["mem_num"], run_params["mem_dim"],
-             chmod, written, '# Import tables to qiime2', None, jobs, noloc)
+             chmod, written, '# Import tables to qiime2', None, noloc, jobs)
 
 
 def get_threshs(p_filt_threshs):
