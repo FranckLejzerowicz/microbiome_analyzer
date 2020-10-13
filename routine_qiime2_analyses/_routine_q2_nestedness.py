@@ -33,30 +33,42 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
                           case_var: str, case_vals: list, binary: str, force: bool) -> None:
     remove = True
     with open(cur_sh, 'w') as cur_sh_o:
-
         if group:
             cur_rad = '%s/%s_%s_%s' % (odir, splitext(basename(qza))[0], group, case)
         else:
             cur_rad = '%s/%s_%s' % (odir, splitext(basename(qza))[0], case)
-
         new_meta = '%s.meta' % cur_rad
         new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-        new_meta_pd = new_meta_pd[nodfs].reset_index()
-        new_meta_pd.columns = (['#SampleID'] + nodfs)
+        cols = set()
+        lat_lon_date = ['latitude', 'longitude', 'datetime']
+        nodfs_valid = list()
+        for col in (nodfs + lat_lon_date):
+            if col not in set(new_meta_pd.columns):
+                continue
+            if new_meta_pd[col].unique().size == 1:
+                continue
+            if col not in lat_lon_date and min(new_meta_pd[col].value_counts()) <= 5:
+                continue
+            cols.add(col)
+            if col in nodfs:
+                nodfs_valid.append(col)
+        new_meta_pd = new_meta_pd[sorted(cols)].reset_index()
+        new_meta_pd.columns = (['#SampleID'] + sorted(cols))
         new_meta_pd.to_csv(new_meta, index=False, sep='\t')
         new_qza = '%s.qza' % cur_rad
         new_biom = '%s.biom' % cur_rad
         new_tsv = '%s.tsv' % cur_rad
         new_biom_meta = '%s_w-md.biom' % cur_rad
+
         if not isfile(new_biom):
             cmd = filter_feature_table(qza, new_qza, new_meta)
             cmd += run_export(new_qza, new_tsv, 'FeatureTable')
             cur_sh_o.write('echo "%s"\n' % cmd)
             cur_sh_o.write(cmd)
-        if not isfile(new_biom_meta):
-            cmd = run_add_metadata(new_biom, new_biom_meta, new_meta)
-            cur_sh_o.write('echo "%s"\n' % cmd)
-            cur_sh_o.write(cmd)
+
+        cmd = run_add_metadata(new_biom, new_biom_meta, new_meta)
+        cur_sh_o.write('echo "%s"\n' % cmd)
+        cur_sh_o.write(cmd)
 
         for null in nulls:
             for mode in modes:
@@ -66,8 +78,8 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
                 if not isdir(null_mode):
                     os.makedirs(null_mode)
                 if not isfile(graphs) or not isfile(stats):
-                    write_nestedness(new_biom_meta, null_mode, binary,
-                                     nodfs, null, mode, cur_sh_o)
+                    write_nestedness(new_biom_meta, null_mode, graphs, stats, binary,
+                                     nodfs_valid, null, mode, cur_sh_o)
                     remove = False
     if remove:
         os.remove(cur_sh)
