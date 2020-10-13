@@ -969,7 +969,7 @@ def write_deicode_biplot(qza: str, new_meta: str, new_qza: str, ordi_qza: str,
     cmd += '--i-biplot %s \\\n' % ordi_qza
     cmd += '--m-sample-metadata-file %s \\\n' % new_meta
     cmd += '--o-visualization %s \\\n' % ordi_qzv
-    cmd += '--p-number-of-features 20\n'
+    cmd += '--p-number-of-features 10\n'
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 
