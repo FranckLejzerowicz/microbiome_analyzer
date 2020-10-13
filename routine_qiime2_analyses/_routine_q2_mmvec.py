@@ -324,7 +324,7 @@ def make_filtered_and_common_dataset(
         prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
         analysis: str, filt_raref: str, filt_datasets_done: dict,
         common_datasets_done: dict, input_to_filtered: dict,
-        already_computed: dict, subsets: dict) -> (dict, dict):
+        already_computed: dict, subsets: dict, jobs: bool) -> (dict, dict):
     """
     :param i_datasets_folder:
     :param datasets: list of data_sets.
@@ -363,7 +363,7 @@ def make_filtered_and_common_dataset(
                 import_o.write('%s\n' % cmd)
         run_xpbs(import_sh, import_pbs, '%s.mprt.mmsb.%s%s' % (prjct_nm, analysis, filt_raref),
                  qiime_env, '2', '1', '1', '150', 'mb', chmod, 1,
-                 '# Import datasets for %s' % analysis, None, noloc)
+                 '# Import datasets for %s' % analysis, None, noloc, jobs)
 
     return filt_datasets, common_datasets
 
@@ -420,7 +420,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         unique_datasets, mmvec_pairs, mmvec_filtering, unique_filterings, job_folder,
         force, prjct_nm, qiime_env, chmod, noloc, 'mmvec',
         filt_raref, filt_datasets_done, common_datasets_done,
-        input_to_filtered, already_computed, mmvec_subsets)
+        input_to_filtered, already_computed, mmvec_subsets, jobs)
 
     jobs = []
     all_sh_pbs = {}

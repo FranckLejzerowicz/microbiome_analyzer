@@ -469,7 +469,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
         unique_filtering, job_folder, force, prjct_nm, qiime_env,
         chmod, noloc, 'songbird', filt_raref, filt_datasets_done,
         common_datasets_done, input_to_filtered, already_computed,
-        songbird_subsets)
+        songbird_subsets, jobs)
 
     songbird_models.update(dict((input_to_filtered[x], y)
         for x, y in songbird_models.items() if x in input_to_filtered))
