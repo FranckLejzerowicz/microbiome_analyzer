@@ -290,7 +290,7 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                  taxonomies: dict, p_collapse_taxo: str, datasets_rarefs: dict,
                  datasets_collapsed: dict, datasets_collapsed_map: dict, force: bool,
                  prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-                 run_params: dict, filt_raref: str) -> None:
+                 run_params: dict, filt_raref: str, jobs: bool) -> None:
 
     collapse_taxo = get_collapse_taxo(p_collapse_taxo)
 
@@ -358,9 +358,9 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 run_xpbs(out_sh, out_pbs, '%s.cllps.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc)
+                         chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Collapse features for taxo levels defined in %s' % p_collapse_taxo, 'sh', run_pbs)
+        print_message('# Collapse features for taxo levels defined in %s' % p_collapse_taxo, 'sh', run_pbs, jobs)
 
     datasets.update(datasets_update)
     datasets_read.update(datasets_read_update)
@@ -443,7 +443,7 @@ def run_taxonomy_amplicon(dat: str, i_datasets_folder: str, force: bool, tsv_pd:
 def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict, datasets_read: dict,
                  datasets_phylo: dict, datasets_features: dict, datasets_filt_map: dict,
                  i_classifier: str, taxonomies: dict, force: bool, prjct_nm: str, qiime_env: str,
-                 chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
+                 chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
     """
     classify-sklearn: Pre-fitted sklearn-based taxonomy classifier
 
@@ -536,14 +536,15 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict, datasets_r
                 run_xpbs(out_sh, out_pbs, '%s.tx.sklrn.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc)
+                         chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Classify features using classify-sklearn', 'sh', run_pbs)
+        print_message('# Classify features using classify-sklearn', 'sh', run_pbs, jobs)
 
 
 def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
                 force: bool, prjct_nm: str, qiime_env: str,
-                chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
+                chmod: str, noloc: bool, run_params: dict,
+                filt_raref: str, jobs: bool) -> None:
     """
     barplot: Visualize taxonomy with an interactive bar plot
 
@@ -581,9 +582,9 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
             run_xpbs(out_sh, out_pbs, '%s.brplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if written:
-        print_message('# Make sample compositions barplots', 'sh', run_pbs)
+        print_message('# Make sample compositions barplots', 'sh', run_pbs, jobs)
 
 
 def get_precomputed_taxonomies(i_datasets_folder: str, datasets: dict,

@@ -88,7 +88,9 @@ def routine_qiime2_analyses(
         doc_phate: bool,
         filt3d: bool,
         p_filt3d_config: str,
-        filt_only: bool) -> None:
+        filt_only: bool,
+        jobs: bool
+) -> None:
     """
     Main qiime2 functions writer.
 
@@ -161,7 +163,7 @@ def routine_qiime2_analyses(
     print('(import_datasets)')
     import_datasets(i_datasets_folder, datasets, datasets_phylo,
                     force, prjct_nm, qiime_env, chmod, noloc,
-                    run_params['import'], filt_raref)
+                    run_params['import'], filt_raref, jobs)
 
     datasets_filt = {}
     datasets_filt_map = {}
@@ -170,7 +172,7 @@ def routine_qiime2_analyses(
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
                             datasets_rarefs, datasets_filt, datasets_filt_map, datasets_phylo,
                             prjct_nm, qiime_env, p_filt_threshs, chmod, noloc,
-                            run_params['filter'], filt_raref)
+                            run_params['filter'], filt_raref, jobs)
 
     # print()
     # print("datasets_filt")
@@ -186,10 +188,7 @@ def routine_qiime2_analyses(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_filt_map, datasets_rarefs, p_raref_depths, eval_rarefs, force,
             prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'],
-            filt_raref, filt_only)
-
-
-    print()
+            filt_raref, filt_only, jobs)
 
     # TAXONOMY ------------------------------------------------------------
     taxonomies = {}
@@ -206,7 +205,8 @@ def routine_qiime2_analyses(
             print('(run_qemistree)')
             run_qemistree(i_datasets_folder, datasets, prjct_nm,
                           i_qemistree, taxonomies, force, qiime_env,
-                          chmod, noloc, run_params['qemistree'], filt_raref)
+                          chmod, noloc, run_params['qemistree'],
+                          filt_raref, jobs)
         else:
             print('[Warning] The Qemistree path %s is not a folder.')
 
@@ -215,12 +215,12 @@ def routine_qiime2_analyses(
         run_taxonomy(method, i_datasets_folder, datasets, datasets_read,
                      datasets_phylo, datasets_features, datasets_filt_map, i_classifier,
                      taxonomies, force, prjct_nm, qiime_env, chmod, noloc,
-                     run_params['taxonomy'], filt_raref)
+                     run_params['taxonomy'], filt_raref, jobs)
         if 'barplot' not in p_skip:
             print('(run_barplot)')
             run_barplot(i_datasets_folder, datasets, taxonomies,
                         force, prjct_nm, qiime_env, chmod, noloc,
-                        run_params['barplot'], filt_raref)
+                        run_params['barplot'], filt_raref, jobs)
 
     # TREES ------------------------------------------------------------
     trees = {}
@@ -232,12 +232,12 @@ def routine_qiime2_analyses(
         print('(shear_tree)')
         shear_tree(i_datasets_folder, datasets, datasets_read, datasets_phylo,
                    datasets_features, prjct_nm, i_wol_tree, trees, datasets_rarefs,
-                   force, qiime_env, chmod, noloc, run_params['wol'], filt_raref)
+                   force, qiime_env, chmod, noloc, run_params['wol'], filt_raref, jobs)
     if i_sepp_tree and 'sepp' not in p_skip:
         print('(run_sepp)')
         run_sepp(i_datasets_folder, datasets, datasets_read, datasets_phylo,
                  datasets_rarefs, prjct_nm, i_sepp_tree, trees, force,
-                 qiime_env, chmod, noloc, run_params['sepp'], filt_raref)
+                 qiime_env, chmod, noloc, run_params['sepp'], filt_raref, jobs)
 
     if filt_only and datasets_filt_map:
         deleted_non_filt(datasets, datasets_read, datasets_features, datasets_phylo,
@@ -256,7 +256,7 @@ def routine_qiime2_analyses(
                      taxonomies, p_collapse_taxo, datasets_rarefs,
                      datasets_collapsed, datasets_collapsed_map, force,
                      prjct_nm, qiime_env, chmod, noloc,
-                     run_params["collapse"], filt_raref)
+                     run_params["collapse"], filt_raref, jobs)
 
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
@@ -265,13 +265,13 @@ def routine_qiime2_analyses(
                                 datasets_phylo, datasets_rarefs, p_alpha_subsets,
                                 trees, force, prjct_nm, qiime_env, chmod, noloc,
                                 As, dropout, run_params['alpha'], filt_raref,
-                                eval_depths)
+                                eval_depths, jobs)
         if 'merge_alpha' not in p_skip:
             print('(to_export)')
             to_export = merge_meta_alpha(i_datasets_folder, datasets, datasets_rarefs,
                                          diversities, force, prjct_nm, qiime_env, chmod,
                                          noloc,  dropout, run_params['merge_alpha'],
-                                         filt_raref, eval_depths)
+                                         filt_raref, eval_depths, jobs)
             if 'export_alpha' not in p_skip:
                 print('(export_meta_alpha)')
                 export_meta_alpha(datasets, filt_raref, datasets_rarefs, to_export, dropout)
@@ -280,13 +280,13 @@ def routine_qiime2_analyses(
             run_correlations(i_datasets_folder, datasets, diversities,
                              datasets_rarefs, force, prjct_nm, qiime_env,
                              chmod, noloc, run_params['alpha_correlations'],
-                             filt_raref)
+                             filt_raref, jobs)
         if p_longi_column:
             if 'volatility' not in p_skip:
                 print('(run_volatility)')
                 run_volatility(i_datasets_folder, datasets, p_longi_column,
                                datasets_rarefs, force, prjct_nm, qiime_env, chmod,
-                               noloc, run_params['volatility'], filt_raref)
+                               noloc, run_params['volatility'], filt_raref, jobs)
 
     # BETA ----------------------------------------------------------------------
     if 'beta' not in p_skip:
@@ -295,43 +295,43 @@ def routine_qiime2_analyses(
                          datasets_read, datasets_rarefs, p_beta_subsets,
                          trees, force, prjct_nm, qiime_env, chmod, noloc,
                          Bs, dropout, run_params['beta'], filt_raref,
-                         eval_depths)
+                         eval_depths, jobs)
         if 'export_beta' not in p_skip:
             print('(export_beta)')
             export_beta(i_datasets_folder, betas, datasets_rarefs,
                         force, prjct_nm, qiime_env, chmod, noloc,
-                        run_params['export_beta'], filt_raref)
+                        run_params['export_beta'], filt_raref, jobs)
         if 'pcoa' not in p_skip:
             print('(run_pcoas)')
             pcoas = run_pcoas(i_datasets_folder, betas, datasets_rarefs,
                               force, prjct_nm, qiime_env, chmod, noloc,
-                              run_params['pcoa'], filt_raref)
+                              run_params['pcoa'], filt_raref, jobs)
             if 'emperor' not in p_skip:
                 print('(run_emperor)')
                 run_emperor(i_datasets_folder, pcoas, datasets_rarefs,
                             prjct_nm, qiime_env, chmod, noloc,
-                            run_params['emperor'], filt_raref)
+                            run_params['emperor'], filt_raref, jobs)
             if 'empress' not in p_skip:
                 print('(run_empress)')
                 run_empress(i_datasets_folder, pcoas, trees, datasets_phylo,
                             datasets_rarefs, taxonomies, prjct_nm, qiime_env, chmod,
-                            noloc, run_params['empress'], filt_raref)
+                            noloc, run_params['empress'], filt_raref, jobs)
         if 'biplot' not in p_skip:
             print('(run_biplots)')
             biplots, biplots_raw = run_biplots(i_datasets_folder, betas,
                                                datasets_rarefs,  taxonomies,
                                                force, prjct_nm, qiime_env, chmod, noloc,
-                                               run_params['biplot'], filt_raref)
+                                               run_params['biplot'], filt_raref, jobs)
             if 'emperor_biplot' not in p_skip:
                 print('(run_emperor_biplot)')
                 run_emperor_biplot(i_datasets_folder, biplots, biplots_raw, taxonomies,
                                    split_taxa_pds, datasets_rarefs, prjct_nm, qiime_env, chmod,
-                                   noloc, run_params['emperor_biplot'], filt_raref)
+                                   noloc, run_params['emperor_biplot'], filt_raref, jobs)
             if 'empress_biplot' not in p_skip:
                 print('(run_empress_biplot)')
                 run_empress_biplot(i_datasets_folder, biplots, biplots_raw, trees, datasets_phylo,
                                    taxonomies, datasets_rarefs, prjct_nm, qiime_env, chmod,
-                                   noloc, run_params['empress_biplot'], filt_raref)
+                                   noloc, run_params['empress_biplot'], filt_raref, jobs)
 
     # STATS ------------------------------------------------------------------
     if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
@@ -339,7 +339,7 @@ def routine_qiime2_analyses(
         run_alpha_group_significance(i_datasets_folder, datasets, diversities,
                                      datasets_rarefs, p_perm_groups, force,
                                      prjct_nm, qiime_env, chmod, noloc, As, split,
-                                     run_params['alpha_kw'], filt_raref)
+                                     run_params['alpha_kw'], filt_raref, jobs)
     else:
         print('(skip_alpha_kw)')
 
@@ -347,7 +347,7 @@ def routine_qiime2_analyses(
         print('(run_deicode)')
         run_deicode(i_datasets_folder, datasets, datasets_rarefs,
                     p_perm_groups, force, prjct_nm, qiime_env, chmod,
-                    noloc, run_params['deicode'], filt_raref)
+                    noloc, run_params['deicode'], filt_raref, jobs)
     else:
         print('(skip_deicode)')
 
@@ -356,7 +356,7 @@ def routine_qiime2_analyses(
         run_permanova(i_datasets_folder, betas, p_perm_tests, p_beta_type,
                       datasets_rarefs, p_perm_groups, force, prjct_nm,
                       qiime_env, chmod, noloc, split,
-                      run_params['permanova'], filt_raref)
+                      run_params['permanova'], filt_raref, jobs)
     else:
         print('(skip_permanova)')
 
@@ -364,7 +364,7 @@ def routine_qiime2_analyses(
         print('(run_adonis)')
         run_adonis(p_formulas, i_datasets_folder, betas, datasets_rarefs,
                    p_perm_groups, force, prjct_nm, qiime_env, chmod,
-                   noloc, split, run_params['adonis'], filt_raref)
+                   noloc, split, run_params['adonis'], filt_raref, jobs)
     else:
         print('(skip_adonis)')
 
@@ -380,7 +380,7 @@ def routine_qiime2_analyses(
         print('(run_mantel)')
         run_mantel(i_datasets_folder, datasets_filt, p_mantel, betas,
                    force,  prjct_nm, qiime_env, chmod, noloc, split,
-                   run_params['mantel'], filt_raref,  filt_only, eval_depths)
+                   run_params['mantel'], filt_raref,  filt_only, eval_depths, jobs)
     else:
         print('(skip_mantel)')
 
@@ -388,7 +388,7 @@ def routine_qiime2_analyses(
         print('(run_nestedness)')
         run_nestedness(i_datasets_folder, betas, split_taxa_pds, p_nestedness_groups,
                        datasets_rarefs, force, prjct_nm, qiime_env, chmod,
-                       noloc, split, run_params['nestedness'], filt_raref)
+                       noloc, split, run_params['nestedness'], filt_raref, jobs)
     else:
         print('(skip_nestedness)')
 
@@ -396,8 +396,9 @@ def routine_qiime2_analyses(
     if p_phate_config and 'phate' not in p_skip:
             print('(run_phate)')
             phates = run_phate(
-                p_phate_config, i_datasets_folder, datasets, datasets_rarefs, force,
-                prjct_nm, qiime_env, chmod, noloc, split, run_params['phate'], filt_raref)
+                p_phate_config, i_datasets_folder, datasets, datasets_rarefs,
+                force, prjct_nm, qiime_env, chmod, noloc, split,
+                run_params['phate'], filt_raref, jobs)
     else:
         phates = {}
         print('(skip_phate)')
@@ -407,7 +408,7 @@ def routine_qiime2_analyses(
         print('(run_doc)')
         run_doc(i_datasets_folder, datasets, p_doc_config,
                 datasets_rarefs, force, prjct_nm, qiime_env, chmod, noloc,
-                run_params['doc'], filt_raref, phates, doc_phate, split)
+                run_params['doc'], filt_raref, phates, doc_phate, split, jobs)
     else:
         print('(skip_doc)')
 
@@ -416,7 +417,8 @@ def routine_qiime2_analyses(
         print('(run_sourcetracking)')
         run_sourcetracking(i_datasets_folder, datasets, p_sourcetracking_config,
                            datasets_rarefs, force, prjct_nm, qiime_env, chmod,
-                           noloc, run_params['sourcetracking'], filt_raref, split)
+                           noloc, run_params['sourcetracking'],
+                           filt_raref, split, jobs)
     else:
         print('(skip_sourcetracking)')
 
@@ -433,7 +435,7 @@ def routine_qiime2_analyses(
                                       datasets_filt, datasets_read, force, gpu,
                                       standalone, prjct_nm, qiime_env, chmod,
                                       noloc, split, filt_raref, run_params['mmvec'],
-                                      input_to_filtered)
+                                      input_to_filtered, jobs)
     else:
         print('(skip_mmvec)')
 
@@ -447,7 +449,7 @@ def routine_qiime2_analyses(
                                             datasets, datasets_read, datasets_filt,
                                             input_to_filtered, mmvec_outputs, force, prjct_nm,
                                             qiime_env, chmod, noloc, split,
-                                            run_params['songbird'], filt_raref)
+                                            run_params['songbird'], filt_raref, jobs)
             q2s_pd = summarize_songbirds(i_datasets_folder)
             out_folder = get_analysis_folder(i_datasets_folder, 'songbird')
             q2s_fp = '%s/songbird_q2.tsv' % out_folder
@@ -469,6 +471,6 @@ def routine_qiime2_analyses(
             i_datasets_folder, songbird_outputs, p_mmvec_highlights,
             p_xmmvec, mmvec_outputs, force, prjct_nm, qiime_env, chmod,
             noloc, filt_raref, run_params['mmbird'],
-            input_to_filtered)
+            input_to_filtered, jobs)
     else:
         print('(skip_mmbird)')

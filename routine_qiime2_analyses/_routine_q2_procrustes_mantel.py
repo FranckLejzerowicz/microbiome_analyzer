@@ -90,7 +90,7 @@ def get_betas_raref(betas, dat, raref):
 def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: str,
                    betas: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
                    noloc: bool, split: bool, run_params: dict, filt_raref: str,
-                   filt_only: bool, eval_depths: dict) -> None:
+                   filt_only: bool, eval_depths: dict, jobs: bool) -> None:
     """
     """
     evaluation = ''
@@ -195,7 +195,7 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
                             '%s.prcst%s%s' % (prjct_nm, evaluation, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc)
+                            qiime_env, chmod, noloc, jobs)
     if main_sh:
         if p_procrustes and p_procrustes != 1:
             if p_procrustes.startswith('/panfs'):
@@ -203,7 +203,7 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
             print('# Procrustes (pairs and samples subsets config in %s)' % p_procrustes)
         else:
             print('# Procrustes')
-        print_message('', 'sh', main_sh)
+        print_message('', 'sh', main_sh, jobs)
 
     dms_tab_pd = pd.DataFrame(
         dms_tab, columns=[
@@ -258,7 +258,7 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
                  run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                  run_params["mem_num"], run_params["mem_dim"], chmod, 1,
                  '# Procrustes for stats in R (pairs and samples subsets config in %s)' % p_procrustes,
-                 None, False)
+                 None, False, jobs)
     else:
         print('%s exists (remove to re-run)' % out_R)
 
@@ -266,7 +266,7 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
 def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,
                betas: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
                noloc: bool, split: bool, run_params: dict, filt_raref: str, filt_only: bool,
-               eval_depths: dict) -> None:
+               eval_depths: dict, jobs: bool) -> None:
     """
     """
     evaluation = ''
@@ -367,7 +367,7 @@ def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,
                             '%s.mntl%s%s' % (prjct_nm, evaluation, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc)
+                            qiime_env, chmod, noloc, jobs)
     if main_sh:
         if p_mantel and p_mantel != 1:
             if p_mantel.startswith('/panfs'):
@@ -375,4 +375,4 @@ def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,
             print('# Mantels (pairs and samples subsets config in %s)' % p_mantel)
         else:
             print('# Mantels')
-        print_message('', 'sh', main_sh)
+        print_message('', 'sh', main_sh, jobs)

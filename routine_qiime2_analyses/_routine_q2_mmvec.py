@@ -381,7 +381,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
               datasets_filt: dict, datasets_read: dict, force: bool,
               gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
               chmod: str, noloc: bool, split: bool, filt_raref: str,
-              run_params: dict, input_to_filtered: dict) -> list:
+              run_params: dict, input_to_filtered: dict, jobs: bool) -> list:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
     https://github.com/biocore/mmvec
@@ -475,10 +475,10 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                             '%s.mmvc%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc)
+                            qiime_env, chmod, noloc, jobs)
     if main_sh:
         if p_mmvec_pairs.startswith('/panfs'):
             p_mmvec_pairs = p_mmvec_pairs.replace(os.getcwd(), '')
-        print_message("# MMVEC (datasets pairs in %s)" % p_mmvec_pairs, 'sh', main_sh)
+        print_message("# MMVEC (datasets pairs in %s)" % p_mmvec_pairs, 'sh', main_sh, jobs)
 
     return mmvec_outputs

@@ -30,8 +30,9 @@ def get_raref_depths(p_raref_depths):
 
 def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                datasets_phylo: dict, datasets_filt_map: dict, datasets_rarefs: dict,
-               p_raref_depths: str, eval_rarefs: bool, force: bool, prjct_nm: str, qiime_env: str,
-               chmod: str, noloc: bool, run_params: dict, filt_raref: str, filt_only: bool) -> dict:
+               p_raref_depths: str, eval_rarefs: bool, force: bool, prjct_nm: str,
+               qiime_env: str, chmod: str, noloc: bool, run_params: dict,
+               filt_raref: str, filt_only: bool, jobs: bool) -> dict:
     """
     Run rarefy: Rarefy table.
     https://docs.qiime2.org/2019.10/plugins/available/feature-table/rarefy/
@@ -151,9 +152,9 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
             run_xpbs(out_sh, out_pbs, '%s.bt%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
                      qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Get rarefied datasets', 'sh', run_pbs)
+        print_message('# Get rarefied datasets', 'sh', run_pbs, jobs)
 
     if eval_rarefs:
         datasets.update(datasets_update)

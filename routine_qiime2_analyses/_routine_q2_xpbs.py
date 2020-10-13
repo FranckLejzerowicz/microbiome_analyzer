@@ -16,7 +16,7 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
              qiime_env: str, time: str, n_nodes: str,
              n_procs: str, mem_num: str, mem_dim: str, chmod: str,
              written: int, single: str, o: TextIO = None,
-             noloc: bool = True, tmp: str = None) -> None:
+             noloc: bool = True, jobs: bool = True, tmp: str = None) -> None:
     """
     Run the Xpbs script assorted with print or writing in higher-level command.
 
@@ -39,19 +39,26 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
         if os.getcwd().startswith('/panfs'):
             out_sh_lines = open(out_sh).readlines()
             with open(out_sh, 'w') as sh:
+                if not jobs:
+                    sh.write('conda activate %s\n' % qiime_env)
                 for out_sh_line in out_sh_lines:
                     sh.write(out_sh_line.replace(os.getcwd(), ''))
-        xpbs_call(out_sh, out_pbs, job_name, qiime_env,
-                  time, n_nodes, n_procs, mem_num,
-                  mem_dim, chmod, noloc, tmp)
+        if jobs:
+            xpbs_call(out_sh, out_pbs, job_name, qiime_env,
+                      time, n_nodes, n_procs, mem_num,
+                      mem_dim, chmod, noloc, tmp)
         if single:
             if os.getcwd().startswith('/panfs'):
                 out_pbs = out_pbs.replace(os.getcwd(), '')
             if not o:
                 print(single)
-                print('[TO RUN] qsub', out_pbs)
+                if jobs:
+                    print('[TO RUN] qsub', out_pbs)
+                else:
+                    print('[TO RUN] sh', out_sh)
             else:
-                o.write('qsub %s\n' % out_pbs)
+                if jobs:
+                    o.write('qsub %s\n' % out_pbs)
     else:
         os.remove(out_sh)
         if isfile(out_pbs):
@@ -103,9 +110,12 @@ def xpbs_call(out_sh: str, out_pbs: str, prjct_nm: str,
                 pbs.write(out_pbs_line.replace(os.getcwd(), ''))
 
 
-def print_message(message: str, sh_pbs: str, to_run: str) -> None:
+def print_message(message: str, sh_pbs: str, to_run: str, jobs: bool) -> None:
     if message:
         print(message)
     if os.getcwd().startswith('/panfs'):
         to_run = to_run.replace(os.getcwd(), '')
-    print('[TO RUN]', sh_pbs, to_run)
+    if jobs:
+        print('[TO RUN]', sh_pbs, to_run)
+    else:
+        print('[TO RUN]', 'sh', to_run.replace('.pbs', '.sh'))

@@ -65,7 +65,7 @@ def run_single_phate(dat: str, odir: str, tsv: str, meta_pd: pd.DataFrame, case_
 def run_phate(p_phate_config: str, i_datasets_folder: str, datasets: dict,
               datasets_rarefs: dict, force: bool, prjct_nm: str,
               qiime_env: str, chmod: str, noloc: bool, split: bool,
-              run_params: dict, filt_raref: str) -> dict:
+              run_params: dict, filt_raref: str, jobs: bool) -> dict:
 
     job_folder2 = get_job_folder(i_datasets_folder, 'phate/chunks')
     phate_dicts = get_phate_dicts(p_phate_config)
@@ -117,12 +117,11 @@ def run_phate(p_phate_config: str, i_datasets_folder: str, datasets: dict,
             phates[dat].append(raref_phates)
 
     job_folder = get_job_folder(i_datasets_folder, 'phate')
-
     main_sh = write_main_sh(job_folder, '3_run_import_phate%s' % filt_raref, all_import_sh_pbs,
                             '%s.mrt.pht%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc)
+                            qiime_env, chmod, noloc, jobs)
     if main_sh:
         if p_phate_config:
             if p_phate_config.startswith('/panfs'):
@@ -130,13 +129,13 @@ def run_phate(p_phate_config: str, i_datasets_folder: str, datasets: dict,
             print('# Import for PHATE (groups config in %s)' % p_phate_config)
         else:
             print('# Import for PHATE')
-        print_message('', 'sh', main_sh)
+        print_message('', 'sh', main_sh, jobs)
 
     main_sh = write_main_sh(job_folder, '3_run_phate%s' % filt_raref, all_sh_pbs,
                             '%s.pht%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            'xphate', chmod, noloc)
+                            'xphate', chmod, noloc, jobs)
     if main_sh:
         if p_phate_config:
             if p_phate_config.startswith('/panfs'):
@@ -144,5 +143,5 @@ def run_phate(p_phate_config: str, i_datasets_folder: str, datasets: dict,
             print('# PHATE (groups config in %s)' % p_phate_config)
         else:
             print('# PHATE')
-        print_message('', 'sh', main_sh)
+        print_message('', 'sh', main_sh, jobs)
     return phates

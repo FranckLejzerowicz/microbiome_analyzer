@@ -237,6 +237,10 @@ from routine_qiime2_analyses import __version__
     "-filt3d_config", "--p-filt3d-config", required=False, show_default=False,
     help="Levels for the exploration of filtering. Must be a yaml file."
 )
+@click.option(
+    "--jobs/--no-jobs", default=True, show_default=True,
+    help="Whether to prepare Torque jobs from scripts."
+)
 @click.version_option(__version__, prog_name="routine_qiime2_analyses")
 
 
@@ -285,7 +289,8 @@ def standalone_routine(
         doc_phate,
         filt3d,
         p_filt3d_config,
-        filt_only
+        filt_only,
+        jobs
 ):
 
     routine_qiime2_analyses(
@@ -333,7 +338,8 @@ def standalone_routine(
         doc_phate,
         filt3d,
         p_filt3d_config,
-        filt_only
+        filt_only,
+        jobs
     )
 
 

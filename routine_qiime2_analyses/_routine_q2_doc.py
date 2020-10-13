@@ -124,7 +124,8 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
 def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             datasets_rarefs: dict, force: bool, prjct_nm: str,
             qiime_env: str, chmod: str, noloc: bool, run_params: dict,
-            filt_raref: str, phates: dict, doc_phate: bool, split: bool) -> None:
+            filt_raref: str, phates: dict, doc_phate: bool,
+            split: bool, jobs: bool) -> None:
 
     job_folder2 = get_job_folder(i_datasets_folder, 'doc/chunks')
     doc_filtering, doc_params, main_cases_dict = get_doc_config(p_doc_config)
@@ -181,7 +182,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
     job_folder = get_job_folder(i_datasets_folder, 'doc')
     main_sh = write_main_sh(job_folder, '3_run_import_doc%s' % filt_raref,
                             all_import_sh_pbs, '%s.doc.mpt%s' % (prjct_nm, filt_raref),
-                            "4", "1", "1", "500", "mb", qiime_env, chmod, noloc)
+                            "4", "1", "1", "500", "mb", qiime_env, chmod, noloc, jobs)
     if main_sh:
         if p_doc_config:
             if p_doc_config.startswith('/panfs'):
@@ -189,13 +190,13 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             print('# Import for DOC (groups config in %s)' % p_doc_config)
         else:
             print('# Import DOC')
-        print_message('', 'sh', main_sh)
+        print_message('', 'sh', main_sh, jobs)
 
     main_sh = write_main_sh(job_folder, '3_run_doc%s' % filt_raref, all_sh_pbs,
                             '%s.doc%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, '~/.')
+                            qiime_env, chmod, noloc, jobs, '~/.')
     if main_sh:
         if p_doc_config:
             if p_doc_config.startswith('/panfs'):
@@ -203,7 +204,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
             print('# DOC (groups config in %s)' % p_doc_config)
         else:
             print('# DOC')
-        print_message('', 'sh', main_sh)
+        print_message('', 'sh', main_sh, jobs)
 
     do_r = 1
     if do_r:
@@ -283,7 +284,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                         run_xpbs(out_sh, out_pbs, '%s.doc.R.%s%s_%s' % (prjct_nm, dat, filt_raref, cdx),
                                  'xdoc', run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                                  run_params["mem_num"], run_params["mem_dim"],
-                                 chmod, written, 'single', main_o, noloc)
+                                 chmod, written, 'single', main_o, noloc, jobs)
         if main_written:
-            print_message('# DOC (R)', 'sh', main_sh)
+            print_message('# DOC (R)', 'sh', main_sh, jobs)
 

@@ -564,7 +564,7 @@ def read_meta_pd(meta: str) -> pd.DataFrame:
 def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
                   prjct_nm: str, time: str, n_nodes: str, n_procs: str,
                   mem_num: str, mem_dim: str, qiime_env: str, chmod: str,
-                  noloc: bool, tmp: str = None) -> str:
+                  noloc: bool, jobs: bool, tmp: str = None) -> str:
     """
     Write the main launcher of pbs scripts, written during using multiprocessing.
 
@@ -595,17 +595,24 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
                                 sh.write(line)
                                 cur_written = True
                         os.remove(cur_sh)
-            if cur_written:
-                out_pbs = '%s.pbs' % splitext(out_sh)[0]
-                run_xpbs(out_sh, out_pbs, '%s.%s' % (prjct_nm, dat), qiime_env,
-                         time, n_nodes, n_procs, mem_num, mem_dim, chmod, 1, '', None, noloc, tmp)
-                if os.getcwd().startswith('/panfs'):
-                    out_pbs = out_pbs.replace(os.getcwd(), '')
-                main_o.write('qsub %s\n' % out_pbs)
-                out_main_sh = main_sh
-                warning += 1
+            if jobs:
+                if cur_written:
+                    out_pbs = '%s.pbs' % splitext(out_sh)[0]
+                    run_xpbs(out_sh, out_pbs, '%s.%s' % (prjct_nm, dat), qiime_env,
+                             time, n_nodes, n_procs, mem_num, mem_dim, chmod, 1,
+                             '', None, noloc, jobs, tmp)
+                    if os.getcwd().startswith('/panfs'):
+                        out_pbs = out_pbs.replace(os.getcwd(), '')
+                    main_o.write('qsub %s\n' % out_pbs)
+                    out_main_sh = main_sh
+                    warning += 1
+                else:
+                    os.remove(out_sh)
             else:
-                os.remove(out_sh)
+                if cur_written:
+                    main_o.write('sh %s\n' % out_sh)
+                    out_main_sh = main_sh
+                    warning += 1
     if warning > 40:
         print(' -> [WARNING] >40 jobs here: please check before running!')
     return out_main_sh

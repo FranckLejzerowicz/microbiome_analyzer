@@ -107,7 +107,7 @@ def get_nestedness_config(nestedness_config: dict) -> (dict, dict, dict, dict, d
 def run_nestedness(i_datasets_folder: str, betas: dict, split_taxa_pds: dict,
                    p_nestedness_groups: str, datasets_rarefs: dict, force: bool,
                    prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-                   split: bool, run_params: dict, filt_raref: str) -> None:
+                   split: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
 
     job_folder2 = get_job_folder(i_datasets_folder, 'nestedness/chunks')
     nestedness_config = read_yaml_file(p_nestedness_groups)
@@ -152,10 +152,10 @@ def run_nestedness(i_datasets_folder: str, betas: dict, split_taxa_pds: dict,
                             '%s.prm%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc)
+                            qiime_env, chmod, noloc, jobs)
     if main_sh:
         if p_nestedness_groups:
             print("# nestedness (config in %s)" % p_nestedness_groups)
         else:
             print("# nestedness")
-        print_message('', 'sh', main_sh)
+        print_message('', 'sh', main_sh, jobs)

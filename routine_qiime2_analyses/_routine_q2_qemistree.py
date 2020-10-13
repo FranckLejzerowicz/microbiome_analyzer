@@ -19,7 +19,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
 
 def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str,
                   i_qemistree: str, taxonomies: dict, force: bool,  qiime_env: str,
-                  chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
+                  chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
     """
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets_read: dataset -> [tsv table, meta table]
@@ -75,6 +75,6 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str,
             run_xpbs(out_sh, out_pbs, '%s.qmstr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if written:
-        print_message('# Make qemistree classyfire classifications', 'sh', run_pbs)
+        print_message('# Make qemistree classyfire classifications', 'sh', run_pbs, jobs)

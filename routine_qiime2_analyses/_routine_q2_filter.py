@@ -27,7 +27,7 @@ from routine_qiime2_analyses._routine_q2_songbird import get_songbird_dicts
 
 def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                     force: bool, prjct_nm: str, qiime_env: str,  chmod: str,
-                    noloc: bool, run_params: dict, filt_raref: str) -> None:
+                    noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
     """
     Initial import of the .tsv datasets in to Qiime2 Artefact.
 
@@ -62,7 +62,7 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
     run_xpbs(out_sh, out_pbs, '%s.mprt%s' % (prjct_nm, filt_raref), qiime_env,
              run_params["time"], run_params["n_nodes"], run_params["n_procs"],
              run_params["mem_num"], run_params["mem_dim"],
-             chmod, written, '# Import tables to qiime2', None, noloc)
+             chmod, written, '# Import tables to qiime2', None, jobs, noloc)
 
 
 def get_threshs(p_filt_threshs):
@@ -92,7 +92,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                         datasets_features: dict, datasets_rarefs: dict, datasets_filt: dict,
                         datasets_filt_map: dict, datasets_phylo: dict, prjct_nm: str,
                         qiime_env: str, p_filt_threshs: str, chmod: str, noloc: bool,
-                        run_params: dict, filt_raref: str) -> None:
+                        run_params: dict, filt_raref: str, jobs: bool) -> None:
     """
     Filter the rare features, keep samples with enough reads/features and import to Qiime2.
 
@@ -239,7 +239,8 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
         run_xpbs(out_sh, out_pbs, '%s.fltr%s' % (prjct_nm, filt_raref), qiime_env,
                  run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                  run_params["mem_num"], run_params["mem_dim"], chmod, written,
-                 '# Filter samples for a min number of %s reads' % p_filt_threshs, None, noloc)
+                 '# Filter samples for a min number of %s reads' % p_filt_threshs,
+                 None, noloc, jobs)
 
     datasets.update(datasets_update)
     datasets_read.update(datasets_read_update)

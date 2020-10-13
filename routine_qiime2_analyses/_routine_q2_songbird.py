@@ -422,8 +422,8 @@ def get_unique_filterings(songbird_filtering):
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                  datasets_read: dict, datasets_filt: dict, input_to_filtered: dict,
                  mmvec_outputs: list, force: bool, prjct_nm: str, qiime_env: str,
-                 chmod: str, noloc: bool, split: bool,
-                 run_params: dict, filt_raref: str) -> list:
+                 chmod: str, noloc: bool, split: bool, run_params: dict,
+                 filt_raref: str, jobs: bool) -> list:
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
@@ -626,9 +626,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                             '%s.sngbrd%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc)
+                            qiime_env, chmod, noloc, jobs)
     if main_sh:
         if p_diff_models.startswith('/panfs'):
             p_diff_models = p_diff_models.replace(os.getcwd(), '')
-        print_message("# Songbird (configs in %s)" % p_diff_models, 'sh', main_sh)
+        print_message("# Songbird (configs in %s)" % p_diff_models, 'sh', main_sh, jobs)
     return songbird_outputs

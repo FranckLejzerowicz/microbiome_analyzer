@@ -36,7 +36,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
              datasets_read: dict, datasets_rarefs: dict, p_beta_subsets: str,
              trees: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
              noloc: bool, Bs: tuple, dropout: bool, run_params: dict,
-             filt_raref: str, eval_depths: dict) -> dict:
+             filt_raref: str, eval_depths: dict, jobs: bool) -> dict:
     """
     Run beta: Beta diversity.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta/
@@ -156,15 +156,15 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
             run_xpbs(out_sh, out_pbs, '%s.bt%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Calculate beta diversity indices', 'sh', run_pbs)
+        print_message('# Calculate beta diversity indices', 'sh', run_pbs, jobs)
     return betas
 
 
 def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                 force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-                noloc: bool, run_params: dict, filt_raref: str) -> None:
+                noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
     """
     Export beta diverity matrices.
 
@@ -194,12 +194,12 @@ def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
     run_xpbs(out_sh, out_pbs, '%s.xprt.bt%s' % (prjct_nm, filt_raref), qiime_env,
              run_params["time"], run_params["n_nodes"], run_params["n_procs"],
              run_params["mem_num"], run_params["mem_dim"],
-             chmod, written, '# Export beta diversity matrices', None, noloc)
+             chmod, written, '# Export beta diversity matrices', None, noloc, jobs)
 
 
 def run_pcoas(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
               force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-              noloc: bool, run_params: dict, filt_raref: str) -> dict:
+              noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> dict:
     """
     Run pcoa: Principal Coordinate Analysis.
     Run pcoa: Principal Coordinate Analysis Biplot¶
@@ -247,15 +247,15 @@ def run_pcoas(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
             run_xpbs(out_sh, out_pbs, '%s.pc.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Calculate principal coordinates', 'sh', run_pbs)
+        print_message('# Calculate principal coordinates', 'sh', run_pbs, jobs)
     return pcoas_d
 
 
 def run_emperor(i_datasets_folder: str, pcoas_d: dict, datasets_rarefs: dict,
                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-                run_params: dict, filt_raref: str) -> None:
+                run_params: dict, filt_raref: str, jobs: bool) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -301,14 +301,15 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, datasets_rarefs: dict,
             run_xpbs(out_sh, out_pbs, '%s.mprr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Make EMPeror plots', 'sh', run_pbs)
+        print_message('# Make EMPeror plots', 'sh', run_pbs, jobs)
 
 
 def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                 taxonomies: dict, force: bool, prjct_nm: str, qiime_env: str,
-                chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> (dict, dict):
+                chmod: str, noloc: bool, run_params: dict,
+                filt_raref: str, jobs: bool) -> (dict, dict):
     """
     Run pcoa-biplot: Principal Coordinate Analysis Biplot¶
     https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa-biplot/
@@ -368,16 +369,16 @@ def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
             run_xpbs(out_sh, out_pbs, '%s.bplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Calculate principal coordinates (biplot)', 'sh', run_pbs)
+        print_message('# Calculate principal coordinates (biplot)', 'sh', run_pbs, jobs)
     return biplots_d, biplots_d2
 
 
 def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict,
                        taxonomies: dict, split_taxa_pds: dict,  datasets_rarefs: dict,
                        prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-                       run_params: dict, filt_raref: str) -> None:
+                       run_params: dict, filt_raref: str, jobs: bool) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -440,15 +441,15 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
             run_xpbs(out_sh, out_pbs, '%s.mprr.bplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Make EMPeror biplots', 'sh', run_pbs)
+        print_message('# Make EMPeror biplots', 'sh', run_pbs, jobs)
 
 
 def run_empress(i_datasets_folder: str, pcoas_d: dict,
                 trees: dict, datasets_phylo: dict, datasets_rarefs: dict,
                 taxonomies: dict, prjct_nm: str, qiime_env: str, chmod: str,
-                noloc: bool, run_params: dict, filt_raref: str) -> None:
+                noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
     """
     Run empress.
     https://docs.qiime2.org/2019.10/plugins/available/empress/
@@ -507,15 +508,15 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
             run_xpbs(out_sh, out_pbs, '%s.mprss.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Make empress plots', 'sh', run_pbs)
+        print_message('# Make empress plots', 'sh', run_pbs, jobs)
 
 
 def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict,
                        trees: dict, datasets_phylo: dict, taxonomies: dict,
                        datasets_rarefs: dict, prjct_nm: str, qiime_env: str,
-                       chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
+                       chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
     """
     Run empress.
     https://docs.qiime2.org/2019.10/plugins/available/empress/
@@ -601,6 +602,6 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
             run_xpbs(out_sh, out_pbs, '%s.mprss.bplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Make empress biplots', 'sh', run_pbs)
+        print_message('# Make empress biplots', 'sh', run_pbs, jobs)

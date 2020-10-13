@@ -31,7 +31,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
               datasets_phylo: dict, datasets_rarefs: dict, p_alpha_subsets: str,
               trees: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
               noloc: bool, As: tuple, dropout: bool, run_params: dict,
-              filt_raref: str, eval_depths: dict) -> dict:
+              filt_raref: str, eval_depths: dict, jobs: bool) -> dict:
 
     """
     Computes the alpha diversity vectors for each dataset.
@@ -143,16 +143,16 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
             run_xpbs(out_sh, out_pbs, '%s.mg.lph%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
                      qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Calculate alpha diversity indices', 'sh', run_pbs)
+        print_message('# Calculate alpha diversity indices', 'sh', run_pbs, jobs)
     return diversities
 
 
 def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: dict,
                      diversities: dict, force: bool, prjct_nm: str, qiime_env: str,
                      chmod: str, noloc: bool, dropout: bool, run_params: dict,
-                     filt_raref: str, eval_depths: dict) -> dict:
+                     filt_raref: str, eval_depths: dict, jobs: bool) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -212,9 +212,9 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: di
             run_xpbs(out_sh, out_pbs, '%s.mrg.lph%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
                      qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Merge and export alpha diversity indices', 'sh', run_pbs)
+        print_message('# Merge and export alpha diversity indices', 'sh', run_pbs, jobs)
     return to_export
 
 
@@ -310,7 +310,7 @@ def export_meta_alpha(datasets: dict, filt_raref: str,
 
 def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                      datasets_rarefs: dict, force: bool, prjct_nm: str, qiime_env: str,
-                     chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
+                     chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
     """
     Run alpha-correlation: Alpha diversity correlation
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-correlation/
@@ -353,14 +353,14 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
             run_xpbs(out_sh, out_pbs, '%s.lphcrr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Correlate numeric metadata variables with alpha diversity indices', 'sh', run_pbs)
+        print_message('# Correlate numeric metadata variables with alpha diversity indices', 'sh', run_pbs, jobs)
 
 
 def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
                    datasets_rarefs: dict, force: bool, prjct_nm: str, qiime_env: str,
-                   chmod: str, noloc: bool, run_params: dict, filt_raref: str) -> None:
+                   chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
     """
     Run volatility: Generate interactive volatility plot.
     https://docs.qiime2.org/2019.10/plugins/available/longitudinal/volatility/
@@ -413,9 +413,9 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
             run_xpbs(out_sh, out_pbs, '%s.vltlt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc)
+                     chmod, written, 'single', o, noloc, jobs)
     if main_written:
-        print_message('# Longitudinal change in alpha diversity indices', 'sh', run_pbs)
+        print_message('# Longitudinal change in alpha diversity indices', 'sh', run_pbs, jobs)
 
 
 def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list: list,
@@ -453,8 +453,8 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list:
 
 def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversities: dict,
                                  datasets_rarefs: dict, p_perm_groups: str, force: bool, prjct_nm: str,
-                                 qiime_env: str, chmod: str, noloc: bool,
-                                 As: tuple, split: bool, run_params: dict, filt_raref: str) -> None:
+                                 qiime_env: str, chmod: str, noloc: bool, As: tuple, split: bool,
+                                 run_params: dict, filt_raref: str, jobs: bool) -> None:
     """
     Run alpha-group-significance: Alpha diversity comparisons.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-group-significance/
@@ -523,10 +523,10 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
                             '%s.kv%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc)
+                            qiime_env, chmod, noloc, jobs)
     if main_sh:
         if p_perm_groups:
             print("# Kruskal-Wallis on alpha diversity (groups config in %s)" % p_perm_groups)
         else:
             print("# Kruskal-Wallis on alpha diversity")
-        print_message('', 'sh', main_sh)
+        print_message('', 'sh', main_sh, jobs)
