@@ -59,7 +59,7 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
             else:
                 if jobs:
                     o.write('qsub %s\n' % out_pbs)
-                else
+                else:
                     o.write('sh %s\n' % out_sh)
     else:
         os.remove(out_sh)
