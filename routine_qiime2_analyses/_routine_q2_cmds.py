@@ -643,6 +643,11 @@ def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str,
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 
+    out_biplot_txt2 = '%s.txt' % splitext(out_biplot2)[0]
+    cmd = run_export(out_biplot2, out_biplot_txt2, 'biplot')
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n\n' % cmd)
+
 
 def write_emperor_biplot(meta: str, biplot: str, out_plot: str, cur_sh: TextIO,
                          taxonomy: str, split_taxa_pd: dict) -> None:
@@ -659,8 +664,8 @@ def write_emperor_biplot(meta: str, biplot: str, out_plot: str, cur_sh: TextIO,
     biplot_txt = '%s.txt' % splitext(biplot)[0]
     if isfile(biplot_txt):
         ordi = OrdinationResults.read(biplot_txt)
-        ordi.features = ordi.features.iloc[:,:3]
-        ordi.samples= ordi.samples.iloc[:,:3]
+        ordi.features = ordi.features.iloc[:, :3]
+        ordi.samples= ordi.samples.iloc[:, :3]
         ordi.eigvals = ordi.eigvals[:3]
         ordi.proportion_explained = ordi.proportion_explained[:3]
         ordi.write(biplot_txt)
@@ -679,7 +684,7 @@ def write_emperor_biplot(meta: str, biplot: str, out_plot: str, cur_sh: TextIO,
         else:
             tax_tmp = taxonomy
         cmd += '--m-feature-metadata-file %s \\\n' % tax_tmp
-    cmd += '--p-number-of-features 20 \\\n'
+    cmd += '--p-number-of-features 10 \\\n'
     cmd += '--o-visualization %s\n' % out_plot
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
