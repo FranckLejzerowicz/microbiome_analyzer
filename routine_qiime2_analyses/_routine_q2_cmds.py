@@ -7,13 +7,10 @@
 # ----------------------------------------------------------------------------
 
 import re
-import pkg_resources
 import pandas as pd
 from typing import TextIO
 from os.path import dirname, isdir, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
-
-RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
 
 def get_subset(tsv_pd: pd.DataFrame, subset_regex: list) -> list:
