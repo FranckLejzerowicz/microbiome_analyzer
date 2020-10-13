@@ -372,7 +372,8 @@ def routine_qiime2_analyses(
         print('(run_procrustes)')
         run_procrustes(i_datasets_folder, datasets_filt, p_procrustes, betas,
                        force, prjct_nm, qiime_env, chmod, noloc, split,
-                       run_params['procrustes'], filt_raref,  filt_only, eval_depths)
+                       run_params['procrustes'], filt_raref,
+                       filt_only, eval_depths, jobs)
     else:
         print('(skip_procrustes)')
 
