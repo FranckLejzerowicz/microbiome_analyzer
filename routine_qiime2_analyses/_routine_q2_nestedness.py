@@ -81,11 +81,12 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
             for mode in modes:
                 odir = '%s/null-%s/mode-%s' % (cur_rad, null, mode)
                 graphs = '%s/graphs.csv' % odir
+                fields = '%s/fields.txt' % odir
                 res[(null, mode)] = odir
                 if not isdir(odir):
                     os.makedirs(odir)
                 if not isfile(graphs) and not len(glob.glob('%s/*comparisons.csv' % odir)):
-                    write_nestedness(new_biom_meta, odir, graphs, binary,
+                    write_nestedness(new_biom_meta, odir, graphs, fields, binary,
                                      nodfs_valid, null, mode, cur_sh_o)
                     remove = False
     if remove:
