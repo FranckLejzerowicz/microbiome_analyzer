@@ -1093,7 +1093,7 @@ def write_nestedness(new_biom_meta: str, odir: str, graphs: str, fields: str, bi
                 cmd += '--bPresenceAbsence=false \\\n'
                 cmd += '--sTaxonRank=otu \\\n'
                 cmd += '--sComparisonsPath=%s \\\n' % nodf_comparisons
-                cmd += '--iNullModelIterations=10000 \\\n'
+                cmd += '--iNullModelIterations=1000 \\\n'
                 cmd += '--bOrderedNODF=false \\\n'
                 cmd += '--sNestednessAxis=sample \\\n'
                 cmd += '--sNestednessNullModel=%s \\\n' % null

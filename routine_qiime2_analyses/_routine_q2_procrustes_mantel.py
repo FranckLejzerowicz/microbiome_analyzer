@@ -229,6 +229,8 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
 
     out_R = '%s/pairs_proscrustes_results%s%s.tsv' % (odir, evaluation, filt_raref)
     if not isfile(out_R):
+        out_R = '%s/pairs_proscrustes_results%s%s.tsv' % (odir, evaluation, filt_raref)
+    if not isfile(out_R):
         job_folder = get_job_folder(i_datasets_folder, 'procrustes/R')
         R_script = '%s/4_run_procrustes%s.R' % (job_folder, filt_raref)
         with open(R_script, 'w') as o:
@@ -270,8 +272,6 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
                  run_params["mem_num"], run_params["mem_dim"], chmod, 1,
                  '# Procrustes for stats in R (pairs and samples subsets config in %s)' % p_procrustes,
                  None, False, jobs)
-    else:
-        print('%s exists (remove to re-run)' % out_R)
 
 
 def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,

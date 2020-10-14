@@ -179,7 +179,6 @@ def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str
 
 
 def nestedness_figure(nestedness_res, datasets_rarefs):
-    pass
     for dat, nestedness_rarefs in nestedness_res.items():
         for idx, nestedness_raref in enumerate(nestedness_rarefs):
             cur_raref = datasets_rarefs[dat][idx]
@@ -191,5 +190,7 @@ def nestedness_figure(nestedness_res, datasets_rarefs):
                     print(null, mode)
                     print(odir)
                     print(glob.glob('%s/*o' % dir))
-                    print(fds)
-
+                    break
+                break
+            break
+        break
