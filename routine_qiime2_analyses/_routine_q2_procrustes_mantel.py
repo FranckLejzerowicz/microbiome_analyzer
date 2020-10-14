@@ -223,24 +223,45 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
             'dm_out1', 'dm_out2',
         ]
     )
-    odir = get_analysis_folder(i_datasets_folder, 'procrustes%s/R' % evaluation)
-    dms_tab_fp = '%s/pairs%s%s.tsv' % (odir, evaluation, filt_raref)
-    dms_tab_pd.to_csv(dms_tab_fp, index=False, sep='\t')
+    print()
+    print("dms_tab_pd")
+    print(dms_tab_pd[:4])
+    print(dms_tab_pd.shape)
 
-    out_R = '%s/pairs_proscrustes_results%s%s.tsv' % (odir, evaluation, filt_raref)
-    if not isfile(out_R):
-        out_R = '%s/pairs_proscrustes_results%s%s.tsv' % (odir, evaluation, filt_raref)
-    if not isfile(out_R):
+    odir = get_analysis_folder(i_datasets_folder, 'procrustes%s/R' % evaluation)
+    out_Rs = glob.glob('%s/pairs_proscrustes_results%s%s*.tsv' % (odir, evaluation, filt_raref))
+    if len(out_Rs):
+        done_R = pd.concat([pd.read_table(x) for x in out_Rs])
+        dms_tab_pd = dms_tab_pd.loc[
+            dms_tab_pd[['dm_out1', 'dm_out2']].sum(1).isin(done_R[['f1', 'f2']].sum(1))
+        ]
+        print()
+        print("done_R")
+        print(done_R[:4])
+        print(done_R.shape)
+        print("dms_tab_pd")
+        print(dms_tab_pd[:4])
+        print(dms_tab_pd.shape)
+
+    if dms_tab_pd.shape[0]:
+        fp_num = 0
+        if len(out_Rs):
+            last = sorted(out_Rs, key=lambda x: int(x.split('.tsv').split('_')[-1].isdigit()))
+            fp_num = int(last[-1].split('.tsv').split('_')[-1]) + 1
+
+        dms_tab_fp = '%s/pairs%s%s_%s.tsv' % (odir, evaluation, filt_raref, fp_num)
+        dms_tab_pd.to_csv(dms_tab_fp, index=False, sep='\t')
+        out_R = '%s/pairs_proscrustes_results%s%s_%s.tsv' % (odir, evaluation, filt_raref, fp_num)
         job_folder = get_job_folder(i_datasets_folder, 'procrustes/R')
         R_script = '%s/4_run_procrustes%s.R' % (job_folder, filt_raref)
         with open(R_script, 'w') as o:
             o.write("library(vegan)\n")
             o.write("dms_files <- read.table('%s', h=T)\n" % dms_tab_fp)
-            o.write("cols <- c('comparison', 'd1', 'd2', 'g1', 'g2', 'case', 'metric', 'f1', 'f2', 'M2', 'signif')\n")
+            o.write("cols <- c('pair', 'd1', 'd2', 'g1', 'g2', 'case', 'metric', 'f1', 'f2', 'samples', 'M2', 'p-value')\n")
             o.write("res <- setNames(data.frame(matrix(ncol = 11, nrow = 0)), cols)\n")
             o.write("for (i in seq(1, dim(dms_files)[1])) {\n")
             o.write("    row <- as.vector(unlist(dms_files[i,]))\n")
-            o.write("    com <- row[1]\n")
+            o.write("    pair <- row[1]\n")
             o.write("    d1 <- row[2]\n")
             o.write("    d2 <- row[3]\n")
             o.write("    group1 <- row[4]\n")
@@ -249,16 +270,19 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
             o.write("    metric <- row[7]\n")
             o.write("    f1 <- row[8]\n")
             o.write("    f2 <- row[9]\n")
-            o.write("    filin_tsv_pd1 <- read.csv(f1, header = TRUE, check.names=FALSE,\n")
-            o.write("                              row.names = 1, colClasses = 'character', sep = '\\t')\n")
-            o.write("    filin_tsv_pd2 <- read.csv(f2, header = TRUE, check.names=FALSE,\n")
-            o.write("                              row.names = 1, colClasses = 'character', sep = '\\t')\n")
-            o.write("    filin_tsv_pd1 <- data.matrix(filin_tsv_pd1)\n")
-            o.write("    filin_tsv_pd2 <- data.matrix(filin_tsv_pd2)\n")
-            o.write("    filin_tsv_pd1 <- filin_tsv_pd1[rownames(filin_tsv_pd2), rownames(filin_tsv_pd2)]\n")
-            o.write("    # procrustes12 <- procrustes(filin_tsv_pd1, filin_tsv_pd2, kind=2, permutations=999)\n")
-            o.write("    prtst <- protest(filin_tsv_pd1, filin_tsv_pd2, permutations = 999)\n")
-            o.write("    res[i,] <- c(com, d1, d2, group1, group2, case, metric, f1, f2, prtst$ss, prtst$signif)\n")
+            o.write("    if (file.exists(f1, f2) == 2) {\n")
+            o.write("        filin_tsv_pd1 <- read.csv(f1, header = TRUE, check.names=FALSE,\n")
+            o.write("                                  row.names = 1, colClasses = 'character', sep = '\\t')\n")
+            o.write("        filin_tsv_pd2 <- read.csv(f2, header = TRUE, check.names=FALSE,\n")
+            o.write("                                  row.names = 1, colClasses = 'character', sep = '\\t')\n")
+            o.write("        filin_tsv_pd1 <- data.matrix(filin_tsv_pd1)\n")
+            o.write("        filin_tsv_pd2 <- data.matrix(filin_tsv_pd2)\n")
+            o.write("        filin_tsv_pd1 <- filin_tsv_pd1[rownames(filin_tsv_pd2), rownames(filin_tsv_pd2)]\n")
+            o.write("        # procrustes12 <- procrustes(filin_tsv_pd1, filin_tsv_pd2, kind=2, permutations=999)\n")
+            o.write("        prtst <- protest(filin_tsv_pd1, filin_tsv_pd2, permutations = 999)\n")
+            o.write("        n <- dim(filin_tsv_pd1)[1]\n")
+            o.write("        res[i,] <- c(pair, d1, d2, group1, group2, case, metric, f1, f2, n, prtst$ss, prtst$signif)\n")
+            o.write("    }\n")
             o.write("}\n")
             o.write("write.table(x = res, file = '%s')\n" % out_R)
 
