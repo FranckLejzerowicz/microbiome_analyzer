@@ -48,7 +48,7 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
                 continue
             if new_meta_pd[col].unique().size == 1:
                 continue
-            if col not in lat_lon_date and min(new_meta_pd[col].value_counts()) <= 5:
+            if col not in lat_lon_date and min(new_meta_pd[col].value_counts()) == 1:
                 continue
             cols.add(col)
             if col in nodfs:
