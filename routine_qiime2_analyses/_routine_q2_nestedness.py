@@ -42,7 +42,7 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
         new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
         cols = set()
         lat_lon_date = ['latitude', 'longitude', 'datetime']
-        nodfs_valid = list()
+        nodfs_valid = []
         for col in (nodfs + lat_lon_date):
             if col not in set(new_meta_pd.columns):
                 continue
@@ -53,6 +53,12 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
             cols.add(col)
             if col in nodfs:
                 nodfs_valid.append(col)
+        print()
+        print()
+        print("nodfs")
+        print(nodfs)
+        print("nodfs_valid")
+        print(nodfs_valid)
         new_meta_pd = new_meta_pd[sorted(cols)].reset_index()
         new_meta_pd.columns = (['#SampleID'] + sorted(cols))
         new_meta_pd.to_csv(new_meta, index=False, sep='\t')
