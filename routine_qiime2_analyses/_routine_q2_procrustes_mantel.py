@@ -75,6 +75,13 @@ def get_dm_meta(dat, dm, meta, raref, metric, i_datasets_folder, skip):
     return dm, meta
 
 
+def check_dat_exists(betas, dat, missing_dats):
+    if dat not in betas:
+        if dat not in missing_dats:
+            print('Dataset "%s" do not exist' % dat)
+            missing_dats.add(dat)
+
+
 def get_betas_raref(betas, dat, raref):
     metrics_groups_metas_qzas_dms_trees = betas[dat][0]
     if raref:
@@ -109,13 +116,17 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
         procrustes_pairs, procrustes_subsets = get_procrustes_mantel_dicts(p_procrustes)
 
     get_job_folder(i_datasets_folder, 'procrustes%s' % evaluation)
-
     dms_tab = []
     all_sh_pbs = {}
+    missing_dats = set()
     for pair, (dat1_, dat2_) in procrustes_pairs.items():
 
         dat1, raref1 = get_dat_idx(dat1_, evaluation, datasets_filt, filt_only)
         dat2, raref2 = get_dat_idx(dat2_, evaluation, datasets_filt, filt_only)
+
+        if check_dat_exists(betas, dat1, missing_dats) or check_dat_exists(betas, dat2, missing_dats):
+            continue
+
         if evaluation:
             metrics_groups_metas_qzas_dms_trees1 = betas[dat1]
             metrics_groups_metas_qzas_dms_trees2 = betas[dat2]
@@ -287,10 +298,14 @@ def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,
     get_job_folder(i_datasets_folder, 'mantel%s' % evaluation)
 
     all_sh_pbs = {}
+    missing_dats = set()
     for pair, (dat1_, dat2_) in mantel_pairs.items():
 
         dat1, raref1 = get_dat_idx(dat1_, evaluation, datasets_filt, filt_only)
         dat2, raref2 = get_dat_idx(dat2_, evaluation, datasets_filt, filt_only)
+
+        if check_dat_exists(betas, dat1, missing_dats) or check_dat_exists(betas, dat2, missing_dats):
+            continue
 
         if evaluation:
             metrics_groups_metas_qzas_dms_trees1 = betas[dat1]
