@@ -334,7 +334,7 @@ def routine_qiime2_analyses(
                                    noloc, run_params['empress_biplot'], filt_raref, jobs)
 
     # STATS ------------------------------------------------------------------
-    if 'alpha_group_significance' not in p_skip and 'alpha_kw' not in p_skip:
+    if 'alpha' not in p_skip and 'alpha_group_significance' not in p_skip and 'alpha_kw' not in p_skip:
         print('(run_alpha_group_significance)')
         run_alpha_group_significance(i_datasets_folder, datasets, diversities,
                                      datasets_rarefs, p_perm_groups, force,
