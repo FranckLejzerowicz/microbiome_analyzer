@@ -6,7 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os, sys
+import os, glob
 import pandas as pd
 from os.path import basename, isdir, isfile, splitext
 
@@ -30,7 +30,8 @@ from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_di
 
 def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: list,
                           nulls: list, modes: list, cur_sh: str, qza: str, case: str,
-                          case_var: str, case_vals: list, binary: str, force: bool) -> None:
+                          case_var: str, case_vals: list, binary: str, force: bool) -> dict:
+    res = {}
     remove = True
     with open(cur_sh, 'w') as cur_sh_o:
         if group:
@@ -72,17 +73,18 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
 
         for null in nulls:
             for mode in modes:
-                null_mode = '%s/null-%s/mode-%s' % (cur_rad, null, mode)
-                graphs = '%s/graphs.csv' % null_mode
-                stats = '%s/statistics.csv' % null_mode
-                if not isdir(null_mode):
-                    os.makedirs(null_mode)
-                if not isfile(graphs) or not isfile(stats):
-                    write_nestedness(new_biom_meta, null_mode, graphs, stats, binary,
+                odir = '%s/null-%s/mode-%s' % (cur_rad, null, mode)
+                graphs = '%s/graphs.csv' % odir
+                res[(null, mode)] = odir
+                if not isdir(odir):
+                    os.makedirs(odir)
+                if not isfile(graphs) and not len(glob.glob('%s/*comparisons.csv' % odir)):
+                    write_nestedness(new_biom_meta, odir, graphs, binary,
                                      nodfs_valid, null, mode, cur_sh_o)
                     remove = False
     if remove:
         os.remove(cur_sh)
+    return res
 
 
 def get_nestedness_config(nestedness_config: dict) -> (dict, dict, dict, dict, dict):
@@ -104,30 +106,33 @@ def get_nestedness_config(nestedness_config: dict) -> (dict, dict, dict, dict, d
     return subsets, nodfs, colors, nulls, modes
 
 
-def run_nestedness(i_datasets_folder: str, betas: dict, split_taxa_pds: dict,
-                   p_nestedness_groups: str, datasets_rarefs: dict, force: bool,
-                   prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-                   split: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
+def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str,
+                   datasets_rarefs: dict, force: bool, prjct_nm: str, qiime_env: str,
+                   chmod: str, noloc: bool, split: bool, run_params: dict,
+                   filt_raref: str, jobs: bool) -> dict:
 
     job_folder2 = get_job_folder(i_datasets_folder, 'nestedness/chunks')
     nestedness_config = read_yaml_file(p_nestedness_groups)
     if 'soft' not in nestedness_config:
         print('Must provide the path to the Nestedness soft (containing bin/Autocorrelation.jar)')
-        return None
+        return {}
     if nestedness_config['soft'].endswith('Autocorrelation.jar') and isfile(nestedness_config['soft']):
         binary = nestedness_config['soft']
     else:
         binary = '%s/bin/Autocorrelation.jar' % nestedness_config['soft']
         if not isfile(binary):
             print('Must provide the path to the Nestedness soft (containing bin/Autocorrelation.jar)')
-            return None
+            return {}
     subsets, nodfs, colors, nulls, modes = get_nestedness_config(nestedness_config)
 
     all_sh_pbs = {}
+    nestedness_res = {}
     for dat, rarefs_metrics_groups_metas_qzas_dms_trees in betas.items():
         if not split:
             out_sh = '%s/run_nestedness_%s%s.sh' % (job_folder2, dat, filt_raref)
+        nestedness_res[dat] = []
         for idx, metrics_groups_metas_qzas_dms_trees in enumerate(rarefs_metrics_groups_metas_qzas_dms_trees):
+            nestedness_raref = {}
             cur_raref = datasets_rarefs[dat][idx]
             odir = get_analysis_folder(i_datasets_folder, 'nestedness/%s%s' % (dat, cur_raref))
             if split:
@@ -143,9 +148,12 @@ def run_nestedness(i_datasets_folder: str, betas: dict, split_taxa_pds: dict,
                                 job_folder2, dat, cur_raref, group, case, filt_raref)
                             cur_sh = cur_sh.replace(' ', '-')
                             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                            run_single_nestedness(odir, group, meta_pd, nodfs, nulls, modes, cur_sh,
-                                                  qza, case, case_var, case_vals, binary, force)
+                            res = run_single_nestedness(odir, group, meta_pd, nodfs, nulls,
+                                                        modes, cur_sh, qza, case, case_var,
+                                                        case_vals, binary, force)
+                            nestedness_raref[(group, case)] = res
                 break
+            nestedness_res[dat].append(nestedness_raref)
 
     job_folder = get_job_folder(i_datasets_folder, 'nestedness')
     main_sh = write_main_sh(job_folder, '3_run_nestedness%s' % filt_raref, all_sh_pbs,
@@ -159,3 +167,22 @@ def run_nestedness(i_datasets_folder: str, betas: dict, split_taxa_pds: dict,
         else:
             print("# nestedness")
         print_message('', 'sh', main_sh, jobs)
+
+    return nestedness_res
+
+
+def nestedness_figure(nestedness_res, datasets_rarefs):
+    pass
+    for dat, nestedness_rarefs in nestedness_res:
+        for idx, nestedness_raref in enumerate(nestedness_rarefs):
+            cur_raref = datasets_rarefs[dat][idx]
+            for (group, case), res in nestedness_raref.items():
+                for (null, mode), odir in res.items():
+                    print(dat)
+                    print(cur_raref)
+                    print(group, case)
+                    print(null, mode)
+                    print(odir)
+                    print(glob.glob('%s/*o' % dir))
+                    print(fds)
+

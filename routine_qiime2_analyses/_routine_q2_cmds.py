@@ -1021,7 +1021,7 @@ def check_absence_mat(mat_qzas: list, first_print: int, analysis: str) -> bool:
     return False
 
 
-def write_nestedness(new_biom_meta: str, null_mode: str, graphs: str, stats: str, binary: str,
+def write_nestedness(new_biom_meta: str, odir: str, graphs: str, binary: str,
                      nodfs_valid: list, null: str, mode: str, cur_sh: TextIO) -> None:
     """
     https://github.com/jladau/Nestedness
@@ -1040,7 +1040,11 @@ def write_nestedness(new_biom_meta: str, null_mode: str, graphs: str, stats: str
         cur_sh.write('%s\n' % cmd)
 
     for nodf in nodfs_valid:
-        nodf_comparisons = '%s/%s_comparisons.csv' % (null_mode, nodf)
+
+        nodf_comparisons = '%s/%s_comparisons.csv' % (odir, nodf)
+        nodf_stats = '%s/%s_statistics.csv' % (odir, nodf)
+        nodf_stats_simul = '%s/%s_statistics_simulate.csv' % (odir, nodf)
+
         if not isfile(nodf_comparisons):
             cmd = 'java -Xmx5g -cp %s \\\n' % binary
             cmd += 'edu.ucsf.Nestedness.ComparisonSelector.ComparisonSelectorLauncher \\\n'
@@ -1059,7 +1063,7 @@ def write_nestedness(new_biom_meta: str, null_mode: str, graphs: str, stats: str
             # cmd += '--iPrevalenceMinimum=1\n'
             cur_sh.write('echo "%s"\n' % cmd)
             cur_sh.write('%s\n' % cmd)
-        nodf_stats = '%s/%s_statistics.csv' % (null_mode, nodf)
+
         if not isfile(nodf_stats):
             cmd = 'java -cp %s \\\n' % binary
             cmd += 'edu.ucsf.Nestedness.Calculator.CalculatorLauncher \\\n'
@@ -1077,7 +1081,7 @@ def write_nestedness(new_biom_meta: str, null_mode: str, graphs: str, stats: str
             cmd += '--bSimulate=false\n'
             cur_sh.write('echo "%s"\n' % cmd)
             cur_sh.write('%s\n' % cmd)
-        nodf_stats_simul = '%s/%s_statistics_simulate.csv' % (null_mode, nodf)
+
         if not isfile(nodf_stats_simul):
             cmd = 'java -cp %s \\\n' % binary
             cmd += 'edu.ucsf.Nestedness.Calculator.CalculatorLauncher \\\n'

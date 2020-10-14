@@ -35,7 +35,7 @@ from routine_qiime2_analyses._routine_q2_beta import (run_beta, export_beta,
 from routine_qiime2_analyses._routine_q2_procrustes_mantel import (run_procrustes, run_mantel)
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
 from routine_qiime2_analyses._routine_q2_permanova import run_permanova
-from routine_qiime2_analyses._routine_q2_nestedness import run_nestedness
+from routine_qiime2_analyses._routine_q2_nestedness import run_nestedness, nestedness_figure
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
 from routine_qiime2_analyses._routine_q2_phate import run_phate
 from routine_qiime2_analyses._routine_q2_songbird import run_songbird
@@ -334,7 +334,7 @@ def routine_qiime2_analyses(
                                    noloc, run_params['empress_biplot'], filt_raref, jobs)
 
     # STATS ------------------------------------------------------------------
-    if 'alpha' not in p_skip and 'alpha_kw' not in p_skip:
+    if 'alpha_group_significance' not in p_skip and 'alpha_kw' not in p_skip:
         print('(run_alpha_group_significance)')
         run_alpha_group_significance(i_datasets_folder, datasets, diversities,
                                      datasets_rarefs, p_perm_groups, force,
@@ -387,9 +387,13 @@ def routine_qiime2_analyses(
 
     if 'beta' not in p_skip and p_nestedness_groups and 'nestedness' not in p_skip:
         print('(run_nestedness)')
-        run_nestedness(i_datasets_folder, betas, split_taxa_pds, p_nestedness_groups,
-                       datasets_rarefs, force, prjct_nm, qiime_env, chmod,
-                       noloc, split, run_params['nestedness'], filt_raref, jobs)
+        nestedness_res = run_nestedness(i_datasets_folder, betas,
+                                        p_nestedness_groups, datasets_rarefs, force,
+                                        prjct_nm, qiime_env, chmod, noloc, split,
+                                        run_params['nestedness'], filt_raref, jobs)
+        if nestedness_res:
+            print('(making_nestedness_figures)')
+            nestedness_figure(nestedness_res, datasets_rarefs)
     else:
         print('(skip_nestedness)')
 
