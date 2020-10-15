@@ -56,10 +56,6 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     if eval_rarefs:
         evaluation = '_eval'
 
-    print()
-    print("datasets_raref_depths")
-    print(datasets_raref_depths)
-    print(datasets_raref_depthfdsas)
     # print()
     # print("datasets_raref_evals")
     # print(datasets_raref_evals)
@@ -82,7 +78,8 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 is_filt = True
                 if dat not in datasets_raref_depths:
                     continue
-                datasets_raref_depths[dat] = datasets_raref_depths[datasets_filt_map[dat]]
+                if datasets_raref_depths[datasets_filt_map[dat]][0]:
+                    datasets_raref_depths[dat] = datasets_raref_depths[datasets_filt_map[dat]]
 
             if datasets_filt_map and filt_only and not is_filt:
                 continue
@@ -188,12 +185,12 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
                 percentiles=[x / 100 for x in range(10, 101, 10)])[4:-1]])
             if dat in datasets_raref_depths_yml:
                 depths = datasets_raref_depths_yml[dat]
-                datasets_raref_depths[dat] = depths
+                datasets_raref_depths[dat] = (1, depths)
                 datasets_raref_evals[dat].update(set([int(x) for x in depths]))
                 continue
             raref_files = glob.glob('%s/qiime/rarefy/%s/tab_raref*.qza' % (i_datasets_folder, dat))
             if len(raref_files):
-                datasets_raref_depths[dat] = [x.split('_raref')[-1].split('.tsv')[0] for x in raref_files]
+                datasets_raref_depths[dat] = (0, [x.split('_raref')[-1].split('.tsv')[0] for x in raref_files])
             else:
                 count, division = np.histogram(tsv_sam_sum)
                 skw = skew(count)
@@ -223,5 +220,5 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
                     second_quantile_to_round = second_quantile / ( 10 ** (nfigure - 2) )
                     second_quantile_rounded = round(second_quantile_to_round) * ( 10 ** (nfigure - 2) )
                     print('[%s] Proposed rarefaction depth: %s (second quantile)' % (dat, second_quantile_rounded))
-                    datasets_raref_depths[dat] = [str(int(second_quantile_rounded))]
+                    datasets_raref_depths[dat] = (0, [str(int(second_quantile_rounded))])
     return datasets_raref_depths, datasets_raref_evals
