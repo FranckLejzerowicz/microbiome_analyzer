@@ -1001,7 +1001,7 @@ def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str,
         if str(x) != 'nan' and x != x.replace('(', '').replace(')', '').replace('/', '')
     )})
     new_meta_pd[[col_index, testing_group]].to_csv(new_meta, index=False, sep='\t')
-    new_meta_pd[testing_group].value_counts().to_csv(new_cv, sep='\t', header=False)
+    new_meta_pd[testing_group][1:].value_counts().to_csv(new_cv, sep='\t', header=False)
 
 
 def check_absence_mat(mat_qzas: list, first_print: int, analysis: str) -> bool:
