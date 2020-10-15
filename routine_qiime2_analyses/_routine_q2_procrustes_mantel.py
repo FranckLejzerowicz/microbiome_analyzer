@@ -231,14 +231,15 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
     odir = get_analysis_folder(i_datasets_folder, 'procrustes%s/R' % evaluation)
     out_Rs = glob.glob('%s/pairs_proscrustes_results%s%s*.tsv' % (odir, evaluation, filt_raref))
     if len(out_Rs):
-        done_R = pd.concat([pd.read_table(x) for x in out_Rs])
-        dms_tab_pd = dms_tab_pd.loc[
-            dms_tab_pd[['dm_out1', 'dm_out2']].sum(1).isin(done_R[['f1', 'f2']].sum(1))
-        ]
+        done_R = pd.concat([pd.read_table(x, sep=' ') for x in out_Rs])
         print()
         print("done_R")
         print(done_R[:4])
         print(done_R.shape)
+        dms_tab_pd = dms_tab_pd.loc[
+            dms_tab_pd[['dm_out1', 'dm_out2']].sum(1).isin(done_R[['f1', 'f2']].sum(1))
+        ]
+        print()
         print("dms_tab_pd")
         print(dms_tab_pd[:4])
         print(dms_tab_pd.shape)
@@ -246,7 +247,8 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
     if dms_tab_pd.shape[0]:
         fp_num = 0
         if len(out_Rs):
-            last = sorted(out_Rs, key=lambda x: int(x.split('.tsv').split('_')[-1].isdigit()))
+            print(out_Rs)
+            last = sorted(out_Rs, key=lambda fp: int(fp.split('.tsv')[0].split('_')[-1]))
             fp_num = int(last[-1].split('.tsv').split('_')[-1]) + 1
 
         dms_tab_fp = '%s/pairs%s%s_%s.tsv' % (odir, evaluation, filt_raref, fp_num)

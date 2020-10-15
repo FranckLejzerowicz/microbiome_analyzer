@@ -979,7 +979,8 @@ def write_deicode_biplot(qza: str, new_meta: str, new_qza: str, ordi_qza: str,
     cur_sh.write('%s\n' % cmd)
 
 
-def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str, testing_group: str) -> None:
+def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str,
+                         testing_group: str, new_cv: str) -> None:
     """
     Merge the q2-types to the metadata for PERMANOVA.
 
@@ -1000,6 +1001,7 @@ def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str, testing_group
         if str(x) != 'nan' and x != x.replace('(', '').replace(')', '').replace('/', '')
     )})
     new_meta_pd[[col_index, testing_group]].to_csv(new_meta, index=False, sep='\t')
+    new_meta_pd[testing_group].value_counts().to_csv(new_cv, sep='\t', header=False)
 
 
 def check_absence_mat(mat_qzas: list, first_print: int, analysis: str) -> bool:
