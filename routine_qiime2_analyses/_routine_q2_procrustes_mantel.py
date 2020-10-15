@@ -163,12 +163,8 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
                 if not evaluation:
                     if '__raref' in dat1_:
                         dm1, meta1 = get_dm_meta(dat1, dm1, meta1, raref1, metric, i_datasets_folder, skip)
-                        print("dm1, meta1")
-                        print(dm1, meta1)
                     if '__raref' in dat2_:
                         dm2, meta2 = get_dm_meta(dat2, dm2, meta2, raref2, metric, i_datasets_folder, skip)
-                        print("dm2, meta2")
-                        print(dm2, meta2)
                 if skip:
                     print('[Proscustes] One desired rarefaction depth not run (pair %s)' % pair)
                     continue
