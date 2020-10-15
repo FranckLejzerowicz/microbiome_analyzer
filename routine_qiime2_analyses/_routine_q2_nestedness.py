@@ -173,17 +173,32 @@ def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str
 
 
 def nestedness_figure(nestedness_res, datasets_rarefs):
+    print()
+    print()
+    print("nestedness_figure")
     for dat, nestedness_rarefs in nestedness_res.items():
         for idx, nestedness_raref in enumerate(nestedness_rarefs):
             cur_raref = datasets_rarefs[dat][idx]
             for (group, case), res in nestedness_raref.items():
                 for (null, mode), odir in res.items():
+                    graphs_fp = '%s/graphs.csv' % odir
+                    if not isfile(graphs_fp):
+                        continue
+                    graphs = pd.read_csv(graphs_fp, header=0, sep=',')
+                    
                     print(dat)
                     print(cur_raref)
                     print(group, case)
                     print(null, mode)
                     print(odir)
-                    print(glob.glob('%s/*o' % dir))
+
+
+                    fields_fp = '%s/fields.txt' % odir
+                    fields = [x.strip() for x in open(fields_fp).readlines()]
+                    if not isfile(fields_fp):
+                        continue
+
+                    print(glob.glob('%s/*' % odir))
                     break
                 break
             break
