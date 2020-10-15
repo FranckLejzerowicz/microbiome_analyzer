@@ -53,12 +53,6 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
             cols.add(col)
             if col in nodfs:
                 nodfs_valid.append(col)
-        print()
-        print()
-        print("nodfs")
-        print(nodfs)
-        print("nodfs_valid")
-        print(nodfs_valid)
         new_meta_pd = new_meta_pd[sorted(cols)].reset_index()
         new_meta_pd.columns = (['#SampleID'] + sorted(cols))
         new_meta_pd.to_csv(new_meta, index=False, sep='\t')
