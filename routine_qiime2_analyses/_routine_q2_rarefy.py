@@ -92,21 +92,30 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
 
-                depths = datasets_raref_depths[dat]
+                depths = datasets_raref_depths[dat][1]
                 if eval_rarefs:
                     depths = datasets_raref_evals[dat]
 
+                tsv_pd, meta_pd = datasets_read[dat][0]
+                tsv_sums = tsv_pd.sum()
                 for tsv_meta_pds in tsv_meta_pds_:
                     tsv, meta = tsv_meta_pds
-                    for ddx, depth in enumerate(depths):
-                        dat_raref = '%s_raref%s%s' % (dat, evaluation, depth)
+                    for ddx, depth_ in enumerate(depths):
+                        if depth_.isdigit():
+                            depth = int(depth_)
+                        else:
+                            depth = int(np.floor(min(tsv_sums)))
+                        dat_raref = '%s_raref%s%s' % (dat, evaluation, str(depth))
                         meta_out = '%s/meta_%s.tsv' % (odir, dat_raref)
-                        subprocess.call(['cp', meta, meta_out])
+                        remaining_samples = tsv_sums[tsv_sums >= depth].index.tolist()
+                        meta_raref_pd = meta_pd.loc[meta_pd.sample_name.isin(remaining_samples), :]
+                        meta_raref_pd.to_csv(meta_out, index=False, sep='\t')
+
                         qza = tsv.replace('.tsv', '.qza')
                         qza_out = '%s/tab_%s.qza' % (odir, dat_raref)
                         tsv_out = '%s.tsv' % splitext(qza_out)[0]
                         if force or not os.path.isfile(qza_out):
-                            write_rarefy(qza, qza_out, depth, cur_sh)
+                            write_rarefy(qza, qza_out, str(depth), cur_sh)
                             main_written += 1
                             written += 1
                         if force or not os.path.isfile(tsv_out):
@@ -117,11 +126,11 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                             written += 1
 
                         if eval_rarefs:
-                            eval_depths.setdefault(dat, []).append('%s_%s' % (dat, depth))
-                            datasets_update['%s_%s' % (dat, depth)] = [[tsv_out, meta_out]]
-                            # datasets_eval['%s_%s' % (dat, depth)] = [[tsv_out, meta_out]]
-                            datasets_read_update['%s_%s' % (dat, depth)] = ('raref', depth)
-                            datasets_phylo_update['%s_%s' % (dat, depth)] = datasets_phylo[dat]
+                            eval_depths.setdefault(dat, []).append('%s_%s' % (dat, str(depth)))
+                            datasets_update['%s_%s' % (dat, str(depth))] = [[tsv_out, meta_out]]
+                            # datasets_eval['%s_%s' % (dat, str(depth))] = [[tsv_out, meta_out]]
+                            datasets_read_update['%s_%s' % (dat, str(depth))] = ('raref', str(depth))
+                            datasets_phylo_update['%s_%s' % (dat, str(depth))] = datasets_phylo[dat]
                         else:
                             datasets_append.setdefault(dat, []).append([tsv_out, meta_out])
 
@@ -135,8 +144,8 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                                                            low_memory=False)
                                 datasets_read[dat].append([tab_filt_pd, meta_filt_pd])
                             else:
-                                datasets_read[dat].append(('raref', depth))
-                            datasets_rarefs.setdefault(dat, []).append('_raref%s%s' % (evaluation, depth))
+                                datasets_read[dat].append(('raref', str(depth)))
+                            datasets_rarefs.setdefault(dat, []).append('_raref%s%s' % (evaluation, str(depth)))
 
                             # if ddx:
                             #     datasets[dat].append([tsv_out, meta_out])
@@ -186,7 +195,7 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
             if dat in datasets_raref_depths_yml:
                 depths = datasets_raref_depths_yml[dat]
                 datasets_raref_depths[dat] = (1, depths)
-                datasets_raref_evals[dat].update(set([int(x) for x in depths]))
+                datasets_raref_evals[dat].update([int(x) if x.isdigit() else np.floor(min(tsv_sam_sum)) for x in depths])
                 continue
             raref_files = glob.glob('%s/qiime/rarefy/%s/tab_raref*.qza' % (i_datasets_folder, dat))
             if len(raref_files):

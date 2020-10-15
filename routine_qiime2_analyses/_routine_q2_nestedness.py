@@ -27,6 +27,9 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 )
 from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
 
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+
 
 def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: list,
                           nulls: list, modes: list, cur_sh: str, qza: str, case: str,
@@ -185,20 +188,59 @@ def nestedness_figure(nestedness_res, datasets_rarefs):
                     if not isfile(graphs_fp):
                         continue
                     graphs = pd.read_csv(graphs_fp, header=0, sep=',')
-                    
+
                     print(dat)
                     print(cur_raref)
                     print(group, case)
                     print(null, mode)
                     print(odir)
+                    print(glob.glob('%s/*' % odir))
 
+                    # fig, ax = plt.subplots(len(areas), 1, sharex=False, sharey=False, figsize=(9, 12))
+                    # # for each area ('All samples', 'CCFZ', 'NorthPacific')
+                    # for adx, area in enumerate(sorted(areas)):
+                    #     # get the [area, nestedout folder] pair
+                    #     nestedout = area_nestedouts[area]
+                    #     # read the nestedness analysis IMAGE graph file
+                    #     graph_pd = pd.read_csv(graph, header=0, sep=',')
+                    #     # get an index in the table of each of the provinces
+                    #     graph_pd_prov = dict([y, (x + 1)] for x, y in enumerate(list(graph_pd['province'].unique())))
+                    #     # add the index as a new column in the table to serve as color
+                    #     graph_pd_col = [graph_pd_prov[x] for x in list(graph_pd['province'])]
+                    #     graph_pd['color'] = graph_pd_col
+                    #     # get the dimensions of the image
+                    #     nsams = len(graph_pd['SAMPLE_RANK'].unique())
+                    #     nobss = len(graph_pd['OBSERVATION_RANK'].unique())
+                    #     # fill the corresponding matrix with zeros
+                    #     mat = np.zeros([nobss, nsams])
+                    #     # edit this matrix with the color of the corresponding province
+                    #     for r, row in graph_pd.iterrows():
+                    #         cur_sam = row[0] - 1
+                    #         cur_obs = row[1] - 1
+                    #         cur_col = row[-1]
+                    #         mat[cur_obs, cur_sam] = cur_col
+                    #     # replace remaining zeros by 'nan'
+                    #     mat[mat == 0] = 'nan'
+                    #     # plotting
+                    #     sc = ax[adx].imshow(mat[::-1], plt.cm.Paired, aspect="auto")
+                    #     ax[adx].set_title(area)
+                    #     hands = [mpatches.Patch(color=sc.to_rgba(y), label=x) for x, y in graph_pd_prov.items()]
+                    #     ax[adx].legend(handles=hands, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+                    #     ax[adx].set_xlabel('Samples (sorted by richness)')
+                    #     ax[adx].set_ylabel('Phyla (sorted by prevalence)')
+                    # plt.suptitle('%s, %s, taxo rank: %s' % (dataset, filin, rank), fontsize=20)
+                    # plt.subplots_adjust(top=.95, hspace=0.3)
+                    # if not C:
+                    #     plt.show(block=False)
+                    # else:
+                    #     plt.close()
+                    # plt.savefig(out_pdf, bbox_inches='tight', dpi=300)
+                    # print('[%s, %s, %s]' % (dataset, filin, typs), 'Written:', out_pdf, '!')
 
                     fields_fp = '%s/fields.txt' % odir
-                    fields = [x.strip() for x in open(fields_fp).readlines()]
                     if not isfile(fields_fp):
                         continue
-
-                    print(glob.glob('%s/*' % odir))
+                    fields = [x.strip() for x in open(fields_fp).readlines()]
                     break
                 break
             break

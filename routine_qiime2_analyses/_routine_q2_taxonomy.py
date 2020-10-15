@@ -20,8 +20,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_analysis_folder,
     parse_g2lineage,
     get_raref_tab_meta_pds,
-    get_collapse_taxo,
-    get_songbird_outputs
+    get_collapse_taxo
 )
 from routine_qiime2_analyses._routine_q2_cmds import (
     write_barplots,
