@@ -1046,7 +1046,7 @@ def write_nestedness_graph(new_biom_meta: str, odir: str, graphs: str,
 
 def write_nestedness_nodfs(new_biom_meta: str, odir: str,
                            fields: str, binary: str, nodfs_valid: list,
-                           null: str, mode: str, cur_sh: TextIO) -> None:
+                           mode: str, nulls: list, cur_sh: TextIO) -> None:
     """
     https://github.com/jladau/Nestedness
     """
@@ -1058,9 +1058,6 @@ def write_nestedness_nodfs(new_biom_meta: str, odir: str,
             cmd += 'echo "%s" > %s\n' % (nodf, fields)
 
         nodf_comparisons = '%s/%s_comparisons.csv' % (odir, nodf)
-        nodf_stats = '%s/%s_statistics.csv' % (odir, nodf)
-        nodf_stats_simul = '%s/%s_statistics_simulate.csv' % (odir, nodf)
-
         if not isfile(nodf_comparisons):
             cmd = 'java -Xmx5g -cp %s \\\n' % binary
             cmd += 'edu.ucsf.Nestedness.ComparisonSelector.ComparisonSelectorLauncher \\\n'
@@ -1080,41 +1077,44 @@ def write_nestedness_nodfs(new_biom_meta: str, odir: str,
             cur_sh.write('echo "%s"\n' % cmd)
             cur_sh.write('%s\n' % cmd)
 
-        if not isfile(nodf_stats):
-            cmd = 'java -cp %s \\\n' % binary
-            cmd += 'edu.ucsf.Nestedness.Calculator.CalculatorLauncher \\\n'
-            cmd += '--sBIOMPath=%s \\\n' % new_biom_meta
-            cmd += '--sOutputPath=%s \\\n' % nodf_stats
-            cmd += '--bCheckRarefied=false \\\n'
-            cmd += '--bNormalize=false \\\n'
-            cmd += '--bPresenceAbsence=false \\\n'
-            cmd += '--sTaxonRank=otu \\\n'
-            cmd += '--sComparisonsPath=%s \\\n' % nodf_comparisons
-            cmd += '--iNullModelIterations=1000 \\\n'
-            cmd += '--bOrderedNODF=false \\\n'
-            cmd += '--sNestednessAxis=sample \\\n'
-            cmd += '--sNestednessNullModel=%s \\\n' % null
-            cmd += '--bSimulate=false\n'
-            cur_sh.write('echo "%s"\n' % cmd)
-            cur_sh.write('%s\n' % cmd)
+        for null in nulls:
+            nodf_stats = '%s/%s_%s_statistics.csv' % (odir, null, nodf)
+            nodf_stats_simul = '%s/%s_%s_simulate.csv' % (odir, null, nodf)
+            if not isfile(nodf_stats):
+                cmd = 'java -cp %s \\\n' % binary
+                cmd += 'edu.ucsf.Nestedness.Calculator.CalculatorLauncher \\\n'
+                cmd += '--sBIOMPath=%s \\\n' % new_biom_meta
+                cmd += '--sOutputPath=%s \\\n' % nodf_stats
+                cmd += '--bCheckRarefied=false \\\n'
+                cmd += '--bNormalize=false \\\n'
+                cmd += '--bPresenceAbsence=false \\\n'
+                cmd += '--sTaxonRank=otu \\\n'
+                cmd += '--sComparisonsPath=%s \\\n' % nodf_comparisons
+                cmd += '--iNullModelIterations=1000 \\\n'
+                cmd += '--bOrderedNODF=false \\\n'
+                cmd += '--sNestednessAxis=sample \\\n'
+                cmd += '--sNestednessNullModel=%s \\\n' % null
+                cmd += '--bSimulate=false\n'
+                cur_sh.write('echo "%s"\n' % cmd)
+                cur_sh.write('%s\n' % cmd)
 
-        if not isfile(nodf_stats_simul):
-            cmd = 'java -cp %s \\\n' % binary
-            cmd += 'edu.ucsf.Nestedness.Calculator.CalculatorLauncher \\\n'
-            cmd += '--sBIOMPath=%s \\\n' % new_biom_meta
-            cmd += '--sOutputPath=%s \\\n' % nodf_stats_simul
-            cmd += '--bCheckRarefied=false \\\n'
-            cmd += '--bNormalize=false \\\n'
-            cmd += '--bPresenceAbsence=false \\\n'
-            cmd += '--sTaxonRank=otu \\\n'
-            cmd += '--sComparisonsPath=%s \\\n' % nodf_comparisons
-            cmd += '--iNullModelIterations=1000 \\\n'
-            cmd += '--bOrderedNODF=false \\\n'
-            cmd += '--sNestednessAxis=sample \\\n'
-            cmd += '--sNestednessNullModel=%s \\\n' % null
-            cmd += '--bSimulate=true\n'
-            cur_sh.write('echo "%s"\n' % cmd)
-            cur_sh.write('%s\n' % cmd)
+            if not isfile(nodf_stats_simul):
+                cmd = 'java -cp %s \\\n' % binary
+                cmd += 'edu.ucsf.Nestedness.Calculator.CalculatorLauncher \\\n'
+                cmd += '--sBIOMPath=%s \\\n' % new_biom_meta
+                cmd += '--sOutputPath=%s \\\n' % nodf_stats_simul
+                cmd += '--bCheckRarefied=false \\\n'
+                cmd += '--bNormalize=false \\\n'
+                cmd += '--bPresenceAbsence=false \\\n'
+                cmd += '--sTaxonRank=otu \\\n'
+                cmd += '--sComparisonsPath=%s \\\n' % nodf_comparisons
+                cmd += '--iNullModelIterations=1000 \\\n'
+                cmd += '--bOrderedNODF=false \\\n'
+                cmd += '--sNestednessAxis=sample \\\n'
+                cmd += '--sNestednessNullModel=%s \\\n' % null
+                cmd += '--bSimulate=true\n'
+                cur_sh.write('echo "%s"\n' % cmd)
+                cur_sh.write('%s\n' % cmd)
 
 
 def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat_qza: str,

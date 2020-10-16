@@ -339,7 +339,7 @@ def routine_qiime2_analyses(
         run_alpha_group_significance(i_datasets_folder, datasets, diversities,
                                      datasets_rarefs, p_perm_groups, force,
                                      prjct_nm, qiime_env, chmod, noloc, As, split,
-                                     run_params['alpha_kw'], filt_raref, jobs)
+                                     run_params['alpha_kw'], filt_raref, jobs, chunkit)
     else:
         print('(skip_alpha_kw)')
 

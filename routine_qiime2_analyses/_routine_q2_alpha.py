@@ -454,7 +454,7 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list:
 def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversities: dict,
                                  datasets_rarefs: dict, p_perm_groups: str, force: bool, prjct_nm: str,
                                  qiime_env: str, chmod: str, noloc: bool, As: tuple, split: bool,
-                                 run_params: dict, filt_raref: str, jobs: bool) -> None:
+                                 run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Run alpha-group-significance: Alpha diversity comparisons.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-group-significance/
@@ -523,7 +523,7 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
                             '%s.kv%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs)
+                            qiime_env, chmod, noloc, jobs, chunkit)
     if main_sh:
         if p_perm_groups:
             print("# Kruskal-Wallis on alpha diversity (groups config in %s)" % p_perm_groups)

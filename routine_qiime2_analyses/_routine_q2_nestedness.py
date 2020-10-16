@@ -32,71 +32,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 
 
-def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: list,
-                          nulls: list, modes: list, cur_sh: str, qza: str, case: str,
-                          case_var: str, case_vals: list, binary: str, force: bool) -> dict:
-    res = {}
-    remove = True
-    with open(cur_sh, 'w') as cur_sh_o:
-        if group:
-            cur_rad = '%s/%s_%s_%s' % (odir, splitext(basename(qza))[0], group, case)
-        else:
-            cur_rad = '%s/%s_%s' % (odir, splitext(basename(qza))[0], case)
-        new_meta = '%s.meta' % cur_rad
-        new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-        cols = set()
-        lat_lon_date = ['latitude', 'longitude', 'datetime']
-        nodfs_valid = []
-        for col in (nodfs + lat_lon_date):
-            if col not in set(new_meta_pd.columns):
-                continue
-            if new_meta_pd[col].unique().size == 1:
-                continue
-            if col not in lat_lon_date and min(new_meta_pd[col].value_counts()) == 1:
-                continue
-            cols.add(col)
-            if col in nodfs:
-                nodfs_valid.append(col)
-        new_meta_pd = new_meta_pd[sorted(cols)].reset_index()
-        new_meta_pd.columns = (['#SampleID'] + sorted(cols))
-        new_meta_pd.to_csv(new_meta, index=False, sep='\t')
-        new_qza = '%s.qza' % cur_rad
-        new_biom = '%s.biom' % cur_rad
-        new_tsv = '%s.tsv' % cur_rad
-        new_biom_meta = '%s_w-md.biom' % cur_rad
-
-        if not isfile(new_biom):
-            cmd = filter_feature_table(qza, new_qza, new_meta)
-            cmd += run_export(new_qza, new_tsv, 'FeatureTable')
-            cur_sh_o.write('echo "%s"\n' % cmd)
-            cur_sh_o.write(cmd)
-
-        cmd = run_add_metadata(new_biom, new_biom_meta, new_meta)
-        cur_sh_o.write('echo "%s"\n' % cmd)
-        cur_sh_o.write(cmd)
-
-        graphs = '%s/graphs.csv' % odir
-        if not isfile(graphs):
-            write_nestedness_graph(
-                new_biom_meta, odir, graphs, binary,
-                nodfs_valid, cur_sh_o)
-            remove = False
-
-        for null in nulls:
-            for mode in modes:
-                odir = '%s/null-%s/mode-%s' % (cur_rad, null, mode)
-                fields = '%s/fields.txt' % odir
-                res[(null, mode)] = odir
-                if not len(glob.glob('%s/*_comparisons.csv' % odir)):
-                    write_nestedness_nodfs(
-                        new_biom_meta, odir, fields, binary,
-                        nodfs_valid, null, mode, cur_sh_o)
-                    remove = False
-    if remove:
-        os.remove(cur_sh)
-    return res
-
-
 def get_nestedness_config(nestedness_config: dict) -> (dict, dict, dict, dict, dict):
     subsets = {'ALL': [[]]}
     if 'subsets' in nestedness_config:
@@ -181,6 +116,72 @@ def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str
     return nestedness_res
 
 
+def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: list,
+                          nulls: list, modes: list, cur_sh: str, qza: str, case: str,
+                          case_var: str, case_vals: list, binary: str, force: bool) -> dict:
+    res = {}
+    remove = True
+    with open(cur_sh, 'w') as cur_sh_o:
+        if group:
+            cur_rad = '%s/%s_%s_%s' % (odir, splitext(basename(qza))[0], group, case)
+        else:
+            cur_rad = '%s/%s_%s' % (odir, splitext(basename(qza))[0], case)
+        new_meta = '%s.meta' % cur_rad
+        new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+        cols = set()
+        lat_lon_date = ['latitude', 'longitude', 'datetime']
+        nodfs_valid = []
+        for col in (nodfs + lat_lon_date):
+            if col not in set(new_meta_pd.columns):
+                continue
+            if new_meta_pd[col].unique().size == 1:
+                continue
+            if col not in lat_lon_date and min(new_meta_pd[col].value_counts()) == 1:
+                continue
+            cols.add(col)
+            if col in nodfs:
+                nodfs_valid.append(col)
+        new_meta_pd = new_meta_pd[sorted(cols)].reset_index()
+        new_meta_pd.columns = (['#SampleID'] + sorted(cols))
+        new_meta_pd.to_csv(new_meta, index=False, sep='\t')
+        new_qza = '%s.qza' % cur_rad
+        new_biom = '%s.biom' % cur_rad
+        new_tsv = '%s.tsv' % cur_rad
+        new_biom_meta = '%s_w-md.biom' % cur_rad
+
+        if not isfile(new_biom):
+            cmd = filter_feature_table(qza, new_qza, new_meta)
+            cmd += run_export(new_qza, new_tsv, 'FeatureTable')
+            cur_sh_o.write('echo "%s"\n' % cmd)
+            cur_sh_o.write(cmd)
+
+        cmd = run_add_metadata(new_biom, new_biom_meta, new_meta)
+        cur_sh_o.write('echo "%s"\n' % cmd)
+        cur_sh_o.write(cmd)
+
+        graphs = '%s/graphs.csv' % cur_rad
+        res['graph'] = graphs
+        if not isfile(graphs):
+            write_nestedness_graph(
+                new_biom_meta, cur_rad, graphs, binary,
+                nodfs_valid, cur_sh_o)
+            remove = False
+
+        modes = {}
+        for mode in modes:
+            odir = '%s/%s' % (cur_rad, mode)
+            fields = '%s/fields.txt' % odir
+            if not len(glob.glob('%s/*_comparisons.csv' % odir)):
+                write_nestedness_nodfs(
+                    new_biom_meta, odir, fields, binary,
+                    nodfs_valid, mode, nulls, cur_sh_o)
+                remove = False
+            res.setdefault('modes', []).append(odir)
+    if remove:
+        os.remove(cur_sh)
+    return res
+
+
 def nestedness_figure(nestedness_res, datasets_rarefs):
     print()
     print()
@@ -189,67 +190,65 @@ def nestedness_figure(nestedness_res, datasets_rarefs):
         for idx, nestedness_raref in enumerate(nestedness_rarefs):
             cur_raref = datasets_rarefs[dat][idx]
             for (group, case), res in nestedness_raref.items():
-                for (null, mode), odir in res.items():
-                    graphs_fp = '%s/graphs.csv' % odir
 
-                    print(dat)
-                    print(cur_raref)
-                    print(group, case)
-                    print(null, mode)
-                    print(odir)
-                    print(glob.glob('%s/*' % odir))
+                print(dat)
+                print(cur_raref)
+                print(group, case)
+                graphs_fp = res['graph']
+                if not isfile(graphs_fp):
+                    continue
+                graphs = pd.read_csv(graphs_fp, header=0, sep=',')
+                print(graphs)
+                print(graphs.sex.value_counts())
+                print(graphs.age_cat.value_counts())
+                print(graphs.METADATA_NUMERIC_CODE.value_counts())
+                print(graphsds)
 
-                    if not isfile(graphs_fp):
-                        continue
-                    graphs = pd.read_csv(graphs_fp, header=0, sep=',')
-                    print(graphs)
-                    print(graphs.sex.value_counts())
-                    print(graphs.age_cat.value_counts())
-                    print(graphs.METADATA_NUMERIC_CODE.value_counts())
-                    print(graphsds)
+                # fig, ax = plt.subplots(len(areas), 1, sharex=False, sharey=False, figsize=(9, 12))
+                # # for each area ('All samples', 'CCFZ', 'NorthPacific')
+                # for adx, area in enumerate(sorted(areas)):
+                #     # get the [area, nestedout folder] pair
+                #     nestedout = area_nestedouts[area]
+                #     # read the nestedness analysis IMAGE graph file
+                #     graph_pd = pd.read_csv(graph, header=0, sep=',')
+                #     # get an index in the table of each of the provinces
+                #     graph_pd_prov = dict([y, (x + 1)] for x, y in enumerate(list(graph_pd['province'].unique())))
+                #     # add the index as a new column in the table to serve as color
+                #     graph_pd_col = [graph_pd_prov[x] for x in list(graph_pd['province'])]
+                #     graph_pd['color'] = graph_pd_col
+                #     # get the dimensions of the image
+                #     nsams = len(graph_pd['SAMPLE_RANK'].unique())
+                #     nobss = len(graph_pd['OBSERVATION_RANK'].unique())
+                #     # fill the corresponding matrix with zeros
+                #     mat = np.zeros([nobss, nsams])
+                #     # edit this matrix with the color of the corresponding province
+                #     for r, row in graph_pd.iterrows():
+                #         cur_sam = row[0] - 1
+                #         cur_obs = row[1] - 1
+                #         cur_col = row[-1]
+                #         mat[cur_obs, cur_sam] = cur_col
+                #     # replace remaining zeros by 'nan'
+                #     mat[mat == 0] = 'nan'
+                #     # plotting
+                #     sc = ax[adx].imshow(mat[::-1], plt.cm.Paired, aspect="auto")
+                #     ax[adx].set_title(area)
+                #     hands = [mpatches.Patch(color=sc.to_rgba(y), label=x) for x, y in graph_pd_prov.items()]
+                #     ax[adx].legend(handles=hands, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+                #     ax[adx].set_xlabel('Samples (sorted by richness)')
+                #     ax[adx].set_ylabel('Phyla (sorted by prevalence)')
+                # plt.suptitle('%s, %s, taxo rank: %s' % (dataset, filin, rank), fontsize=20)
+                # plt.subplots_adjust(top=.95, hspace=0.3)
+                # if not C:
+                #     plt.show(block=False)
+                # else:
+                #     plt.close()
+                # plt.savefig(out_pdf, bbox_inches='tight', dpi=300)
+                # print('[%s, %s, %s]' % (dataset, filin, typs), 'Written:', out_pdf, '!')
 
-                    # fig, ax = plt.subplots(len(areas), 1, sharex=False, sharey=False, figsize=(9, 12))
-                    # # for each area ('All samples', 'CCFZ', 'NorthPacific')
-                    # for adx, area in enumerate(sorted(areas)):
-                    #     # get the [area, nestedout folder] pair
-                    #     nestedout = area_nestedouts[area]
-                    #     # read the nestedness analysis IMAGE graph file
-                    #     graph_pd = pd.read_csv(graph, header=0, sep=',')
-                    #     # get an index in the table of each of the provinces
-                    #     graph_pd_prov = dict([y, (x + 1)] for x, y in enumerate(list(graph_pd['province'].unique())))
-                    #     # add the index as a new column in the table to serve as color
-                    #     graph_pd_col = [graph_pd_prov[x] for x in list(graph_pd['province'])]
-                    #     graph_pd['color'] = graph_pd_col
-                    #     # get the dimensions of the image
-                    #     nsams = len(graph_pd['SAMPLE_RANK'].unique())
-                    #     nobss = len(graph_pd['OBSERVATION_RANK'].unique())
-                    #     # fill the corresponding matrix with zeros
-                    #     mat = np.zeros([nobss, nsams])
-                    #     # edit this matrix with the color of the corresponding province
-                    #     for r, row in graph_pd.iterrows():
-                    #         cur_sam = row[0] - 1
-                    #         cur_obs = row[1] - 1
-                    #         cur_col = row[-1]
-                    #         mat[cur_obs, cur_sam] = cur_col
-                    #     # replace remaining zeros by 'nan'
-                    #     mat[mat == 0] = 'nan'
-                    #     # plotting
-                    #     sc = ax[adx].imshow(mat[::-1], plt.cm.Paired, aspect="auto")
-                    #     ax[adx].set_title(area)
-                    #     hands = [mpatches.Patch(color=sc.to_rgba(y), label=x) for x, y in graph_pd_prov.items()]
-                    #     ax[adx].legend(handles=hands, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-                    #     ax[adx].set_xlabel('Samples (sorted by richness)')
-                    #     ax[adx].set_ylabel('Phyla (sorted by prevalence)')
-                    # plt.suptitle('%s, %s, taxo rank: %s' % (dataset, filin, rank), fontsize=20)
-                    # plt.subplots_adjust(top=.95, hspace=0.3)
-                    # if not C:
-                    #     plt.show(block=False)
-                    # else:
-                    #     plt.close()
-                    # plt.savefig(out_pdf, bbox_inches='tight', dpi=300)
-                    # print('[%s, %s, %s]' % (dataset, filin, typs), 'Written:', out_pdf, '!')
-
-                    fields_fp = '%s/fields.txt' % odir
+                for mode_dir in res['modes']:
+                    fields_fp = '%s/fields.txt' % mode_dir
                     if not isfile(fields_fp):
                         continue
                     fields = [x.strip() for x in open(fields_fp).readlines()]
+                    print("fields")
+                    print(fields)
