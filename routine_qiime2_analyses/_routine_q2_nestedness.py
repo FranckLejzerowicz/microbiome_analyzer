@@ -74,15 +74,14 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
         cur_sh_o.write('echo "%s"\n' % cmd)
         cur_sh_o.write(cmd)
 
+        graphs = '%s/graphs.csv' % odir
+
         for null in nulls:
             for mode in modes:
                 odir = '%s/null-%s/mode-%s' % (cur_rad, null, mode)
-                graphs = '%s/graphs.csv' % odir
                 fields = '%s/fields.txt' % odir
                 res[(null, mode)] = odir
-                if not isdir(odir):
-                    os.makedirs(odir)
-                if not isfile(graphs) and not len(glob.glob('%s/*comparisons.csv' % odir)):
+                if not isfile(graphs):
                     write_nestedness(new_biom_meta, odir, graphs, fields, binary,
                                      nodfs_valid, null, mode, cur_sh_o)
                     remove = False
@@ -113,7 +112,7 @@ def get_nestedness_config(nestedness_config: dict) -> (dict, dict, dict, dict, d
 def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str,
                    datasets_rarefs: dict, force: bool, prjct_nm: str, qiime_env: str,
                    chmod: str, noloc: bool, split: bool, run_params: dict,
-                   filt_raref: str, jobs: bool) -> dict:
+                   filt_raref: str, jobs: bool, chunkit: int) -> dict:
 
     job_folder2 = get_job_folder(i_datasets_folder, 'nestedness/chunks')
     nestedness_config = read_yaml_file(p_nestedness_groups)
@@ -164,7 +163,7 @@ def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str
                             '%s.prm%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs)
+                            qiime_env, chmod, noloc, jobs, chunkit)
     if main_sh:
         if p_nestedness_groups:
             print("# nestedness (config in %s)" % p_nestedness_groups)
@@ -185,9 +184,6 @@ def nestedness_figure(nestedness_res, datasets_rarefs):
             for (group, case), res in nestedness_raref.items():
                 for (null, mode), odir in res.items():
                     graphs_fp = '%s/graphs.csv' % odir
-                    if not isfile(graphs_fp):
-                        continue
-                    graphs = pd.read_csv(graphs_fp, header=0, sep=',')
 
                     print(dat)
                     print(cur_raref)
@@ -195,6 +191,15 @@ def nestedness_figure(nestedness_res, datasets_rarefs):
                     print(null, mode)
                     print(odir)
                     print(glob.glob('%s/*' % odir))
+
+                    if not isfile(graphs_fp):
+                        continue
+                    graphs = pd.read_csv(graphs_fp, header=0, sep=',')
+                    print(graphs)
+                    print(graphs.sex.value_counts())
+                    print(graphs.age_cat.value_counts())
+                    print(graphs.METADATA_NUMERIC_CODE.value_counts())
+                    print(graphsds)
 
                     # fig, ax = plt.subplots(len(areas), 1, sharex=False, sharey=False, figsize=(9, 12))
                     # # for each area ('All samples', 'CCFZ', 'NorthPacific')
@@ -241,7 +246,3 @@ def nestedness_figure(nestedness_res, datasets_rarefs):
                     if not isfile(fields_fp):
                         continue
                     fields = [x.strip() for x in open(fields_fp).readlines()]
-                    break
-                break
-            break
-        break

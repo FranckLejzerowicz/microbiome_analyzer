@@ -89,8 +89,8 @@ def routine_qiime2_analyses(
         filt3d: bool,
         p_filt3d_config: str,
         filt_only: bool,
-        jobs: bool
-) -> None:
+        jobs: bool,
+        chunkit: int) -> None:
     """
     Main qiime2 functions writer.
 
@@ -347,7 +347,7 @@ def routine_qiime2_analyses(
         print('(run_deicode)')
         run_deicode(i_datasets_folder, datasets, datasets_rarefs,
                     p_perm_groups, force, prjct_nm, qiime_env, chmod,
-                    noloc, run_params['deicode'], filt_raref, jobs)
+                    noloc, run_params['deicode'], filt_raref, jobs, chunkit)
     else:
         print('(skip_deicode)')
 
@@ -356,7 +356,7 @@ def routine_qiime2_analyses(
         run_permanova(i_datasets_folder, betas, p_perm_tests, p_beta_type,
                       datasets_rarefs, p_perm_groups, force, prjct_nm,
                       qiime_env, chmod, noloc, split,
-                      run_params['permanova'], filt_raref, jobs)
+                      run_params['permanova'], filt_raref, jobs, chunkit)
     else:
         print('(skip_permanova)')
 
@@ -364,7 +364,7 @@ def routine_qiime2_analyses(
         print('(run_adonis)')
         run_adonis(p_formulas, i_datasets_folder, betas, datasets_rarefs,
                    p_perm_groups, force, prjct_nm, qiime_env, chmod,
-                   noloc, split, run_params['adonis'], filt_raref, jobs)
+                   noloc, split, run_params['adonis'], filt_raref, jobs, chunkit)
     else:
         print('(skip_adonis)')
 
@@ -373,7 +373,7 @@ def routine_qiime2_analyses(
         run_procrustes(i_datasets_folder, datasets_filt, p_procrustes, betas,
                        force, prjct_nm, qiime_env, chmod, noloc, split,
                        run_params['procrustes'], filt_raref,
-                       filt_only, eval_depths, jobs)
+                       filt_only, eval_depths, jobs, chunkit)
     else:
         print('(skip_procrustes)')
 
@@ -381,7 +381,7 @@ def routine_qiime2_analyses(
         print('(run_mantel)')
         run_mantel(i_datasets_folder, datasets_filt, p_mantel, betas,
                    force,  prjct_nm, qiime_env, chmod, noloc, split,
-                   run_params['mantel'], filt_raref,  filt_only, eval_depths, jobs)
+                   run_params['mantel'], filt_raref,  filt_only, eval_depths, jobs, chunkit)
     else:
         print('(skip_mantel)')
 
@@ -390,7 +390,7 @@ def routine_qiime2_analyses(
         nestedness_res = run_nestedness(i_datasets_folder, betas,
                                         p_nestedness_groups, datasets_rarefs, force,
                                         prjct_nm, qiime_env, chmod, noloc, split,
-                                        run_params['nestedness'], filt_raref, jobs)
+                                        run_params['nestedness'], filt_raref, jobs, chunkit)
         if nestedness_res:
             print('(making_nestedness_figures)')
             nestedness_figure(nestedness_res, datasets_rarefs)
@@ -403,7 +403,7 @@ def routine_qiime2_analyses(
             phates = run_phate(
                 p_phate_config, i_datasets_folder, datasets, datasets_rarefs,
                 force, prjct_nm, qiime_env, chmod, noloc, split,
-                run_params['phate'], filt_raref, jobs)
+                run_params['phate'], filt_raref, jobs, chunkit)
     else:
         phates = {}
         print('(skip_phate)')
@@ -413,7 +413,7 @@ def routine_qiime2_analyses(
         print('(run_doc)')
         run_doc(i_datasets_folder, datasets, p_doc_config,
                 datasets_rarefs, force, prjct_nm, qiime_env, chmod, noloc,
-                run_params['doc'], filt_raref, phates, doc_phate, split, jobs)
+                run_params['doc'], filt_raref, phates, doc_phate, split, jobs, chunkit)
     else:
         print('(skip_doc)')
 
@@ -423,7 +423,7 @@ def routine_qiime2_analyses(
         run_sourcetracking(i_datasets_folder, datasets, p_sourcetracking_config,
                            datasets_rarefs, force, prjct_nm, qiime_env, chmod,
                            noloc, run_params['sourcetracking'],
-                           filt_raref, split, jobs)
+                           filt_raref, split, jobs, chunkit)
     else:
         print('(skip_sourcetracking)')
 
@@ -440,7 +440,7 @@ def routine_qiime2_analyses(
                                       datasets_filt, datasets_read, force, gpu,
                                       standalone, prjct_nm, qiime_env, chmod,
                                       noloc, split, filt_raref, run_params['mmvec'],
-                                      input_to_filtered, jobs)
+                                      input_to_filtered, jobs, chunkit)
     else:
         print('(skip_mmvec)')
 
@@ -454,7 +454,7 @@ def routine_qiime2_analyses(
                                             datasets, datasets_read, datasets_filt,
                                             input_to_filtered, mmvec_outputs, force, prjct_nm,
                                             qiime_env, chmod, noloc, split,
-                                            run_params['songbird'], filt_raref, jobs)
+                                            run_params['songbird'], filt_raref, jobs, chunkit)
             q2s_pd = summarize_songbirds(i_datasets_folder)
             out_folder = get_analysis_folder(i_datasets_folder, 'songbird')
             q2s_fp = '%s/songbird_q2.tsv' % out_folder
@@ -476,6 +476,6 @@ def routine_qiime2_analyses(
             i_datasets_folder, songbird_outputs, p_mmvec_highlights,
             p_xmmvec, mmvec_outputs, force, prjct_nm, qiime_env, chmod,
             noloc, filt_raref, run_params['mmbird'],
-            input_to_filtered, jobs)
+            input_to_filtered, jobs, chunkit)
     else:
         print('(skip_mmbird)')

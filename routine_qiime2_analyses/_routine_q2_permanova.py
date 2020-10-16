@@ -77,7 +77,7 @@ def run_single_perm(odir: str, subset: str, meta_pd: pd.DataFrame,
 def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tuple,
                   p_beta_type: tuple, datasets_rarefs: dict, p_perm_groups: str,
                   force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-                  split: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
+                  split: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Run beta-group-significance: Beta diversity group significance.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
@@ -142,7 +142,7 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
                             '%s.prm%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs)
+                            qiime_env, chmod, noloc, jobs, chunkit)
     if main_sh:
         if p_perm_groups:
             print("# PERMANOVA (groups config in %s)" % p_perm_groups)

@@ -65,7 +65,7 @@ def run_single_phate(dat: str, odir: str, tsv: str, meta_pd: pd.DataFrame, case_
 def run_phate(p_phate_config: str, i_datasets_folder: str, datasets: dict,
               datasets_rarefs: dict, force: bool, prjct_nm: str,
               qiime_env: str, chmod: str, noloc: bool, split: bool,
-              run_params: dict, filt_raref: str, jobs: bool) -> dict:
+              run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> dict:
 
     job_folder2 = get_job_folder(i_datasets_folder, 'phate/chunks')
     phate_dicts = get_phate_dicts(p_phate_config)
@@ -121,7 +121,7 @@ def run_phate(p_phate_config: str, i_datasets_folder: str, datasets: dict,
                             '%s.mrt.pht%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs)
+                            qiime_env, chmod, noloc, jobs, chunkit)
     if main_sh:
         if p_phate_config:
             if p_phate_config.startswith('/panfs'):

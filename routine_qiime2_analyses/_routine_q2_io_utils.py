@@ -13,6 +13,7 @@ import yaml
 import glob
 import pkg_resources
 import pandas as pd
+import numpy as np
 from biom import load_table
 
 from pandas.util import hash_pandas_object
@@ -564,7 +565,7 @@ def read_meta_pd(meta: str) -> pd.DataFrame:
 def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
                   prjct_nm: str, time: str, n_nodes: str, n_procs: str,
                   mem_num: str, mem_dim: str, qiime_env: str, chmod: str,
-                  noloc: bool, jobs: bool, tmp: str = None) -> str:
+                  noloc: bool, jobs: bool, chunkit: int, tmp: str = None) -> str:
     """
     Write the main launcher of pbs scripts, written during using multiprocessing.
 
@@ -585,7 +586,15 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
     out_main_sh = ''
     warning = 0
     with open(main_sh, 'w') as main_o:
-        for (dat, out_sh), cur_shs in all_sh_pbs.items():
+        chunks = {}
+        if len(all_sh_pbs) > chunkit:
+            for idx, keys in enumerate(np.array_split(list(all_sh_pbs.keys()), chunkit)):
+                head_sh = '%s/run_%s_chunk_%s.sh' % (dirname(keys[0][1]), analysis, idx)
+                chunks[(idx, head_sh)] = [x for key in keys for x in all_sh_pbs[tuple(key)]]
+        else:
+            chunks = all_sh_pbs.copy()
+
+        for (dat, out_sh), cur_shs in chunks.items():
             cur_written = False
             with open(out_sh, 'w') as sh:
                 for cur_sh in cur_shs:

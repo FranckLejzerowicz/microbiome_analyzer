@@ -73,7 +73,7 @@ def run_single_adonis(odir: str, subset: str, case_vals_list: list, metric: str,
 def run_adonis(p_formulas: str, i_datasets_folder: str, betas: dict,
                datasets_rarefs: dict, p_perm_groups: str, force: bool,
                prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-               split: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
+               split: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Run beta-group-significance: Beta diversity group significance.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
@@ -138,7 +138,7 @@ def run_adonis(p_formulas: str, i_datasets_folder: str, betas: dict,
                             '%s.dns%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs)
+                            qiime_env, chmod, noloc, jobs, chunkit)
     if main_sh:
         if p_perm_groups:
             print("# Run Adonis (groups config in %s)" % p_perm_groups)

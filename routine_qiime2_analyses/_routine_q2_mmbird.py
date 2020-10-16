@@ -593,7 +593,7 @@ def get_log_ratios(pc_sb_correlations_pd, correlation_threshold = 0.75):
 def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlights: str,
                p_xmmvec: str, mmvec_outputs: list, force: bool, prjct_nm: str,
                qiime_env: str, chmod: str, noloc: bool, filt_raref: str,
-               run_params: dict, input_to_filtered: dict, jobs: bool) -> pd.DataFrame:
+               run_params: dict, input_to_filtered: dict, jobs: bool, chunkit: int) -> pd.DataFrame:
 
     if not mmvec_outputs:
         print('No mmvec output detected...')
