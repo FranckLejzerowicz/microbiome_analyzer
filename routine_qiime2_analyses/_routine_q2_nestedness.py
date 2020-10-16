@@ -21,7 +21,8 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
 from routine_qiime2_analyses._routine_q2_cmds import (
     filter_feature_table,
     run_add_metadata,
-    write_nestedness,
+    write_nestedness_graph,
+    write_nestedness_nodfs,
     get_new_meta_pd,
     get_case, run_export
 )
@@ -75,15 +76,20 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
         cur_sh_o.write(cmd)
 
         graphs = '%s/graphs.csv' % odir
+        if not isfile(graphs):
+            write_nestedness_graph(
+                new_biom_meta, odir, graphs, binary, nodfs_valid, cur_sh_o)
+            remove = False
 
         for null in nulls:
             for mode in modes:
                 odir = '%s/null-%s/mode-%s' % (cur_rad, null, mode)
                 fields = '%s/fields.txt' % odir
                 res[(null, mode)] = odir
-                if not isfile(graphs):
-                    write_nestedness(new_biom_meta, odir, graphs, fields, binary,
-                                     nodfs_valid, null, mode, cur_sh_o)
+                if not len(glob.glob('%s/*_comparisons.csv' % odir)):
+                    write_nestedness_nodfs(
+                        new_biom_meta, odir, fields, binary,
+                        nodfs_valid, null, mode, cur_sh_o)
                     remove = False
     if remove:
         os.remove(cur_sh)

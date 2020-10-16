@@ -1023,8 +1023,8 @@ def check_absence_mat(mat_qzas: list, first_print: int, analysis: str) -> bool:
     return False
 
 
-def write_nestedness(new_biom_meta: str, odir: str, graphs: str, fields: str, binary: str,
-                     nodfs_valid: list, null: str, mode: str, cur_sh: TextIO) -> None:
+def write_nestedness_graph(new_biom_meta: str, odir: str, graphs: str,
+                           binary: str, nodfs_valid: list, cur_sh: TextIO) -> None:
     """
     https://github.com/jladau/Nestedness
     """
@@ -1043,6 +1043,14 @@ def write_nestedness(new_biom_meta: str, odir: str, graphs: str, fields: str, bi
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 
+
+def write_nestedness_nodfs(new_biom_meta: str, odir: str,
+                           fields: str, binary: str, nodfs_valid: list,
+                           null: str, mode: str, cur_sh: TextIO) -> None:
+    """
+    https://github.com/jladau/Nestedness
+    """
+    cmd = 'mkdir -p %s\n' % odir
     for ndx, nodf in enumerate(nodfs_valid):
         if ndx:
             cmd += 'echo "%s" >> %s\n' % (nodf, fields)
