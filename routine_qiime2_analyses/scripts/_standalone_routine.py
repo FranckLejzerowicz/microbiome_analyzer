@@ -243,7 +243,7 @@ from routine_qiime2_analyses import __version__
     help="Whether to prepare Torque jobs from scripts."
 )
 @click.option(
-    "-chunkit", "--p-chunkit", required=False, show_default=False, default=20,
+    "-chunkit", "--p-chunkit", required=False, show_default=False, default=None,
     help="Maximum number of jobs at which extra jobs will be added in chunks"
 )
 @click.version_option(__version__, prog_name="routine_qiime2_analyses")
