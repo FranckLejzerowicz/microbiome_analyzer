@@ -81,7 +81,8 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/nestedness.yml' and README)."
 )
 @click.option(
-    "-bt", "--p-beta-type", required=False, show_default=False, multiple=True, default=('permanova', 'permdisp',),
+    "-bt", "--p-beta-type", required=False, show_default=False,
+    multiple=True, default=('permanova', 'permdisp',),
     type=click.Choice(['permanova', 'anosim', 'permdisp']),
     help="Type of beta group significance, one of"
          " 'permanova', 'anosim', 'permdisp'"
@@ -243,7 +244,8 @@ from routine_qiime2_analyses import __version__
     help="Whether to prepare Torque jobs from scripts."
 )
 @click.option(
-    "-chunkit", "--p-chunkit", required=False, show_default=False, default=None,
+    "-chunkit", "--p-chunkit", required=False, show_default=False,
+    type=int, default=None,
     help="Maximum number of jobs at which extra jobs will be added in chunks"
 )
 @click.version_option(__version__, prog_name="routine_qiime2_analyses")

@@ -78,7 +78,8 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
         graphs = '%s/graphs.csv' % odir
         if not isfile(graphs):
             write_nestedness_graph(
-                new_biom_meta, odir, graphs, binary, nodfs_valid, cur_sh_o)
+                new_biom_meta, odir, graphs, binary,
+                nodfs_valid, cur_sh_o)
             remove = False
 
         for null in nulls:
