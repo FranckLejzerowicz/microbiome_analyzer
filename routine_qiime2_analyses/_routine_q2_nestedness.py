@@ -350,7 +350,7 @@ def nestedness_figure(i_datasets_folder: str, nestedness_res: dict,
                             col_colors=cur_meta_pd_hex,
                             yticklabels=False, xticklabels=False
                         )
-                        simples = [('sample', cur_meta_leg_rgb, cur_meta_leg_rgb)]
+                        simples = [('sample', cur_meta_pd_rgb, cur_meta_leg_rgb)]
 
                     n = 0
                     N = 1 / cur_meta_pd_hex.columns.size
