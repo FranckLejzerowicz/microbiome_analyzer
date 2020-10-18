@@ -118,6 +118,7 @@ def get_taxo_levels(taxonomies: dict) -> dict:
         tax_pd.rename(columns={tax_pd.columns[0]: 'Feature ID'}, inplace=True)
         features = tax_pd['Feature ID'].tolist()
         split_taxa_pd = get_split_taxonomy(tax_pd.Taxon.tolist())
+        split_taxa_pd.index = features
         if split_taxa_pd.shape[1] == 1:
             split_taxa_pds[dat] = split_taxa_pd
             continue
@@ -289,11 +290,12 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                  taxonomies: dict, p_collapse_taxo: str, datasets_rarefs: dict,
                  datasets_collapsed: dict, datasets_collapsed_map: dict, force: bool,
                  prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-                 run_params: dict, filt_raref: str, jobs: bool) -> None:
+                 run_params: dict, filt_raref: str, jobs: bool) -> dict:
 
     collapse_taxo = get_collapse_taxo(p_collapse_taxo)
-
+    stop_for_collapse = False
     main_written = 0
+    collapsed = {}
     datasets_update = {}
     datasets_read_update = {}
     datasets_features_update = {}
@@ -310,6 +312,7 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_read: dict,
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 split_levels = get_split_levels(dat, collapse_taxo, split_taxa_pds)
+                collapsed[dat] = split_levels
                 tax_qza, tax_fp = taxonomies[dat][1:]
                 for idx, tab_meta_fp in enumerate(tab_meta_fps):
                     tab_fp, meta_fp = tab_meta_fp
@@ -330,18 +333,19 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
                         if isfile(collapsed_tsv) and isfile(collapsed_meta):
                             collapsed_pd = pd.read_csv(collapsed_tsv, index_col=0, header=0, sep='\t')
-                            with open(collapsed_tsv) as f:
+                            with open(collapsed_meta) as f:
                                 for line in f:
                                     break
-                            collapsed_meta_pd = pd.read_csv(
-                                collapsed_meta, header=0, sep='\t',
-                                dtype={line.split('\t')[0]: str}
+                            collapsed_meta_pd = pd.read_table(
+                                collapsed_meta, dtype={line.split('\t')[0]: str}
                             )
-                            datasets_read_update.setdefault(dat_tax, []).append([collapsed_pd, collapsed_meta_pd])
+                            datasets_read_update.setdefault(dat_tax, []).append(
+                                [collapsed_pd, collapsed_meta_pd])
                             continue
                         else:
                             written += 1
                             main_written += 1
+                            stop_for_collapse = True
                             write_collapse_taxo(tab_qza, tax_qza, collapsed_qza, collapsed_tsv,
                                                 meta_fp, collapsed_meta, level, cur_sh)
                             # meta_pd = meta_pd.set_index('sample_name')
@@ -358,14 +362,20 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', o, noloc, jobs)
+
     if main_written:
         print_message('# Collapse features for taxo levels defined in %s' % p_collapse_taxo, 'sh', run_pbs, jobs)
+
+    if stop_for_collapse:
+        print('Stopping here as this collapse must be run first for other analyses to work')
+        sys.exit(0)
 
     datasets.update(datasets_update)
     datasets_read.update(datasets_read_update)
     datasets_features.update(datasets_features_update)
     datasets_phylo.update(datasets_phylo_update)
 
+    return collapsed
 
 def run_taxonomy_others(force: bool, tsv_pd: pd.DataFrame,
                         out_qza: str, out_tsv: str) -> str:
