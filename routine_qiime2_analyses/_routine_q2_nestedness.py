@@ -266,12 +266,15 @@ def nestedness_figure(i_datasets_folder: str, nestedness_res: dict,
             if colors['feature']:
                 tax_pd = split_taxa_pds[stats_tax_dat].reset_index()
                 if level != 'feature':
+                    if level not in collapsed[stats_tax_dat]:
+                        continue
                     tax_pd = split_taxa_pds[stats_tax_dat].iloc[
                              :, :collapsed[stats_tax_dat][level]
                         ].drop_duplicates()
                     tax_pd['OBSERVATION_ID'] = tax_pd.apply(func=lambda x: ';'.join(x), axis=1)
                 else:
                     tax_pd = tax_pd.rename(columns={tax_pd.columns[0]: 'OBSERVATION_ID'})
+
                 tax_pd = tax_pd.set_index('OBSERVATION_ID')
                 tax_cols = [tax_pd.columns.tolist()[(x-1)] if isinstance(x, int)
                                 and x not in tax_pd.columns and tax_pd.shape[1] >= x
