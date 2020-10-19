@@ -469,6 +469,8 @@ def nestedness_figure(i_datasets_folder: str, nestedness_res: dict,
     if stats_tax:
         print('Writing nodfs pdfs...', end=' ')
         for dat, nodfs_pds in stats_tax.items():
+            if dat not in collapsed:
+                continue
             levels = collapsed[dat]
             levels['feature'] = max(levels.values())+1
             nodfs = pd.concat(nodfs_pds).drop(columns=['GRAPH_ID'])
