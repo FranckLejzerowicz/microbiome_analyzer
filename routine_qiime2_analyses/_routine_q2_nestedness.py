@@ -401,7 +401,8 @@ def nestedness_figure(i_datasets_folder: str, nestedness_res: dict,
                         plt.close()
 
                 graphs_pdf_simples = '%s_simples.pdf' % splitext(graphs_pdf)[0]
-                if not isfile(graphs_pdf_simples):
+                # if not isfile(graphs_pdf_simples):
+                if 1:
                     with PdfPages(graphs_pdf_simples) as pdf:
                         for (typ, tab, leg) in simples:
                             num = tab.columns.size
@@ -459,7 +460,7 @@ def nestedness_figure(i_datasets_folder: str, nestedness_res: dict,
                         mode_dir, level, cur_raref, group, case, 'simulate')
                     # nodf_pd = statistics_pd[statistics_pd['GRAPH_EDGE_COUNT'] > 10].merge(
                     #     comparisons_pd, on='GRAPH_ID', how='left')
-                    nodf_pd = simulate_pd[simulate_pd['GRAPH_EDGE_COUNT'] > 10].merge(
+                    nodf_pd = simulate_pd[simulate_pd['GRAPH_EDGE_COUNT'] > 5].merge(
                         comparisons_pd, on='GRAPH_ID', how='left')
                     nodfs_pds.append(nodf_pd)
         if nodfs_pds:

@@ -1053,8 +1053,6 @@ def write_nestedness_graph(new_biom_meta: str, odir: str, graphs: str,
     cur_sh.write('%s\n' % cmd)
 
 
-
-
 def write_nestedness_nodfs(new_biom_meta: str, odir: str,
                            binary: str, nodfs_valid: list,
                            mode: str, nulls: list, cur_sh: TextIO) -> list:
