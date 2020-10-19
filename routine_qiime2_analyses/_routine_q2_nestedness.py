@@ -336,116 +336,118 @@ def nestedness_figure(i_datasets_folder: str, nestedness_res: dict,
                 X, Y = matrix.shape
                 graphs_pdf = res['graph_pdf']
                 graphs_pdf_complex = '%s_complex.pdf' % splitext(graphs_pdf)[0]
-                with PdfPages(graphs_pdf_complex) as pdf:
-                    fig, ax = plt.subplots(figsize=(20, (20*Y/X)))
-                    if tax_cols:
-                        g = sns.clustermap(
-                            matrix, col_cluster=False, row_cluster=False,
-                            linewidths=0.1, cmap='coolwarm',
-                            row_colors=cur_tax_pd_hex, col_colors=cur_meta_pd_hex,
-                            yticklabels=False, xticklabels=False
-                        )
-                        simples = [('feature', cur_tax_pd_rgb, cur_tax_leg_rgb),
-                                   ('sample', cur_meta_pd_rgb, cur_meta_leg_rgb)]
-                    else:
-                        g = sns.clustermap(
-                            matrix, col_cluster=False, row_cluster=False,
-                            linewidths=0.1, cmap='coolwarm',
-                            col_colors=cur_meta_pd_hex,
-                            yticklabels=False, xticklabels=False
-                        )
-                        simples = [('sample', cur_meta_pd_rgb, cur_meta_leg_rgb)]
-
-                    n = 0
-                    N = 1 / cur_meta_pd_hex.columns.size
-                    for cdx, col in enumerate(cur_meta_pd_hex.columns):
-                        n += N
-                        if not cdx:
-                            first_leg = g.ax_col_dendrogram.legend(handles=[
-                                mpatches.Patch(label=x, color=y) for x, y in cur_meta_leg_hex[col].items()
-                            ], loc="upper left")
-                            g.ax_col_dendrogram.add_artist(first_leg)
+                if not isfile(graphs_pdf_complex):
+                    with PdfPages(graphs_pdf_complex) as pdf:
+                        fig, ax = plt.subplots(figsize=(20, (20*Y/X)))
+                        if tax_cols:
+                            g = sns.clustermap(
+                                matrix, col_cluster=False, row_cluster=False,
+                                linewidths=0.1, cmap='coolwarm',
+                                row_colors=cur_tax_pd_hex, col_colors=cur_meta_pd_hex,
+                                yticklabels=False, xticklabels=False
+                            )
+                            simples = [('feature', cur_tax_pd_rgb, cur_tax_leg_rgb),
+                                       ('sample', cur_meta_pd_rgb, cur_meta_leg_rgb)]
                         else:
-                            g.ax_col_dendrogram.legend(handles=[
-                                mpatches.Patch(label=x, color=y) for x, y in cur_meta_leg_hex[col].items()
-                            ], loc="upper left", bbox_to_anchor=(n, 1))
+                            g = sns.clustermap(
+                                matrix, col_cluster=False, row_cluster=False,
+                                linewidths=0.1, cmap='coolwarm',
+                                col_colors=cur_meta_pd_hex,
+                                yticklabels=False, xticklabels=False
+                            )
+                            simples = [('sample', cur_meta_pd_rgb, cur_meta_leg_rgb)]
 
-                    if tax_cols:
                         n = 0
-                        N = 1 / cur_tax_pd_hex.columns.size
-                        for cdx, col in enumerate(cur_tax_pd_hex.columns):
+                        N = 1 / cur_meta_pd_hex.columns.size
+                        for cdx, col in enumerate(cur_meta_pd_hex.columns):
                             n += N
                             if not cdx:
-                                first_leg = g.ax_row_dendrogram.legend(handles=[
-                                    mpatches.Patch(label=x, color=y) for x, y in cur_tax_leg_hex[col].items()
-                                ], loc="lower left")
-                                g.ax_row_dendrogram.add_artist(first_leg)
+                                first_leg = g.ax_col_dendrogram.legend(handles=[
+                                    mpatches.Patch(label=x, color=y) for x, y in cur_meta_leg_hex[col].items()
+                                ], loc="upper left")
+                                g.ax_col_dendrogram.add_artist(first_leg)
                             else:
-                                g.ax_row_dendrogram.legend(handles=[
-                                    mpatches.Patch(label=x, color=y) for x, y in cur_tax_leg_hex[col].items()
-                                ], loc="lower left", bbox_to_anchor=(0, n))
+                                g.ax_col_dendrogram.legend(handles=[
+                                    mpatches.Patch(label=x, color=y) for x, y in cur_meta_leg_hex[col].items()
+                                ], loc="upper left", bbox_to_anchor=(n, 1))
 
-                    g.ax_heatmap.set_xlabel('Samples (sorted by richness)')
-                    g.ax_heatmap.set_ylabel('Taxon (sorted by prevalence)')
+                        if tax_cols:
+                            n = 0
+                            N = 1 / cur_tax_pd_hex.columns.size
+                            for cdx, col in enumerate(cur_tax_pd_hex.columns):
+                                n += N
+                                if not cdx:
+                                    first_leg = g.ax_row_dendrogram.legend(handles=[
+                                        mpatches.Patch(label=x, color=y) for x, y in cur_tax_leg_hex[col].items()
+                                    ], loc="lower left")
+                                    g.ax_row_dendrogram.add_artist(first_leg)
+                                else:
+                                    g.ax_row_dendrogram.legend(handles=[
+                                        mpatches.Patch(label=x, color=y) for x, y in cur_tax_leg_hex[col].items()
+                                    ], loc="lower left", bbox_to_anchor=(0, n))
 
-                    suptitle = '%s%s' % (dat, cur_raref)
-                    if case != 'ALL':
-                        suptitle = suptitle + '\nsamples subset: %s' % case
-                    if group != '':
-                        suptitle = suptitle + '\nfeatures subset: %s' % group
-                    plt.suptitle(suptitle, fontsize=20)
-                    plt.subplots_adjust(top=.95, hspace=0.3)
-                    pdf.savefig(bbox_inches='tight', dpi=300)
-                    plt.close()
+                        g.ax_heatmap.set_xlabel('Samples (sorted by richness)')
+                        g.ax_heatmap.set_ylabel('Taxon (sorted by prevalence)')
 
-                graphs_pdf_simples = '%s_simples.pdf' % splitext(graphs_pdf)[0]
-                with PdfPages(graphs_pdf_simples) as pdf:
-                    for (typ, tab, leg) in simples:
-                        num = tab.columns.size
-                        fig, axes = plt.subplots(num, 1, figsize=(9, (tab.columns.size*4)))
-                        for cdx, col in enumerate(tab.columns):
-                            leg_col2rgb = dict((x, leg[col][x]) for idx, x in enumerate(leg[col]))
-                            cols_d = tab[col].to_dict()
-                            if typ == 'sample':
-                                mat = [
-                                    [
-                                        [np.nan, np.nan, np.nan, 0.] if str(x[1]) == 'nan' else
-                                        ([y for y in cols_d[x[0]]] + [1.]) for x in row.reset_index().values
-                                    ] for r, row in matrix.iterrows()
-                                ]
-                            if typ == 'feature':
-                                mat = [
-                                    [
-                                        [np.nan, np.nan, np.nan, 0.] if str(x) == 'nan' else
-                                        ([y for y in cols_d[r]] + [1.]) for x in row
-                                    ] for r, row in matrix.iterrows()
-                                ]
-                            mat = np.array(mat)
-                            hands = [mpatches.Patch(label=x, color=y) for x, y in leg_col2rgb.items()]
-                            if num == 1:
-                                axes.imshow(mat, aspect="auto")
-                                axes.legend(handles=hands, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-                                axes.set_title(col)
-                                axes.set_xlabel('Samples (sorted by richness)')
-                                axes.set_ylabel('Phyla (sorted by prevalence)')
-                            else:
-                                axes[cdx].imshow(mat, aspect="auto")
-                                axes[cdx].legend(handles=hands, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-                                axes[cdx].set_title(col)
-                                axes[cdx].set_xlabel('Samples (sorted by richness)')
-                                axes[cdx].set_ylabel('Phyla (sorted by prevalence)')
-                        suptitle = '%s%s (%s coloring)' % (dat, cur_raref, typ)
-                        top = .93
+                        suptitle = '%s%s' % (dat, cur_raref)
                         if case != 'ALL':
-                            top -= 0.03
                             suptitle = suptitle + '\nsamples subset: %s' % case
                         if group != '':
-                            top -= 0.03
                             suptitle = suptitle + '\nfeatures subset: %s' % group
-                        plt.suptitle(suptitle, fontsize=15)
-                        plt.subplots_adjust(top=top, hspace=0.3)
+                        plt.suptitle(suptitle, fontsize=20)
+                        plt.subplots_adjust(top=.95, hspace=0.3)
                         pdf.savefig(bbox_inches='tight', dpi=300)
                         plt.close()
+
+                graphs_pdf_simples = '%s_simples.pdf' % splitext(graphs_pdf)[0]
+                if not isfile(graphs_pdf_simples):
+                    with PdfPages(graphs_pdf_simples) as pdf:
+                        for (typ, tab, leg) in simples:
+                            num = tab.columns.size
+                            fig, axes = plt.subplots(num, 1, figsize=(9, (tab.columns.size*4)))
+                            for cdx, col in enumerate(tab.columns):
+                                leg_col2rgb = dict((x, leg[col][x]) for idx, x in enumerate(leg[col]))
+                                cols_d = tab[col].to_dict()
+                                if typ == 'sample':
+                                    mat = [
+                                        [
+                                            [np.nan, np.nan, np.nan, 0.] if str(x[1]) == 'nan' else
+                                            ([y for y in cols_d[x[0]]] + [1.]) for x in row.reset_index().values
+                                        ] for r, row in matrix.iterrows()
+                                    ]
+                                if typ == 'feature':
+                                    mat = [
+                                        [
+                                            [np.nan, np.nan, np.nan, 0.] if str(x) == 'nan' else
+                                            ([y for y in cols_d[r]] + [1.]) for x in row
+                                        ] for r, row in matrix.iterrows()
+                                    ]
+                                mat = np.array(mat)
+                                hands = [mpatches.Patch(label=x, color=y) for x, y in leg_col2rgb.items()]
+                                if num == 1:
+                                    axes.imshow(mat, aspect="auto")
+                                    axes.legend(handles=hands, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+                                    axes.set_title(col)
+                                    axes.set_xlabel('Samples (sorted by richness)')
+                                    axes.set_ylabel('Phyla (sorted by prevalence)')
+                                else:
+                                    axes[cdx].imshow(mat, aspect="auto")
+                                    axes[cdx].legend(handles=hands, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+                                    axes[cdx].set_title(col)
+                                    axes[cdx].set_xlabel('Samples (sorted by richness)')
+                                    axes[cdx].set_ylabel('Phyla (sorted by prevalence)')
+                            suptitle = '%s%s (%s coloring)' % (dat, cur_raref, typ)
+                            top = .93
+                            if case != 'ALL':
+                                top -= 0.03
+                                suptitle = suptitle + '\nsamples subset: %s' % case
+                            if group != '':
+                                top -= 0.03
+                                suptitle = suptitle + '\nfeatures subset: %s' % group
+                            plt.suptitle(suptitle, fontsize=15)
+                            plt.subplots_adjust(top=top, hspace=0.3)
+                            pdf.savefig(bbox_inches='tight', dpi=300)
+                            plt.close()
 
                 for mode_dir in res['modes']:
                     comparisons_pd = get_comparisons_statistics_pd(
