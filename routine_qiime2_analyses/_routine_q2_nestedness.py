@@ -337,7 +337,8 @@ def nestedness_figure(i_datasets_folder: str, nestedness_res: dict,
                 X, Y = matrix.shape
                 graphs_pdf = res['graph_pdf']
                 graphs_pdf_complex = '%s_complex.pdf' % splitext(graphs_pdf)[0]
-                if not isfile(graphs_pdf_complex):
+                # if not isfile(graphs_pdf_complex):
+                if 1:
                     with PdfPages(graphs_pdf_complex) as pdf:
                         fig, ax = plt.subplots(figsize=(20, (20*Y/X)))
                         if tax_cols:
