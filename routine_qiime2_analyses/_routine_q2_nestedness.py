@@ -266,8 +266,6 @@ def nestedness_figure(i_datasets_folder: str, nestedness_res: dict,
             if colors['feature']:
                 tax_pd = split_taxa_pds[stats_tax_dat].reset_index()
                 if level != 'feature':
-                    print(level)
-                    print(collapsed[stats_tax_dat])
                     tax_pd = split_taxa_pds[stats_tax_dat].iloc[
                              :, :collapsed[stats_tax_dat][level]
                         ].drop_duplicates()
