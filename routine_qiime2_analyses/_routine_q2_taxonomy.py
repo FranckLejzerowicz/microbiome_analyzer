@@ -179,7 +179,7 @@ def get_split_levels(dat, collapse_taxo: dict, split_taxa_pds: dict):
     # taxo levels are the header of split_taxa_pd
     for taxo_name, taxo_header in taxo.items():
         if isinstance(taxo_header, int):
-            split_levels[taxo_name] = taxo_header
+            split_levels[str(taxo_name)] = taxo_header
         else:
             split_levels[taxo_name] = split_taxa_pd.columns.tolist().index(taxo_header)+1
     return split_levels
