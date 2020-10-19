@@ -507,6 +507,8 @@ def nestedness_figure(i_datasets_folder: str, nestedness_res: dict,
             ])
 
             odir = get_analysis_folder(i_datasets_folder, 'nestedness/%s%s' % (dat, filt_raref))
+            table_fpo = '%s/nodfs.tsv' % odir
+            nodfs_null.to_csv(table_fpo, index=False, sep='\t')
             nodfs_pdf = '%s/nodfs.pdf' % odir
             with PdfPages(nodfs_pdf) as pdf:
                 for (mode_metadata), nodfs_null_mode_ in nodfs_null.groupby('MODE_METADATA'):
