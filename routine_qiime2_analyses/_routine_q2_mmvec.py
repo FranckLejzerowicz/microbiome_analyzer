@@ -442,11 +442,10 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
             thresh_feats = mmvec_params['thresh_feats']
             latent_dims = mmvec_params['latent_dims']
             if split:
-                out_sh = '%s/chunks/run_mmvec_%s_%s_%s_%s_%s_%s%s.sh' % (job_folder, pair, case, omic1,
-                                                                         filt1, omic2, filt2, filt_raref)
-            if train_columns == ['None']:
-                n_examples = ['nan']
-
+                out_sh = '%s/chunks/run_mmvec_%s_%s_%s_%s_%s_%s%s.sh' % (
+                    job_folder, pair, case, omic1, filt1, omic2, filt2, filt_raref)
+            if train_columns != ['None']:
+                n_examples = ['']
             for idx, it in enumerate(itertools.product(train_columns, n_examples, batches, learns,
                                                        epochs, priors, thresh_feats, latent_dims)):
                 train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = [str(x) for x in it]
