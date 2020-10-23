@@ -39,6 +39,7 @@ from routine_qiime2_analyses._routine_q2_mmvec import (
 
 
 def get_train_column(new_meta_pd, meta_vars, train):
+    print(train)
     if train.isdigit() or train.replace('.', '').isdigit():
         train_column = 'TrainTest'
         if train.isdigit():
