@@ -444,6 +444,9 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
             if split:
                 out_sh = '%s/chunks/run_mmvec_%s_%s_%s_%s_%s_%s%s.sh' % (job_folder, pair, case, omic1,
                                                                          filt1, omic2, filt2, filt_raref)
+            if train_columns == ['None']:
+                n_examples = ['nan']
+
             for idx, it in enumerate(itertools.product(train_columns, n_examples, batches, learns,
                                                        epochs, priors, thresh_feats, latent_dims)):
                 train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = [str(x) for x in it]
@@ -460,7 +463,8 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                     ncommon, meta_fp, tsv1, tsv2, qza1, qza2,
                     'mmvec_out__%s' % res_dir, odir
                 ])
-                cur_sh = '%s/run_mmvec_%s_%s_%s_%s_%s%s.sh' % (job_folder2, pair, case, filt1, filt2, res_dir, filt_raref)
+                cur_sh = '%s/run_mmvec_%s_%s_%s_%s_%s%s.sh' % (job_folder2, pair, case, filt1,
+                                                               filt2, res_dir, filt_raref)
                 all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
                 run_single_mmvec(
                     odir, meta_fp, qza1, qza2, res_dir, cur_sh,

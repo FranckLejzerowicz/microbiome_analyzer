@@ -191,7 +191,6 @@ def get_songbird_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
     new_meta_pd_['tmptmptmp'] = [''.join(map(str, x)) for x in new_meta_pd_.values if str(x) != 'nan']
     if 1 in new_meta_pd_.tmptmptmp.value_counts():
         return None
-
     new_meta_pd, train_column = get_train_column(new_meta_pd, meta_vars, train)
     new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
     return train_column
