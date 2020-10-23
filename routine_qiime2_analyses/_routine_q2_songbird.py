@@ -43,10 +43,12 @@ def get_train_column(new_meta_pd, meta_vars, train):
         train_column = 'TrainTest'
         if train.isdigit():
             train_int = int(train)
+            print(train_int)
             if train_int < (0.1 * new_meta_pd.shape[0]):
                 train_perc = 0.1
             else:
                 train_perc = train_int / new_meta_pd.shape[0]
+            print(train_perc)
         else:
             train_float = float(train)
             if 0 < train_float < 1:
@@ -72,6 +74,7 @@ def get_train_column(new_meta_pd, meta_vars, train):
                 new_meta_pd.index.tolist(),
                 k=int(train_perc * new_meta_pd.shape[0])
             )
+        print(train_samples)
         new_meta_pd[train_column] = ['Train' if x in train_samples else
                                      'Test' for x in new_meta_pd.index]
     else:
