@@ -34,6 +34,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
 
+
 def get_nestedness_config(nestedness_config: dict) -> (dict, list, dict, list, list):
     subsets = {'ALL': [[]]}
     if 'subsets' in nestedness_config:

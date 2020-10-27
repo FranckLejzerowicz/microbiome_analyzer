@@ -34,7 +34,7 @@ from routine_qiime2_analyses._routine_q2_beta import (run_beta, export_beta,
                                                       run_empress, run_empress_biplot)
 from routine_qiime2_analyses._routine_q2_procrustes_mantel import (run_procrustes, run_mantel)
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
-from routine_qiime2_analyses._routine_q2_permanova import run_permanova
+from routine_qiime2_analyses._routine_q2_permanova import run_permanova, summarize_permanova
 from routine_qiime2_analyses._routine_q2_nestedness import run_nestedness, nestedness_figure
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
 from routine_qiime2_analyses._routine_q2_phate import run_phate
@@ -352,10 +352,15 @@ def routine_qiime2_analyses(
 
     if 'beta' not in p_skip and p_perm_tests and 'permanova' not in p_skip:
         print('(run_permanova)')
-        run_permanova(i_datasets_folder, betas, p_perm_tests, p_beta_type,
-                      datasets_rarefs, p_perm_groups, force, prjct_nm,
-                      qiime_env, chmod, noloc, split,
-                      run_params['permanova'], filt_raref, jobs, chunkit)
+        permanovas = run_permanova(i_datasets_folder, betas, p_perm_tests,
+                                   p_beta_type, datasets_rarefs, p_perm_groups,
+                                   force, prjct_nm, qiime_env, chmod, noloc, split,
+                                   run_params['permanova'], filt_raref, jobs, chunkit)
+
+        summarize_permanova(i_datasets_folder, permanovas,
+                            prjct_nm, qiime_env, chmod, noloc, split,
+                            run_params['permanova'], filt_raref,
+                            jobs, chunkit)
 
     if 'beta' not in p_skip and p_formulas and 'adonis' not in p_skip:
         print('(run_adonis)')

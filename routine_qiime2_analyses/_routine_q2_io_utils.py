@@ -109,7 +109,10 @@ def read_yaml_file(p_yaml_file: str) -> dict:
             print('[Warning] yaml file for subsets does not exist: %s\n' % p_yaml_file)
         else:
             with open(p_yaml_file) as handle:
-                yaml_content = yaml.load(handle, Loader=yaml.FullLoader)
+                try:
+                    yaml_content = yaml.load(handle, Loader=yaml.FullLoader)
+                except AttributeError:
+                    yaml_content = yaml.load(handle)
             if not isinstance(yaml_content, dict):
                 print('[Warning] %s must be a dictionary\n' % p_yaml_file)
             else:
@@ -296,7 +299,10 @@ def get_mmvec_dicts(p_mmvec_pairs: str) -> (dict, dict, dict, dict):
         print('yaml file for mmvec pairs does not exist:\n%s\nExiting...' % p_mmvec_pairs)
         sys.exit(0)
     with open(p_mmvec_pairs) as handle:
-        mmvec_dict = yaml.load(handle, Loader=yaml.FullLoader)
+        try:
+            mmvec_dict = yaml.load(handle, Loader=yaml.FullLoader)
+        except AttributeError:
+            mmvec_dict = yaml.load(handle)
 
     mmvec_pairs = get_mmvec_pairs(p_mmvec_pairs, mmvec_dict)
     mmvec_filtering = get_filtering(p_mmvec_pairs, mmvec_dict, mmvec_pairs, 'mmvec')
@@ -364,7 +370,11 @@ def get_highlights_mmbird(highlights_mmbird_fp: str) -> dict:
     highlights_mmbird = {}
     if isfile(highlights_mmbird_fp):
         with open(highlights_mmbird_fp) as handle:
-            highlights_mmbird = yaml.load(handle, Loader=yaml.FullLoader)
+            try:
+                highlights_mmbird = yaml.load(handle, Loader=yaml.FullLoader)
+            except AttributeError:
+                highlights_mmbird = yaml.load(handle)
+
     return highlights_mmbird
 
 
@@ -381,7 +391,10 @@ def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict, dic
         print('yaml file containing groups does not exist:\n%s\nExiting...' % p_diff_models)
         sys.exit(0)
     with open(p_diff_models) as handle:
-        diff_dict = yaml.load(handle, Loader=yaml.FullLoader)
+        try:
+            diff_dict = yaml.load(handle, Loader=yaml.FullLoader)
+        except AttributeError:
+            diff_dict = yaml.load(handle)
 
     main_cases_dict = {'ALL': [[]]}
     if 'subsets' in diff_dict:
@@ -400,7 +413,10 @@ def get_phate_dicts(p_phate_config: str) -> (dict, list, dict, dict):
         print('yaml file containing groups does not exist:\n%s\nExiting...' % p_phate_config)
         sys.exit(0)
     with open(p_phate_config) as handle:
-        diff_dict = yaml.load(handle, Loader=yaml.FullLoader)
+        try:
+            diff_dict = yaml.load(handle, Loader=yaml.FullLoader)
+        except AttributeError:
+            diff_dict = yaml.load(handle)
 
     main_cases_dict = {'ALL': [[]]}
     if 'subsets' in diff_dict:
@@ -444,7 +460,11 @@ def get_doc_config(p_doc_config: str) -> (dict, dict, dict):
             print('DOC config yaml file does not exist:\n%s\nExiting...' % p_doc_config)
             sys.exit(0)
         with open(p_doc_config) as handle:
-            doc_config = yaml.load(handle, Loader=yaml.FullLoader)
+            try:
+                doc_config = yaml.load(handle, Loader=yaml.FullLoader)
+            except AttributeError:
+                doc_config = yaml.load(handle)
+
         if 'filtering' in doc_config:
             doc_filtering = doc_config['filtering']
         if 'subsets' in doc_config:
@@ -467,7 +487,11 @@ def get_sourcetracking_config(p_sourcetracking_config: str) -> (dict, dict, dict
         print('DOC config yaml file does not exist:\n%s\nExiting...' % p_sourcetracking_config)
         sys.exit(0)
     with open(p_sourcetracking_config) as handle:
-        sourcetracking_config = yaml.load(handle, Loader=yaml.FullLoader)
+        try:
+            sourcetracking_config = yaml.load(handle, Loader=yaml.FullLoader)
+        except AttributeError:
+            sourcetracking_config = yaml.load(handle)
+
     if 'sourcesink' not in sourcetracking_config:
         raise IOError('At least one sink for one metadata column must be set '
                       '(no "sourcesink" in %s)' % p_sourcetracking_config)
@@ -494,7 +518,11 @@ def get_main_cases_dict(p_perm_groups: str) -> dict:
             print('yaml file containing groups does not exist:\n%s\nExiting...' % p_perm_groups)
             sys.exit(0)
         with open(p_perm_groups) as handle:
-            main_cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
+            try:
+                main_cases_dict.update(yaml.load(handle, Loader=yaml.FullLoader))
+            except AttributeError:
+                main_cases_dict.update(yaml.load(handle))
+
     return main_cases_dict
 
 
@@ -509,7 +537,11 @@ def get_formulas_dict(p_formulas: str) -> dict:
         print('yaml file containing formulas does not exist:\n%s\nExiting...' % p_formulas)
         sys.exit(0)
     with open(p_formulas) as handle:
-        formulas = yaml.load(handle, Loader=yaml.FullLoader)
+        try:
+            formulas = yaml.load(handle, Loader=yaml.FullLoader)
+        except AttributeError:
+            formulas = yaml.load(handle)
+
     return formulas
 
 
@@ -928,12 +960,18 @@ def get_run_params(p_run_params: str) -> dict:
 
     run_params_default_fp = '%s/run_params.yml' % RESOURCES
     with open(run_params_default_fp) as handle:
-        run_params_default = yaml.load(handle, Loader=yaml.FullLoader)
+        try:
+            run_params_default = yaml.load(handle, Loader=yaml.FullLoader)
+        except AttributeError:
+            run_params_default = yaml.load(handle)
 
     if p_run_params and isfile(p_run_params):
         run_params_fp = p_run_params
         with open(run_params_fp) as handle:
-            run_params = yaml.load(handle, Loader=yaml.FullLoader)
+            try:
+                run_params = yaml.load(handle, Loader=yaml.FullLoader)
+            except AttributeError:
+                run_params = yaml.load(handle)
         run_params_default.update(run_params)
     else:
         print('using run parameters from', run_params_default_fp)
@@ -1335,7 +1373,10 @@ def get_procrustes_mantel_dicts(p_procrustes_mantel):
         print('yaml file for procrustes pairs does not exist:\n%s\nExiting...' % p_procrustes_mantel)
         sys.exit(0)
     with open(p_procrustes_mantel) as handle:
-        procrustes_mantel_dict = yaml.load(handle, Loader=yaml.FullLoader)
+        try:
+            procrustes_mantel_dict = yaml.load(handle, Loader=yaml.FullLoader)
+        except AttributeError:
+            procrustes_mantel_dict = yaml.load(handle)
 
     if 'pairs' not in procrustes_mantel_dict:
         print('No datasets pairs specified in %s:\nExiting\n' % p_procrustes_mantel)
@@ -1362,5 +1403,9 @@ def get_collapse_taxo(p_collapse_taxo):
         print('yaml file for taxonomic collapse does not exist:\n%s\nExiting...' % p_collapse_taxo)
         sys.exit(0)
     with open(p_collapse_taxo) as handle:
-        collapse_taxo = yaml.load(handle, Loader=yaml.FullLoader)
+        try:
+            collapse_taxo = yaml.load(handle, Loader=yaml.FullLoader)
+        except AttributeError:
+            collapse_taxo = yaml.load(handle)
+
     return collapse_taxo

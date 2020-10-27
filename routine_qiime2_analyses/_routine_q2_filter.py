@@ -70,7 +70,11 @@ def get_threshs(p_filt_threshs):
         print('yaml file for filtering thresholds does not exist:\n%s\nExiting...' % p_filt_threshs)
         sys.exit(0)
     with open(p_filt_threshs) as handle:
-        threshs_d = yaml.load(handle, Loader=yaml.FullLoader)
+        try:
+            threshs_d = yaml.load(handle, Loader=yaml.FullLoader)
+        except AttributeError:
+            threshs_d = yaml.load(handle)
+
         return threshs_d
 
 
@@ -263,7 +267,11 @@ def explore_filtering(i_datasets_folder, datasets, datasets_read,
 
     if p_filt3d_config and isfile(p_filt3d_config):
         with open(p_filt3d_config) as handle:
-            explor = yaml.load(handle, Loader=yaml.FullLoader)
+            try:
+                explor = yaml.load(handle, Loader=yaml.FullLoader)
+            except AttributeError:
+                explor = yaml.load(handle)
+
         defaults = (
             {'prevalCount': set(explor['prevalCount']),
              'prevalPercent': set(explor['prevalPercent'])},

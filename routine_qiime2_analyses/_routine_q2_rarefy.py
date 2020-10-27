@@ -24,7 +24,11 @@ def get_raref_depths(p_raref_depths):
     raref_depths = {}
     if p_raref_depths:
         with open(p_raref_depths) as handle:
-            raref_depths = yaml.load(handle, Loader=yaml.FullLoader)
+            try:
+                raref_depths = yaml.load(handle, Loader=yaml.FullLoader)
+            except AttributeError:
+                raref_depths = yaml.load(handle)
+
     return raref_depths
 
 

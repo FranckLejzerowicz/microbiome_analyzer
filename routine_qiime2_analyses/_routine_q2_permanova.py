@@ -8,6 +8,7 @@
 
 import os
 import pandas as pd
+import pkg_resources
 from os.path import basename, isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import print_message
@@ -78,7 +79,7 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
                   p_beta_type: tuple, datasets_rarefs: dict, p_perm_groups: str,
                   force: bool, prjct_nm: str, qiime_env: str, chmod: str,
                   noloc: bool, split: bool, run_params: dict,
-                  filt_raref: str,  jobs: bool, chunkit: int) -> None:
+                  filt_raref: str,  jobs: bool, chunkit: int) -> dict:
     """
     Run beta-group-significance: Beta diversity group significance.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
@@ -94,6 +95,7 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
     :param qiime_env: qiime2-xxxx.xx conda environment.
     :param chmod: whether to change permission of output files (defalt: 775).
     """
+    permanovas = {}
     job_folder2 = get_job_folder(i_datasets_folder, 'permanova/chunks')
     main_cases_dict = get_main_cases_dict(p_perm_groups)
 
@@ -101,12 +103,14 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
     all_sh_pbs = {}
     first_print = 0
     for dat, metric_groups_metas_qzas_dms_trees_ in betas.items():
+        permanovas[dat] = []
         if not split:
             out_sh = '%s/run_beta_group_significance_%s%s.sh' % (job_folder2, dat, filt_raref)
         for idx, metric_groups_metas_qzas_dms_trees in enumerate(metric_groups_metas_qzas_dms_trees_):
             cur_depth = datasets_rarefs[dat][idx]
             odir = get_analysis_folder(i_datasets_folder, 'permanova/%s%s' % (dat, cur_depth))
             for metric, subset_files in metric_groups_metas_qzas_dms_trees.items():
+                permanovas.setdefault(dat, []).append(metric)
                 if split:
                     out_sh = '%s/run_beta_group_significance_%s_%s%s.sh' % (job_folder2, dat, metric, filt_raref)
                 for subset, (meta, qza, mat_qza, tree) in subset_files.items():
@@ -150,3 +154,54 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
         else:
             print("# PERMANOVA")
         print_message('', 'sh', main_sh, jobs)
+
+    return permanovas
+
+
+def summarize_permanova(i_datasets_folder: str, permanovas: dict,
+                        prjct_nm: str, qiime_env: str, chmod: str,
+                        noloc: bool, split: bool, run_params: dict,
+                        filt_raref: str,  jobs: bool, chunkit: int) -> dict:
+
+    RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
+    summarize_fp = '%s/summarize_permanovas.py' % RESOURCES
+
+    all_sh_pbs = {}
+    job_folder2 = get_job_folder(i_datasets_folder, 'permanova_summarize/chunks')
+    for dat, metrics in permanovas.items():
+        metrics = [x for x in [
+            'aitchison',
+            'jaccard',
+            'braycurtis',
+            'unweighted_unifrac',
+            'weighted_unifrac'
+        ] if x in metrics]
+        permanovas[dat] = []
+        out_sh = '%s/run_permanova_summarize_%s%s.sh' % (job_folder2, dat, filt_raref)
+        out_py = '%s/run_permanova_summarize_%s%s.py' % (job_folder2, dat, filt_raref)
+        with open(out_py, 'w') as o, open(summarize_fp) as f:
+            for line in f:
+                if 'ROUTINE_FOLDER' in line:
+                    o.write(line.replace('ROUTINE_FOLDER', i_datasets_folder))
+                elif 'METRICS' in line:
+                    o.write(line.replace('METRICS', str(metrics)))
+                elif 'DATASET' in line:
+                    o.write(line.replace('DATASET', dat))
+                else:
+                    o.write(line)
+        cur_sh = '%s/run_permanova_summarize_%s%s_tmp.sh' % (job_folder2, dat, filt_raref)
+        with open(cur_sh, 'w') as o:
+            o.write('python3 %s\n' % out_py)
+        all_sh_pbs[(dat, out_sh)] = [cur_sh]
+
+    job_folder = get_job_folder(i_datasets_folder, 'permanova_summarize')
+    main_sh = write_main_sh(job_folder, '3_run_permanova_summarize%s' % filt_raref, all_sh_pbs,
+                            '%s.prm%s' % (prjct_nm, filt_raref),
+                            run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                            run_params["mem_num"], run_params["mem_dim"],
+                            qiime_env, chmod, noloc, jobs, chunkit)
+    if main_sh:
+        print("# SUMMARIZE PERMANOVAS")
+        print_message('', 'sh', main_sh, jobs)
+
+    return permanovas
