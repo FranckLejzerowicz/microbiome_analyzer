@@ -60,7 +60,7 @@ def check_metadata_formulas(meta: str, meta_pd: pd.DataFrame,
     to_pop = []
     meta_pd_vars = set(meta_pd.columns.tolist())
     for formula_name, formula in formulas.items():
-        terms = [x.lower() for x in set(re.split('[*+-/]+', formula.strip('"').strip("'")))]
+        terms = [x.lower() for x in set(re.split('[*+-/)(]+', formula.strip('"').strip("'")))]
         for variable in terms:
             if variable not in meta_pd_vars:
                 print('  [%s] variable %s not in %s' % (analysis, variable, basename(meta)))

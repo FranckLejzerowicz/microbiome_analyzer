@@ -60,9 +60,9 @@ def run_single_adonis(odir: str, subset: str, case_vals_list: list, metric: str,
             new_meta = '%s.meta' % cur_rad
             new_qzv = '%s_adonis.qzv' % cur_rad
             new_mat_qza = '%s/%s' % (odir, basename(mat_qza).replace('.qza', '_%s.qza' % case))
+            new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+            new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
             if force or not isfile(new_qzv):
-                new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-                new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
                 write_diversity_adonis(new_meta, mat_qza, new_mat_qza,
                                        formula, new_qzv, cur_sh_o)
                 remove = False
@@ -124,10 +124,12 @@ def run_adonis(p_formulas: str, i_datasets_folder: str, betas: dict,
                         formulas = check_metadata_formulas(meta, meta_pd, formulas[dat], 'ADONIS')
                         metric_check.add((dat, subset))
 
-                    for form, formula in formulas[dat].items():
-                        for case_var, case_vals_list in cases_dict.items():
+                    for fdx, form in enumerate(formulas[dat].keys()):
+                        formula = formulas[dat][form]
+                        for cdx, case_var in enumerate(cases_dict.keys()):
+                            case_vals_list = cases_dict[case_var]
                             cur_sh = '%s/run_adonis_%s%s_%s_%s_%s%s.sh' % (
-                                job_folder2, dat, cur_depth, metric, form, case_var, filt_raref)
+                                job_folder2, dat, cur_depth, metric, fdx, cdx, filt_raref)
                             cur_sh = cur_sh.replace(' ', '-')
                             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                             run_single_adonis(odir, subset, case_vals_list, metric, case_var,
