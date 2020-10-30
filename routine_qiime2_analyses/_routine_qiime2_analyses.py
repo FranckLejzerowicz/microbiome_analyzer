@@ -248,7 +248,10 @@ def routine_qiime2_analyses(
 
     print()
     print()
-    print('------------ 1 -------------')
+    print('------------ 2 -------------')
+    print()
+    print("datasets.keys()")
+    print(datasets.keys())
     print()
     print("datasets_filt")
     print(datasets_filt)
