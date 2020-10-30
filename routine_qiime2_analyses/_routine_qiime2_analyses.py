@@ -174,12 +174,15 @@ def routine_qiime2_analyses(
                             prjct_nm, qiime_env, p_filt_threshs, chmod, noloc,
                             run_params['filter'], filt_raref, jobs)
 
-    # print()
-    # print("datasets_filt")
-    # print(datasets_filt)
-    # print()
-    # print("datasets_filt_map")
-    # print(datasets_filt_map)
+    print()
+    print()
+    print('------------ 1 -------------')
+    print()
+    print("datasets_filt")
+    print(datasets_filt)
+    print()
+    print("datasets_filt_map")
+    print(datasets_filt_map)
 
     eval_depths = {}
     if raref:
@@ -242,6 +245,19 @@ def routine_qiime2_analyses(
     if filt_only and datasets_filt_map:
         deleted_non_filt(datasets, datasets_read, datasets_features, datasets_phylo,
                          datasets_rarefs, taxonomies, datasets_filt, datasets_filt_map)
+
+    print()
+    print()
+    print('------------ 1 -------------')
+    print()
+    print("datasets_filt")
+    print(datasets_filt)
+    print()
+    print("datasets_filt_map")
+    print(datasets_filt_map)
+    print(datasets_filt_mapvfdsa)
+
+
 
     split_taxa_pds = get_taxo_levels(taxonomies)
     if 'do_pies' in p_skip:
