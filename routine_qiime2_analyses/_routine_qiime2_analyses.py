@@ -258,9 +258,6 @@ def routine_qiime2_analyses(
     print()
     print("datasets_filt_map")
     print(datasets_filt_map)
-    print(datasets_filt_mapvfdsa)
-
-
 
     split_taxa_pds = get_taxo_levels(taxonomies)
     if 'do_pies' in p_skip:
@@ -288,6 +285,7 @@ def routine_qiime2_analyses(
                                 trees, force, prjct_nm, qiime_env, chmod, noloc,
                                 As, dropout, run_params['alpha'], filt_raref,
                                 eval_depths, jobs)
+        print(datasets_filt_mapvfdsa)
         if 'merge_alpha' not in p_skip:
             print('(to_export)')
             to_export = merge_meta_alpha(i_datasets_folder, datasets, datasets_rarefs,
