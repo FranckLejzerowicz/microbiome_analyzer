@@ -61,8 +61,8 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
         evaluation = '_eval'
 
     print()
-    print("datasets_raref_evals")
-    print(datasets_raref_evals)
+    print("datasets_raref_depths")
+    print(datasets_raref_depths)
 
     datasets_update = {}
     datasets_read_update = {}
