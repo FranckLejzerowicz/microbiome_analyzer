@@ -95,7 +95,6 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                             main_written += 1
                         divs.setdefault('', []).append(out_fp)
 
-                    print(dat, cur_raref)
                     if alpha_subsets and dat in alpha_subsets:
                         for subset, subset_regex in alpha_subsets[dat].items():
                             odir = get_analysis_folder(i_datasets_folder, 'alpha/%s%s/%s' % (dat, cur_raref, subset))

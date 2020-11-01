@@ -174,16 +174,6 @@ def routine_qiime2_analyses(
                             prjct_nm, qiime_env, p_filt_threshs, chmod, noloc,
                             run_params['filter'], filt_raref, jobs)
 
-    print()
-    print()
-    print('------------ 1 -------------')
-    print()
-    print("datasets_filt")
-    print(datasets_filt)
-    print()
-    print("datasets_filt_map")
-    print(datasets_filt_map)
-
     eval_depths = {}
     if raref:
         print('(run_rarefy)')
@@ -246,19 +236,6 @@ def routine_qiime2_analyses(
         deleted_non_filt(datasets, datasets_read, datasets_features, datasets_phylo,
                          datasets_rarefs, taxonomies, datasets_filt, datasets_filt_map)
 
-    print()
-    print()
-    print('------------ 2 -------------')
-    print()
-    print("datasets.keys()")
-    print(datasets.keys())
-    print()
-    print("datasets_filt")
-    print(datasets_filt)
-    print()
-    print("datasets_filt_map")
-    print(datasets_filt_map)
-
     split_taxa_pds = get_taxo_levels(taxonomies)
     if 'do_pies' in p_skip:
         print('(run_do_pies)')
@@ -285,7 +262,6 @@ def routine_qiime2_analyses(
                                 trees, force, prjct_nm, qiime_env, chmod, noloc,
                                 As, dropout, run_params['alpha'], filt_raref,
                                 eval_depths, jobs)
-        print(datasets_filt_mapvfdsa)
         if 'merge_alpha' not in p_skip:
             print('(to_export)')
             to_export = merge_meta_alpha(i_datasets_folder, datasets, datasets_rarefs,
