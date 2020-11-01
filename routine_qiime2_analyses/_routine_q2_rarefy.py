@@ -84,12 +84,16 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                     continue
                 if datasets_raref_depths[datasets_filt_map[dat]][0]:
                     datasets_raref_depths[dat] = datasets_raref_depths[datasets_filt_map[dat]]
-
+            print('1', dat)
             if datasets_filt_map and filt_only and not is_filt:
                 continue
 
+            print('2', dat)
+
             if dat not in datasets_raref_depths:
                 continue
+
+            print('3', dat)
 
             odir = get_analysis_folder(i_datasets_folder, 'rarefy%s/%s' % (evaluation, dat))
             out_sh = '%s/run_rarefy%s_%s.sh' % (job_folder2, evaluation, dat)
