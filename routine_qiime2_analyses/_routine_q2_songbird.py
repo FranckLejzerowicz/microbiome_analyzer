@@ -173,7 +173,7 @@ def get_songbird_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
                                      train, drop):
     if train in meta_pd.columns:
         meta_vars_.append(train)
-    meta_pd.columns = [x.lower() for x in meta_pd.columns]
+    # meta_pd.columns = [x.lower() for x in meta_pd.columns]
     if meta_var:
         meta_vars = list(set(list(meta_vars_) + [meta_var]))
     else:
