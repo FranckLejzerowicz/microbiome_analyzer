@@ -79,7 +79,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame, songbird_models: dic
     :param analysis: current qiime2 analysis.
     :return: checked songbird models.
     """
-    meta_pd_vars = [x.lower() for x in set(meta_pd.columns.tolist())]
+    meta_pd_vars = dict((x.lower(), x) for x in set(meta_pd.columns.tolist()))
     models = {}
     for model, formula_ in songbird_models.items():
         vars = set()
@@ -89,27 +89,27 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame, songbird_models: dic
         if formula.startswith('C('):
             formula_split = [formula.split('C(')[-1].split(',')[0].strip().strip()]
             meta_var = formula_split[0]
-            vars.add(meta_var.lower())
+            vars.add(meta_var)
             formula = formula.replace('C(%s' % formula_split[0], 'C(%s' % formula_split[0].lower())
             if 'Diff' in formula:
                 levels = [x.strip().strip('"').strip("'") for x in formula.split("levels=['")[-1].split("']")[0].split(",")]
             elif 'Treatment(' in formula:
-                levels = formula.split("Treatment('")[-1].split("')")[0]
+                levels = [formula.split("Treatment('")[-1].split("')")[0]]
         else:
-            formula = formula.lower()
-            formula_split = [x.lower() for x in re.split('[+/:*]', formula)]
+            formula_split = re.split('[+/:*]', formula)
             vars.update(set(formula_split))
             levels = []
 
-        common_with_md = set(meta_pd_vars) & set(formula_split)
-        if sorted(set(formula_split)) != sorted(common_with_md):
-            only_formula = sorted(set(formula_split) ^ common_with_md)
+        formula_split_lower = dict((x.lower(), x) for x in formula_split)
+        common_with_md = set(meta_pd_vars) & set(formula_split_lower)
+        if sorted(set(formula_split_lower)) != sorted(common_with_md):
+            only_formula = [formula_split_lower[x] for x in sorted(set(formula_split_lower) ^ common_with_md)]
             print('Songbird formula term(s) missing in metadata:\n  %s\n  [not used]: %s=%s\n%s' % (
                 ', '.join(sorted(only_formula)), model, formula, meta))
             continue
 
         if len(levels):
-            levels_set = sorted([x for x in meta_pd[formula_split[0]].unique() if str(x) != 'nan'])
+            levels_set = sorted([x for x in meta_pd[meta_pd_vars[formula_split[0].lower()]].unique() if str(x) != 'nan'])
             if 'Diff' in formula:
                 common_levels = set(levels_set) & set(levels)
                 only_meta = set(levels_set) ^ common_levels
@@ -129,7 +129,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame, songbird_models: dic
                         formula_split[0], levels, meta))
                     continue
 
-        models[model] = [formula, vars, meta_var, drop]
+        models[model] = [formula, set([meta_pd_vars[x.lower()] for x in vars]), meta_pd_vars[meta_var.lower()], drop]
     return models
 
 
