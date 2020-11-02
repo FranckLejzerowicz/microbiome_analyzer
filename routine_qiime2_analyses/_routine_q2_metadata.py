@@ -129,7 +129,10 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame, songbird_models: dic
                         formula_split[0], levels, meta))
                     continue
 
-        models[model] = [formula, set([meta_pd_vars[x.lower()] for x in vars]), meta_pd_vars[meta_var.lower()], drop]
+        vars = set([meta_pd_vars[x.lower()] for x in vars])
+        if meta_var:
+            meta_var = meta_pd_vars[meta_var.lower()]
+        models[model] = [formula, vars, meta_var, drop]
     return models
 
 
