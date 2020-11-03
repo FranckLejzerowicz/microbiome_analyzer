@@ -90,7 +90,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame, songbird_models: dic
             formula_split = [formula.split('C(')[-1].split(',')[0].strip().strip()]
             meta_var = formula_split[0]
             vars.add(meta_var)
-            formula = formula.replace('C(%s' % formula_split[0], 'C(%s' % formula_split[0].lower())
+            formula = formula.replace('C(%s' % formula_split[0], 'C(%s' % meta_pd_vars[formula_split[0].lower()])
             if 'Diff' in formula:
                 levels = [x.strip().strip('"').strip("'") for x in formula.split("levels=['")[-1].split("']")[0].split(",")]
             elif 'Treatment(' in formula:
