@@ -114,6 +114,8 @@ def get_taxo_levels(taxonomies: dict) -> dict:
     split_taxa_pds = {}
     for dat, tax_fp in taxonomies.items():
         rewrite = False
+        if not isfile(tax_fp[-1]):
+            continue
         tax_pd = pd.read_csv(tax_fp[-1], header=0, sep='\t', dtype=str)
         tax_pd.rename(columns={tax_pd.columns[0]: 'Feature ID'}, inplace=True)
         features = tax_pd['Feature ID'].tolist()
