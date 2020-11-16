@@ -594,6 +594,51 @@ def read_meta_pd(meta: str) -> pd.DataFrame:
     return meta_pd
 
 
+def simple_chunks(run_pbs, job_folder2, to_chunk, analysis: str,
+                  prjct_nm: str, time: str, n_nodes: str, n_procs: str,
+                  mem_num: str, mem_dim: str, qiime_env: str, chmod: str,
+                  noloc: bool, jobs: bool, chunkit: int, tmp: str = None) -> None:
+
+    warning = 0
+    with open(run_pbs, 'w') as main_o:
+
+        chunks = {}
+        if len(to_chunk) > chunkit:
+            for idx, keys in enumerate(np.array_split(to_chunk, chunkit)):
+                head_sh = '%s/%s_chunk%s.sh' % (job_folder2, analysis, idx)
+                chunks[(idx, head_sh)] = sorted(keys)
+        else:
+            chunks = dict(
+                ((idx, '%s/%s_chunk%s.sh' % (job_folder2, analysis, idx)), x) for idx, x in enumerate(to_chunk))
+
+        for (dat, out_sh), cur_shs in chunks.items():
+            cur_written = False
+            with open(out_sh, 'w') as sh:
+                for cur_sh in cur_shs:
+                    if isfile(cur_sh):
+                        with open(cur_sh) as f:
+                            for line in f:
+                                sh.write(line)
+                                cur_written = True
+                        os.remove(cur_sh)
+            if jobs:
+                if cur_written:
+                    out_pbs = '%s.pbs' % splitext(out_sh)[0]
+                    run_xpbs(out_sh, out_pbs, '%s.%s' % (prjct_nm, dat), qiime_env,
+                             time, n_nodes, n_procs, mem_num, mem_dim, chmod, 1,
+                             '', None, noloc, jobs, tmp)
+                    if os.getcwd().startswith('/panfs'):
+                        out_pbs = out_pbs.replace(os.getcwd(), '')
+                    main_o.write('qsub %s\n' % out_pbs)
+                    warning += 1
+                else:
+                    os.remove(out_sh)
+            else:
+                if cur_written:
+                    main_o.write('sh %s\n' % out_sh)
+                    warning += 1
+
+
 def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
                   prjct_nm: str, time: str, n_nodes: str, n_procs: str,
                   mem_num: str, mem_dim: str, qiime_env: str, chmod: str,

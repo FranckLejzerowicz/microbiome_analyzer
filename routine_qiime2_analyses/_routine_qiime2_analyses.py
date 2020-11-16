@@ -261,13 +261,13 @@ def routine_qiime2_analyses(
                                 datasets_phylo, datasets_rarefs, p_alpha_subsets,
                                 trees, force, prjct_nm, qiime_env, chmod, noloc,
                                 As, dropout, run_params['alpha'], filt_raref,
-                                eval_depths, jobs)
+                                eval_depths, jobs, chunkit)
         if 'merge_alpha' not in p_skip:
             print('(to_export)')
             to_export = merge_meta_alpha(i_datasets_folder, datasets, datasets_rarefs,
                                          diversities, force, prjct_nm, qiime_env, chmod,
                                          noloc,  dropout, run_params['merge_alpha'],
-                                         filt_raref, eval_depths, jobs)
+                                         filt_raref, eval_depths, jobs, chunkit)
             if 'export_alpha' not in p_skip:
                 print('(export_meta_alpha)')
                 export_meta_alpha(datasets, filt_raref, datasets_rarefs, to_export, dropout)
@@ -276,13 +276,13 @@ def routine_qiime2_analyses(
             run_correlations(i_datasets_folder, datasets, diversities,
                              datasets_rarefs, force, prjct_nm, qiime_env,
                              chmod, noloc, run_params['alpha_correlations'],
-                             filt_raref, jobs)
+                             filt_raref, jobs, chunkit)
         if p_longi_column:
             if 'volatility' not in p_skip:
                 print('(run_volatility)')
                 run_volatility(i_datasets_folder, datasets, p_longi_column,
                                datasets_rarefs, force, prjct_nm, qiime_env, chmod,
-                               noloc, run_params['volatility'], filt_raref, jobs)
+                               noloc, run_params['volatility'], filt_raref, jobs, chunkit)
 
     # BETA ----------------------------------------------------------------------
     if 'beta' not in p_skip:
@@ -291,43 +291,43 @@ def routine_qiime2_analyses(
                          datasets_read, datasets_rarefs, p_beta_subsets,
                          trees, force, prjct_nm, qiime_env, chmod, noloc,
                          Bs, dropout, run_params['beta'], filt_raref,
-                         eval_depths, jobs)
+                         eval_depths, jobs, chunkit)
         if 'export_beta' not in p_skip:
             print('(export_beta)')
             export_beta(i_datasets_folder, betas, datasets_rarefs,
                         force, prjct_nm, qiime_env, chmod, noloc,
-                        run_params['export_beta'], filt_raref, jobs)
+                        run_params['export_beta'], filt_raref, jobs, chunkit)
         if 'pcoa' not in p_skip:
             print('(run_pcoas)')
             pcoas = run_pcoas(i_datasets_folder, betas, datasets_rarefs,
                               force, prjct_nm, qiime_env, chmod, noloc,
-                              run_params['pcoa'], filt_raref, jobs)
+                              run_params['pcoa'], filt_raref, jobs, chunkit)
             if 'emperor' not in p_skip:
                 print('(run_emperor)')
                 run_emperor(i_datasets_folder, pcoas, datasets_rarefs,
                             prjct_nm, qiime_env, chmod, noloc,
-                            run_params['emperor'], filt_raref, jobs)
+                            run_params['emperor'], filt_raref, jobs, chunkit)
             if 'empress' not in p_skip:
                 print('(run_empress)')
                 run_empress(i_datasets_folder, pcoas, trees, datasets_phylo,
                             datasets_rarefs, taxonomies, prjct_nm, qiime_env, chmod,
-                            noloc, run_params['empress'], filt_raref, jobs)
+                            noloc, run_params['empress'], filt_raref, jobs, chunkit)
         if 'biplot' not in p_skip:
             print('(run_biplots)')
             biplots, biplots_raw = run_biplots(i_datasets_folder, betas,
                                                datasets_rarefs,  taxonomies,
                                                force, prjct_nm, qiime_env, chmod, noloc,
-                                               run_params['biplot'], filt_raref, jobs)
+                                               run_params['biplot'], filt_raref, jobs, chunkit)
             if 'emperor_biplot' not in p_skip:
                 print('(run_emperor_biplot)')
                 run_emperor_biplot(i_datasets_folder, biplots, biplots_raw, taxonomies,
                                    split_taxa_pds, datasets_rarefs, prjct_nm, qiime_env, chmod,
-                                   noloc, run_params['emperor_biplot'], filt_raref, jobs)
+                                   noloc, run_params['emperor_biplot'], filt_raref, jobs, chunkit)
             if 'empress_biplot' not in p_skip:
                 print('(run_empress_biplot)')
                 run_empress_biplot(i_datasets_folder, biplots, biplots_raw, trees, datasets_phylo,
                                    taxonomies, datasets_rarefs, prjct_nm, qiime_env, chmod,
-                                   noloc, run_params['empress_biplot'], filt_raref, jobs)
+                                   noloc, run_params['empress_biplot'], filt_raref, jobs, chunkit)
 
     # STATS ------------------------------------------------------------------
     if 'alpha' not in p_skip and 'alpha_group_significance' not in p_skip and 'alpha_kw' not in p_skip:

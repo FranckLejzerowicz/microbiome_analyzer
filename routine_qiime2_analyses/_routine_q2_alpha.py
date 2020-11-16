@@ -15,7 +15,7 @@ from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics, get_job_folder, get_analysis_folder,
     write_main_sh, get_main_cases_dict, read_meta_pd,
-    read_yaml_file, get_raref_tab_meta_pds
+    read_yaml_file, get_raref_tab_meta_pds, simple_chunks
 )
 from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
 from routine_qiime2_analyses._routine_q2_cmds import (
@@ -31,7 +31,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
               datasets_phylo: dict, datasets_rarefs: dict, p_alpha_subsets: str,
               trees: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
               noloc: bool, As: tuple, dropout: bool, run_params: dict,
-              filt_raref: str, eval_depths: dict, jobs: bool) -> dict:
+              filt_raref: str, eval_depths: dict, jobs: bool, chunkit: int) -> dict:
 
     """
     Computes the alpha diversity vectors for each dataset.
@@ -59,6 +59,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     diversities = {}
     run_pbs = '%s/1_run_alpha%s%s.sh' % (job_folder, evaluation, filt_raref)
     main_written = 0
+    to_chunk = []
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
             written = 0
@@ -140,10 +141,19 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                                     main_written += 1
                                 divs.setdefault(subset, []).append(out_fp)
                     diversities[dat].append(divs)
-            run_xpbs(out_sh, out_pbs, '%s.mg.lph%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
-                     qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                     run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc, jobs)
+            to_chunk.append(out_sh)
+            if not chunkit:
+                run_xpbs(out_sh, out_pbs, '%s.mg.lph%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
+                         qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                         run_params["mem_num"], run_params["mem_dim"],
+                         chmod, written, 'single', o, noloc, jobs)
+
+    if to_chunk:
+        simple_chunks(run_pbs, job_folder2, to_chunk, 'alpha',
+                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                      run_params["mem_num"], run_params["mem_dim"],
+                      qiime_env, chmod, noloc, jobs, chunkit, None)
+
     if main_written:
         print_message('# Calculate alpha diversity indices', 'sh', run_pbs, jobs)
     return diversities
@@ -152,7 +162,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: dict,
                      diversities: dict, force: bool, prjct_nm: str, qiime_env: str,
                      chmod: str, noloc: bool, dropout: bool, run_params: dict,
-                     filt_raref: str, eval_depths: dict, jobs: bool) -> dict:
+                     filt_raref: str, eval_depths: dict, jobs: bool, chunkit: int) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -310,7 +320,7 @@ def export_meta_alpha(datasets: dict, filt_raref: str,
 
 def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                      datasets_rarefs: dict, force: bool, prjct_nm: str, qiime_env: str,
-                     chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
+                     chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Run alpha-correlation: Alpha diversity correlation
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-correlation/
@@ -360,7 +370,7 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
 
 def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
                    datasets_rarefs: dict, force: bool, prjct_nm: str, qiime_env: str,
-                   chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
+                   chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Run volatility: Generate interactive volatility plot.
     https://docs.qiime2.org/2019.10/plugins/available/longitudinal/volatility/

@@ -36,7 +36,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
              datasets_read: dict, datasets_rarefs: dict, p_beta_subsets: str,
              trees: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
              noloc: bool, Bs: tuple, dropout: bool, run_params: dict,
-             filt_raref: str, eval_depths: dict, jobs: bool) -> dict:
+             filt_raref: str, eval_depths: dict, jobs: bool, chunkit: int) -> dict:
     """
     Run beta: Beta diversity.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta/
@@ -164,7 +164,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
 def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                 force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-                noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
+                noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Export beta diverity matrices.
 
@@ -199,7 +199,7 @@ def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
 
 def run_pcoas(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
               force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-              noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> dict:
+              noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> dict:
     """
     Run pcoa: Principal Coordinate Analysis.
     Run pcoa: Principal Coordinate Analysis Biplot¶
@@ -255,7 +255,7 @@ def run_pcoas(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
 
 def run_emperor(i_datasets_folder: str, pcoas_d: dict, datasets_rarefs: dict,
                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-                run_params: dict, filt_raref: str, jobs: bool) -> None:
+                run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -309,7 +309,7 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, datasets_rarefs: dict,
 def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                 taxonomies: dict, force: bool, prjct_nm: str, qiime_env: str,
                 chmod: str, noloc: bool, run_params: dict,
-                filt_raref: str, jobs: bool) -> (dict, dict):
+                filt_raref: str, jobs: bool, chunkit: int) -> (dict, dict):
     """
     Run pcoa-biplot: Principal Coordinate Analysis Biplot¶
     https://docs.qiime2.org/2019.10/plugins/available/diversity/pcoa-biplot/
@@ -378,7 +378,7 @@ def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
 def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict,
                        taxonomies: dict, split_taxa_pds: dict,  datasets_rarefs: dict,
                        prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-                       run_params: dict, filt_raref: str, jobs: bool) -> None:
+                       run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -449,7 +449,7 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
 def run_empress(i_datasets_folder: str, pcoas_d: dict,
                 trees: dict, datasets_phylo: dict, datasets_rarefs: dict,
                 taxonomies: dict, prjct_nm: str, qiime_env: str, chmod: str,
-                noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
+                noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Run empress.
     https://docs.qiime2.org/2019.10/plugins/available/empress/
@@ -516,7 +516,7 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
 def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict,
                        trees: dict, datasets_phylo: dict, taxonomies: dict,
                        datasets_rarefs: dict, prjct_nm: str, qiime_env: str,
-                       chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
+                       chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Run empress.
     https://docs.qiime2.org/2019.10/plugins/available/empress/
