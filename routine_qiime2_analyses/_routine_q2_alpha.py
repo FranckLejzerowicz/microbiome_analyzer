@@ -184,6 +184,7 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: di
     job_folder2 = get_job_folder(i_datasets_folder, 'tabulate%s/chunks' % evaluation)
 
     to_export = {}
+    to_chunk = []
     main_written = 0
     run_pbs = '%s/2_run_merge_alphas%s%s.sh' % (job_folder, evaluation, filt_raref)
     with open(run_pbs, 'w') as o:
@@ -219,10 +220,19 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: di
                             main_written += 1
                             written += 1
                     to_export[dat].append(to_export_groups)
-            run_xpbs(out_sh, out_pbs, '%s.mrg.lph%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
-                     qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                     run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc, jobs)
+            to_chunk.append(out_sh)
+            if not chunkit:
+                run_xpbs(out_sh, out_pbs, '%s.mrg.lph%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
+                         qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                         run_params["mem_num"], run_params["mem_dim"],
+                         chmod, written, 'single', o, noloc, jobs)
+
+    if to_chunk:
+        simple_chunks(run_pbs, job_folder2, to_chunk, 'tabulate',
+                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                      run_params["mem_num"], run_params["mem_dim"],
+                      qiime_env, chmod, noloc, jobs, chunkit, None)
+
     if main_written:
         print_message('# Merge and export alpha diversity indices', 'sh', run_pbs, jobs)
     return to_export
@@ -337,6 +347,7 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha_correlations/chunks')
     main_written = 0
     run_pbs = '%s/4_run_alpha_correlation%s.sh' % (job_folder, filt_raref)
+    to_chunk = []
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
             if dat not in diversities:
@@ -360,10 +371,19 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                                     write_diversity_alpha_correlation(out_fp, qza, method, meta, cur_sh)
                                     written += 1
                                     main_written += 1
-            run_xpbs(out_sh, out_pbs, '%s.lphcrr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
-                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                     run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc, jobs)
+            to_chunk.append(out_sh)
+            if not chunkit:
+                run_xpbs(out_sh, out_pbs, '%s.lphcrr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                         run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                         run_params["mem_num"], run_params["mem_dim"],
+                         chmod, written, 'single', o, noloc, jobs)
+
+    if to_chunk:
+        simple_chunks(run_pbs, job_folder2, to_chunk, 'alpha_correlations',
+                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                      run_params["mem_num"], run_params["mem_dim"],
+                      qiime_env, chmod, noloc, jobs, chunkit, None)
+
     if main_written:
         print_message('# Correlate numeric metadata variables with alpha diversity indices', 'sh', run_pbs, jobs)
 
@@ -388,6 +408,7 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
     main_written = 0
     first_print = 0
     first_print2 = 0
+    to_chunk = []
     run_pbs = '%s/5_run_volatility%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
@@ -420,10 +441,19 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
                         write_longitudinal_volatility(out_fp, meta_alphas, time_point, cur_sh)
                         written += 1
                         main_written += 1
-            run_xpbs(out_sh, out_pbs, '%s.vltlt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
-                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                     run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc, jobs)
+            to_chunk.append(out_sh)
+            if not chunkit:
+                run_xpbs(out_sh, out_pbs, '%s.vltlt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                         run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                         run_params["mem_num"], run_params["mem_dim"],
+                         chmod, written, 'single', o, noloc, jobs)
+
+    if to_chunk:
+        simple_chunks(run_pbs, job_folder2, to_chunk, 'volatility',
+                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                      run_params["mem_num"], run_params["mem_dim"],
+                      qiime_env, chmod, noloc, jobs, chunkit, None)
+
     if main_written:
         print_message('# Longitudinal change in alpha diversity indices', 'sh', run_pbs, jobs)
 

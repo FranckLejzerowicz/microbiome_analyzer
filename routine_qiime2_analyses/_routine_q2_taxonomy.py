@@ -20,7 +20,8 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_analysis_folder,
     parse_g2lineage,
     get_raref_tab_meta_pds,
-    get_collapse_taxo
+    get_collapse_taxo,
+    simple_chunks
 )
 from routine_qiime2_analyses._routine_q2_cmds import (
     write_barplots,
@@ -454,7 +455,7 @@ def run_taxonomy_amplicon(dat: str, i_datasets_folder: str, force: bool, tsv_pd:
 def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict, datasets_read: dict,
                  datasets_phylo: dict, datasets_features: dict, datasets_filt_map: dict,
                  i_classifier: str, taxonomies: dict, force: bool, prjct_nm: str, qiime_env: str,
-                 chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
+                 chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     classify-sklearn: Pre-fitted sklearn-based taxonomy classifier
 
@@ -476,6 +477,7 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict, datasets_r
     wol_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'wol']
 
     main_written = 0
+    to_chunk = []
     run_pbs = '%s/1_run_taxonomy%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets_read.items():
@@ -544,10 +546,19 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict, datasets_r
                         main_written += 1
                         written += 1
             if written:
-                run_xpbs(out_sh, out_pbs, '%s.tx.sklrn.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
-                         run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                         run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                to_chunk.append(out_sh)
+                if not chunkit:
+                    run_xpbs(out_sh, out_pbs, '%s.tx.sklrn.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                             run_params["mem_num"], run_params["mem_dim"],
+                             chmod, written, 'single', o, noloc, jobs)
+
+    if to_chunk:
+        simple_chunks(run_pbs, job_folder2, to_chunk, 'taxonomy',
+                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                      run_params["mem_num"], run_params["mem_dim"],
+                      qiime_env, chmod, noloc, jobs, chunkit, None)
+
     if main_written:
         print_message('# Classify features using classify-sklearn', 'sh', run_pbs, jobs)
 
