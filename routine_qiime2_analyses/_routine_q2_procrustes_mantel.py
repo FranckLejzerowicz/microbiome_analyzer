@@ -175,6 +175,9 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
                     set(meta_pd1.sample_name) &
                     set(meta_pd2.sample_name)
                 )
+                if len(common_sams) < 3:
+                    continue
+
                 meta_pd = meta_pd1.loc[meta_pd1.sample_name.isin(common_sams)]
                 cases_dict = check_metadata_cases_dict(
                     meta1, meta_pd, dict(procrustes_subsets), 'procrustes')
@@ -368,6 +371,9 @@ def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,
                     set(meta_pd1.sample_name) &
                     set(meta_pd2.sample_name)
                 )
+                if len(common_sams) < 3:
+                    continue
+
                 meta_pd = meta_pd1.loc[meta_pd1.sample_name.isin(common_sams)]
                 cases_dict = check_metadata_cases_dict(
                     meta1, meta_pd, dict(mantel_subsets), 'mantel')

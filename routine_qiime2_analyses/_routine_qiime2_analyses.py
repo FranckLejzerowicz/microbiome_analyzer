@@ -296,7 +296,7 @@ def routine_qiime2_analyses(
             print('(export_beta)')
             export_beta(i_datasets_folder, betas, datasets_rarefs,
                         force, prjct_nm, qiime_env, chmod, noloc,
-                        run_params['export_beta'], filt_raref, jobs)
+                        run_params['export_beta'], filt_raref, jobs, chunkit)
         if 'pcoa' not in p_skip:
             print('(run_pcoas)')
             pcoas = run_pcoas(i_datasets_folder, betas, datasets_rarefs,

@@ -175,7 +175,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
 def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                 force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-                noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
+                noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Export beta diverity matrices.
 
@@ -188,25 +188,62 @@ def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
     """
 
     job_folder = get_job_folder(i_datasets_folder, 'beta')
-    out_sh = '%s/2x_run_beta_export%s.sh' % (job_folder, filt_raref)
-    out_pbs = '%s.pbs' % splitext(out_sh)[0]
+    job_folder2 = get_job_folder(i_datasets_folder, 'beta/chunks')
+
     to_chunk = []
-    written = 0
-    with open(out_sh, 'w') as sh:
+    main_written = 0
+    run_pbs = '%s/2x_run_beta_export%s.sh' % (job_folder, filt_raref)
+    with open(run_pbs, 'w') as o:
         for dat, metric_group_meta_dms_ in betas.items():
-            for idx, metric_group_meta_dms in enumerate(metric_group_meta_dms_):
-                for metric, group_meta_dms in metric_group_meta_dms.items():
-                    for group, (meta, qza, dm, tree) in group_meta_dms.items():
-                        mat_export = '%s.tsv' % splitext(dm)[0]
-                        if force or not isfile(mat_export):
-                            cmd = run_export(dm, mat_export, '')
-                            sh.write('echo "%s"\n' % cmd)
-                            sh.write('%s\n\n' % cmd)
-                            written += 1
-    run_xpbs(out_sh, out_pbs, '%s.xprt.bt%s' % (prjct_nm, filt_raref), qiime_env,
-         run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-         run_params["mem_num"], run_params["mem_dim"],
-         chmod, written, '# Export beta diversity matrices', None, noloc, jobs)
+            written = 0
+            out_sh = '%s/2x_run_beta_export%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            with open(out_sh, 'w') as cur_sh:
+                for idx, metric_group_meta_dms in enumerate(metric_group_meta_dms_):
+                    for metric, group_meta_dms in metric_group_meta_dms.items():
+                        for group, (meta, qza, dm, tree) in group_meta_dms.items():
+                            mat_export = '%s.tsv' % splitext(dm)[0]
+                            if force or not isfile(mat_export):
+                                cmd = run_export(dm, mat_export, '')
+                                cur_sh.write('echo "%s"\n' % cmd)
+                                cur_sh.write('%s\n\n' % cmd)
+                                written += 1
+            if written:
+                main_written += 1
+                to_chunk.append(out_sh)
+                if not chunkit:
+                    run_xpbs(out_sh, out_pbs, '%s.bt.xpt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                             run_params["mem_num"], run_params["mem_dim"],
+                             chmod, written, 'single', o, noloc, jobs)
+    if to_chunk:
+        simple_chunks(run_pbs, job_folder2, to_chunk, 'beta_export',
+                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                      run_params["mem_num"], run_params["mem_dim"],
+                      qiime_env, chmod, noloc, jobs, chunkit, None)
+    if main_written:
+        print_message('# Export beta diversity matrices', 'sh', run_pbs, jobs)
+
+    # job_folder = get_job_folder(i_datasets_folder, 'beta')
+    # out_sh = '%s/2x_run_beta_export%s.sh' % (job_folder, filt_raref)
+    # out_pbs = '%s.pbs' % splitext(out_sh)[0]
+    # to_chunk = []
+    # written = 0
+    # with open(out_sh, 'w') as sh:
+    #     for dat, metric_group_meta_dms_ in betas.items():
+    #         for idx, metric_group_meta_dms in enumerate(metric_group_meta_dms_):
+    #             for metric, group_meta_dms in metric_group_meta_dms.items():
+    #                 for group, (meta, qza, dm, tree) in group_meta_dms.items():
+    #                     mat_export = '%s.tsv' % splitext(dm)[0]
+    #                     if force or not isfile(mat_export):
+    #                         cmd = run_export(dm, mat_export, '')
+    #                         sh.write('echo "%s"\n' % cmd)
+    #                         sh.write('%s\n\n' % cmd)
+    #                         written += 1
+    # run_xpbs(out_sh, out_pbs, '%s.xprt.bt%s' % (prjct_nm, filt_raref), qiime_env,
+    #      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+    #      run_params["mem_num"], run_params["mem_dim"],
+    #      chmod, written, '# Export beta diversity matrices', None, noloc, jobs)
 
 
 def run_pcoas(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
