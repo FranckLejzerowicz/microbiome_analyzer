@@ -16,9 +16,9 @@ from os.path import isfile, splitext
 import plotly
 import plotly.graph_objs as go
 
-from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
+from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
-    get_job_folder, get_raref_tab_meta_pds, get_raref_table,
+    get_job_folder, get_raref_tab_meta_pds, get_raref_table, simple_chunks,
     get_analysis_folder, filter_mb_table, filter_non_mb_table)
 from routine_qiime2_analyses._routine_q2_cmds import run_import
 from routine_qiime2_analyses._routine_q2_mmvec import get_mmvec_dicts
@@ -27,7 +27,7 @@ from routine_qiime2_analyses._routine_q2_songbird import get_songbird_dicts
 
 def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                     force: bool, prjct_nm: str, qiime_env: str,  chmod: str,
-                    noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
+                    noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Initial import of the .tsv datasets in to Qiime2 Artefact.
 
@@ -40,29 +40,72 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
     :param chmod: whether to change permission of output files (defalt: 775).
     """
     job_folder = get_job_folder(i_datasets_folder, 'import_tables')
+    job_folder2 = get_job_folder(i_datasets_folder, 'import_tables/chunks')
 
-    out_sh = '%s/0_run_import%s.sh' % (job_folder, filt_raref)
-    out_pbs = '%s.pbs' % splitext(out_sh)[0]
-    written = 0
-    with open(out_sh, 'w') as sh:
+    to_chunk = []
+    main_written = 0
+    run_pbs = '%s/0_run_import%s.sh' % (job_folder, filt_raref)
+    with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
-            for tsv_meta_pds in tsv_meta_pds_: # REMOVE IF FIXED NOT KEPT
-                tsv, meta = tsv_meta_pds
-                qza = '%s.qza' % splitext(tsv)[0]
-                if datasets_phylo[dat][1]:
-                    cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
-                    sh.write('echo "%s"\n' % cmd)
-                    sh.write('%s\n' % cmd)
-                    written += 1
-                elif force or not isfile(qza):
-                    cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
-                    sh.write('echo "%s"\n' % cmd)
-                    sh.write('%s\n' % cmd)
-                    written += 1
-    run_xpbs(out_sh, out_pbs, '%s.mprt%s' % (prjct_nm, filt_raref), qiime_env,
-             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-             run_params["mem_num"], run_params["mem_dim"],
-             chmod, written, '# Import tables to qiime2', None, noloc, jobs)
+            written = 0
+            out_sh = '%s/0_run_import%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            with open(out_sh, 'w') as cur_sh:
+                for tsv_meta_pds in tsv_meta_pds_:  # REMOVE IF FIXED NOT KEPT
+                    tsv, meta = tsv_meta_pds
+                    qza = '%s.qza' % splitext(tsv)[0]
+                    if datasets_phylo[dat][1]:
+                        cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
+                        cur_sh.write('echo "%s"\n' % cmd)
+                        cur_sh.write('%s\n' % cmd)
+                        written += 1
+                    elif force or not isfile(qza):
+                        cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
+                        cur_sh.write('echo "%s"\n' % cmd)
+                        cur_sh.write('%s\n' % cmd)
+                        written += 1
+            if written:
+                to_chunk.append(out_sh)
+                if not chunkit:
+                    run_xpbs(out_sh, out_pbs, '%s.mprt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                             run_params["mem_num"], run_params["mem_dim"],
+                             chmod, written, 'single', o, noloc, jobs)
+
+    if to_chunk:
+        simple_chunks(run_pbs, job_folder2, to_chunk, 'imports',
+                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                      run_params["mem_num"], run_params["mem_dim"],
+                      qiime_env, chmod, noloc, jobs, chunkit, None)
+
+    if main_written:
+        print_message('# Import tables to qiime2', 'sh', run_pbs, jobs)
+
+
+
+    # out_sh = '%s/0_run_import%s.sh' % (job_folder, filt_raref)
+    # out_pbs = '%s.pbs' % splitext(out_sh)[0]
+    # written = 0
+    # to_chunk = []
+    # with open(out_sh, 'w') as sh:
+    #     for dat, tsv_meta_pds_ in datasets.items():
+    #         for tsv_meta_pds in tsv_meta_pds_: # REMOVE IF FIXED NOT KEPT
+    #             tsv, meta = tsv_meta_pds
+    #             qza = '%s.qza' % splitext(tsv)[0]
+    #             if datasets_phylo[dat][1]:
+    #                 cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
+    #                 sh.write('echo "%s"\n' % cmd)
+    #                 sh.write('%s\n' % cmd)
+    #                 written += 1
+    #             elif force or not isfile(qza):
+    #                 cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
+    #                 sh.write('echo "%s"\n' % cmd)
+    #                 sh.write('%s\n' % cmd)
+    #                 written += 1
+    # run_xpbs(out_sh, out_pbs, '%s.mprt%s' % (prjct_nm, filt_raref), qiime_env,
+    #          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+    #          run_params["mem_num"], run_params["mem_dim"],
+    #          chmod, written, '# Import tables to qiime2', None, noloc, jobs)
 
 
 def get_threshs(p_filt_threshs):
@@ -96,7 +139,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                         datasets_features: dict, datasets_rarefs: dict, datasets_filt: dict,
                         datasets_filt_map: dict, datasets_phylo: dict, prjct_nm: str,
                         qiime_env: str, p_filt_threshs: str, chmod: str, noloc: bool,
-                        run_params: dict, filt_raref: str, jobs: bool) -> None:
+                        run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Filter the rare features, keep samples with enough reads/features and import to Qiime2.
 
@@ -120,6 +163,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
     job_folder = get_job_folder(i_datasets_folder, 'import_filtered')
     out_sh = '%s/1_run_import_filtered%s.sh' % (job_folder, filt_raref)
     out_pbs = '%s.pbs' % splitext(out_sh)[0]
+    to_chunk = []
     with open(out_sh, 'w') as sh:
         for dat, tab_meta_pds_ in datasets_read.items():
             if dat not in threshs_dats:

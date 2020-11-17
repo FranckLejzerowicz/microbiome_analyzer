@@ -13,13 +13,14 @@ from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_cmds import write_qemistree, run_export
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_job_folder,
-    get_analysis_folder
+    get_analysis_folder,
+    simple_chunks
 )
 
 
 def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str,
                   i_qemistree: str, taxonomies: dict, force: bool,  qiime_env: str,
-                  chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
+                  chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets_read: dataset -> [tsv table, meta table]
@@ -35,6 +36,7 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str,
     job_folder2 = get_job_folder(i_datasets_folder, 'qemistree/chunks')
 
     written = 0
+    to_chunk = []
     run_pbs = '%s/1_run_qemistree%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
@@ -72,9 +74,18 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str,
                 print('[Warning] Maybe run qemistree first and then re-run pipeline to '
                       'have the classyfire taxonomy include in the barplots!')
 
-            run_xpbs(out_sh, out_pbs, '%s.qmstr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+            to_chunk.append(out_sh)
+            if not chunkit:
+                run_xpbs(out_sh, out_pbs, '%s.qmstr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc, jobs)
+
+    if to_chunk:
+        simple_chunks(run_pbs, job_folder2, to_chunk, 'qemistree',
+                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                      run_params["mem_num"], run_params["mem_dim"],
+                      qiime_env, chmod, noloc, jobs, chunkit, None)
+
     if written:
         print_message('# Make qemistree classyfire classifications', 'sh', run_pbs, jobs)

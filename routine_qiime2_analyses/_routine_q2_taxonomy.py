@@ -566,7 +566,7 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict, datasets_r
 def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
                 force: bool, prjct_nm: str, qiime_env: str,
                 chmod: str, noloc: bool, run_params: dict,
-                filt_raref: str, jobs: bool) -> None:
+                filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     barplot: Visualize taxonomy with an interactive bar plot
 
@@ -582,6 +582,7 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
     job_folder2 = get_job_folder(i_datasets_folder, 'barplot/chunks')
 
     written = 0
+    to_chunk = []
     run_pbs = '%s/1_run_barplot%s.sh' % (job_folder, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
@@ -601,10 +602,19 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
                     if force or not isfile(out_qzv):
                         write_barplots(out_qzv, qza, meta, tax_qza, cur_sh)
                         written += 1
-            run_xpbs(out_sh, out_pbs, '%s.brplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+            to_chunk.append(out_sh)
+            if not chunkit:
+                run_xpbs(out_sh, out_pbs, '%s.brplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc, jobs)
+
+    if to_chunk:
+        simple_chunks(run_pbs, job_folder2, to_chunk, 'barplot',
+                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                      run_params["mem_num"], run_params["mem_dim"],
+                      qiime_env, chmod, noloc, jobs, chunkit, None)
+
     if written:
         print_message('# Make sample compositions barplots', 'sh', run_pbs, jobs)
 

@@ -15,7 +15,7 @@ from scipy.stats import skew
 from os.path import isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
-from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder
+from routine_qiime2_analyses._routine_q2_io_utils import get_job_folder, get_analysis_folder, simple_chunks
 from routine_qiime2_analyses._routine_q2_cmds import write_rarefy, run_export
 np.set_printoptions(precision=2, suppress=True)
 
@@ -36,7 +36,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                datasets_phylo: dict, datasets_filt_map: dict, datasets_rarefs: dict,
                p_raref_depths: str, eval_rarefs: bool, force: bool, prjct_nm: str,
                qiime_env: str, chmod: str, noloc: bool, run_params: dict,
-               filt_raref: str, filt_only: bool, jobs: bool) -> dict:
+               filt_raref: str, filt_only: bool, jobs: bool, chunkit: int) -> dict:
     """
     Run rarefy: Rarefy table.
     https://docs.qiime2.org/2019.10/plugins/available/feature-table/rarefy/
@@ -68,6 +68,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     main_written = 0
     job_folder = get_job_folder(i_datasets_folder, 'rarefy%s' % evaluation)
     job_folder2 = get_job_folder(i_datasets_folder, 'rarefy%s/chunks' % evaluation)
+    to_chunk = []
     run_pbs = '%s/1_run_rarefy%s%s.sh' % (job_folder, evaluation, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
@@ -156,10 +157,19 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                             #     datasets_read[dat] = [('raref', depth)]
                             #     datasets_rarefs[dat] = ['_raref%s%s' % (evaluation, depth)]
 
-            run_xpbs(out_sh, out_pbs, '%s.bt%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
-                     qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                     run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc, jobs)
+            to_chunk.append(out_sh)
+            if not chunkit:
+                run_xpbs(out_sh, out_pbs, '%s.bt%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
+                         qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                         run_params["mem_num"], run_params["mem_dim"],
+                         chmod, written, 'single', o, noloc, jobs)
+
+    if to_chunk:
+        simple_chunks(run_pbs, job_folder2, to_chunk, 'rarefy%s' % evaluation,
+                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                      run_params["mem_num"], run_params["mem_dim"],
+                      qiime_env, chmod, noloc, jobs, chunkit, None)
+
     if main_written:
         print_message('# Get rarefied datasets', 'sh', run_pbs, jobs)
 

@@ -163,7 +163,7 @@ def routine_qiime2_analyses(
     print('(import_datasets)')
     import_datasets(i_datasets_folder, datasets, datasets_phylo,
                     force, prjct_nm, qiime_env, chmod, noloc,
-                    run_params['import'], filt_raref, jobs)
+                    run_params['import'], filt_raref, jobs, chunkit)
 
     datasets_filt = {}
     datasets_filt_map = {}
@@ -172,7 +172,7 @@ def routine_qiime2_analyses(
         filter_rare_samples(i_datasets_folder, datasets, datasets_read, datasets_features,
                             datasets_rarefs, datasets_filt, datasets_filt_map, datasets_phylo,
                             prjct_nm, qiime_env, p_filt_threshs, chmod, noloc,
-                            run_params['filter'], filt_raref, jobs)
+                            run_params['filter'], filt_raref, jobs, chunkit)
 
     eval_depths = {}
     if raref:
@@ -181,7 +181,7 @@ def routine_qiime2_analyses(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_filt_map, datasets_rarefs, p_raref_depths, eval_rarefs, force,
             prjct_nm, qiime_env, chmod, noloc, run_params['rarefy'],
-            filt_raref, filt_only, jobs)
+            filt_raref, filt_only, jobs, chunkit)
 
     # TAXONOMY ------------------------------------------------------------
     taxonomies = {}
@@ -199,7 +199,7 @@ def routine_qiime2_analyses(
             run_qemistree(i_datasets_folder, datasets, prjct_nm,
                           i_qemistree, taxonomies, force, qiime_env,
                           chmod, noloc, run_params['qemistree'],
-                          filt_raref, jobs)
+                          filt_raref, jobs, chunkit)
         else:
             print('[Warning] The Qemistree path %s is not a folder.')
 
@@ -213,7 +213,7 @@ def routine_qiime2_analyses(
             print('(run_barplot)')
             run_barplot(i_datasets_folder, datasets, taxonomies,
                         force, prjct_nm, qiime_env, chmod, noloc,
-                        run_params['barplot'], filt_raref, jobs)
+                        run_params['barplot'], filt_raref, jobs, chunkit)
 
     # TREES ------------------------------------------------------------
     trees = {}
