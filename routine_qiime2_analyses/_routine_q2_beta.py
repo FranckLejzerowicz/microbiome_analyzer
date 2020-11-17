@@ -97,7 +97,9 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                         out_fp = '%s/%s_%s_DM.qza' % (odir, basename(splitext(qza)[0]), metric)
                         if force or not os.path.isfile(out_fp):
                             tree = write_diversity_beta(out_fp, datasets_phylo, trees,
-                                                        dat, qza, metric, cur_sh, False)
+                                                        dat, qza, metric, cur_sh, qiime_env,
+                                                        run_params["n_nodes"],
+                                                        run_params["n_procs"], False)
                             written += 1
                             main_written += 1
                         else:
@@ -145,7 +147,9 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                 if force or not isfile(out_fp):
                                     tree = write_diversity_beta(out_fp, {dat: [1, 0]}, trees,
                                                                 dat, qza_subset, metric,
-                                                                cur_sh, True)
+                                                                cur_sh, qiime_env,
+                                                                run_params["n_nodes"],
+                                                                run_params["n_procs"], True)
                                     written += 1
                                     main_written += 1
                                 else:

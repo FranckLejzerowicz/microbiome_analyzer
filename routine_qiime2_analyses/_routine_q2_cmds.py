@@ -481,7 +481,7 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
 
 
 def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: str,
-                         qza: str, metric: str, cur_sh: TextIO, subset: bool) -> str:
+                         qza: str, metric: str, cur_sh: TextIO, qiime_env: str, nnodes, nprocs, subset: bool) -> str:
     """
     Computes a user-specified beta diversity metric for all pairs of samples
     in a feature table.
@@ -518,11 +518,15 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
         cmd = 'qiime diversity beta \\\n'
         cmd += '--i-table %s \\\n' % qza
     cmd += '--p-metric %s \\\n' % metric
-    cmd += '--p-n-jobs 1 \\\n'
+    if qiime_env == 'qiime2-2020.8':
+        cmd += '--p-n-jobs %s \\\n' % (int(nnodes)*int(nprocs))
+    else:
+        cmd += '--p-threads %s \\\n' % (int(nnodes)*int(nprocs))
     cmd += '--o-distance-matrix %s\n' % out_fp
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
     return tree
+
 
 def write_collapse_taxo(tab_qza: str, tax_qza: str,
                         collapsed_qza: str, collapsed_tsv: str,
