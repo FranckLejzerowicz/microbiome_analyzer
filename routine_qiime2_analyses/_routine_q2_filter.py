@@ -65,6 +65,7 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
                         cur_sh.write('%s\n' % cmd)
                         written += 1
             if written:
+                print(out_sh)
                 main_written += 1
                 to_chunk.append(out_sh)
                 if not chunkit:
