@@ -611,9 +611,6 @@ def simple_chunks(run_pbs, job_folder2, to_chunk, analysis: str,
             chunks = dict(
                 ((idx, '%s/%s_chunk%s.sh' % (job_folder2, analysis, idx)), [x]) for idx, x in enumerate(to_chunk))
 
-        if analysis == 'imports':
-            print(chunks)
-
         for (dat, out_sh), cur_shs in chunks.items():
             cur_written = False
             with open(out_sh, 'w') as sh:
