@@ -609,7 +609,8 @@ def simple_chunks(run_pbs, job_folder2, to_chunk, analysis: str,
                 chunks[(idx, head_sh)] = sorted(keys)
         else:
             chunks = dict(
-                ((idx, '%s/%s_chunk%s.sh' % (job_folder2, analysis, idx)), x) for idx, x in enumerate(to_chunk))
+                ((idx, '%s/%s_chunk%s.sh' % (job_folder2, analysis, idx)), [x]) for idx, x in enumerate(to_chunk))
+
         if analysis == 'imports':
             print(chunks)
 
