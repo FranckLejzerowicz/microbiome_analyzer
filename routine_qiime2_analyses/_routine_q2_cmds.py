@@ -518,10 +518,10 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
         cmd = 'qiime diversity beta \\\n'
         cmd += '--i-table %s \\\n' % qza
     cmd += '--p-metric %s \\\n' % metric
-    if qiime_env == 'qiime2-2020.8':
-        cmd += '--p-n-jobs %s \\\n' % (int(nnodes)*int(nprocs))
+    if float(qiime_env.split('qiime2-')[1]) >= 2020.8:
+        cmd += '--p-threads %s \\\n' % (int(nnodes) * int(nprocs))
     else:
-        cmd += '--p-threads %s \\\n' % (int(nnodes)*int(nprocs))
+        cmd += '--p-n-jobs %s \\\n' % (int(nnodes)*int(nprocs))
     cmd += '--o-distance-matrix %s\n' % out_fp
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
