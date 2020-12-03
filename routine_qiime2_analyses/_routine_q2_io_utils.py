@@ -603,7 +603,7 @@ def simple_chunks(run_pbs, job_folder2, to_chunk, analysis: str,
     with open(run_pbs, 'w') as main_o:
 
         chunks = {}
-        if len(to_chunk) > chunkit:
+        if chunkit and len(to_chunk) > chunkit:
             for idx, keys in enumerate(np.array_split(to_chunk, chunkit)):
                 head_sh = '%s/%s_chunk%s.sh' % (job_folder2, analysis, idx)
                 chunks[(idx, head_sh)] = sorted(keys)
