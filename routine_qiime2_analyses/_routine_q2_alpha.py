@@ -57,14 +57,14 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     job_folder = get_job_folder(i_datasets_folder, 'alpha%s' % evaluation)
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha%s/chunks' % evaluation)
     diversities = {}
-    run_pbs = '%s/1_run_alpha%s%s.sh' % (job_folder, evaluation, filt_raref)
+    run_pbs = '%s/1_run_alpha_%s%s%s.sh' % (job_folder, prjct_nm, evaluation, filt_raref)
     main_written = 0
     to_chunk = []
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
             written = 0
             diversities[dat] = []
-            out_sh = '%s/run_alpha%s_%s%s.sh' % (job_folder2, evaluation, dat, filt_raref)
+            out_sh = '%s/run_alpha_%s%s_%s%s.sh' % (job_folder2, prjct_nm, evaluation, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
@@ -186,12 +186,12 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: di
     to_export = {}
     to_chunk = []
     main_written = 0
-    run_pbs = '%s/2_run_merge_alphas%s%s.sh' % (job_folder, evaluation, filt_raref)
+    run_pbs = '%s/2_run_merge_alphas_%s%s%s.sh' % (job_folder, prjct_nm, evaluation, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, group_divs_list in diversities.items():
             written = 0
             to_export[dat] = []
-            out_sh = '%s/run_merge_alpha%s_%s%s.sh' % (job_folder2, evaluation, dat, filt_raref)
+            out_sh = '%s/run_merge_alpha_%s%s_%s%s.sh' % (job_folder2, prjct_nm, evaluation, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, group_divs in enumerate(group_divs_list):
@@ -346,14 +346,14 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
     job_folder = get_job_folder(i_datasets_folder, 'alpha_correlations')
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha_correlations/chunks')
     main_written = 0
-    run_pbs = '%s/4_run_alpha_correlation%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/4_run_alpha_correlation_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     to_chunk = []
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
             if dat not in diversities:
                 continue
             written = 0
-            out_sh = '%s/run_alpha_correlation_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_alpha_correlation_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
@@ -409,11 +409,11 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
     first_print = 0
     first_print2 = 0
     to_chunk = []
-    run_pbs = '%s/5_run_volatility%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/5_run_volatility_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
             written = 0
-            out_sh = '%s/run_volatility_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_volatility_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
@@ -559,7 +559,7 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
         j.join()
 
     job_folder = get_job_folder(i_datasets_folder, 'alpha_group_significance')
-    main_sh = write_main_sh(job_folder, '6_run_alpha_group_significance%s' % filt_raref, all_sh_pbs,
+    main_sh = write_main_sh(job_folder, '6_run_alpha_group_significance_%s%s' % (filt_raref, prjct_nm), all_sh_pbs,
                             '%s.kv%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],

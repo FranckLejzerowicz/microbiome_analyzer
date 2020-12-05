@@ -37,14 +37,14 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str,
 
     written = 0
     to_chunk = []
-    run_pbs = '%s/1_run_qemistree%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/1_run_qemistree_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds in datasets.items():
             feature_data = '%s/feature-data_%s.qza' % (i_qemistree, dat)
             qemistree = '%s/qemistree_%s.qza' % (i_qemistree, dat)
             if not isfile(feature_data) or not isfile(qemistree):
                 continue
-            out_sh = '%s/run_qemistree_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_qemistree_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             odir = get_analysis_folder(i_datasets_folder, 'qemistree/%s' % dat)
             classyfire_qza = '%s/%s-classyfire.qza' % (odir, dat)

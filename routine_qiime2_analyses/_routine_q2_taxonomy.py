@@ -305,13 +305,13 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     datasets_phylo_update = {}
     job_folder = get_job_folder(i_datasets_folder, 'collapsed_taxo')
     job_folder2 = get_job_folder(i_datasets_folder, 'collapsed_taxo/chunks')
-    run_pbs = '%s/3_run_collapsed_taxo%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/3_run_collapsed_taxo_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tab_meta_fps in datasets.items():
             if dat not in collapse_taxo:
                 continue
             written = 0
-            out_sh = '%s/run_collapsed_taxo_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_collapsed_taxo_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 split_levels = get_split_levels(dat, collapse_taxo, split_taxa_pds)
@@ -478,10 +478,10 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict, datasets_r
 
     main_written = 0
     to_chunk = []
-    run_pbs = '%s/1_run_taxonomy%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/1_run_taxonomy_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets_read.items():
-            out_sh = '%s/run_taxonomy_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_taxonomy_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             if dat in datasets_filt_map:
                 taxonomies[dat] = taxonomies[datasets_filt_map[dat]]
@@ -583,10 +583,10 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
 
     written = 0
     to_chunk = []
-    run_pbs = '%s/1_run_barplot%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/1_run_barplot_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
-            out_sh = '%s/run_barplot_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_barplot_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for tsv_meta_pds in tsv_meta_pds_:

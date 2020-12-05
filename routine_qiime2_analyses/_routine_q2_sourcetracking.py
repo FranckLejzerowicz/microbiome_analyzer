@@ -145,19 +145,20 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
             meta_pd = meta_pd.set_index('sample_name')
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'sourcetracking')
             cur_raref = datasets_rarefs[dat][idx]
-            out_import_sh = '%s/run_import_sourcetracking_%s%s%s.sh' % (job_folder2, dat, filt_raref, cur_raref)
+            out_import_sh = '%s/run_import_sourcetracking_%s_%s%s%s.sh' % (job_folder2, prjct_nm, dat,
+                                                                           filt_raref, cur_raref)
             imports = set()
             odir = get_analysis_folder(i_datasets_folder, 'sourcetracking/%s' % dat)
             for method in sourcetracking_params['method']:
-                out_sh = '%s/run_sourcetracking_%s%s%s_%s.sh' % (
-                    job_folder2, dat, filt_raref, cur_raref, method)
+                out_sh = '%s/run_sourcetracking_%s_%s%s%s_%s.sh' % (
+                    job_folder2, prjct_nm, dat, filt_raref, cur_raref, method)
                 for case_var, case_vals_list in cases_dict.items():
                     for filt, (fp, fa) in filters.items():
-                        cur_sh = '%s/run_sourcetracking_%s_%s%s%s_%s_%s.sh' % (
-                            job_folder2, dat, case_var, filt_raref, cur_raref, method, filt)
+                        cur_sh = '%s/run_sourcetracking_%s_%s_%s%s%s_%s_%s.sh' % (
+                            job_folder2, prjct_nm, dat, case_var, filt_raref, cur_raref, method, filt)
                         cur_sh = cur_sh.replace(' ', '-')
-                        cur_import_sh = '%s/run_import_sourcetracking_%s_%s%s%s_%s_%s.sh' % (
-                            job_folder2, dat, case_var, filt_raref, cur_raref, method, filt)
+                        cur_import_sh = '%s/run_import_sourcetracking_%s_%s_%s%s%s_%s_%s.sh' % (
+                            job_folder2, prjct_nm, dat, case_var, filt_raref, cur_raref, method, filt)
                         cur_import_sh = cur_import_sh.replace(' ', '-')
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                         all_import_sh_pbs.setdefault((dat, out_import_sh), []).append(cur_import_sh)
@@ -167,7 +168,7 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
                             filt, cur_raref, fp, fa, run_params["n_nodes"], run_params["n_procs"])
 
     job_folder = get_job_folder(i_datasets_folder, 'sourcetracking')
-    main_sh = write_main_sh(job_folder, '3_run_import_sourcetracking%s' % filt_raref,
+    main_sh = write_main_sh(job_folder, '3_run_import_sourcetracking_%s%s' % (prjct_nm, filt_raref),
                             all_import_sh_pbs, '%s.mpt.srctrk%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
@@ -181,7 +182,7 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
             print('# import sourcetracking')
         print_message('', 'sh', main_sh, jobs)
 
-    main_sh = write_main_sh(job_folder, '3_run_sourcetracking%s' % filt_raref, all_sh_pbs,
+    main_sh = write_main_sh(job_folder, '3_run_sourcetracking_%s%s' % (prjct_nm, filt_raref), all_sh_pbs,
                             '%s.srctrk%s' % (prjct_nm, filt_raref), run_params["time"],
                             run_params["n_nodes"], run_params["n_procs"], run_params["mem_num"],
                             run_params["mem_dim"], qiime_env, chmod, noloc, jobs, chunkit, '~/.')

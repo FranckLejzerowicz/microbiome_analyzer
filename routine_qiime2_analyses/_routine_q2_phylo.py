@@ -52,13 +52,13 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict,
         job_folder2 = get_job_folder(i_datasets_folder, 'phylo/chunks')
 
         main_written = 0
-        main_sh = '%s/1_run_sepp%s.sh' % (job_folder, filt_raref)
+        main_sh = '%s/1_run_sepp_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
         with open(main_sh, 'w') as main_o:
             for dat, tsv_metas_fps_ in datasets.items():
                 written = 0
                 if dat not in sepp_datasets:
                     continue
-                out_sh = '%s/run_sepp_%s%s.sh' % (job_folder2, dat, filt_raref)
+                out_sh = '%s/run_sepp_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
                 out_pbs = '%s.pbs' % splitext(out_sh)[0]
                 with open(out_sh, 'w') as cur_sh:
                     for idx, tsv_metas_fps in enumerate(tsv_metas_fps_):
@@ -158,13 +158,13 @@ def shear_tree(i_datasets_folder: str, datasets: dict, datasets_read: dict, data
         wol = TreeNode.read(i_wol_tree)
 
         main_written = 0
-        main_sh = '%s/0_run_import_trees%s.sh' % (job_folder, filt_raref)
+        main_sh = '%s/0_run_import_trees_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
         with open(main_sh, 'w') as main_o:
             for dat, tsv_metas_fps_ in datasets.items():
                 written = 0
                 if dat not in wol_datasets:
                     continue
-                out_sh = '%s/run_import_tree_%s%s.sh' % (job_folder2, dat, filt_raref)
+                out_sh = '%s/run_import_tree_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
                 out_pbs = out_sh.replace('.sh', '.pbs')
                 with open(out_sh, 'w') as o:
                     for idx, tsv_metas_fps in enumerate(tsv_metas_fps_):

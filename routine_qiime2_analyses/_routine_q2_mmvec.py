@@ -355,7 +355,7 @@ def make_filtered_and_common_dataset(
 
     pre_jobs = filt_jobs + common_jobs
     if len(pre_jobs):
-        import_sh = '%s/2_run_%s_imports%s.sh' % (job_folder, analysis, filt_raref)
+        import_sh = '%s/2_run_%s_imports_%s%s.sh' % (job_folder, prjct_nm, analysis, filt_raref)
         import_pbs = '%s.pbs' % splitext(import_sh)[0]
         with open(import_sh, 'w') as import_o:
             for cmd in pre_jobs:
@@ -429,7 +429,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
 
         job_folder2 = get_job_folder(i_datasets_folder, 'mmvec/chunks/%s' % pair)
         if not split:
-            out_sh = '%s/chunks/run_mmvec_%s%s.sh' % (job_folder, pair, filt_raref)
+            out_sh = '%s/chunks/run_mmvec_%s_%s%s.sh' % (job_folder, prjct_nm, pair, filt_raref)
 
         for (meta_fp, omic1, omic2, filt1, filt2, tsv1, tsv2, qza1, qza2, ncommon, case) in pair_data:
             train_columns = mmvec_params['train_column']
@@ -441,8 +441,8 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
             thresh_feats = mmvec_params['thresh_feats']
             latent_dims = mmvec_params['latent_dims']
             if split:
-                out_sh = '%s/chunks/run_mmvec_%s_%s_%s_%s_%s_%s%s.sh' % (
-                    job_folder, pair, case, omic1, filt1, omic2, filt2, filt_raref)
+                out_sh = '%s/chunks/run_mmvec_%s_%s_%s_%s_%s_%s_%s%s.sh' % (
+                    job_folder, prjct_nm, pair, case, omic1, filt1, omic2, filt2, filt_raref)
             if train_columns != ['None']:
                 n_examples = ['']
             for idx, it in enumerate(itertools.product(train_columns, n_examples, batches, learns,
@@ -473,7 +473,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     if standalone:
         qiime_env = 'mmvec2'
 
-    main_sh = write_main_sh(job_folder, '3_mmvec%s' % filt_raref, all_sh_pbs,
+    main_sh = write_main_sh(job_folder, '3_mmvec_%s%s' % (prjct_nm, filt_raref), all_sh_pbs,
                             '%s.mmvc%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],

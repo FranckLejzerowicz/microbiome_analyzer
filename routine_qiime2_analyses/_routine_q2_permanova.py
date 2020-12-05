@@ -105,14 +105,15 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
     for dat, metric_groups_metas_qzas_dms_trees_ in betas.items():
         permanovas[dat] = []
         if not split:
-            out_sh = '%s/run_beta_group_significance_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_beta_group_significance_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
         for idx, metric_groups_metas_qzas_dms_trees in enumerate(metric_groups_metas_qzas_dms_trees_):
             cur_depth = datasets_rarefs[dat][idx]
             odir = get_analysis_folder(i_datasets_folder, 'permanova/%s%s' % (dat, cur_depth))
             for metric, subset_files in metric_groups_metas_qzas_dms_trees.items():
                 permanovas.setdefault(dat, []).append(metric)
                 if split:
-                    out_sh = '%s/run_beta_group_significance_%s_%s%s.sh' % (job_folder2, dat, metric, filt_raref)
+                    out_sh = '%s/run_beta_group_significance_%s_%s_%s%s.sh' % (job_folder2, prjct_nm,
+                                                                               dat, metric, filt_raref)
                 for subset, (meta, qza, mat_qza, tree) in subset_files.items():
                     if not isfile(mat_qza):
                         if not first_print:
@@ -143,7 +144,7 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
                                                 case_var, case_vals, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'permanova')
-    main_sh = write_main_sh(job_folder, '3_run_beta_group_significance%s' % filt_raref, all_sh_pbs,
+    main_sh = write_main_sh(job_folder, '3_run_beta_group_significance_%s%s' % (prjct_nm, filt_raref), all_sh_pbs,
                             '%s.prm%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],

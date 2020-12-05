@@ -74,13 +74,13 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
     betas = {}
     to_chunk = []
     main_written = 0
-    run_pbs = '%s/2_run_beta%s%s.sh' % (job_folder, evaluation, filt_raref)
+    run_pbs = '%s/2_run_beta_%s%s%s.sh' % (job_folder, prjct_nm, evaluation, filt_raref)
     with open(run_pbs, 'w') as o:
 
         for dat, tsv_meta_pds_ in datasets.items():
             written = 0
             betas[dat] = []
-            out_sh = '%s/run_beta%s_%s%s.sh' % (job_folder2, evaluation, dat, filt_raref)
+            out_sh = '%s/run_beta_%s%s_%s%s.sh' % (job_folder2, prjct_nm, evaluation, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
@@ -406,11 +406,11 @@ def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
 
     to_chunk = []
     main_written = 0
-    run_pbs = '%s/2x_run_beta_export%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/2x_run_beta_export_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, metric_group_meta_dms_ in betas.items():
             written = 0
-            out_sh = '%s/2x_run_beta_export%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/2x_run_beta_export_%s%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, metric_group_meta_dms in enumerate(metric_group_meta_dms_):
@@ -484,12 +484,12 @@ def run_pcoas(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
     pcoas_d = {}
     main_written = 0
     to_chunk = []
-    run_pbs = '%s/3_run_pcoa%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/3_run_pcoa_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, metric_groups_metas_dms_ in betas.items():
             written = 0
             pcoas_d[dat] = []
-            out_sh = '%s/run_PCoA_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_PCoA_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, metric_groups_metas_dms in enumerate(metric_groups_metas_dms_):
@@ -547,11 +547,11 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, datasets_rarefs: dict,
     main_written = 0
     first_print = 0
     to_chunk = []
-    run_pbs = '%s/4_run_emperor%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/4_run_emperor_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, metas_pcoas_ in pcoas_d.items():
             written = 0
-            out_sh = '%s/run_emperor_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_emperor_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, metas_pcoas in enumerate(metas_pcoas_):
@@ -615,7 +615,7 @@ def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
     biplots_d2 = {}
     to_chunk = []
     main_written = 0
-    run_pbs = '%s/3_run_biplot%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/3_run_biplot_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, metric_groups_metas_dms_ in betas.items():
             written = 0
@@ -625,7 +625,7 @@ def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                 tax_qza = 'missing'
             biplots_d[dat] = []
             biplots_d2[dat] = []
-            out_sh = '%s/run_biplot_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_biplot_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, metric_groups_metas_dms in enumerate(metric_groups_metas_dms_):
@@ -693,7 +693,7 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
     main_written = 0
     first_print = 0
     to_chunk = []
-    run_pbs = '%s/4_run_emperor_biplot%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/4_run_emperor_biplot_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, raref_meta_biplots_taxs_qzas_trees in biplots_d.items():
             raref_meta_biplots_taxs_qzas_trees2 = biplots_d2[dat]
@@ -703,7 +703,7 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                 split_taxa_pd = split_taxa_pds[dat]
             else:
                 tax_tsv = 'missing'
-            out_sh = '%s/run_emperor_biplot_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_emperor_biplot_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, meta_biplots_taxs_qzas_trees in enumerate(raref_meta_biplots_taxs_qzas_trees):
@@ -774,11 +774,11 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
     main_written = 0
     to_chunk = []
     first_print = 0
-    run_pbs = '%s/4_run_empress%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/4_run_empress_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, metas_pcoas_qzas_trees_ in pcoas_d.items():
             written = 0
-            out_sh = '%s/run_empress_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_empress_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             if not datasets_phylo[dat][0] or dat not in trees:
                 continue
@@ -851,7 +851,7 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
     main_written = 0
     first_print = 0
     to_chunk = []
-    run_pbs = '%s/4_run_empress_biplot%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/4_run_empress_biplot_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, raref_meta_biplots_taxs_qzas_trees in biplots_d.items():
             raref_meta_biplots_taxs_qzas_trees2 = biplots_d2[dat]
@@ -862,7 +862,7 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
             if dat in taxonomies:
                 method, tax_qza, tax_tsv = taxonomies[dat]
 
-            out_sh = '%s/run_empress_biplot_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_empress_biplot_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, meta_biplots_taxs_qzas_trees in enumerate(raref_meta_biplots_taxs_qzas_trees):

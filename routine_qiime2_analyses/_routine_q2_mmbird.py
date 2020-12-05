@@ -652,10 +652,10 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
     job_folder = get_job_folder(i_datasets_folder, 'mmbird')
     job_folder2 = get_job_folder(i_datasets_folder, 'mmbird/chunks')
     written = 0
-    run_pbs = '%s/run_mmbird%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/run_mmbird_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for pair, cmds in pair_cmds.items():
-            out_sh = '%s/run_mmbird_%s%s.sh' % (job_folder2, pair, filt_raref)
+            out_sh = '%s/run_mmbird_%s_%s%s.sh' % (job_folder2, prjct_nm, pair, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for cmd in cmds:

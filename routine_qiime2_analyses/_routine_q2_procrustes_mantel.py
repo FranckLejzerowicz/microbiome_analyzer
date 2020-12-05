@@ -136,11 +136,12 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
 
         job_folder2 = get_job_folder(i_datasets_folder, 'procrustes%s/chunks/%s%s' % (evaluation, pair, filt_raref))
         if not split:
-            out_sh = '%s/run_procrustes%s_%s%s.sh' % (job_folder2, evaluation, pair, filt_raref)
+            out_sh = '%s/run_procrustes_%s%s_%s%s.sh' % (job_folder2, prjct_nm, evaluation, pair, filt_raref)
 
         for metric, groups_metas_qzas_dms_trees1 in metrics_groups_metas_qzas_dms_trees1.items():
             if split:
-                out_sh = '%s/run_procrustes%s_%s_%s%s.sh' % (job_folder2, evaluation, pair, metric, filt_raref)
+                out_sh = '%s/run_procrustes_%s%s_%s_%s%s.sh' % (job_folder2, prjct_nm, evaluation,
+                                                                pair, metric, filt_raref)
             if metric not in metrics_groups_metas_qzas_dms_trees2:
                 continue
             groups_metas_qzas_dms_trees2 = metrics_groups_metas_qzas_dms_trees2[metric]
@@ -205,7 +206,7 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
                                         dm_out1_tsv, dm_out2_tsv])
 
     job_folder = get_job_folder(i_datasets_folder, 'procrustes%s' % evaluation)
-    main_sh = write_main_sh(job_folder, '4_run_procrustes%s%s' % (evaluation, filt_raref), all_sh_pbs,
+    main_sh = write_main_sh(job_folder, '4_run_procrustes_%s%s%s' % (prjct_nm, evaluation, filt_raref), all_sh_pbs,
                             '%s.prcst%s%s' % (prjct_nm, evaluation, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
@@ -245,7 +246,7 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
         dms_tab_pd.to_csv(dms_tab_fp, index=False, sep='\t')
         out_R = '%s/pairs_proscrustes_results%s%s_%s.tsv' % (odir, evaluation, filt_raref, fp_num)
         job_folder = get_job_folder(i_datasets_folder, 'procrustes/R')
-        R_script = '%s/4_run_procrustes%s.R' % (job_folder, filt_raref)
+        R_script = '%s/4_run_procrustes_%s%s.R' % (job_folder, prjct_nm, filt_raref)
         with open(R_script, 'w') as o:
             o.write("library(vegan)\n")
             o.write("dms_files <- read.table('%s', h=T)\n" % dms_tab_fp)
@@ -278,7 +279,7 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
             o.write("}\n")
             o.write("write.table(x = res, file = '%s')\n" % out_R)
 
-        out_sh = '%s/4_run_procrustes%s_R%s.sh' % (job_folder, evaluation, filt_raref)
+        out_sh = '%s/4_run_procrustes_%s%s_R%s.sh' % (job_folder, prjct_nm, evaluation, filt_raref)
         out_pbs = '%s.pbs' % splitext(out_sh)[0]
         with open(out_sh, 'w') as o:
             o.write('R -f %s --vanilla\n' % R_script)
@@ -332,11 +333,12 @@ def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,
 
         job_folder2 = get_job_folder(i_datasets_folder, 'mantel%s/chunks/%s%s' % (evaluation, pair, filt_raref))
         if not split:
-            out_sh = '%s/run_mantel%s_%s%s.sh' % (job_folder2, evaluation, pair, filt_raref)
+            out_sh = '%s/run_mantel_%s%s_%s%s.sh' % (job_folder2, prjct_nm, evaluation, pair, filt_raref)
 
         for metric, groups_metas_qzas_dms_trees1 in metrics_groups_metas_qzas_dms_trees1.items():
             if split:
-                out_sh = '%s/run_mantel%s_%s_%s%s.sh' % (job_folder2, evaluation, pair, metric, filt_raref)
+                out_sh = '%s/run_mantel_%s%s_%s_%s%s.sh' % (job_folder2, prjct_nm, evaluation,
+                                                            pair, metric, filt_raref)
             if metric not in metrics_groups_metas_qzas_dms_trees2:
                 continue
             groups_metas_qzas_dms_trees2 = metrics_groups_metas_qzas_dms_trees2[metric]
@@ -397,7 +399,7 @@ def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,
                                                      mantel_out, cur_sh, cur, case_var, case_vals, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'mantel%s' % evaluation)
-    main_sh = write_main_sh(job_folder, '4_run_mantel%s%s' % (evaluation, filt_raref), all_sh_pbs,
+    main_sh = write_main_sh(job_folder, '4_run_mantel_%s%s%s' % (prjct_nm, evaluation, filt_raref), all_sh_pbs,
                             '%s.mntl%s%s' % (prjct_nm, evaluation, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],

@@ -69,7 +69,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     job_folder = get_job_folder(i_datasets_folder, 'rarefy%s' % evaluation)
     job_folder2 = get_job_folder(i_datasets_folder, 'rarefy%s/chunks' % evaluation)
     to_chunk = []
-    run_pbs = '%s/1_run_rarefy%s%s.sh' % (job_folder, evaluation, filt_raref)
+    run_pbs = '%s/1_run_rarefy_%s%s%s.sh' % (job_folder, prjct_nm, evaluation, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
 
@@ -89,7 +89,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 continue
 
             odir = get_analysis_folder(i_datasets_folder, 'rarefy%s/%s' % (evaluation, dat))
-            out_sh = '%s/run_rarefy%s_%s.sh' % (job_folder2, evaluation, dat)
+            out_sh = '%s/run_rarefy_%s%s_%s.sh' % (job_folder2, prjct_nm, evaluation, dat)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
 

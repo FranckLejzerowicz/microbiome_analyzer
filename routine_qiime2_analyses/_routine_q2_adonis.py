@@ -103,13 +103,13 @@ def run_adonis(p_formulas: str, i_datasets_folder: str, betas: dict,
         if dat not in formulas:
             continue
         if not split:
-            out_sh = '%s/run_adonis_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_adonis_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
         for idx, metric_groups_metas_qzas_dms_trees in enumerate(metric_groups_metas_qzas_dms_trees_):
             cur_depth = datasets_rarefs[dat][idx]
             odir = get_analysis_folder(i_datasets_folder, 'adonis/%s%s' % (dat, cur_depth))
             for metric, subset_files in metric_groups_metas_qzas_dms_trees.items():
                 if split:
-                    out_sh = '%s/run_adonis_%s_%s%s.sh' % (job_folder2, dat, metric, filt_raref)
+                    out_sh = '%s/run_adonis_%s_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, metric, filt_raref)
                 for subset, (meta, qza, mat_qza, tree) in subset_files.items():
                     if not isfile(mat_qza):
                         if not first_print:
@@ -136,7 +136,7 @@ def run_adonis(p_formulas: str, i_datasets_folder: str, betas: dict,
                                               form, formula, qza, mat_qza, meta_pd, cur_sh, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'adonis')
-    main_sh = write_main_sh(job_folder, '3_run_adonis%s' % filt_raref, all_sh_pbs,
+    main_sh = write_main_sh(job_folder, '3_run_adonis_%s%s' % (prjct_nm, filt_raref), all_sh_pbs,
                             '%s.dns%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],

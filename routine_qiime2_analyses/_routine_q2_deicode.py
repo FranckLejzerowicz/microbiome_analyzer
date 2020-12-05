@@ -87,7 +87,7 @@ def run_deicode(i_datasets_folder: str, datasets: dict, datasets_rarefs: dict,
     # jobs = []
     all_sh_pbs = {}
     for dat, tsv_meta_pds_ in datasets.items():
-        out_sh = '%s/run_deicode_%s%s.sh' % (job_folder2, dat, filt_raref)
+        out_sh = '%s/run_deicode_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
         for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
             cur_raref = datasets_rarefs[dat][idx]
             tsv, meta = tsv_meta_pds
@@ -96,14 +96,15 @@ def run_deicode(i_datasets_folder: str, datasets: dict, datasets_rarefs: dict,
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'DEICODE')
             odir = get_analysis_folder(i_datasets_folder, 'deicode/%s%s' % (dat, cur_raref))
             for case_var, case_vals_list in cases_dict.items():
-                cur_sh = '%s/run_beta_deicode_%s%s_%s%s.sh' % (job_folder2, dat, cur_raref, case_var, filt_raref)
+                cur_sh = '%s/run_beta_deicode_%s_%s%s_%s%s.sh' % (job_folder2, prjct_nm, dat,
+                                                                  cur_raref, case_var, filt_raref)
                 cur_sh = cur_sh.replace(' ', '-')
                 all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                 run_single_deicode(odir, tsv, meta_pd, case_var,
                                    case_vals_list, cur_sh, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'deicode')
-    main_sh = write_main_sh(job_folder, '3_run_beta_deicode%s' % filt_raref, all_sh_pbs,
+    main_sh = write_main_sh(job_folder, '3_run_beta_deicode_%s%s' % (filt_raref, prjct_nm), all_sh_pbs,
                             '%s.dcd%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],

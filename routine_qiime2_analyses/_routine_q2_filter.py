@@ -44,11 +44,11 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
 
     to_chunk = []
     main_written = 0
-    run_pbs = '%s/0_run_import%s.sh' % (job_folder, filt_raref)
+    run_pbs = '%s/0_run_import_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
             written = 0
-            out_sh = '%s/0_run_import_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/0_run_import_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for tsv_meta_pds in tsv_meta_pds_:  # REMOVE IF FIXED NOT KEPT
@@ -134,7 +134,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
     datasets_features_update = {}
     datasets_phylo_update = {}
     job_folder = get_job_folder(i_datasets_folder, 'import_filtered')
-    out_sh = '%s/1_run_import_filtered%s.sh' % (job_folder, filt_raref)
+    out_sh = '%s/1_run_import_filtered_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     out_pbs = '%s.pbs' % splitext(out_sh)[0]
     to_chunk = []
     with open(out_sh, 'w') as sh:

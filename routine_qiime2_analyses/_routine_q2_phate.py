@@ -87,25 +87,25 @@ def run_phate(p_phate_config: str, i_datasets_folder: str, datasets: dict,
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'phate')
             cur_raref = datasets_rarefs[dat][idx]
             if not split:
-                out_sh = '%s/run_phate_%s%s%s.sh' % (
-                    job_folder2, dat, filt_raref, cur_raref)
-                out_import_sh = '%s/run_import_phate_%s%s%s.sh' % (
-                    job_folder2, dat, filt_raref, cur_raref)
+                out_sh = '%s/run_phate_%s_%s%s%s.sh' % (
+                    job_folder2, prjct_nm, dat, filt_raref, cur_raref)
+                out_import_sh = '%s/run_import_phate_%s_%s%s%s.sh' % (
+                    job_folder2, prjct_nm, dat, filt_raref, cur_raref)
             odir = get_analysis_folder(i_datasets_folder, 'phate/%s' % dat)
             raref_phates = {}
             for filt, (fp, fa) in filters.items():
                 raref_phates[filt] = {}
                 if split:
-                    out_sh = '%s/run_phate_%s%s%s%s.sh' % (
-                        job_folder2, dat, filt_raref, cur_raref, filt)
-                    out_import_sh = '%s/run_import_phate_%s%s%s%s.sh' % (
-                        job_folder2, dat, filt_raref, cur_raref, filt)
+                    out_sh = '%s/run_phate_%s_%s%s%s%s.sh' % (
+                        job_folder2, prjct_nm, dat, filt_raref, cur_raref, filt)
+                    out_import_sh = '%s/run_import_phate_%s_%s%s%s%s.sh' % (
+                        job_folder2,prjct_nm, dat, filt_raref, cur_raref, filt)
                 for case_var, case_vals_list in cases_dict.items():
-                    cur_sh = '%s/run_phate_%s%s%s_%s_%s.sh' % (
-                        job_folder2, dat, filt_raref, cur_raref, case_var, filt)
+                    cur_sh = '%s/run_phate_%s_%s%s%s_%s_%s.sh' % (
+                        job_folder2, prjct_nm, dat, filt_raref, cur_raref, case_var, filt)
                     cur_sh = cur_sh.replace(' ', '-')
-                    cur_import_sh = '%s/run_import_phate_%s%s%s_%s_%s.sh' % (
-                        job_folder2, dat, filt_raref, cur_raref, case_var, filt)
+                    cur_import_sh = '%s/run_import_phate_%s_%s%s%s_%s_%s.sh' % (
+                        job_folder2, prjct_nm, dat, filt_raref, cur_raref, case_var, filt)
                     cur_import_sh = cur_import_sh.replace(' ', '-')
                     all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                     all_import_sh_pbs.setdefault((dat, out_import_sh), []).append(cur_import_sh)
@@ -117,7 +117,7 @@ def run_phate(p_phate_config: str, i_datasets_folder: str, datasets: dict,
             phates[dat].append(raref_phates)
 
     job_folder = get_job_folder(i_datasets_folder, 'phate')
-    main_sh = write_main_sh(job_folder, '3_run_import_phate%s' % filt_raref, all_import_sh_pbs,
+    main_sh = write_main_sh(job_folder, '3_run_import_phate_%s%s' % (prjct_nm, filt_raref), all_import_sh_pbs,
                             '%s.mrt.pht%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
@@ -131,7 +131,7 @@ def run_phate(p_phate_config: str, i_datasets_folder: str, datasets: dict,
             print('# Import for PHATE')
         print_message('', 'sh', main_sh, jobs)
 
-    main_sh = write_main_sh(job_folder, '3_run_phate%s' % filt_raref, all_sh_pbs,
+    main_sh = write_main_sh(job_folder, '3_run_phate_%s%s' % (prjct_nm, filt_raref), all_sh_pbs,
                             '%s.pht%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],

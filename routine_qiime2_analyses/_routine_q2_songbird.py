@@ -501,13 +501,14 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     songbird_outputs = []
     for dat, case_filts_tsvs_metas_pair in songbirds.items():
         if not split:
-            out_sh = '%s/run_songbird_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_songbird_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
         for (case, filt, tsv, meta_, pair) in case_filts_tsvs_metas_pair:
             if split:
                 if pair:
-                    out_sh = '%s/run_songbird_%s_%s_%s_%s%s.sh' % (job_folder2, dat, case, filt, pair, filt_raref)
+                    out_sh = '%s/run_songbird_%s_%s_%s_%s_%s%s.sh' % (job_folder2,prjct_nm, dat, case,
+                                                                      filt, pair, filt_raref)
                 else:
-                    out_sh = '%s/run_songbird_%s_%s_%s%s.sh' % (job_folder2, dat, case, filt, filt_raref)
+                    out_sh = '%s/run_songbird_%s_%s_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, case, filt, filt_raref)
 
             meta_alphas = '%s_alphas_full.tsv' % splitext(meta_)[0]
             if isfile(meta_alphas):
@@ -624,7 +625,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                                                  diffs, model_baseline, tensor_html, pair])
 
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
-    main_sh = write_main_sh(job_folder, '2_songbird%s' % filt_raref, all_sh_pbs,
+    main_sh = write_main_sh(job_folder, '2_songbird_%s%s' % (prjct_nm, filt_raref), all_sh_pbs,
                             '%s.sngbrd%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],

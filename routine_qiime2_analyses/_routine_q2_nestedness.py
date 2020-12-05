@@ -79,14 +79,14 @@ def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str
     nestedness_res = {}
     for dat, rarefs_metrics_groups_metas_qzas_dms_trees in betas.items():
         if not split:
-            out_sh = '%s/run_nestedness_%s%s.sh' % (job_folder2, dat, filt_raref)
+            out_sh = '%s/run_nestedness_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
         nestedness_res[dat] = []
         for idx, metrics_groups_metas_qzas_dms_trees in enumerate(rarefs_metrics_groups_metas_qzas_dms_trees):
             nestedness_raref = {}
             cur_raref = datasets_rarefs[dat][idx]
             odir = get_analysis_folder(i_datasets_folder, 'nestedness/%s%s' % (dat, cur_raref))
             if split:
-                out_sh = '%s/run_nestedness_%s%s%s.sh' % (job_folder2, dat, cur_raref, filt_raref)
+                out_sh = '%s/run_nestedness_%s_%s%s%s.sh' % (job_folder2, prjct_nm, dat, cur_raref, filt_raref)
             for _, groups_metas_qzas_dms_trees in metrics_groups_metas_qzas_dms_trees.items():
                 for group, (meta, qza, __, ___) in groups_metas_qzas_dms_trees.items():
                     meta_pd = read_meta_pd(meta).set_index('sample_name')
@@ -106,7 +106,7 @@ def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str
             nestedness_res[dat].append(nestedness_raref)
 
     job_folder = get_job_folder(i_datasets_folder, 'nestedness')
-    main_sh = write_main_sh(job_folder, '3_run_nestedness%s' % filt_raref, all_sh_pbs,
+    main_sh = write_main_sh(job_folder, '3_run_nestedness_%s%s' % (prjct_nm, filt_raref), all_sh_pbs,
                             '%s.prm%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
