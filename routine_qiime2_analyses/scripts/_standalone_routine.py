@@ -71,8 +71,8 @@ from routine_qiime2_analyses import __version__
          "(multiple values are possible, e.g. '-d sex -d age_cat')."
 )
 @click.option(
-    "-g", "--p-perm-groups", required=False, show_default=True, default=False,
-    help="Subsets for PERMANOVA. Must be a yaml file, e.g.\n"
+    "-g", "--p-beta-groups", required=False, show_default=True, default=False,
+    help="Subsets for DMs, PCoAs, PERMANOVAs, etc. Must be a yaml file, e.g.\n"
          "(see example in 'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
@@ -262,7 +262,7 @@ def standalone_routine(
         p_alpha_subsets,
         p_beta_subsets,
         p_perm_tests,
-        p_perm_groups,
+        p_beta_groups,
         p_nestedness_groups,
         p_beta_type,
         p_procrustes,
@@ -312,7 +312,7 @@ def standalone_routine(
         p_alpha_subsets,
         p_beta_subsets,
         p_perm_tests,
-        p_perm_groups,
+        p_beta_groups,
         p_nestedness_groups,
         p_beta_type,
         p_procrustes,

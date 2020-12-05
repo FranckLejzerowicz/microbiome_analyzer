@@ -82,32 +82,6 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
         print_message('# Import tables to qiime2', 'sh', run_pbs, jobs)
 
 
-
-    # out_sh = '%s/0_run_import%s.sh' % (job_folder, filt_raref)
-    # out_pbs = '%s.pbs' % splitext(out_sh)[0]
-    # written = 0
-    # to_chunk = []
-    # with open(out_sh, 'w') as sh:
-    #     for dat, tsv_meta_pds_ in datasets.items():
-    #         for tsv_meta_pds in tsv_meta_pds_: # REMOVE IF FIXED NOT KEPT
-    #             tsv, meta = tsv_meta_pds
-    #             qza = '%s.qza' % splitext(tsv)[0]
-    #             if datasets_phylo[dat][1]:
-    #                 cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
-    #                 sh.write('echo "%s"\n' % cmd)
-    #                 sh.write('%s\n' % cmd)
-    #                 written += 1
-    #             elif force or not isfile(qza):
-    #                 cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
-    #                 sh.write('echo "%s"\n' % cmd)
-    #                 sh.write('%s\n' % cmd)
-    #                 written += 1
-    # run_xpbs(out_sh, out_pbs, '%s.mprt%s' % (prjct_nm, filt_raref), qiime_env,
-    #          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-    #          run_params["mem_num"], run_params["mem_dim"],
-    #          chmod, written, '# Import tables to qiime2', None, noloc, jobs)
-
-
 def get_threshs(p_filt_threshs):
     if not isfile(p_filt_threshs):
         print('yaml file for filtering thresholds does not exist:\n%s\nExiting...' % p_filt_threshs)
@@ -117,7 +91,6 @@ def get_threshs(p_filt_threshs):
             threshs_d = yaml.load(handle, Loader=yaml.FullLoader)
         except AttributeError:
             threshs_d = yaml.load(handle)
-
         return threshs_d
 
 

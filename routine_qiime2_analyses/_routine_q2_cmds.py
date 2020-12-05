@@ -480,8 +480,9 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
     return cmd
 
 
-def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: str,
-                         qza: str, metric: str, cur_sh: TextIO, qiime_env: str, nnodes, nprocs, subset: bool) -> str:
+def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict,
+                         dat: str, qza: str, metric: str, cur_sh: TextIO,
+                         qiime_env: str, nnodes, nprocs, subset: bool) -> str:
     """
     Computes a user-specified beta diversity metric for all pairs of samples
     in a feature table.
@@ -526,6 +527,24 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict, dat: st
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
     return tree
+
+
+def write_beta_subset(out_fp: str, out_case_fp: str, new_meta: str, cur_sh: TextIO):
+    cmd = 'qiime diversity filter-distance-matrix \\\n'
+    cmd += '--i-distance-matrix %s \\\n' % out_fp
+    cmd += '--m-metadata-file %s \\\n' % new_meta
+    cmd += '--o-filtered-distance-matrix %s\n' % out_case_fp
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n' % cmd)
+
+
+def write_qza_subset(qza: str, qza_case_fp: str, new_meta: str, cur_sh: TextIO):
+    cmd = 'qiime feature-table filter-samples \\\n'
+    cmd += '--i-table %s \\\n' % qza
+    cmd += '--m-metadata-file %s \\\n' % new_meta
+    cmd += '--o-filtered-table %s\n' % qza_case_fp
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n' % cmd)
 
 
 def write_collapse_taxo(tab_qza: str, tax_qza: str,

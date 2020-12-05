@@ -8,19 +8,25 @@
 
 import os, sys
 import pandas as pd
-from os.path import basename, dirname, isfile, splitext
+from os.path import basename, dirname, isfile, splitext, isdir
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
     get_metrics,
     get_job_folder,
     get_analysis_folder,
+    get_main_cases_dict,
     read_yaml_file,
     get_raref_tab_meta_pds,
     simple_chunks
 )
+from routine_qiime2_analyses._routine_q2_metadata import (
+    check_metadata_cases_dict
+)
 from routine_qiime2_analyses._routine_q2_cmds import (
     write_diversity_beta,
+    write_beta_subset,
+    write_qza_subset,
     write_diversity_pcoa,
     write_diversity_biplot,
     write_emperor,
@@ -29,14 +35,16 @@ from routine_qiime2_analyses._routine_q2_cmds import (
     write_empress_biplot,
     get_subset,
     run_export,
-    run_import
+    run_import,
+    get_case,
+    get_new_meta_pd
 )
 
 
 def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
              datasets_read: dict, datasets_rarefs: dict, p_beta_subsets: str,
-             trees: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-             noloc: bool, Bs: tuple, dropout: bool, run_params: dict,
+             p_perm_groups: str, trees: dict, force: bool, prjct_nm: str, qiime_env: str,
+             chmod: str, noloc: bool, Bs: tuple, dropout: bool, run_params: dict,
              filt_raref: str, eval_depths: dict, jobs: bool, chunkit: int) -> dict:
     """
     Run beta: Beta diversity.
@@ -61,6 +69,8 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
     job_folder = get_job_folder(i_datasets_folder, 'beta%s' % evaluation)
     job_folder2 = get_job_folder(i_datasets_folder, 'beta%s/chunks' % evaluation)
 
+    main_cases_dict = get_main_cases_dict(p_perm_groups)
+
     betas = {}
     to_chunk = []
     main_written = 0
@@ -83,6 +93,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                         datasets_read[dat][idx] = [tsv_pd, meta_pd]
                     else:
                         tsv_pd, meta_pd = datasets_read[dat][idx]
+
                     cur_raref = datasets_rarefs[dat][idx]
                     divs = {}
                     for metric in beta_metrics:
@@ -91,7 +102,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                 continue
                         qza = tsv.replace('.tsv', '.qza')
                         if metric not in divs:
-                            divs[metric] = {}
+                            divs[metric] = {'': []}
 
                         odir = get_analysis_folder(i_datasets_folder, 'beta%s/%s%s' % (evaluation, dat, cur_raref))
                         out_fp = '%s/%s_%s_DM.qza' % (odir, basename(splitext(qza)[0]), metric)
@@ -106,7 +117,34 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                             tree = ''
                             if 'unifrac' in metric:
                                 tree = trees[dat][1]
-                        divs[metric][''] = (meta, qza, out_fp, tree)
+                        divs[metric][''].append((meta, qza, out_fp, tree))
+
+                        cases_dict = check_metadata_cases_dict(
+                            meta, meta_pd, dict(main_cases_dict), 'BETA')
+                        for case_var, case_vals_list in cases_dict.items():
+                            if case_var == 'ALL':
+                                continue
+                            for case_vals in case_vals_list:
+                                case = get_case(case_vals, case_var).replace(' ', '_')
+                                out_case_fp = '%s/%s__%s/%s_%s_DM.qza' % (
+                                    odir, case_var, '-'.join(case_vals),
+                                    basename(splitext(qza)[0]), metric)
+                                qza_case_fp = '%s/%s__%s/%s' % (
+                                    dirname(qza), case_var, '-'.join(case_vals), basename(qza))
+                                if not isdir(dirname(out_case_fp)):
+                                    os.makedirs(dirname(out_case_fp))
+                                if not isdir(dirname(qza_case_fp)):
+                                    os.makedirs(dirname(qza_case_fp))
+                                new_meta = '%s.meta' % os.path.splitext(out_case_fp)[0]
+                                if force or not os.path.isfile(out_case_fp):
+                                    new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+                                    new_meta_pd.to_csv(new_meta, index=False, sep='\t')
+                                    write_beta_subset(out_fp, out_case_fp, new_meta, cur_sh)
+                                    written += 1
+                                    main_written += 1
+                                if force or not isfile(qza_case_fp):
+                                    write_qza_subset(qza, qza_case_fp, new_meta, cur_sh)
+                                divs[metric][''].append((meta, qza_case_fp, out_case_fp, tree))
 
                     if beta_subsets and dat in beta_subsets:
                         for subset, subset_regex in beta_subsets[dat].items():
@@ -137,7 +175,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                 if tsv_subset not in subset_done:
                                     tsv_subset_pd = tsv_to_subset_pd.loc[[x for x in subset_feats if x in tsv_to_subset_pd.index],:].copy()
                                     if dropout:
-                                        tsv_subset_pd = tsv_subset_pd.loc[:,tsv_subset_pd.sum(0)>0]
+                                        tsv_subset_pd = tsv_subset_pd.loc[:, tsv_subset_pd.sum(0)>0]
                                     tsv_subset_pd.to_csv(tsv_subset, index=True, sep='\t')
 
                                     cmd = run_import(tsv_subset, qza_subset, 'FeatureTable')
@@ -157,7 +195,34 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                     if 'unifrac' in metric:
                                         tree = trees[dat][1]
 
-                                divs[metric][subset] = (meta, qza_subset, out_fp, tree)
+                                divs[metric][subset] = [(meta, qza_subset, out_fp, tree)]
+
+                                cases_dict = check_metadata_cases_dict(
+                                    meta, meta_pd, dict(main_cases_dict), 'BETA')
+                                for case_var, case_vals_list in cases_dict.items():
+                                    if case_var == 'ALL':
+                                        continue
+                                    for case_vals in case_vals_list:
+                                        case = get_case(case_vals, case_var).replace(' ', '_')
+                                        out_case_fp = '%s/%s__%s/%s_%s_DM.qza' % (
+                                            odir, case_var, '-'.join(case_vals),
+                                            basename(splitext(qza_subset)[0]), metric)
+                                        qza_case_fp = '%s/%s__%s/%s' % (
+                                            dirname(qza_subset), case_var, '-'.join(case_vals), basename(qza_subset))
+                                        if not isdir(dirname(out_case_fp)):
+                                            os.makedirs(dirname(out_case_fp))
+                                        if not isdir(dirname(qza_case_fp)):
+                                            os.makedirs(dirname(qza_case_fp))
+                                        new_meta = '%s.meta' % os.path.splitext(out_case_fp)[0]
+                                        if force or not os.path.isfile(out_case_fp):
+                                            new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+                                            new_meta_pd.to_csv(new_meta, index=False, sep='\t')
+                                            write_beta_subset(out_fp, out_case_fp, new_meta, cur_sh)
+                                            written += 1
+                                            main_written += 1
+                                        if force or not isfile(qza_case_fp):
+                                            write_qza_subset(qza, qza_case_fp, new_meta, cur_sh)
+                                        divs[metric][''].append((meta, qza_case_fp, out_case_fp, tree))
                     betas[dat].append(divs)
             to_chunk.append(out_sh)
             if not chunkit:
@@ -175,6 +240,151 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
     if main_written:
         print_message('# Calculate beta diversity indices', 'sh', run_pbs, jobs)
     return betas
+
+
+# def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
+#              datasets_read: dict, datasets_rarefs: dict, p_beta_subsets: str,
+#              p_beta_groups: str, trees: dict, force: bool, prjct_nm: str, qiime_env: str,
+#              chmod: str, noloc: bool, Bs: tuple, dropout: bool, run_params: dict,
+#              filt_raref: str, eval_depths: dict, jobs: bool, chunkit: int) -> dict:
+#     """
+#     Run beta: Beta diversity.
+#     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta/
+#
+#     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+#     :param betas: beta diversity matrices.
+#     :param datasets: list of datasets.
+#     :param datasets_phylo: phylogenetic decision for each dataset.
+#     :param trees: phylogenetic trees.
+#     :param force: Force the re-writing of scripts for all commands.
+#     :param prjct_nm: Nick name for your project.
+#     :param qiime_env: qiime2-xxxx.xx conda environment.
+#     :param chmod: whether to change permission of output files (defalt: 775).
+#     :return: deta divesity matrices.
+#     """
+#     evaluation = ''
+#     if len(eval_depths):
+#         evaluation = '_eval'
+#     beta_metrics = get_metrics('beta_metrics', Bs)
+#     beta_subsets = read_yaml_file(p_beta_subsets)
+#     job_folder = get_job_folder(i_datasets_folder, 'beta%s' % evaluation)
+#     job_folder2 = get_job_folder(i_datasets_folder, 'beta%s/chunks' % evaluation)
+#
+#     betas = {}
+#     to_chunk = []
+#     main_written = 0
+#     run_pbs = '%s/2_run_beta%s%s.sh' % (job_folder, evaluation, filt_raref)
+#     with open(run_pbs, 'w') as o:
+#
+#         for dat, tsv_meta_pds_ in datasets.items():
+#             written = 0
+#             betas[dat] = []
+#             out_sh = '%s/run_beta%s_%s%s.sh' % (job_folder2, evaluation, dat, filt_raref)
+#             out_pbs = '%s.pbs' % splitext(out_sh)[0]
+#             with open(out_sh, 'w') as cur_sh:
+#                 for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
+#                     tsv, meta = tsv_meta_pds
+#                     if not isinstance(datasets_read[dat][idx][0], pd.DataFrame) and datasets_read[dat][idx][0] == 'raref':
+#                         if not isfile(tsv):
+#                             print('Must have run rarefaction to use it further...\nExiting')
+#                             sys.exit(0)
+#                         tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
+#                         datasets_read[dat][idx] = [tsv_pd, meta_pd]
+#                     else:
+#                         tsv_pd, meta_pd = datasets_read[dat][idx]
+#
+#                     cur_raref = datasets_rarefs[dat][idx]
+#                     divs = {}
+#                     for metric in beta_metrics:
+#                         if 'unifrac' in metric:
+#                             if not datasets_phylo[dat][0] or dat not in trees:
+#                                 continue
+#                         qza = tsv.replace('.tsv', '.qza')
+#                         if metric not in divs:
+#                             divs[metric] = {}
+#
+#                         odir = get_analysis_folder(i_datasets_folder, 'beta%s/%s%s' % (evaluation, dat, cur_raref))
+#                         out_fp = '%s/%s_%s_DM.qza' % (odir, basename(splitext(qza)[0]), metric)
+#                         if force or not os.path.isfile(out_fp):
+#                             tree = write_diversity_beta(out_fp, datasets_phylo, trees,
+#                                                         dat, qza, metric, cur_sh, qiime_env,
+#                                                         run_params["n_nodes"],
+#                                                         run_params["n_procs"], False)
+#                             written += 1
+#                             main_written += 1
+#                         else:
+#                             tree = ''
+#                             if 'unifrac' in metric:
+#                                 tree = trees[dat][1]
+#                         divs[metric][''] = (meta, qza, out_fp, tree)
+#
+#                     if beta_subsets and dat in beta_subsets:
+#                         for subset, subset_regex in beta_subsets[dat].items():
+#                             subset_done = set()
+#                             odir = get_analysis_folder(i_datasets_folder, 'beta%s/%s%s/%s' % (
+#                                 evaluation, dat, cur_raref, subset))
+#                             for metric in beta_metrics:
+#                                 qza_to_subset = tsv.replace('.tsv', '.qza')
+#                                 tsv_to_subset_pd = tsv_pd
+#                                 if 'unifrac' in metric:
+#                                     if not datasets_phylo[dat][0] or dat not in trees:
+#                                         continue
+#                                     if datasets_phylo[dat][1]:
+#                                         qza_to_subset = trees[dat][0]
+#                                         tsv_to_subset = '%s.tsv' % splitext(qza_to_subset)[0]
+#                                         tsv_to_subset_pd = pd.read_csv(tsv_to_subset, header=0, index_col=0,
+#                                                                  sep='\t', low_memory=False)
+#                                 if dropout:
+#                                     qza_subset = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]), subset)
+#                                 else:
+#                                     qza_subset = '%s/%s_%s_noDropout.qza' % (odir, basename(splitext(qza)[0]), subset)
+#                                 tsv_subset = '%s.tsv' % splitext(qza_subset)[0]
+#
+#                                 subset_feats = get_subset(tsv_to_subset_pd, subset_regex)
+#                                 if not len(subset_feats):
+#                                     continue
+#
+#                                 if tsv_subset not in subset_done:
+#                                     tsv_subset_pd = tsv_to_subset_pd.loc[[x for x in subset_feats if x in tsv_to_subset_pd.index],:].copy()
+#                                     if dropout:
+#                                         tsv_subset_pd = tsv_subset_pd.loc[:,tsv_subset_pd.sum(0)>0]
+#                                     tsv_subset_pd.to_csv(tsv_subset, index=True, sep='\t')
+#
+#                                     cmd = run_import(tsv_subset, qza_subset, 'FeatureTable')
+#                                     cur_sh.write('%s\n\n' % cmd)
+#                                     subset_done.add(tsv_subset)
+#                                 out_fp = '%s/%s__%s_DM.qza' % (odir, basename(splitext(qza_subset)[0]), metric)
+#                                 if force or not isfile(out_fp):
+#                                     tree = write_diversity_beta(out_fp, {dat: [1, 0]}, trees,
+#                                                                 dat, qza_subset, metric,
+#                                                                 cur_sh, qiime_env,
+#                                                                 run_params["n_nodes"],
+#                                                                 run_params["n_procs"], True)
+#                                     written += 1
+#                                     main_written += 1
+#                                 else:
+#                                     tree = ''
+#                                     if 'unifrac' in metric:
+#                                         tree = trees[dat][1]
+#
+#                                 divs[metric][subset] = (meta, qza_subset, out_fp, tree)
+#                     betas[dat].append(divs)
+#             to_chunk.append(out_sh)
+#             if not chunkit:
+#                 run_xpbs(out_sh, out_pbs, '%s.bt%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref), qiime_env,
+#                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+#                          run_params["mem_num"], run_params["mem_dim"],
+#                          chmod, written, 'single', o, noloc, jobs)
+#
+#     if to_chunk:
+#         simple_chunks(run_pbs, job_folder2, to_chunk, 'beta',
+#                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+#                       run_params["mem_num"], run_params["mem_dim"],
+#                       qiime_env, chmod, noloc, jobs, chunkit, None)
+#
+#     if main_written:
+#         print_message('# Calculate beta diversity indices', 'sh', run_pbs, jobs)
+#     return betas
 
 
 def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
@@ -205,13 +415,14 @@ def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
             with open(out_sh, 'w') as cur_sh:
                 for idx, metric_group_meta_dms in enumerate(metric_group_meta_dms_):
                     for metric, group_meta_dms in metric_group_meta_dms.items():
-                        for group, (meta, qza, dm, tree) in group_meta_dms.items():
-                            mat_export = '%s.tsv' % splitext(dm)[0]
-                            if force or not isfile(mat_export):
-                                cmd = run_export(dm, mat_export, '')
-                                cur_sh.write('echo "%s"\n' % cmd)
-                                cur_sh.write('%s\n\n' % cmd)
-                                written += 1
+                        for group, meta_qza_dm_tree in group_meta_dms.items():
+                            for (meta, qza, dm, tree) in meta_qza_dm_tree:
+                                mat_export = '%s.tsv' % splitext(dm)[0]
+                                if force or not isfile(mat_export):
+                                    cmd = run_export(dm, mat_export, '')
+                                    cur_sh.write('echo "%s"\n' % cmd)
+                                    cur_sh.write('%s\n\n' % cmd)
+                                    written += 1
             if written:
                 main_written += 1
                 to_chunk.append(out_sh)
@@ -286,17 +497,18 @@ def run_pcoas(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                     cur_depth = datasets_rarefs[dat][idx]
                     get_analysis_folder(i_datasets_folder, 'pcoa/%s%s' % (dat, cur_depth))
                     for metric, group_meta_dms in metric_groups_metas_dms.items():
-                        for group, (meta, qza, dm, tree) in group_meta_dms.items():
-                            out = '%s_PCoA.qza' % splitext(dm)[0].replace('/beta/', '/pcoa/')
-                            out_tsv = '%s.tsv' % splitext(out)[0]
-                            out_dir = os.path.dirname(out)
-                            if not os.path.isdir(out_dir):
-                                os.makedirs(out_dir)
-                            dat_pcoas.append((meta, out, qza, tree))
-                            if force or not isfile(out) or not isfile(out_tsv):
-                                write_diversity_pcoa(dm, out, out_tsv, cur_sh)
-                                written += 1
-                                main_written += 1
+                        for group, meta_qza_dm_tree in group_meta_dms.items():
+                            for (meta, qza, dm, tree) in meta_qza_dm_tree:
+                                out = '%s_PCoA.qza' % splitext(dm)[0].replace('/beta/', '/pcoa/')
+                                out_tsv = '%s.tsv' % splitext(out)[0]
+                                out_dir = os.path.dirname(out)
+                                if not os.path.isdir(out_dir):
+                                    os.makedirs(out_dir)
+                                dat_pcoas.append((meta, out, qza, tree))
+                                if force or not isfile(out) or not isfile(out_tsv):
+                                    write_diversity_pcoa(dm, out, out_tsv, cur_sh)
+                                    written += 1
+                                    main_written += 1
                     pcoas_d[dat].append(dat_pcoas)
             to_chunk.append(out_sh)
             if not chunkit:
@@ -422,22 +634,25 @@ def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                     cur_depth = datasets_rarefs[dat][idx]
                     get_analysis_folder(i_datasets_folder, 'biplot/%s%s' % (dat, cur_depth))
                     for metric, group_meta_dms in metric_groups_metas_dms.items():
-                        for group, (meta, qza, dm, tree) in group_meta_dms.items():
-                            tsv = '%s.tsv' % splitext(qza)[0]
-                            out_pcoa = '%s_PCoA.qza' % splitext(dm)[0].replace('/beta/', '/pcoa/')
-                            out_biplot = '%s_biplot.qza' % splitext(dm)[0].replace('/beta/', '/biplot/')
-                            out_biplot2 = '%s_biplot_raw.qza' % splitext(dm)[0].replace('/beta/', '/biplot/')
-                            out_dir = os.path.dirname(out_biplot)
-                            if not os.path.isdir(out_dir):
-                                os.makedirs(out_dir)
-                            tsv_tax = '%s_tax.tsv' % splitext(out_biplot)[0]
-                            if force or not isfile(out_biplot) or not isfile(out_biplot2):
-                                write_diversity_biplot(tsv, qza, out_pcoa, out_biplot,
-                                                       out_biplot2, tax_qza, tsv_tax, cur_sh)
-                                written += 1
-                                main_written += 1
-                            dat_biplots.setdefault(meta, []).append((out_biplot, tsv_tax, qza, tree))
-                            dat_biplots2.setdefault(meta, []).append((out_biplot2, tsv_tax, qza, tree))
+                        for group, meta_qza_dm_tree in group_meta_dms.items():
+                            for (meta, qza, dm, tree) in meta_qza_dm_tree:
+                                tsv = '%s.tsv' % splitext(qza)[0]
+                                if not isfile(tsv):
+                                    continue
+                                out_pcoa = '%s_PCoA.qza' % splitext(dm)[0].replace('/beta/', '/pcoa/')
+                                out_biplot = '%s_biplot.qza' % splitext(dm)[0].replace('/beta/', '/biplot/')
+                                out_biplot2 = '%s_biplot_raw.qza' % splitext(dm)[0].replace('/beta/', '/biplot/')
+                                out_dir = os.path.dirname(out_biplot)
+                                if not os.path.isdir(out_dir):
+                                    os.makedirs(out_dir)
+                                tsv_tax = '%s_tax.tsv' % splitext(out_biplot)[0]
+                                if force or not isfile(out_biplot) or not isfile(out_biplot2):
+                                    write_diversity_biplot(tsv, qza, out_pcoa, out_biplot,
+                                                           out_biplot2, tax_qza, tsv_tax, cur_sh)
+                                    written += 1
+                                    main_written += 1
+                                dat_biplots.setdefault(meta, []).append((out_biplot, tsv_tax, qza, tree))
+                                dat_biplots2.setdefault(meta, []).append((out_biplot2, tsv_tax, qza, tree))
                     biplots_d[dat].append(dat_biplots)
                     biplots_d2[dat].append(dat_biplots2)
             to_chunk.append(out_sh)

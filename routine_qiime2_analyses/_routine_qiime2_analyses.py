@@ -54,7 +54,7 @@ def routine_qiime2_analyses(
         p_alpha_subsets: str,
         p_beta_subsets: str,
         p_perm_tests: tuple,
-        p_perm_groups: str,
+        p_beta_groups: str,
         p_nestedness_groups: str,
         p_beta_type: tuple,
         p_procrustes: str,
@@ -289,9 +289,9 @@ def routine_qiime2_analyses(
         print('(betas)')
         betas = run_beta(i_datasets_folder, datasets, datasets_phylo,
                          datasets_read, datasets_rarefs, p_beta_subsets,
-                         trees, force, prjct_nm, qiime_env, chmod, noloc,
-                         Bs, dropout, run_params['beta'], filt_raref,
-                         eval_depths, jobs, chunkit)
+                         p_beta_groups, trees, force, prjct_nm, qiime_env,
+                         chmod, noloc, Bs, dropout, run_params['beta'],
+                         filt_raref, eval_depths, jobs, chunkit)
         if 'export_beta' not in p_skip:
             print('(export_beta)')
             export_beta(i_datasets_folder, betas, datasets_rarefs,
@@ -333,20 +333,20 @@ def routine_qiime2_analyses(
     if 'alpha' not in p_skip and 'alpha_group_significance' not in p_skip and 'alpha_kw' not in p_skip:
         print('(run_alpha_group_significance)')
         run_alpha_group_significance(i_datasets_folder, datasets, diversities,
-                                     datasets_rarefs, p_perm_groups, force,
+                                     datasets_rarefs, p_beta_groups, force,
                                      prjct_nm, qiime_env, chmod, noloc, As, split,
                                      run_params['alpha_kw'], filt_raref, jobs, chunkit)
 
     if 'beta' not in p_skip and 'deicode' not in p_skip:
         print('(run_deicode)')
         run_deicode(i_datasets_folder, datasets, datasets_rarefs,
-                    p_perm_groups, force, prjct_nm, qiime_env, chmod,
+                    p_beta_groups, force, prjct_nm, qiime_env, chmod,
                     noloc, run_params['deicode'], filt_raref, jobs, chunkit)
 
     if 'beta' not in p_skip and p_perm_tests and 'permanova' not in p_skip:
         print('(run_permanova)')
         permanovas = run_permanova(i_datasets_folder, betas, p_perm_tests,
-                                   p_beta_type, datasets_rarefs, p_perm_groups,
+                                   p_beta_type, datasets_rarefs, p_beta_groups,
                                    force, prjct_nm, qiime_env, chmod, noloc, split,
                                    run_params['permanova'], filt_raref, jobs, chunkit)
 
@@ -358,7 +358,7 @@ def routine_qiime2_analyses(
     if 'beta' not in p_skip and p_formulas and 'adonis' not in p_skip:
         print('(run_adonis)')
         run_adonis(p_formulas, i_datasets_folder, betas, datasets_rarefs,
-                   p_perm_groups, force, prjct_nm, qiime_env, chmod,
+                   p_beta_groups, force, prjct_nm, qiime_env, chmod,
                    noloc, split, run_params['adonis'], filt_raref, jobs, chunkit)
 
     if 'beta' not in p_skip and p_procrustes and 'procrustes' not in p_skip:
