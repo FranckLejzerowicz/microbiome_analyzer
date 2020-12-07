@@ -417,6 +417,11 @@ def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                     for metric, group_meta_dms in metric_group_meta_dms.items():
                         for group, meta_qza_dm_tree in group_meta_dms.items():
                             for (meta, qza, dm, tree) in meta_qza_dm_tree:
+                                print()
+                                print(meta)
+                                print(qza)
+                                print(dm)
+                                print(tree)
                                 mat_export = '%s.tsv' % splitext(dm)[0]
                                 if force or not isfile(mat_export):
                                     cmd = run_export(dm, mat_export, '')
