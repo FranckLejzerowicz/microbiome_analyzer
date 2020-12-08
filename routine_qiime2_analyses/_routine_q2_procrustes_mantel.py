@@ -98,7 +98,7 @@ def get_meta_qza_dm_trees_d(meta_qza_dm_trees):
     meta_qza_dm_tree1s_d = {'': meta_qza_dm_trees[0]}
     if len(meta_qza_dm_trees) > 1:
         for (meta, qza, dm, tree) in meta_qza_dm_trees[1:]:
-            meta_qza_dm_tree1s_d['/%s' % dm.split('/')[-2]] = (meta, qza, dm, tree)
+            meta_qza_dm_tree1s_d[dm.split('/')[-2]] = (meta, qza, dm, tree)
     return meta_qza_dm_tree1s_d
 
 
@@ -165,62 +165,55 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
                 else:
                     group2 = group2_
 
-                meta_qza_dm_tree1s_d = get_meta_qza_dm_trees_d(groups_metas_qzas_dms_trees1[group1_])
-                meta_qza_dm_tree2s_d = get_meta_qza_dm_trees_d(groups_metas_qzas_dms_trees2[group2_])
+                meta1, qza1, dm1, tree1 = groups_metas_qzas_dms_trees1[group1_][0]
+                meta2, qza2, dm2, tree2 = groups_metas_qzas_dms_trees2[group2_][0]
 
-                for beta_subset, (meta1, qza1, dm1, tree1) in meta_qza_dm_tree1s_d.items():
-                    if beta_subset not in meta_qza_dm_tree2s_d:
-                        continue
-                    meta2, qza2, dm2, tree2 = meta_qza_dm_tree2s_d[beta_subset]
+                skip = 0
+                if not evaluation:
+                    if '__raref' in dat1_:
+                        dm1, meta1 = get_dm_meta(dat1, dm1, meta1, raref1, metric, i_datasets_folder, skip)
+                    if '__raref' in dat2_:
+                        dm2, meta2 = get_dm_meta(dat2, dm2, meta2, raref2, metric, i_datasets_folder, skip)
+                if skip:
+                    print('[Proscustes] One desired rarefaction depth not run (pair %s)' % pair)
+                    continue
 
-                    skip = 0
-                    if not evaluation:
-                        if '__raref' in dat1_:
-                            dm1, meta1 = get_dm_meta(dat1, dm1, meta1, raref1, metric, i_datasets_folder, skip)
-                        if '__raref' in dat2_:
-                            dm2, meta2 = get_dm_meta(dat2, dm2, meta2, raref2, metric, i_datasets_folder, skip)
-                    if skip:
-                        print('[Proscustes] One desired rarefaction depth not run (pair %s)' % pair)
-                        continue
+                meta_pd1 = read_meta_pd(meta1)
+                meta_pd2 = read_meta_pd(meta2)
+                common_sams = list(
+                    set(meta_pd1.sample_name) &
+                    set(meta_pd2.sample_name)
+                )
+                if len(common_sams) < 3:
+                    continue
 
-                    meta_pd1 = read_meta_pd(meta1)
-                    meta_pd2 = read_meta_pd(meta2)
-                    common_sams = list(
-                        set(meta_pd1.sample_name) &
-                        set(meta_pd2.sample_name)
-                    )
-                    if len(common_sams) < 3:
-                        continue
+                meta_pd = meta_pd1.loc[meta_pd1.sample_name.isin(common_sams)]
+                cases_dict = check_metadata_cases_dict(
+                    meta1, meta_pd, dict(procrustes_subsets), 'procrustes')
+                odir = get_analysis_folder(
+                    i_datasets_folder, 'procrustes%s/%s%s/%s_vs_%s' % (
+                        evaluation, pair, filt_raref, group1, group2))
+                job_folder3 = get_job_folder(
+                    i_datasets_folder, 'procrustes%s/chunks/%s%s/%s_vs_%s' % (
+                        evaluation, pair, filt_raref, group1, group2))
+                for case_var, case_vals_list in cases_dict.items():
+                    for case_vals in case_vals_list:
+                        case_ = get_case(case_vals, case_var).replace(' ', '_')
+                        cur = '%s__%s' % (metric, case_)
+                        cur_sh = '%s/run_procrustes%s_%s%s.sh' % (job_folder3, evaluation, cur, filt_raref)
+                        cur_sh = cur_sh.replace(' ', '-')
+                        all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
 
-                    meta_pd = meta_pd1.loc[meta_pd1.sample_name.isin(common_sams)]
-                    cases_dict = check_metadata_cases_dict(
-                        meta1, meta_pd, dict(procrustes_subsets), 'procrustes')
-                    odir = get_analysis_folder(
-                        i_datasets_folder, 'procrustes%s/%s%s/%s_vs_%s%s' % (
-                            evaluation, pair, filt_raref, group1, group2, beta_subset)
-                    )
-                    job_folder3 = get_job_folder(
-                        i_datasets_folder, 'procrustes%s/chunks/%s%s/%s_vs_%s%s' % (
-                            evaluation, pair, filt_raref, group1, group2, beta_subset)
-                    )
-                    for case_var, case_vals_list in cases_dict.items():
-                        for case_vals in case_vals_list:
-                            case_ = get_case(case_vals, case_var).replace(' ', '_')
-                            cur = '%s__%s' % (metric, case_)
-                            cur_sh = '%s/run_procrustes%s_%s%s.sh' % (job_folder3, evaluation, cur, filt_raref)
-                            cur_sh = cur_sh.replace(' ', '-')
-                            all_sh_pbs.setdefault((pair, out_sh), []).append(cur_sh)
-
-                            dm_out1 = '%s/dm_%s__%s_DM.qza' % (odir, dat1_, cur)
-                            dm_out2 = '%s/dm_%s__%s_DM.qza' % (odir, dat2_, cur)
-                            dm_out1_tsv = '%s.tsv' % splitext(dm_out1)[0]
-                            dm_out2_tsv = '%s.tsv' % splitext(dm_out2)[0]
-                            biplot = '%s/procrustes%s_%s__%s__%s.qzv' % (odir, evaluation, dat1_, dat2_, cur)
-                            run_single_procrustes_mantel('procrustes', odir, dm1, dm2, meta_pd, dm_out1, dm_out2,
-                                                         biplot, cur_sh, cur, case_var, case_vals, force)
-                            dms_tab.append([pair, dat1_, dat2_,
-                                            group1, group2, case_, metric,
-                                            dm_out1_tsv, dm_out2_tsv])
+                        dm_out1 = '%s/dm_%s__%s_DM.qza' % (odir, dat1_, cur)
+                        dm_out2 = '%s/dm_%s__%s_DM.qza' % (odir, dat2_, cur)
+                        dm_out1_tsv = '%s.tsv' % splitext(dm_out1)[0]
+                        dm_out2_tsv = '%s.tsv' % splitext(dm_out2)[0]
+                        biplot = '%s/procrustes%s_%s__%s__%s.qzv' % (odir, evaluation, dat1_, dat2_, cur)
+                        run_single_procrustes_mantel('procrustes', odir, dm1, dm2, meta_pd, dm_out1, dm_out2,
+                                                     biplot, cur_sh, cur, case_var, case_vals, force)
+                        dms_tab.append([pair, dat1_, dat2_,
+                                        group1, group2, case_, metric,
+                                        dm_out1_tsv, dm_out2_tsv])
 
     job_folder = get_job_folder(i_datasets_folder, 'procrustes%s' % evaluation)
     main_sh = write_main_sh(job_folder, '4_run_procrustes_%s%s%s' % (prjct_nm, evaluation, filt_raref), all_sh_pbs,
@@ -371,8 +364,8 @@ def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,
                 else:
                     group2 = group2_
 
-                meta1, qza1, dm1, tree1 = groups_metas_qzas_dms_trees1[group1_]
-                meta2, qza2, dm2, tree2 = groups_metas_qzas_dms_trees2[group2_]
+                meta1, qza1, dm1, tree1 = groups_metas_qzas_dms_trees1[group1_][0]
+                meta2, qza2, dm2, tree2 = groups_metas_qzas_dms_trees2[group2_][0]
 
                 skip = 0
                 if not evaluation:
