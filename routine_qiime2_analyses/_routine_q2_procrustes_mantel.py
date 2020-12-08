@@ -80,6 +80,8 @@ def check_dat_exists(betas, dat, missing_dats):
         if dat not in missing_dats:
             print('Dataset "%s" do not exist' % dat)
             missing_dats.add(dat)
+            return 1
+    return 0
 
 
 def get_betas_raref(betas, dat, raref):
