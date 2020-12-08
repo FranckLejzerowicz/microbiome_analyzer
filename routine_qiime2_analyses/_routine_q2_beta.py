@@ -144,7 +144,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                     main_written += 1
                                 if force or not isfile(qza_case_fp):
                                     write_qza_subset(qza, qza_case_fp, new_meta, cur_sh)
-                                divs[metric][''].append((meta, qza_case_fp, out_case_fp, tree))
+                                divs[metric][''].append((new_meta, qza_case_fp, out_case_fp, tree))
 
                     if beta_subsets and dat in beta_subsets:
                         for subset, subset_regex in beta_subsets[dat].items():
@@ -222,7 +222,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                             main_written += 1
                                         if force or not isfile(qza_case_fp):
                                             write_qza_subset(qza, qza_case_fp, new_meta, cur_sh)
-                                        divs[metric][''].append((meta, qza_case_fp, out_case_fp, tree))
+                                        divs[metric][''].append((new_meta, qza_case_fp, out_case_fp, tree))
                     betas[dat].append(divs)
             to_chunk.append(out_sh)
             if not chunkit:
@@ -417,11 +417,6 @@ def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                     for metric, group_meta_dms in metric_group_meta_dms.items():
                         for group, meta_qza_dm_tree in group_meta_dms.items():
                             for (meta, qza, dm, tree) in meta_qza_dm_tree:
-                                print()
-                                print(meta)
-                                print(qza)
-                                print(dm)
-                                print(tree)
                                 mat_export = '%s.tsv' % splitext(dm)[0]
                                 if force or not isfile(mat_export):
                                     cmd = run_export(dm, mat_export, '')

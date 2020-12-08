@@ -666,7 +666,7 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
         chunks = {}
         if chunkit and len(all_sh_pbs) > chunkit:
             for idx, keys in enumerate(np.array_split(list(all_sh_pbs.keys()), chunkit)):
-                head_sh = '%s/chunks/%s_chunk%s.sh' % (job_folder, analysis, idx)
+                head_sh = '%s/chunks/%s_chunk%s_%s.sh' % (job_folder, analysis, idx, prjct_nm)
                 chunks[(idx, head_sh)] = [x for key in keys for x in all_sh_pbs[tuple(key)]]
         else:
             chunks = all_sh_pbs.copy()
