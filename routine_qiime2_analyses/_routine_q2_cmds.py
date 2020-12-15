@@ -23,7 +23,7 @@ def get_subset(tsv_pd: pd.DataFrame, subset_regex: list) -> list:
     """
     to_keep_feats = {}
     for regex in subset_regex:
-        if regex.isdigit():
+        if str(regex).isdigit():
             to_keep_feats[regex] = tsv_pd.index.str.contains(regex)
         else:
             to_keep_feats[regex.lower()] = tsv_pd.index.str.lower().str.contains(regex.lower())
