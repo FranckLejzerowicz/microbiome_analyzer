@@ -6,7 +6,6 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import re
 import pandas as pd
 from typing import TextIO
 from os.path import dirname, isdir, isfile, splitext
@@ -24,7 +23,10 @@ def get_subset(tsv_pd: pd.DataFrame, subset_regex: list) -> list:
     """
     to_keep_feats = {}
     for regex in subset_regex:
-        to_keep_feats[regex.lower()] = tsv_pd.index.str.lower().str.contains(regex.lower())
+        if regex.isdigit():
+            to_keep_feats[regex] = tsv_pd.index.str.contains(regex)
+        else:
+            to_keep_feats[regex.lower()] = tsv_pd.index.str.lower().str.contains(regex.lower())
     to_keep_feats_pd = pd.DataFrame(to_keep_feats)
     to_keep_feats = to_keep_feats_pd.any(axis=1)
     feats_subset_list = tsv_pd.index[to_keep_feats].tolist()
