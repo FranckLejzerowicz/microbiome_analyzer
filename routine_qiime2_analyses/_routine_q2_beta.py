@@ -136,9 +136,9 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                 if not isdir(dirname(qza_case_fp)):
                                     os.makedirs(dirname(qza_case_fp))
                                 new_meta = '%s.meta' % os.path.splitext(out_case_fp)[0]
+                                new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+                                new_meta_pd.to_csv(new_meta, index=False, sep='\t')
                                 if force or not os.path.isfile(out_case_fp):
-                                    new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-                                    new_meta_pd.to_csv(new_meta, index=False, sep='\t')
                                     write_beta_subset(out_fp, out_case_fp, new_meta, cur_sh)
                                     written += 1
                                     main_written += 1
@@ -214,9 +214,9 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                         if not isdir(dirname(qza_case_fp)):
                                             os.makedirs(dirname(qza_case_fp))
                                         new_meta = '%s.meta' % os.path.splitext(out_case_fp)[0]
+                                        new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+                                        new_meta_pd.to_csv(new_meta, index=False, sep='\t')
                                         if force or not os.path.isfile(out_case_fp):
-                                            new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-                                            new_meta_pd.to_csv(new_meta, index=False, sep='\t')
                                             write_beta_subset(out_fp, out_case_fp, new_meta, cur_sh)
                                             written += 1
                                             main_written += 1
