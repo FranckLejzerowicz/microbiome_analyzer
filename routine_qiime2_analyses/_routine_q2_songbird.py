@@ -584,7 +584,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                 for modx, model in enumerate(models.keys()):
 
                     formula, meta_vars, meta_var, drop = models[model]
-
                     print("meta_pd.shape")
                     print(meta_pd.shape)
                     print("meta_pd.columns")

@@ -1217,18 +1217,18 @@ def get_datasets_filtered(
 
                 # THIS IS PASTED FROM SONGBIRD -- JUST CHECK HOW IT IS USED THERE ....!!!
                 case_meta_pd = get_new_meta_pd(meta_pd_, case, case_var, case_vals)
-                print()
-                print(dat, dat_, mb)
-                print(case_var)
-                print(case_vals_list)
-                print(case_vals)
-                print(case)
-                print(len(tsv_pd_.columns.tolist()))
-                print(len(case_meta_pd.sample_name.tolist()))
+                # print()
+                # print(dat, dat_, mb)
+                # print(case_var)
+                # print(case_vals_list)
+                # print(case_vals)
+                # print(case)
+                # print(len(tsv_pd_.columns.tolist()))
+                # print(len(case_meta_pd.sample_name.tolist()))
                 case_tsv_pd = tsv_pd_[case_meta_pd.sample_name.tolist()]
-                print(case_tsv_pd.shape)
-                if case_var != 'ALL':
-                    print(case_tsv_pd[case_var].value_counts())
+                # print(case_tsv_pd.shape)
+                # if case_var != 'ALL':
+                #     print(case_meta_pd[case_var].value_counts())
 
                 dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s/%s' % (analysis, dat, case))
                 prevals_abunds = filtering[(dat_, mb)]
