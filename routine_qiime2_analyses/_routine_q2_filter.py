@@ -305,19 +305,17 @@ def explore_filtering(i_datasets_folder, datasets, datasets_read,
     currents = {}
     for pair, filt_d in filtering.items():
         for filt, dat_preval_abund in filt_d.items():
-            for dat, preval_abund in dat_preval_abund.items():
+            for (dat, mb), preval_abund in dat_preval_abund.items():
 
                 preval, abund = map(float, preval_abund)
 
-                if preval == 0:
+                if preval == 0 and abund == 0:
                     continue
                 if preval < 1:
                     preval_label = 'prevalPercent'
                 else:
                     preval_label = 'prevalCount'
 
-                if abund == 0:
-                    continue
                 if abund < 1:
                     abund_label = 'abundPercent'
                 else:
@@ -325,13 +323,15 @@ def explore_filtering(i_datasets_folder, datasets, datasets_read,
 
                 if (preval_label, abund_label) not in scales:
                     scales[(preval_label, abund_label)] = {}
-                if dat not in scales[(preval_label, abund_label)]:
-                    currents.setdefault(dat, []).append((preval, abund))
-                    scales[(preval_label, abund_label)][dat] = (
+                if (dat, mb) not in scales[(preval_label, abund_label)]:
+                    currents.setdefault((dat, mb), []).append((preval, abund))
+                    scales[(preval_label, abund_label)][(dat, mb)] = (
                         defaults[0][preval_label], defaults[1][abund_label])
-                scales[(preval_label, abund_label)][dat][0].add(preval)
-                scales[(preval_label, abund_label)][dat][1].add(abund)
+                scales[(preval_label, abund_label)][(dat, mb)][0].add(preval)
+                scales[(preval_label, abund_label)][(dat, mb)][1].add(abund)
 
+    print("scales")
+    print(scales)
     for (preval_label, abund_label), dats_d in scales.items():
         out_dir = get_analysis_folder(
             i_datasets_folder, 'filter3D/scale_%s_%s' % (preval_label, abund_label))
