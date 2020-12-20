@@ -1214,12 +1214,19 @@ def get_datasets_filtered(
 
                 # THIS IS PASTED FROM SONGBIRD -- JUST CHECK HOW IT IS USED THERE ....!!!
                 case_meta_pd = get_new_meta_pd(meta_pd_, case, case_var, case_vals)
+                print()
+                print(case_var)
+                print(case_vals_list)
+                print(case_vals)
+                print(case)
+                print(tsv_pd_)
 
                 dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s/%s' % (analysis, dat, case))
                 prevals_abunds = filtering[(dat_, mb)]
                 for (preval_abund, preval, abund) in prevals_abunds:
                     # make sure there's no empty row / column
                     tsv_pd = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :].copy()
+                    print(tsv_pd)
                     tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
                     tsv_pd = tsv_pd[case_meta_pd.sample_name.tolist()]
                     if mb:
