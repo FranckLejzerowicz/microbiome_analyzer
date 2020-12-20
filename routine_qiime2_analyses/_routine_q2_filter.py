@@ -330,8 +330,6 @@ def explore_filtering(i_datasets_folder, datasets, datasets_read,
                 scales[(preval_label, abund_label)][(dat, mb)][0].add(preval)
                 scales[(preval_label, abund_label)][(dat, mb)][1].add(abund)
 
-    print("scales")
-    print(scales)
     for (preval_label, abund_label), dats_d in scales.items():
         out_dir = get_analysis_folder(
             i_datasets_folder, 'filter3D/scale_%s_%s' % (preval_label, abund_label))
