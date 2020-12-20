@@ -1206,6 +1206,9 @@ def get_datasets_filtered(
                 meta_pd_ = read_meta_pd(meta_alphas)
             input_to_filtered[dat_] = dat
 
+        tsv_pd_ = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :]
+        tsv_pd_ = tsv_pd_.loc[:, tsv_pd_.sum(0) > 0]
+
         dat_filts = {}
         cases_dict = check_metadata_cases_dict(meta, meta_pd_, dict(subsets), 'songbird')
         for case_var, case_vals_list in cases_dict.items():
@@ -1219,20 +1222,18 @@ def get_datasets_filtered(
                 print(case_vals_list)
                 print(case_vals)
                 print(case)
-                print(tsv_pd_)
+                print(len(tsv_pd_.columns.tolist()), tsv_pd_.columns.tolist())
+                print(len(case_meta_pd.sample_name.tolist()), case_meta_pd.sample_name.tolist())
+                case_tsv_pd = tsv_pd_[case_meta_pd.sample_name.tolist()]
 
                 dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s/%s' % (analysis, dat, case))
                 prevals_abunds = filtering[(dat_, mb)]
                 for (preval_abund, preval, abund) in prevals_abunds:
                     # make sure there's no empty row / column
-                    tsv_pd = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :].copy()
-                    print(tsv_pd)
-                    tsv_pd = tsv_pd.loc[:, tsv_pd.sum(0) > 0]
-                    tsv_pd = tsv_pd[case_meta_pd.sample_name.tolist()]
                     if mb:
-                        tsv_pd, res = filter_mb_table(preval, abund, tsv_pd)
+                        tsv_pd, res = filter_mb_table(preval, abund, case_tsv_pd)
                     else:
-                        tsv_pd, res = filter_non_mb_table(preval, abund, tsv_pd)
+                        tsv_pd, res = filter_non_mb_table(preval, abund, case_tsv_pd)
 
                     rad_out = '%s_%s_%ss' % (dat, preval_abund, tsv_pd.shape[1])
                     tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
