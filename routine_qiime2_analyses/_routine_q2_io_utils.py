@@ -1218,6 +1218,7 @@ def get_datasets_filtered(
                 # THIS IS PASTED FROM SONGBIRD -- JUST CHECK HOW IT IS USED THERE ....!!!
                 case_meta_pd = get_new_meta_pd(meta_pd_, case, case_var, case_vals)
                 print()
+                print(dat, dat_, mb)
                 print(case_var)
                 print(case_vals_list)
                 print(case_vals)
