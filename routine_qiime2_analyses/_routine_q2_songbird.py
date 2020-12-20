@@ -597,8 +597,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                         print(meta_pd[meta_v].value_counts())
                     print("meta_var")
                     print(meta_var)
-                    print("meta_pd[meta_var].value_counts()")
-                    print(meta_pd[meta_var].value_counts())
+                    if meta_var != '':
+                        print("meta_pd[meta_var].value_counts()")
+                        print(meta_pd[meta_var].value_counts())
 
                     datdir = '%s/%s/%s/%s/%s' % (dat_pair_path, filt, case, params, model)
                     odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
