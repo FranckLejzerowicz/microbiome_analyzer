@@ -583,14 +583,29 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
                 for modx, model in enumerate(models.keys()):
 
-                    formula_meta_var_drop = models[model]
+                    formula, meta_vars, meta_var, drop = models[model]
+
+                    print("meta_pd.shape")
+                    print(meta_pd.shape)
+                    print("meta_pd.columns")
+                    print(meta_pd.columns)
+                    print("meta_vars")
+                    print(meta_vars)
+                    for meta_v in meta_vars:
+                        print("meta_v")
+                        print(meta_v)
+                        print("meta_pd[meta_v].value_counts()")
+                        print(meta_pd[meta_v].value_counts())
+                    print("meta_var")
+                    print(meta_var)
+                    print("meta_pd[meta_var].value_counts()")
+                    print(meta_pd[meta_var].value_counts())
 
                     datdir = '%s/%s/%s/%s/%s' % (dat_pair_path, filt, case, params, model)
                     odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
                     new_qza = '%s/tab.qza' % odir
                     new_meta = '%s/metadata.tsv' % odir
 
-                    formula, meta_vars, meta_var, drop = formula_meta_var_drop
                     train_column = get_songbird_metadata_train_test(
                         meta_pd, meta_vars, meta_var, new_meta,
                         train, drop)
