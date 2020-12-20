@@ -1227,7 +1227,8 @@ def get_datasets_filtered(
                 print(len(case_meta_pd.sample_name.tolist()))
                 case_tsv_pd = tsv_pd_[case_meta_pd.sample_name.tolist()]
                 print(case_tsv_pd.shape)
-                print(case_tsv_pd[case_var].value_counts())
+                if case_var != 'ALL':
+                    print(case_tsv_pd[case_var].value_counts())
 
                 dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s/%s' % (analysis, dat, case))
                 prevals_abunds = filtering[(dat_, mb)]

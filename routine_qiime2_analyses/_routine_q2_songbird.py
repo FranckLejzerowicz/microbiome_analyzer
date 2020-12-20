@@ -543,7 +543,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             #####################################################################
             # snakemake here: config to organise the inputs/depedencies (joblib)
             #####################################################################
-
             for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
                                                        thresh_feats, thresh_samples, trains)):
                 batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, train = [str(x) for x in it]
