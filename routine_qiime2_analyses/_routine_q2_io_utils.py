@@ -1223,8 +1223,8 @@ def get_datasets_filtered(
                 print(case_vals_list)
                 print(case_vals)
                 print(case)
-                print(len(tsv_pd_.columns.tolist()), tsv_pd_.columns.tolist())
-                print(len(case_meta_pd.sample_name.tolist()), case_meta_pd.sample_name.tolist())
+                print(len(tsv_pd_.columns.tolist()))
+                print(len(case_meta_pd.sample_name.tolist()))
                 case_tsv_pd = tsv_pd_[case_meta_pd.sample_name.tolist()]
                 print(case_tsv_pd.shape)
                 print(case_tsv_pd[case_var].value_counts())
