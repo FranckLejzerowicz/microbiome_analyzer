@@ -280,7 +280,8 @@ def get_filt3d_params(p_config, analysis):
 
 
 def explore_filtering(i_datasets_folder, datasets, datasets_read,
-                      datasets_filt, filtering, p_filt3d_config):
+                      datasets_filt, datasets_filt_map,
+                      filtering, p_filt3d_config):
 
     if p_filt3d_config and isfile(p_filt3d_config):
         with open(p_filt3d_config) as handle:

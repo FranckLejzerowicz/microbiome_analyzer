@@ -447,8 +447,8 @@ def routine_qiime2_analyses(
 
     if filt3d:
         print('(run_filt3d)')
-        explore_filtering(i_datasets_folder, datasets,
-                          datasets_read, datasets_filt,
+        explore_filtering(i_datasets_folder, datasets, datasets_read,
+                          datasets_filt, datasets_filt_map,
                           filts, p_filt3d_config)
 
     elif p_diff_models and p_mmvec_pairs and 'mmbird' not in p_skip:
