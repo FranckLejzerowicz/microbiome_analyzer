@@ -584,22 +584,22 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                 for modx, model in enumerate(models.keys()):
 
                     formula, meta_vars, meta_var, drop = models[model]
-                    print("meta_pd.shape")
-                    print(meta_pd.shape)
-                    print("meta_pd.columns")
-                    print(meta_pd.columns)
-                    print("meta_vars")
-                    print(meta_vars)
-                    for meta_v in meta_vars:
-                        print("meta_v")
-                        print(meta_v)
-                        print("meta_pd[meta_v].value_counts()")
-                        print(meta_pd[meta_v].value_counts())
-                    print("meta_var")
-                    print(meta_var)
-                    if meta_var != '':
-                        print("meta_pd[meta_var].value_counts()")
-                        print(meta_pd[meta_var].value_counts())
+                    # print("meta_pd.shape")
+                    # print(meta_pd.shape)
+                    # print("meta_pd.columns")
+                    # print(meta_pd.columns)
+                    # print("meta_vars")
+                    # print(meta_vars)
+                    # for meta_v in meta_vars:
+                    #     print("meta_v")
+                    #     print(meta_v)
+                    #     print("meta_pd[meta_v].value_counts()")
+                    #     print(meta_pd[meta_v].value_counts())
+                    # print("meta_var")
+                    # print(meta_var)
+                    # if meta_var != '':
+                    #     print("meta_pd[meta_var].value_counts()")
+                    #     print(meta_pd[meta_var].value_counts())
 
                     datdir = '%s/%s/%s/%s/%s' % (dat_pair_path, filt, case, params, model)
                     odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
