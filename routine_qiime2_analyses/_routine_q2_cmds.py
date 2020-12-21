@@ -521,7 +521,7 @@ def write_diversity_beta(out_fp: str, datasets_phylo: dict, trees: dict,
         cmd = 'qiime diversity beta \\\n'
         cmd += '--i-table %s \\\n' % qza
     cmd += '--p-metric %s \\\n' % metric
-    if float(qiime_env.split('qiime2-')[1]) >= 2020.8 and 'beta-phylogenetic' in cmd:
+    if 'qiime2-' in qiime_env and float(qiime_env.split('qiime2-')[1]) >= 2020.8 and 'beta-phylogenetic' in cmd:
         cmd += '--p-threads %s \\\n' % (int(nnodes) * int(nprocs))
     else:
         cmd += '--p-n-jobs %s \\\n' % (int(nnodes)*int(nprocs))
