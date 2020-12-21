@@ -30,8 +30,6 @@ def run_single_procrustes_mantel(procrustes_mantel: str, odir: str, dm1: str, dm
         if force or not isfile(output):
             new_meta_pd = get_new_meta_pd(meta_pd, cur, case_var, case_vals)
             common_meta_fp = '%s/meta_%s.tsv' % (odir, cur)
-            print(new_meta_pd[:4])
-            print(new_meta_pdgdf)
             new_meta_pd.to_csv(common_meta_fp, index=False, sep='\t')
             if new_meta_pd.shape[0]:
                 write_procrustes_mantel(
