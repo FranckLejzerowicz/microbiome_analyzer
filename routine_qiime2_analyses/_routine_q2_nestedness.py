@@ -88,7 +88,8 @@ def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str
             if split:
                 out_sh = '%s/run_nestedness_%s_%s%s%s.sh' % (job_folder2, prjct_nm, dat, cur_raref, filt_raref)
             for _, groups_metas_qzas_dms_trees in metrics_groups_metas_qzas_dms_trees.items():
-                for group, (meta, qza, __, ___) in groups_metas_qzas_dms_trees.items():
+                for group, metas_qzas_mat_qzas_trees in groups_metas_qzas_dms_trees.items():
+                    meta, qza, mat_qza, tree = metas_qzas_mat_qzas_trees[0]
                     meta_pd = read_meta_pd(meta).set_index('sample_name')
                     cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(subsets), 'nestedness')
                     for case_var, case_vals_list in cases_dict.items():

@@ -110,30 +110,32 @@ def run_adonis(p_formulas: str, i_datasets_folder: str, betas: dict,
             for metric, subset_files in metric_groups_metas_qzas_dms_trees.items():
                 if split:
                     out_sh = '%s/run_adonis_%s_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, metric, filt_raref)
-                for subset, (meta, qza, mat_qza, tree) in subset_files.items():
-                    if not isfile(mat_qza):
-                        if not first_print:
-                            print('Beta diversity, distances matrices must be generated already to automatise PERMANOVA\n'
-                                  '\t(re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)')
-                            first_print += 1
-                        continue
 
-                    if (dat, subset) not in metric_check:
-                        meta_pd = read_meta_pd(meta).set_index('sample_name')
-                        cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'ADONIS')
-                        formulas = check_metadata_formulas(meta, meta_pd, formulas[dat], 'ADONIS')
-                        metric_check.add((dat, subset))
+                for subset, metas_qzas_mat_qzas_trees in subset_files.items():
+                    for meta, qza, mat_qza, tree in metas_qzas_mat_qzas_trees:
+                        if not isfile(mat_qza):
+                            if not first_print:
+                                print('Beta diversity, distances matrices must be generated already to automatise PERMANOVA\n'
+                                      '\t(re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)')
+                                first_print += 1
+                            continue
 
-                    for fdx, form in enumerate(formulas[dat].keys()):
-                        formula = formulas[dat][form]
-                        for cdx, case_var in enumerate(cases_dict.keys()):
-                            case_vals_list = cases_dict[case_var]
-                            cur_sh = '%s/run_adonis_%s%s_%s_%s_%s%s.sh' % (
-                                job_folder2, dat, cur_depth, metric, fdx, cdx, filt_raref)
-                            cur_sh = cur_sh.replace(' ', '-')
-                            all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                            run_single_adonis(odir, subset, case_vals_list, metric, case_var,
-                                              form, formula, qza, mat_qza, meta_pd, cur_sh, force)
+                        if (dat, subset) not in metric_check:
+                            meta_pd = read_meta_pd(meta).set_index('sample_name')
+                            cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'ADONIS')
+                            formulas = check_metadata_formulas(meta, meta_pd, formulas[dat], 'ADONIS')
+                            metric_check.add((dat, subset))
+
+                        for fdx, form in enumerate(formulas[dat].keys()):
+                            formula = formulas[dat][form]
+                            for cdx, case_var in enumerate(cases_dict.keys()):
+                                case_vals_list = cases_dict[case_var]
+                                cur_sh = '%s/run_adonis_%s%s_%s_%s_%s%s.sh' % (
+                                    job_folder2, dat, cur_depth, metric, fdx, cdx, filt_raref)
+                                cur_sh = cur_sh.replace(' ', '-')
+                                all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
+                                run_single_adonis(odir, subset, case_vals_list, metric, case_var,
+                                                  form, formula, qza, mat_qza, meta_pd, cur_sh, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'adonis')
     main_sh = write_main_sh(job_folder, '3_run_adonis_%s%s' % (prjct_nm, filt_raref), all_sh_pbs,

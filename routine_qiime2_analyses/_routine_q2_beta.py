@@ -173,7 +173,9 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                                     continue
 
                                 if tsv_subset not in subset_done:
-                                    tsv_subset_pd = tsv_to_subset_pd.loc[[x for x in subset_feats if x in tsv_to_subset_pd.index],:].copy()
+                                    tsv_subset_pd = tsv_to_subset_pd.loc[
+                                        [x for x in subset_feats if x in tsv_to_subset_pd.index], :
+                                    ].copy()
                                     if dropout:
                                         tsv_subset_pd = tsv_subset_pd.loc[:, tsv_subset_pd.sum(0)>0]
                                     tsv_subset_pd.to_csv(tsv_subset, index=True, sep='\t')
