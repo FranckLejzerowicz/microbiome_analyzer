@@ -233,7 +233,7 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                          run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', o, noloc, jobs)
 
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'beta',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
@@ -433,7 +433,7 @@ def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                              run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                              run_params["mem_num"], run_params["mem_dim"],
                              chmod, written, 'single', o, noloc, jobs)
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'beta_export',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
@@ -519,7 +519,7 @@ def run_pcoas(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                          run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', o, noloc, jobs)
 
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'pcoa',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
@@ -583,7 +583,7 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, datasets_rarefs: dict,
                          run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', o, noloc, jobs)
 
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'emperor',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
@@ -664,7 +664,7 @@ def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                          run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', o, noloc, jobs)
 
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'biplot',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
@@ -746,7 +746,7 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                          run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', o, noloc, jobs)
 
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'emperor_biplot',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
@@ -823,7 +823,7 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
                          run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', o, noloc, jobs)
 
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'empress',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
@@ -927,7 +927,7 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                          run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', o, noloc, jobs)
 
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'empress_biplot',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],

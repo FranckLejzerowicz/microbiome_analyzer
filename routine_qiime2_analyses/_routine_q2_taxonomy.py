@@ -553,7 +553,7 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict, datasets_r
                              run_params["mem_num"], run_params["mem_dim"],
                              chmod, written, 'single', o, noloc, jobs)
 
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'taxonomy',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
@@ -609,7 +609,7 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
                      run_params["mem_num"], run_params["mem_dim"],
                      chmod, written, 'single', o, noloc, jobs)
 
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'barplot',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],

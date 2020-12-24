@@ -148,7 +148,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                          run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', o, noloc, jobs)
 
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'alpha',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
@@ -227,7 +227,7 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: di
                          run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', o, noloc, jobs)
 
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'tabulate',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
@@ -378,7 +378,7 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                          run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', o, noloc, jobs)
 
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'alpha_correlations',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
@@ -448,7 +448,7 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
                          run_params["mem_num"], run_params["mem_dim"],
                          chmod, written, 'single', o, noloc, jobs)
 
-    if to_chunk:
+    if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'volatility',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
