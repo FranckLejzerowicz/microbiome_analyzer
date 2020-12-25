@@ -61,6 +61,8 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     main_written = 0
     to_chunk = []
     with open(run_pbs, 'w') as o:
+        print(datasets)
+        print(datasetsfd)
         for dat, tsv_meta_pds_ in datasets.items():
             written = 0
             diversities[dat] = []
