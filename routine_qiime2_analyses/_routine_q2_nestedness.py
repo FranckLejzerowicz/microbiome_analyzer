@@ -265,7 +265,7 @@ def nestedness_figure(i_datasets_folder: str, nestedness_res: dict,
             tab_pd = tab_pd.rename(columns={tab_pd.columns[0]: 'OBSERVATION_ID'})
 
             tax_cols = []
-            if colors['feature']:
+            if colors['feature'] and stats_tax_dat in set(split_taxa_pds.columns):
                 tax_pd = split_taxa_pds[stats_tax_dat].reset_index()
                 if level != 'feature':
                     if level not in collapsed[stats_tax_dat]:
