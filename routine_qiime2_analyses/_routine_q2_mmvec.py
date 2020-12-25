@@ -452,10 +452,6 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                     train_columns, n_examples, batches, learns,
                     epochs, priors, thresh_feats, latent_dims)):
                 train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = [str(x) for x in it]
-                print()
-                print()
-                print(pair, filt1, filt2)
-                print(train_column, n_example)
                 res_dir = 'b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_gpu-%s' % (
                     batch, learn, epoch, prior.replace('.', ''),
                     thresh_feat, latent_dim, train_column,
