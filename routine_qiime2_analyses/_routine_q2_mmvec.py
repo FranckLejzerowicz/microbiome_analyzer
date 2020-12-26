@@ -422,7 +422,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
         unique_datasets, mmvec_pairs, mmvec_filtering, unique_filterings, job_folder,
         force, prjct_nm, qiime_env, chmod, noloc, 'mmvec',
         filt_raref, filt_datasets_done, common_datasets_done,
-        input_to_filtered, already_computed, mmvec_subsets, mmvec_params, jobs)
+        input_to_filtered, already_computed, mmvec_subsets, jobs)
 
     all_sh_pbs = {}
     mmvec_outputs = []
