@@ -35,7 +35,7 @@ def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFram
 
 
 def merge_and_write_metas(meta_subset1: pd.DataFrame, meta_subset2: pd.DataFrame,
-                          meta_fp: str, mmvec_params: dict) -> pd.DataFrame:
+                          meta_fp: str) -> pd.DataFrame:
     """
     :param meta_subset1:
     :param meta_subset2:
@@ -75,7 +75,7 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame, meta_subset2: pd.DataFrame
 def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict, filtering: dict,
                         filt_datasets: dict, common_datasets_done: dict,
                         input_to_filtered: dict, force: bool,
-                        subsets: dict, mmvec_params: dict) -> (dict, list):
+                        subsets: dict) -> (dict, list):
     """
     :param i_datasets_folder:
     :param mmvec_pairs:
@@ -149,7 +149,7 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict, filtering: di
                     )
                     meta_subset1 = get_meta_common_sorted(meta_pd1, common_sams)
                     meta_subset2 = get_meta_common_sorted(meta_pd2, common_sams)
-                    merge_and_write_metas(meta_subset1, meta_subset2, meta_fp, mmvec_params)
+                    merge_and_write_metas(meta_subset1, meta_subset2, meta_fp)
                     if meta_fp in common_datasets_done[pair]:
                         print('\t\t\t* [DONE]', pair, ':', omic1, filt1, omic2, filt2)
                         continue
@@ -326,7 +326,7 @@ def make_filtered_and_common_dataset(
         prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
         analysis: str, filt_raref: str, filt_datasets_done: dict,
         common_datasets_done: dict, input_to_filtered: dict,
-        already_computed: dict, subsets: dict, mmvec_params: dict, jobs: bool) -> (dict, dict):
+        already_computed: dict, subsets: dict, jobs: bool) -> (dict, dict):
     """
     :param i_datasets_folder:
     :param datasets: list of data_sets.
@@ -353,7 +353,7 @@ def make_filtered_and_common_dataset(
         print('\t-> [mmvec] Get common datasets...')
         common_datasets, common_jobs = get_common_datasets(
             i_datasets_folder, mmvec_pairs, filtering, filt_datasets,
-            common_datasets_done, input_to_filtered, force, subsets, mmvec_params)
+            common_datasets_done, input_to_filtered, force, subsets)
 
     pre_jobs = filt_jobs + common_jobs
     if len(pre_jobs):

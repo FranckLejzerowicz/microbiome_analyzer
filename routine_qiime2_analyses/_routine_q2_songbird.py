@@ -169,7 +169,7 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
 #     new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
 #     return train_column
 
-def get_songbird_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
+def get_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
                                      train, drop):
     if train in meta_pd.columns:
         meta_vars_.append(train)
