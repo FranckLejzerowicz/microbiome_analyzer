@@ -68,15 +68,14 @@ setup(
     package_data={
         'routine_qiime2_analyses': [
             'test/*/*/*',
-            'resources/*',
-            # 'resources/alpha_metrics.txt
-            # 'resources/beta_metrics.txt
-            # 'resources/g2lineage.txt
-            # 'resources/nestedness.sh
-            # 'resources/run_params.yml
-            # 'resources/spatial_autocorrelation_modeling.sh
-            # 'resources/summarize_permanovas.py
-            # 'resources/wol_tree.nwk
+            'resources/alpha_metrics.txt',
+            'resources/beta_metrics.txt',
+            'resources/g2lineage.txt',
+            'resources/nestedness.sh',
+            'resources/run_params.yml',
+            'resources/spatial_autocorrelation_modeling.sh',
+            'resources/summarize_permanovas.py',
+            'resources/wol_tree.nwk',
             'examples/*'
         ],
     },
