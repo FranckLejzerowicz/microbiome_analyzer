@@ -145,30 +145,29 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
     return diffs, tensor_html
 
 
-def get_songbird_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
-                                     train, case, case_var, case_vals, drop):
-    new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-    if train in new_meta_pd.columns:
-        meta_vars_.append(train)
-    new_meta_pd.columns = [x.lower() for x in new_meta_pd.columns]
-    if meta_var:
-        meta_vars = list(set(list(meta_vars_) + [meta_var]))
-    else:
-        meta_vars = list(meta_vars_)
-    new_meta_pd = new_meta_pd[meta_vars]
-    new_meta_pd = new_meta_pd.loc[~new_meta_pd.isna().any(1)]
-    new_meta_pd = rename_duplicate_columns(new_meta_pd)
-    if len(drop):
-        new_meta_pd = new_meta_pd.loc[(~new_meta_pd[meta_var.lower()].isin(drop)), :]
-    new_meta_pd_ = new_meta_pd.copy()
-    new_meta_pd_['tmptmptmp'] = [''.join(map(str, x)) for x in new_meta_pd_.values if str(x) != 'nan']
-    if 1 in new_meta_pd_.tmptmptmp.value_counts():
-        return None
-
-    new_meta_pd, train_column = get_train_column(new_meta_pd, meta_vars, train)
-    new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-    return train_column
-
+# def get_songbird_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
+#                                      train, case, case_var, case_vals, drop):
+#     new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+#     if train in new_meta_pd.columns:
+#         meta_vars_.append(train)
+#     new_meta_pd.columns = [x.lower() for x in new_meta_pd.columns]
+#     if meta_var:
+#         meta_vars = list(set(list(meta_vars_) + [meta_var]))
+#     else:
+#         meta_vars = list(meta_vars_)
+#     new_meta_pd = new_meta_pd[meta_vars]
+#     new_meta_pd = new_meta_pd.loc[~new_meta_pd.isna().any(1)]
+#     new_meta_pd = rename_duplicate_columns(new_meta_pd)
+#     if len(drop):
+#         new_meta_pd = new_meta_pd.loc[(~new_meta_pd[meta_var.lower()].isin(drop)), :]
+#     new_meta_pd_ = new_meta_pd.copy()
+#     new_meta_pd_['tmptmptmp'] = [''.join(map(str, x)) for x in new_meta_pd_.values if str(x) != 'nan']
+#     if 1 in new_meta_pd_.tmptmptmp.value_counts():
+#         return None
+#
+#     new_meta_pd, train_column = get_train_column(new_meta_pd, meta_vars, train)
+#     new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
+#     return train_column
 
 def get_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
                                      train, drop):
@@ -607,7 +606,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     new_qza = '%s/tab.qza' % odir
                     new_meta = '%s/metadata.tsv' % odir
 
-                    train_column = get_songbird_metadata_train_test(
+                    train_column = get_metadata_train_test(
                         meta_pd, meta_vars, meta_var, new_meta,
                         train, drop)
                     if not train_column:
