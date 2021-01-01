@@ -56,6 +56,8 @@ def run_single_deicode(odir: str, tsv: str, meta_pd: pd.DataFrame, case_var: str
             ordi_qzv = '%s_deicode_ordination_biplot.qzv' % cur_rad
             if force or not isfile(ordi_qzv):
                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+                if new_meta_pd.shape[0] < 10:
+                    continue
                 new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
                 write_deicode_biplot(qza, new_meta, new_qza, ordi_qza,
                                      new_mat_qza, ordi_qzv, cur_sh_o)
