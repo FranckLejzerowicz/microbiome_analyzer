@@ -65,7 +65,8 @@ def run_single_perm(odir: str, subset: str, meta_pd: pd.DataFrame,
             new_cv = '%s_%s.cv' % (cur_rad, beta_type)
             new_mat_qza = odir + '/' + basename(mat_qza).replace('.qza', '_%s_DM.qza' % case)
             new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-            add_q2_types_to_meta(new_meta_pd, new_meta, testing_group, new_cv)
+            if add_q2_types_to_meta(new_meta_pd, new_meta, testing_group, new_cv):
+                continue
             if force or not isfile(new_html):
                 if len([x for x in new_meta_pd[testing_group].unique() if str(x) != 'nan']) > 1:
                     write_diversity_beta_group_significance(new_meta, mat_qza, new_mat_qza, testing_group,
