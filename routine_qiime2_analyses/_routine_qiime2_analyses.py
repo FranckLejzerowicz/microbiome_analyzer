@@ -32,6 +32,7 @@ from routine_qiime2_analyses._routine_q2_beta import (run_beta, export_beta,
                                                       run_pcoas, run_biplots,
                                                       run_emperor, run_emperor_biplot,
                                                       run_empress, run_empress_biplot)
+from routine_qiime2_analyses._routine_q2_decay import (run_distance_decay, distance_decay_figure)
 from routine_qiime2_analyses._routine_q2_procrustes_mantel import (run_procrustes, run_mantel)
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
 from routine_qiime2_analyses._routine_q2_permanova import run_permanova, summarize_permanova
@@ -59,6 +60,7 @@ def routine_qiime2_analyses(
         p_beta_type: tuple,
         p_procrustes: str,
         p_mantel: str,
+        p_distance_decay: str,
         p_collapse_taxo: str,
         p_formulas: str,
         p_doc_config: str,
@@ -386,6 +388,16 @@ def routine_qiime2_analyses(
             nestedness_figure(i_datasets_folder, nestedness_res, datasets_read,
                               split_taxa_pds, datasets_rarefs, colors,
                               datasets_collapsed_map, collapsed, filt_raref)
+
+    if 'beta' not in p_skip and p_distance_decay and 'decay' not in p_skip:
+        print('(run_distance_decay)')
+        distance_decay_res = run_distance_decay(i_datasets_folder, betas, p_distance_decay,
+                                                datasets_rarefs, force, prjct_nm, qiime_env,
+                                                chmod, noloc, split, run_params['decay'],
+                                                filt_raref, jobs, chunkit)
+        if distance_decay_res:
+            print('(making_distance_decay_figures)')
+            distance_decay_figure(i_datasets_folder, distance_decay_res, filt_raref)
 
     # PHATE ---------------------------------------------------------------------
     if p_phate_config and 'phate' not in p_skip:

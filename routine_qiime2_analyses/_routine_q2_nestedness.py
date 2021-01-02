@@ -58,7 +58,7 @@ def get_nestedness_config(nestedness_config: dict) -> (dict, list, dict, list, l
 
 def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str,
                    datasets_rarefs: dict, force: bool, prjct_nm: str, qiime_env: str,
-                   chmod: str, noloc: bool, split: bool, run_params: dict,
+                       chmod: str, noloc: bool, split: bool, run_params: dict,
                    filt_raref: str, jobs: bool, chunkit: int) -> (dict, list):
 
     job_folder2 = get_job_folder(i_datasets_folder, 'nestedness/chunks')

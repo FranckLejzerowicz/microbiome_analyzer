@@ -98,6 +98,11 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/procrustes_subsets.yml' and README)."
 )
 @click.option(
+    "-decay", "--p-distance-decay", required=False, show_default=True, default=False,
+    help="Parameters for distance decay analysis (not geographic). Must be a yaml file, e.g.\n"
+         "(see example in 'examples/distance_decay.yml' and README)."
+)
+@click.option(
     "-coll", "--p-collapse-taxo", required=False, show_default=True, default=False,
     help="Nominative or rank-based taxonmic collapse per dataset. Must be a yaml file, e.g.\n"
          "(see example in 'examples/collapse_taxo.yml' and README)."
@@ -174,7 +179,7 @@ from routine_qiime2_analyses import __version__
                        'volatility', 'beta', 'export_beta', 'pcoa', 'biplot',
                        'emperor', 'emperor_biplot', 'empress', 'empress_biplot',
                        'phate', 'doc', 'deicode', 'sepp', 'do_pies',
-                       'alpha_kw', 'permanova', 'procrustes', 'mantel',
+                       'alpha_kw', 'permanova', 'procrustes', 'mantel', 'decay',
                        'nestedness', 'adonis', 'songbird', 'mmvec', 'mmbird']),
     help="Steps to skip (e.g. if already done or not necessary)."
          "\nSkipping 'alpha' will also skip 'merge_alpha', 'export_alpha',"
@@ -267,6 +272,7 @@ def standalone_routine(
         p_beta_type,
         p_procrustes,
         p_mantel,
+        p_distance_decay,
         p_collapse_taxo,
         p_adonis_formulas,
         p_doc_config,
@@ -317,6 +323,7 @@ def standalone_routine(
         p_beta_type,
         p_procrustes,
         p_mantel,
+        p_distance_decay,
         p_collapse_taxo,
         p_adonis_formulas,
         p_doc_config,
