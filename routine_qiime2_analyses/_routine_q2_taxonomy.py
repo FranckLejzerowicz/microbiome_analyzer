@@ -307,6 +307,8 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     job_folder = get_job_folder(i_datasets_folder, 'collapsed_taxo')
     job_folder2 = get_job_folder(i_datasets_folder, 'collapsed_taxo/chunks')
     run_pbs = '%s/3_run_collapsed_taxo_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
+    print(datasets.keys())
+    print(lsdlkf)
     with open(run_pbs, 'w') as o:
         for dat, tab_meta_fps in datasets.items():
             if dat not in collapse_taxo:
