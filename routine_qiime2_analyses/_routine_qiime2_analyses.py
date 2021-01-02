@@ -247,7 +247,7 @@ def routine_qiime2_analyses(
     datasets_collapsed_map = {}
     if p_collapse_taxo and 'collapse' not in p_skip:
         print('(run_collapse)')
-        collapsed = run_collapse(i_datasets_folder, datasets, datasets_read,
+        collapsed = run_collapse(i_datasets_folder, datasets, datasets_filt_map, datasets_read,
                                  datasets_features, datasets_phylo, split_taxa_pds,
                                  taxonomies, p_collapse_taxo, datasets_rarefs,
                                  datasets_collapsed, datasets_collapsed_map, force,
