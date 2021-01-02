@@ -288,7 +288,7 @@ def make_pies(i_datasets_folder: str, split_taxa_pds: dict,
     return pies_data
 
 
-def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt_map: dict, datasets_read: dict,
+def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, datasets_read: dict,
                  datasets_features: dict, datasets_phylo: dict, split_taxa_pds: dict,
                  taxonomies: dict, p_collapse_taxo: str, datasets_rarefs: dict,
                  datasets_collapsed: dict, datasets_collapsed_map: dict, force: bool,
@@ -296,7 +296,7 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt_map: dict
                  run_params: dict, filt_raref: str, jobs: bool) -> dict:
 
     collapse_taxo = get_collapse_taxo(p_collapse_taxo)
-    collapse_taxo.update(dict((datasets_filt_map[dat], x) for dat, x in collapse_taxo.items()))
+    collapse_taxo.update(dict((datasets_filt[dat], x) for dat, x in collapse_taxo.items()))
     print(collapse_taxo)
     stop_for_collapse = False
     main_written = 0
@@ -309,7 +309,7 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt_map: dict
     job_folder2 = get_job_folder(i_datasets_folder, 'collapsed_taxo/chunks')
     run_pbs = '%s/3_run_collapsed_taxo_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     print(datasets.keys())
-    print(datasets_filt_map)
+    print(datasets_filt)
     print(lsdlkf)
     with open(run_pbs, 'w') as o:
         for dat, tab_meta_fps in datasets.items():
