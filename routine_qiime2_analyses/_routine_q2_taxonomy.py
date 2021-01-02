@@ -297,7 +297,6 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
 
     collapse_taxo = get_collapse_taxo(p_collapse_taxo)
     collapse_taxo.update(dict((datasets_filt[dat], x) for dat, x in collapse_taxo.items()))
-    print(collapse_taxo)
     stop_for_collapse = False
     main_written = 0
     collapsed = {}
@@ -308,9 +307,6 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
     job_folder = get_job_folder(i_datasets_folder, 'collapsed_taxo')
     job_folder2 = get_job_folder(i_datasets_folder, 'collapsed_taxo/chunks')
     run_pbs = '%s/3_run_collapsed_taxo_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
-    print(datasets.keys())
-    print(datasets_filt)
-    print(lsdlkf)
     with open(run_pbs, 'w') as o:
         for dat, tab_meta_fps in datasets.items():
             if dat not in collapse_taxo:
