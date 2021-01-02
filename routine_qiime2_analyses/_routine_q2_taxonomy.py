@@ -296,6 +296,7 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt_map: dict
                  run_params: dict, filt_raref: str, jobs: bool) -> dict:
 
     collapse_taxo = get_collapse_taxo(p_collapse_taxo)
+    collapse_taxo.update(dict((datasets_filt_map[dat], x) for dat, x in collapse_taxo.items()))
     print(collapse_taxo)
     stop_for_collapse = False
     main_written = 0
