@@ -165,7 +165,7 @@ def distance_decay_figure(i_datasets_folder: str,
                           datasets_rarefs: dict,
                           filt_raref: str) -> None:
 
-    odir = get_analysis_folder(i_datasets_folder, 'decay' % filt_raref)
+    odir = get_analysis_folder(i_datasets_folder, 'decay')
     for dat, metrics_group_subset_mode_modegrps in distance_decay_res.items():
         not_exists_yet = 0
         decays = []
