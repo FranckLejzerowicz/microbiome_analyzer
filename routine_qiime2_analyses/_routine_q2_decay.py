@@ -76,8 +76,8 @@ def run_distance_decay(i_datasets_folder: str, betas: dict, p_distance_decay: st
                         for case_var, case_vals_list in cases_dict.items():
                             for case_vals in case_vals_list:
                                 case = get_case(case_vals, case_var).replace(' ', '_')
-                                cur_sh = '%s/run_decay_%s%s_%s_%s%s.sh' % (
-                                    job_folder2, dat, cur_raref, group, case, filt_raref)
+                                cur_sh = '%s/run_decay_%s%s_%s_%s_%s%s.sh' % (
+                                    job_folder2, dat, cur_raref, metric, group, case, filt_raref)
                                 cur_sh = cur_sh.replace(' ', '-')
                                 all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                                 new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
@@ -139,8 +139,10 @@ def run_single_decay(odir: str, group: str, new_meta_pd: pd.DataFrame,
                     if str(new_meta_pd[mode_group].dtype) != 'object':
                         continue
                     mode_meta_pd = new_meta_pd[[mode_group]].reset_index()
+
                 if not isdir(cur_rad):
                     os.makedirs(cur_rad)
+
                 new_meta = '%s.meta' % cur_rad
                 mode_meta_pd.columns = ['#SampleID'] + mode_meta_pd.columns.tolist()[1:]
                 mode_meta_pd.to_csv(new_meta, index=False, sep='\t')
