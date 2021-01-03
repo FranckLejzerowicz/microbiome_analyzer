@@ -224,14 +224,14 @@ def get_filtering(p_yml: str, filtering_dict: dict,
                     dat = get_dat_mb_or_not(dat_)
                     if dat in dats:
                         filtering[pair][filt_name][dat] = prev_abund
-        print('[mmvec] filtering')
-        print(filtering)
 
     elif analysis == 'songbird':
         if 'global' in filtering_dict['filtering']:
             for filt_name, prev_abund in filtering_dict['filtering']['global'].items():
                 for dat_ in songbird_mmvec.keys():
                     dat = get_dat_mb_or_not(dat_)
+                    if filt_name not in filtering['']:
+                        filtering[''][filt_name] = {}
                     filtering[''][filt_name][dat] = prev_abund
 
         for dat_, filts in filtering_dict['filtering'].items():
@@ -243,8 +243,6 @@ def get_filtering(p_yml: str, filtering_dict: dict,
                     filtering[''][filt_name] = {}
                 if dat in dats:
                     filtering[''][filt_name][dat] = prev_abund
-        print('[mmvec] filtering')
-        print(filtering)
 
     return filtering
 
