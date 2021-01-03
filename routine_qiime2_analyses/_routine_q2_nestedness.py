@@ -199,18 +199,8 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
 def get_comparisons_statistics_pd(mode_dir, level, cur_raref, group,
                                   case, com_sta) -> pd.DataFrame:
     com_sta_pds = []
-    print()
-    print('===========')
-    print(mode_dir)
-    print(level)
-    print(cur_raref)
-    print(group)
-    print(case)
-    print(com_sta)
     for com_sta_fp in glob.glob('%s/*_%s.csv' % (mode_dir, com_sta)):
-        print(com_sta_fp)
         mode = mode_dir.split('/')[-1]
-        print(mode)
         com_sta_pd = pd.read_csv(com_sta_fp)
         if com_sta == 'simulate':
             com_sta_pd['NULL'] = basename(com_sta_fp).split('_')[0]
@@ -242,9 +232,10 @@ def get_comparisons_statistics_pd(mode_dir, level, cur_raref, group,
             com_sta_pd = com_sta_pd[['GRAPH_ID', 'COMPARISON']].drop_duplicates()
         print(com_sta_pd.iloc[:4, :])
         com_sta_pds.append(com_sta_pd)
-
-    com_sta_pd = pd.concat(com_sta_pds)
-    return com_sta_pd
+    if com_sta_pds:
+        com_sta_pd = pd.concat(com_sta_pds)
+        return com_sta_pd
+    return pd.DataFrame()
 
 
 def nestedness_figure(i_datasets_folder: str, nestedness_res: dict,
@@ -468,10 +459,14 @@ def nestedness_figure(i_datasets_folder: str, nestedness_res: dict,
                 for mode_dir in res['modes']:
                     comparisons_pd = get_comparisons_statistics_pd(
                         mode_dir, level, cur_raref, group, case, 'comparisons')
+                    if not comparisons_pd.shape[0]:
+                        continue
                     # statistics_pd = get_comparisons_statistics_pd(
                     #     mode_dir, level, raref, group, case, 'statistics')
                     simulate_pd = get_comparisons_statistics_pd(
                         mode_dir, level, cur_raref, group, case, 'simulate')
+                    if not simulate_pd.shape[0]:
+                        continue
                     # nodf_pd = statistics_pd[statistics_pd['GRAPH_EDGE_COUNT'] > 10].merge(
                     #     comparisons_pd, on='GRAPH_ID', how='left')
                     nodf_pd = simulate_pd[simulate_pd['GRAPH_EDGE_COUNT'] > 5].merge(
