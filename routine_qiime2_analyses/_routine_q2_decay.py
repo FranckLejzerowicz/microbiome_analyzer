@@ -165,7 +165,7 @@ def distance_decay_figure(i_datasets_folder: str,
                           datasets_rarefs: dict,
                           filt_raref: str) -> None:
 
-    odir = get_analysis_folder(i_datasets_folder, 'decay')
+    odir = get_analysis_folder(i_datasets_folder, 'decay%s' % filt_raref)
     for dat, metrics_group_subset_mode_modegrps in distance_decay_res.items():
         not_exists_yet = 0
         decays = []
@@ -199,7 +199,7 @@ def distance_decay_figure(i_datasets_folder: str,
                     decay = pd.read_csv(fp)
                     decay['rarefaction'] = cur_raref
                     decay['metric'] = metric
-                    decay['metric / rarefaction'] = decay['metric'] + '/' + decay['rarefaction']
+                    decay['metric / rarefaction'] = decay['metric'] + ' / ' + decay['rarefaction']
                     decay['features group'] = group
                     decay['samples subset'] = subset
                     decay['analysis mode'] = cur_mode
