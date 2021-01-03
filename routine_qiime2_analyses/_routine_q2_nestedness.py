@@ -199,6 +199,12 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
 def get_comparisons_statistics_pd(mode_dir, level, cur_raref, group,
                                   case, com_sta) -> pd.DataFrame:
     com_sta_pds = []
+    print(mode_dir)
+    print(level)
+    print(cur_raref)
+    print(group)
+    print(case)
+    print(com_sta)
     for com_sta_fp in glob.glob('%s/*_%s.csv' % (mode_dir, com_sta)):
         mode = mode_dir.split('/')[-1]
         com_sta_pd = pd.read_csv(com_sta_fp)
