@@ -397,7 +397,8 @@ def routine_qiime2_analyses(
                                                 filt_raref, jobs, chunkit)
         if distance_decay_res:
             print('(making_distance_decay_figures)')
-            distance_decay_figure(i_datasets_folder, distance_decay_res, filt_raref)
+            distance_decay_figure(i_datasets_folder, distance_decay_res,
+                                  datasets_rarefs, filt_raref)
 
     # PHATE ---------------------------------------------------------------------
     if p_phate_config and 'phate' not in p_skip:

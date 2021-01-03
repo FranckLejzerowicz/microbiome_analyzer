@@ -9,6 +9,8 @@
 import os
 import pandas as pd
 from os.path import basename, isfile, splitext, isdir
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 from routine_qiime2_analyses._routine_q2_xpbs import print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
@@ -152,7 +154,7 @@ def run_single_decay(odir: str, group: str, new_meta_pd: pd.DataFrame,
                                          mode_value_target, iteration, step,
                                          n_nodes, n_procs, cur_sh_o)
                     remove = False
-                res.setdefault((mode, mode_group), []).append(new_tsv)
+                res[mode, mode_group] = new_tsv
     if remove:
         os.remove(cur_sh)
     return res
@@ -160,5 +162,102 @@ def run_single_decay(odir: str, group: str, new_meta_pd: pd.DataFrame,
 
 def distance_decay_figure(i_datasets_folder: str,
                           distance_decay_res: dict,
+                          datasets_rarefs: dict,
                           filt_raref: str) -> None:
-    print(distance_decay_res)
+
+    odir = get_analysis_folder(i_datasets_folder, 'decay')
+    for dat, metrics_group_subset_mode_modegrps in distance_decay_res.items():
+        not_exists_yet = 0
+        decays = []
+        rarefs = set()
+        groups = set()
+        subsets = set()
+        modes = set()
+        metrics = set()
+        for idx, metrics_group_subset_mode_modegrp in enumerate(metrics_group_subset_mode_modegrps):
+            raref = datasets_rarefs[dat][idx]
+            if raref:
+                cur_raref = raref.split('_raref')[-1]
+            else:
+                cur_raref = 'raw'
+            for (metric, group, subset), mode_modegrp in metrics_group_subset_mode_modegrp.items():
+                metrics.add(metric)
+                groups.add(group)
+                subsets.add(subset)
+                for (mode, mode_group), fp in mode_modegrp.items():
+
+                    if not isfile(fp):
+                        not_exists_yet += 1
+                        continue
+
+                    if mode_group:
+                        cur_mode = '%s (%s)' % (mode, mode_group)
+                    else:
+                        cur_mode = mode
+                    modes.add(cur_mode)
+
+                    decay = pd.read_csv(fp)
+                    decay['rarefaction'] = cur_raref
+                    decay['metric'] = metric
+                    decay['metric / rarefaction'] = decay['metric'] + '/' + decay['rarefaction']
+                    decay['features group'] = group
+                    decay['samples subset'] = subset
+                    decay['analysis mode'] = cur_mode
+
+                    decays.append(decay)
+
+        decays_pd = pd.concat(decays)
+
+        row = 'features group'
+        col = 'samples subset'
+        if groups == {''}:
+            row = ''
+        if subsets == {'ALL'}:
+            col = ''
+
+        title = dat
+
+        style = 'analysis mode'
+        hue = 'metric / rarefaction'
+        if rarefs == {'raw'}:
+            title += ' - no rarefaction'
+            hue = 'metric'
+        if modes == {'analysis mode'}:
+            if col:
+                style = col
+                col = ''
+            elif row:
+                style = row
+                row = ''
+
+        if row:
+            height = decays_pd[row].unique().size * 3
+        else:
+            height = 4
+
+        if row and col:
+            g = sns.relplot(data=decays_pd, x='step', y='min', hue=hue,
+                            style=style, row=row, col=col, kind='line',
+                            facet_kws={'sharex': False}, height=height)
+            g.set_titles('{row_name}\n{col_name}')
+        elif row:
+            g = sns.relplot(data=decays_pd, x='step', y='min', hue=hue,
+                            style=style, col=row, kind='line', col_wrap=3,
+                            facet_kws={'sharex': False}, height=height)
+            g.set_titles('{col_name}')
+        elif col:
+            g = sns.relplot(data=decays_pd, x='step', y='min', hue=hue,
+                            style=style, col=col, kind='line', col_wrap=3,
+                            facet_kws={'sharex': False}, height=height)
+            g.set_titles('{col_name}')
+        else:
+            g = sns.relplot(data=decays_pd, x='step', y='min', hue=hue,
+                            style=style, kind='line', height=height)
+        plt.suptitle(title, fontsize=12)
+        plt.subplots_adjust(top=0.93)
+        fig_o = '%s/%s_decays.pdf' % (odir, dat)
+        plt.savefig(fig_o, bbox_inches='tight')
+        print('    (decay) Written figure: %s' % fig_o)
+        if not_exists_yet:
+            print('            -> it has %s decay analyses missing (need [TO RUN])' % not_exists_yet)
+
