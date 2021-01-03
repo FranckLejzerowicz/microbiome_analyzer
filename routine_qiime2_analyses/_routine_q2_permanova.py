@@ -184,14 +184,14 @@ def summarize_permanova(i_datasets_folder: str, permanovas: dict,
         out_py = '%s/run_permanova_summarize_%s%s.py' % (job_folder2, dat, filt_raref)
         with open(out_py, 'w') as o, open(summarize_fp) as f:
             for line in f:
+                line_edit = line
+                if 'DATASET' in line:
+                    line_edit = line_edit.replace('DATASET', dat)
                 if 'ROUTINE_FOLDER' in line:
-                    o.write(line.replace('ROUTINE_FOLDER', i_datasets_folder))
-                elif 'METRICS' in line:
-                    o.write(line.replace('METRICS', str(metrics)))
-                elif 'DATASET' in line:
-                    o.write(line.replace('DATASET', dat))
-                else:
-                    o.write(line)
+                    line_edit = line_edit.replace('ROUTINE_FOLDER', i_datasets_folder)
+                if 'METRICS' in line:
+                    line_edit = line_edit.replace('METRICS', str(metrics))
+                o.write(line_edit)
         cur_sh = '%s/run_permanova_summarize_%s%s_tmp.sh' % (job_folder2, dat, filt_raref)
         with open(cur_sh, 'w') as o:
             o.write('python3 %s\n' % out_py)

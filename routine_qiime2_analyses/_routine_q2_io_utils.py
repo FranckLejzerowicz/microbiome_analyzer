@@ -204,7 +204,19 @@ def get_filtering(p_yml: str, filtering_dict: dict,
     if 'filtering' not in filtering_dict:
         print('No filtering thresholds set in %s\n:' % p_yml)
     elif analysis == 'mmvec':
+        if 'global' in filtering:
+            for filt_name, prev_abund in filtering_dict['filtering']['global'].items():
+                for pair, dats_pair in songbird_mmvec.items():
+                    if pair not in filtering:
+                        filtering[pair] = {}
+                    if filt_name not in filtering[pair]:
+                        filtering[pair][filt_name] = {}
+                    for dat in dats_pair:
+                        dats.append(dat)
+                        filtering[pair][filt_name][dat] = dats_pair
         for pair, pair_d in filtering_dict['filtering'].items():
+            if pair == 'global':
+                continue
             filtering[pair] = {}
             for filt_name, dats_d in pair_d.items():
                 filtering[pair][filt_name] = {}
