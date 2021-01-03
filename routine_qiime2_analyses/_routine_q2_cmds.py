@@ -1185,7 +1185,7 @@ def write_distance_decay(mat_qza: str, mat_qza_filt: str, new_qza: str,
         cmd += '--p-step %s \\\n' % step
         cmd += '--p-jobs %s \\\n' % (int(n_nodes) * int(n_procs))
         cmd += '--o-distance-decay %s\n' % new_qza
-        cmd += 'rm %s %s\n' % (mat_qza_filt, new_meta)
+        cmd += 'rm %s\n' % mat_qza_filt
     if not isfile(new_tsv):
         cmd += run_export(new_qza, new_tsv, 'decay')
         cmd += 'rm %s\n' % new_qza
