@@ -204,7 +204,7 @@ def get_filtering(p_yml: str, filtering_dict: dict,
     if 'filtering' not in filtering_dict:
         print('No filtering thresholds set in %s\n:' % p_yml)
     elif analysis == 'mmvec':
-        if 'global' in filtering:
+        if 'global' in filtering_dict['filtering']:
             for filt_name, prev_abund in filtering_dict['filtering']['global'].items():
                 for pair, dats_pair in songbird_mmvec.items():
                     if pair not in filtering:
@@ -213,7 +213,7 @@ def get_filtering(p_yml: str, filtering_dict: dict,
                         filtering[pair][filt_name] = {}
                     for dat in dats_pair:
                         dats.append(dat)
-                        filtering[pair][filt_name][dat] = dats_pair
+                        filtering[pair][filt_name][dat] = prev_abund
         for pair, pair_d in filtering_dict['filtering'].items():
             if pair == 'global':
                 continue
@@ -224,15 +224,27 @@ def get_filtering(p_yml: str, filtering_dict: dict,
                     dat = get_dat_mb_or_not(dat_)
                     if dat in dats:
                         filtering[pair][filt_name][dat] = prev_abund
+        print('[mmvec] filtering')
+        print(filtering)
 
     elif analysis == 'songbird':
+        if 'global' in filtering_dict['filtering']:
+            for filt_name, prev_abund in filtering_dict['filtering']['global'].items():
+                for dat_ in songbird_mmvec.keys():
+                    dat = get_dat_mb_or_not(dat_)
+                    filtering[''][filt_name][dat] = prev_abund
+
         for dat_, filts in filtering_dict['filtering'].items():
+            if dat_ == 'global':
+                continue
             dat = get_dat_mb_or_not(dat_)
             for filt_name, prev_abund in filts.items():
                 if filt_name not in filtering['']:
                     filtering[''][filt_name] = {}
                 if dat in dats:
                     filtering[''][filt_name][dat] = prev_abund
+        print('[mmvec] filtering')
+        print(filtering)
 
     return filtering
 
