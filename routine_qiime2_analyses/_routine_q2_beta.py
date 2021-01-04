@@ -702,7 +702,7 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
             written = 0
             if dat in taxonomies:
                 method, tax_qza, tax_tsv = taxonomies[dat]
-                split_taxa_pd = split_taxa_pds[dat]
+                split_taxa_pd, split_taxa_fp = split_taxa_pds[dat]
             else:
                 tax_tsv = 'missing'
             out_sh = '%s/run_emperor_biplot_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)

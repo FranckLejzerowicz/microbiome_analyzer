@@ -36,7 +36,7 @@ from routine_qiime2_analyses._routine_q2_decay import (run_distance_decay, dista
 from routine_qiime2_analyses._routine_q2_procrustes_mantel import (run_procrustes, run_mantel)
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
 from routine_qiime2_analyses._routine_q2_permanova import run_permanova, summarize_permanova
-from routine_qiime2_analyses._routine_q2_nestedness import run_nestedness, nestedness_figure
+from routine_qiime2_analyses._routine_q2_nestedness import run_nestedness, nestedness_graphs, nestedness_nodfs
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
 from routine_qiime2_analyses._routine_q2_phate import run_phate
 from routine_qiime2_analyses._routine_q2_songbird import run_songbird
@@ -255,7 +255,6 @@ def routine_qiime2_analyses(
                                  datasets_collapsed, datasets_collapsed_map, force,
                                  prjct_nm, qiime_env, chmod, noloc,
                                  run_params["collapse"], filt_raref, jobs)
-
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
         print('(diversities)')
@@ -383,11 +382,20 @@ def routine_qiime2_analyses(
                                                 force, prjct_nm, qiime_env, chmod, noloc,
                                                 split, run_params['nestedness'],
                                                 filt_raref, jobs, chunkit)
+        nodfs_fps = {}
         if nestedness_res:
-            print('(making_nestedness_figures)')
-            nestedness_figure(i_datasets_folder, nestedness_res, datasets_read,
-                              split_taxa_pds, datasets_rarefs, colors,
-                              datasets_collapsed_map, collapsed, filt_raref)
+            print('(making_nestedness_figures (graphs))')
+            nodfs_fps = nestedness_graphs(i_datasets_folder, nestedness_res, datasets,
+                                          split_taxa_pds, datasets_rarefs, colors,
+                                          datasets_collapsed_map, collapsed, filt_raref,
+                                          prjct_nm, qiime_env, chmod, noloc, split,
+                                          run_params['nestedness'], jobs, chunkit)
+        if nodfs_fps:
+            print('(making_nestedness_figures (nodfs))')
+            nestedness_nodfs(i_datasets_folder, nodfs_fps, collapsed,
+                             filt_raref, prjct_nm, qiime_env, chmod,
+                             noloc, split, run_params['nestedness'],
+                             jobs, chunkit)
 
     if 'beta' not in p_skip and p_distance_decay and 'decay' not in p_skip:
         print('(run_distance_decay)')

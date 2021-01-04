@@ -119,11 +119,13 @@ def get_taxo_levels(taxonomies: dict) -> dict:
             continue
         tax_pd = pd.read_csv(tax_fp[-1], header=0, sep='\t', dtype=str)
         tax_pd.rename(columns={tax_pd.columns[0]: 'Feature ID'}, inplace=True)
+        tax_fpo = '%s_splitaxa.tsv' % splitext(tax_fp[-1])[0]
         features = tax_pd['Feature ID'].tolist()
         split_taxa_pd = get_split_taxonomy(tax_pd.Taxon.tolist())
         split_taxa_pd.index = features
         if split_taxa_pd.shape[1] == 1:
-            split_taxa_pds[dat] = split_taxa_pd
+            split_taxa_pds[dat] = (split_taxa_pd, tax_fpo)
+            split_taxa_pd.to_csv(tax_fpo, index=True, sep='\t')
             continue
 
         torm = []
@@ -147,7 +149,8 @@ def get_taxo_levels(taxonomies: dict) -> dict:
                 not_collapsable = True
 
         if not_collapsable:
-            split_taxa_pds[dat] = split_taxa_pd
+            split_taxa_pds[dat] = (split_taxa_pd, tax_fpo)
+            split_taxa_pd.to_csv(tax_fpo, index=True, sep='\t')
             continue
 
         if len(ranks) == split_taxa_pd.shape[1]:
@@ -162,7 +165,8 @@ def get_taxo_levels(taxonomies: dict) -> dict:
                 columns=cols
             )
         split_taxa_pd.index = features
-        split_taxa_pds[dat] = split_taxa_pd
+        split_taxa_pd.to_csv(tax_fpo, index=True, sep='\t')
+        split_taxa_pds[dat] = (split_taxa_pd, tax_fpo)
         if rewrite:
             split_taxa_pd = pd.DataFrame({
                 'Feature ID': features,
@@ -178,7 +182,7 @@ def get_taxo_levels(taxonomies: dict) -> dict:
 def get_split_levels(dat, collapse_taxo: dict, split_taxa_pds: dict):
     split_levels = {}
     taxo = collapse_taxo[dat]
-    split_taxa_pd = split_taxa_pds[dat]
+    split_taxa_pd, split_taxa_fp = split_taxa_pds[dat]
     # taxo levels are the header of split_taxa_pd
     for taxo_name, taxo_header in taxo.items():
         if isinstance(taxo_header, int):
@@ -197,7 +201,7 @@ def make_pies(i_datasets_folder: str, split_taxa_pds: dict,
         odir = get_analysis_folder(i_datasets_folder, 'nestedness/%s' % dat)
         out_pdf = '%s/pies_%s.pdf' % (odir, dat)
         with PdfPages(out_pdf) as pdf:
-            split_taxa = split_taxa_pds[dat]
+            split_taxa, split_taxa_fp = split_taxa_pds[dat]
             ranks = split_taxa.columns.tolist()
             ranks_col = []
             for row in split_taxa.values:

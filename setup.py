@@ -75,6 +75,8 @@ setup(
             'resources/run_params.yml',
             'resources/spatial_autocorrelation_modeling.sh',
             'resources/summarize_permanovas.py',
+            'resources/nestedness_graphs.py',
+            'resources/nestedness_nodfs.py',
             'resources/wol_tree.nwk',
             'examples/*'
         ],
