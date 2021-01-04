@@ -253,6 +253,10 @@ def export_meta_alpha(datasets: dict, filt_raref: str,
         for idx, meta_alphas_fps in enumerate(meta_alphas_fps_):
             tsv, meta = datasets[dat][idx]
             cur_raref = datasets_rarefs[dat][idx]
+            print()
+            print(dat)
+            print(cur_raref)
+            print(meta_alphas_fps)
             meta_alphas_fps_exist = [x for x in meta_alphas_fps if isfile(x)]
             if len(meta_alphas_fps_exist) != len(meta_alphas_fps):
                 if first_print:
