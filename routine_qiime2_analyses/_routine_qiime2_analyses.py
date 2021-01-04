@@ -257,7 +257,7 @@ def routine_qiime2_analyses(
                                  run_params["collapse"], filt_raref, jobs)
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
-        print('(diversities)')
+        print('(alpha)')
         diversities = run_alpha(i_datasets_folder, datasets, datasets_read,
                                 datasets_phylo, datasets_rarefs, p_alpha_subsets,
                                 trees, force, prjct_nm, qiime_env, chmod, noloc,

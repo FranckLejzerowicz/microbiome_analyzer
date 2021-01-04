@@ -60,6 +60,8 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     run_pbs = '%s/1_run_alpha_%s%s%s.sh' % (job_folder, prjct_nm, evaluation, filt_raref)
     main_written = 0
     to_chunk = []
+    print(sorted(datasets.keys()))
+    print(datasetsfds)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
             written = 0
@@ -211,8 +213,6 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: di
                         else:
                             out_fp = '%s/%s_alphas_noDropout__%s.qzv' % (output_folder, base, group)
                         out_fp_tsv = '%s.tsv' % splitext(out_fp)[0]
-                        print('out_fp_tsv')
-                        print(out_fp_tsv)
                         to_export_groups.append(out_fp_tsv)
                         if force or not isfile(out_fp):
                             write_metadata_tabulate(out_fp, divs, meta, cur_sh)
