@@ -275,6 +275,7 @@ def nestedness_figure(i_datasets_folder: str, nestedness_res: dict,
                     tax_pd = split_taxa_pds[stats_tax_dat].iloc[
                              :, :collapsed[stats_tax_dat][level]
                         ].drop_duplicates()
+                    print(tax_pd)
                     tax_pd['OBSERVATION_ID'] = tax_pd.apply(func=lambda x: ';'.join(x), axis=1)
                 else:
                     tax_pd = tax_pd.rename(columns={tax_pd.columns[0]: 'OBSERVATION_ID'})
