@@ -270,6 +270,8 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
                                     main_written += 1
                                     written += 1
                 if written:
+                    if chunkit and len(shs) >= chunkit:
+                        chunks = [list(x) for x in np.array_split(np.array(shs), chunkit)]
                     if split and len(shs) >= 3:
                         chunks = [list(x) for x in np.array_split(np.array(shs), 3)]
                     else:
