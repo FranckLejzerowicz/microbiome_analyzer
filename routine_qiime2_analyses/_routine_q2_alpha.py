@@ -211,6 +211,8 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: di
                         else:
                             out_fp = '%s/%s_alphas_noDropout__%s.qzv' % (output_folder, base, group)
                         out_fp_tsv = '%s.tsv' % splitext(out_fp)[0]
+                        print('out_fp_tsv')
+                        print(out_fp_tsv)
                         to_export_groups.append(out_fp_tsv)
                         if force or not isfile(out_fp):
                             write_metadata_tabulate(out_fp, divs, meta, cur_sh)
@@ -248,7 +250,9 @@ def export_meta_alpha(datasets: dict, filt_raref: str,
     :param to_export: files to export per dataset.
     """
     first_print = True
+
     for dat, meta_alphas_fps_ in to_export.items():
+
         all_meta_alphas_pds = []
         for idx, meta_alphas_fps in enumerate(meta_alphas_fps_):
             tsv, meta = datasets[dat][idx]
