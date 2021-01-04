@@ -1,4 +1,4 @@
-import glob
+import glob, sys
 import pandas as pd
 import numpy as np
 from os.path import basename, isfile, splitext
@@ -50,17 +50,18 @@ def get_comparisons_statistics_pd(mode_dir, level, cur_raref, group,
     return pd.DataFrame()
 
 
-dat = DAT
-cur_raref = CUR_RAREF
-tab_pd = pd.read_table(TAB_FP, index_col=0)
-meta_pd = pd.read_table(META_FP, dtype={'sample_name': str})
+dat = 'DAT'
+cur_raref = 'CUR_RAREF'
+tab_pd = pd.read_table('TAB_FP', index_col=0)
+meta_pd = pd.read_table('META_FP', dtype={'sample_name': str})
 colors_sample = COLORS_SAMPLE
 colors_feature = COLORS_FEATURE
-stats_tax_dat = STATS_TAX_DAT
-split_taxa_fp = SPLIT_TAXA_FP
-level = LEVEL
+stats_tax_dat = 'STATS_TAX_DAT'
+split_taxa_fp = 'SPLIT_TAXA_FP'
+level = 'LEVEL'
 collapsed = COLLAPSED
 nestedness_raref = NESTEDNESS_RAREF
+
 if colors_sample:
     meta_pd = meta_pd.rename(columns={meta_pd.columns[0]: 'SAMPLE_ID'})
     meta_pd = meta_pd.set_index('SAMPLE_ID')
@@ -76,7 +77,7 @@ if colors_feature and split_taxa_fp:
     tax_pd = pd.read_table(split_taxa_fp, index_col=0)
     if level != 'feature':
         if level not in collapsed[stats_tax_dat]:
-            continue
+            sys.exit(0)
         tax_pd = tax_pd.iloc[
                  :, :collapsed[stats_tax_dat][level]
                  ].drop_duplicates()

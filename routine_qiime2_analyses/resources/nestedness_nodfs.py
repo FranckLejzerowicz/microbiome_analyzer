@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-dat = DAT
-odir = ODIR
+dat = 'DAT'
+odir = 'ODIR'
 nodfs = NODFS
 collapsed = COLLAPSED
 
