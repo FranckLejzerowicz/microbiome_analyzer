@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-dat = 'DAT'
-odir = 'ODIR'
-nodfs = NODFS
-collapsed = COLLAPSED
+dat = '<DAT>'
+odir = '<ODIR>'
+nodfs = <NODFS>
+collapsed = <COLLAPSED>
 
 arefiles = [x for x in nodfs if isfile(x)]
 if arefiles and dat in collapsed:

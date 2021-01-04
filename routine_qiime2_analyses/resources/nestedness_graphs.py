@@ -50,17 +50,17 @@ def get_comparisons_statistics_pd(mode_dir, level, cur_raref, group,
     return pd.DataFrame()
 
 
-dat = 'DAT'
-cur_raref = 'CUR_RAREF'
-tab_pd = pd.read_table('TAB_FP', index_col=0)
-meta_pd = pd.read_table('META_FP', dtype={'sample_name': str})
-colors_sample = COLORS_SAMPLE
-colors_feature = COLORS_FEATURE
-stats_tax_dat = 'STATS_TAX_DAT'
-split_taxa_fp = 'SPLIT_TAXA_FP'
-level = 'LEVEL'
-collapsed = COLLAPSED
-nestedness_raref = NESTEDNESS_RAREF
+dat = '<DAT>'
+cur_raref = '<CUR_RAREF>'
+tab_pd = pd.read_table('<TAB_FP>', index_col=0)
+meta_pd = pd.read_table('<META_FP>', dtype={'sample_name': str})
+colors_sample = <COLORS_SAMPLE>
+colors_feature = <COLORS_FEATURE>
+stats_tax_dat = '<STATS_TAX_DAT>'
+split_taxa_fp = '<SPLIT_TAXA_FP>'
+level = '<LEVEL>'
+collapsed = <COLLAPSED>
+nestedness_raref = <NESTEDNESS_RAREF>
 
 if colors_sample:
     meta_pd = meta_pd.rename(columns={meta_pd.columns[0]: 'SAMPLE_ID'})
