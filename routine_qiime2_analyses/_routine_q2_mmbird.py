@@ -157,6 +157,7 @@ def get_order_omics(
         filt1, filt2 = filt2, filt1
     return omic1, omic2, filt1, filt2, omic_feature, omic_sample, omic_microbe, omic_metabolite
 
+import subprocess
 
 def get_xmmvec_commands(
         ordi_edit_fp, omic1, omic2,
@@ -164,6 +165,12 @@ def get_xmmvec_commands(
 ):
     cmd = '\n'
     ranks_fp = ordi_edit_fp.replace('ordination.txt', 'ranks.tsv')
+    nrows = None
+    ncols = None
+    if isfile(ranks_fp):
+        nrows = pd.read_table(ranks_fp, usecols=[0, 1, 2]).shape[0]
+        ncols = pd.read_table(ranks_fp, nrows=3, index_col=0).shape[1]
+
     ranks_html = ordi_edit_fp.replace('ordination.txt', 'ranks.html')
     if not isfile(ranks_html):
         cmd += '\nXmmvec'
@@ -171,6 +178,10 @@ def get_xmmvec_commands(
         cmd += ' --o-ranks-explored %s' % ranks_html
         cmd += ' --p-omic1-name %s' % omic1
         cmd += ' --p-omic2-name %s' % omic2
+        if nrows > 100:
+            cmd += ' --p-omic1-max 100'
+        if ncols > 100:
+            cmd += ' --p-omic2-max 100'
         if xmmvecs and pair in xmmvecs:
             cmd += ' --p-omic1-metadata %s' % meta1_fp
             cmd += ' --p-omic2-metadata %s' % meta2_fp
