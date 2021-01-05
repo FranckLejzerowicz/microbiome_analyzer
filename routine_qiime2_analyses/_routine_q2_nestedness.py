@@ -314,7 +314,7 @@ def nestedness_graphs(i_datasets_folder: str, nestedness_res: dict,
                         line_edit = line_edit.replace('<NESTEDNESS_RAREF>', str(nestedness_raref))
                     o.write(line_edit)
 
-    job_folder = get_job_folder(i_datasets_folder, 'nestedness_figure')
+    job_folder = get_job_folder(i_datasets_folder, 'nestedness_figures')
     main_sh = write_main_sh(job_folder, 'run_nestedness_graphs_%s' % filt_raref, all_sh_pbs,
                             '%s.nstd.grph%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
@@ -363,7 +363,7 @@ def nestedness_nodfs(i_datasets_folder: str, nodfs_fps: dict,
                     line_edit = line_edit.replace('<COLLAPSED>', str(collapsed))
                 o.write(line_edit)
 
-    job_folder = get_job_folder(i_datasets_folder, 'nestedness_figure')
+    job_folder = get_job_folder(i_datasets_folder, 'nestedness_figures')
     main_sh = write_main_sh(job_folder, 'run_nestedness_nodfs_%s' % filt_raref, all_sh_pbs,
                             '%s.nstd.ndf%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],

@@ -1,7 +1,9 @@
 import pandas as pd
+import numpy as np
 from os.path import isfile
 
 from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib.colors import to_rgba
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -31,9 +33,12 @@ if arefiles and dat in collapsed:
 
     nodfs_metas = nodfs_null.loc[nodfs_null.COMPARISON != 'overall']
     nodfs_leg = dict(zip(nodfs_metas.COMPARISON.unique(), sns.color_palette(
-                palette='Set1', n_colors=nodfs_metas.COMPARISON.unique().size).as_hex()))
-    nodfs_leg['overall'] = '#000000'
+                palette='Set1', n_colors=nodfs_metas.COMPARISON.unique().size)))
+                # palette = 'Set1', n_colors = nodfs_metas.COMPARISON.unique().size).as_hex()))
+    nodfs_leg['overall'] = (0, 0, 0)
+    # nodfs_leg['overall'] = '#000000'
 
+    nodfs_null['FEATURE_SUBSET'] = nodfs_null['FEATURE_SUBSET'].fillna('')
     nodfs_null['SUBSET'] = nodfs_null[
         ['FEATURE_SUBSET', 'SAMPLE_SUBSET']].apply(func=lambda x: ''.join(x), axis=1)
     comparison_raref = 'COMPARISON_RAREF'
@@ -41,6 +46,18 @@ if arefiles and dat in collapsed:
         ['COMPARISON', 'RAREF']].apply(func=lambda x: ''.join(x), axis=1)
     if not sum(nodfs_null.COMPARISON_RAREF.str.contains('raref')):
         comparison_raref = 'COMPARISON'
+
+    comparison_rarefs = sorted(set([x.split('_raref')[-1] for x in nodfs_null[comparison_raref].unique()]))
+    ncomparison_rarefs = len(comparison_rarefs)
+    if ncomparison_rarefs == 1:
+        nodfs_leg = dict(('%s_raref%s' % (x, comparison_rarefs[0]), y) for x, y in nodfs_leg.items())
+    elif ncomparison_rarefs > 1:
+        alphas = np.linspace(0.4, 1, ncomparison_rarefs)
+        nodfs_leg = dict(
+            ('%s_raref%s' % (x, raref), to_rgba(y, alphas[rdx]))
+            for x, y in nodfs_leg.items()
+            for rdx, raref in enumerate(comparison_rarefs)
+        )
 
     nodfs_null['MODE_METADATA'] = nodfs_null[
         ['MODE', 'METADATA']].fillna('').apply(func=lambda x: ' - '.join([y for y in x if y]), axis=1)
