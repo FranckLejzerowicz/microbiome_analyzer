@@ -202,12 +202,13 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
             tsv_sam_sum = tsv_pd.sum()
             datasets_raref_evals[dat] = set([int(x) for x in tsv_sam_sum.describe(
                 percentiles=[x / 100 for x in range(10, 101, 10)])[4:-1]])
-            if dat in datasets_raref_depths_yml:
-                depths = datasets_raref_depths_yml[dat]
-                datasets_raref_depths[dat] = (1, depths)
-                datasets_raref_evals[dat].update(
-                    [int(x) if str(x).isdigit() else np.floor(min(tsv_sam_sum)) for x in depths]
-                )
+            if datasets_raref_depths_yml:
+                if dat in datasets_raref_depths_yml:
+                    depths = datasets_raref_depths_yml[dat]
+                    datasets_raref_depths[dat] = (1, depths)
+                    datasets_raref_evals[dat].update(
+                        [int(x) if str(x).isdigit() else np.floor(min(tsv_sam_sum)) for x in depths]
+                    )
                 continue
             raref_files = glob.glob('%s/qiime/rarefy/%s/tab_raref*.qza' % (i_datasets_folder, dat))
             if len(raref_files):
