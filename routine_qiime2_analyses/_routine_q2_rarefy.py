@@ -205,7 +205,7 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
             if datasets_raref_depths_yml:
                 if dat in datasets_raref_depths_yml:
                     depths = datasets_raref_depths_yml[dat]
-                    depths = [x for x in depths if x >= min(tsv_sam_sum)]
+                    depths = [x for x in depths if int(x) >= min(tsv_sam_sum)]
                     if not depths:
                         print('[%s] Proposed rarefaction depths too low: %s (not rarefying)' % (
                             dat, ', '.join(datasets_raref_depths_yml[dat])))
