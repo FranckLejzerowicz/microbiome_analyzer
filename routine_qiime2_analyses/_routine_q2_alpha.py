@@ -60,8 +60,6 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     run_pbs = '%s/1_run_alpha_%s%s%s.sh' % (job_folder, prjct_nm, evaluation, filt_raref)
     main_written = 0
     to_chunk = []
-    print(sorted(datasets.keys()))
-    print(datasetsfds)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
             written = 0
@@ -257,10 +255,6 @@ def export_meta_alpha(datasets: dict, filt_raref: str,
         for idx, meta_alphas_fps in enumerate(meta_alphas_fps_):
             tsv, meta = datasets[dat][idx]
             cur_raref = datasets_rarefs[dat][idx]
-            print()
-            print(dat)
-            print(cur_raref)
-            print(meta_alphas_fps)
             meta_alphas_fps_exist = [x for x in meta_alphas_fps if isfile(x)]
             if len(meta_alphas_fps_exist) != len(meta_alphas_fps):
                 if first_print:
