@@ -457,7 +457,7 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                     n_example, str(gpu)[0]
                 )
                 # skip is not at least half samples (for training if train columns specified)
-                if train_column:
+                if train_columns != ['None']:
                     meta_pd = pd.read_table(meta_fp, usecols=['sample_name', train_column.lower()])
                     ntrain = meta_pd[train_column.lower()].value_counts()['Train']
                     if ncommon < (1.2 * ntrain):
