@@ -141,7 +141,6 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict, filtering: di
                         abund_filter2, pair, len_common_sams
                     )
                     new_qza2 = '%s.qza' % splitext(new_tsv2)[0]
-
                     common_datasets.setdefault(pair, []).append(
                         [meta_fp, omic1, omic2, filt1, filt2,
                          new_tsv1, new_tsv2, new_qza1,
@@ -457,6 +456,22 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                     thresh_feat, latent_dim, train_column,
                     n_example, str(gpu)[0]
                 )
+                # skip is not at least half samples (for training if train columns specified)
+                if train_column:
+                    meta_pd = pd.read_table(meta_fp, usecols=['sample_name', train_column.lower()])
+                    ntrain = meta_pd[train_column.lower()].value_counts()['Train']
+                    if ncommon < (1.2 * ntrain):
+                        print('\t\t--> skipped pair "%s" (too few samples [%s]):' % (pair, ncommon))
+                        print('\t\t  - %s %s' % (omic1, filt1))
+                        print('\t\t  - %s %s' % (omic2, filt2))
+                        continue
+                else:
+                    if int(ncommon) < (2 * int(n_example)):
+                        print('\t\t--> skipped pair "%s" (too few samples [%s]):' % (pair, ncommon))
+                        print('\t\t  - %s %s' % (omic1, filt1))
+                        print('\t\t  - %s %s' % (omic2, filt2))
+                        continue
+
                 odir = get_analysis_folder(
                     i_datasets_folder,
                     'mmvec/paired/%s/%s/%s_%s__%s_%s/%s' % (

@@ -1230,28 +1230,13 @@ def get_datasets_filtered(
 
         tsv_pd_ = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :]
         tsv_pd_ = tsv_pd_.loc[:, tsv_pd_.sum(0) > 0]
-
         dat_filts = {}
         cases_dict = check_metadata_cases_dict(meta, meta_pd_, dict(subsets), 'songbird')
         for case_var, case_vals_list in cases_dict.items():
             for case_vals in case_vals_list:
                 case = get_case(case_vals, case_var)
-
-                # THIS IS PASTED FROM SONGBIRD -- JUST CHECK HOW IT IS USED THERE ....!!!
                 case_meta_pd = get_new_meta_pd(meta_pd_, case, case_var, case_vals)
-                # print()
-                # print(dat, dat_, mb)
-                # print(case_var)
-                # print(case_vals_list)
-                # print(case_vals)
-                # print(case)
-                # print(len(tsv_pd_.columns.tolist()))
-                # print(len(case_meta_pd.sample_name.tolist()))
                 case_tsv_pd = tsv_pd_[case_meta_pd.sample_name.tolist()]
-                # print(case_tsv_pd.shape)
-                # if case_var != 'ALL':
-                #     print(case_meta_pd[case_var].value_counts())
-
                 dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s/%s' % (analysis, dat, case))
                 prevals_abunds = filtering[(dat_, mb)]
                 for (preval_abund, preval, abund) in prevals_abunds:
@@ -1260,14 +1245,11 @@ def get_datasets_filtered(
                         tsv_pd, res = filter_mb_table(preval, abund, case_tsv_pd)
                     else:
                         tsv_pd, res = filter_non_mb_table(preval, abund, case_tsv_pd)
-
                     rad_out = '%s_%s_%ss' % (dat, preval_abund, tsv_pd.shape[1])
                     tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
                     tsv_qza = '%s.qza' % splitext(tsv_out)[0]
                     meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
-
                     tsv_hash = hash_pandas_object(tsv_pd).sum()
-
                     if len(filt_datasets_done[(dat, mb)][(case, preval_abund)]):
                         print('\t\t\t*', '[DONE]', dat, mb, case, preval_abund)
                         dat_filts[(case, preval_abund)] = filt_datasets_done[(dat, mb)][(case, preval_abund)]
@@ -1279,15 +1261,12 @@ def get_datasets_filtered(
                             tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
                             if isfile(meta_out_mmvec):
                                 meta_out = meta_out_mmvec
-                                # print('USE MMVECs meta')
-                                # print(' - - -', meta_out)
                                 with open(meta_out) as f:
                                     for line in f:
                                         break
                                 meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
                                                       dtype={line.split('\t')[0]: str},
                                                       low_memory=False)
-                                # print(analysis, 'has mmvec', meta_out, meta_pd.shape)
                             else:
                                 meta_pd = write_filtered_meta(meta_out, case_meta_pd, tsv_pd)
 
