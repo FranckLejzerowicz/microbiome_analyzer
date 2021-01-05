@@ -10,8 +10,8 @@ import seaborn as sns
 
 dat = '<DAT>'
 odir = '<ODIR>'
-nodfs = <NODFS>
-collapsed = <COLLAPSED>
+nodfs = '<NODFS>'
+collapsed = '<COLLAPSED>'
 
 arefiles = [x for x in nodfs if isfile(x)]
 if arefiles and dat in collapsed:
@@ -63,11 +63,7 @@ if arefiles and dat in collapsed:
         ['MODE', 'METADATA']].fillna('').apply(func=lambda x: ' - '.join([y for y in x if y]), axis=1)
     nodfs_null['LEVEL_SORT'] = [levels[x] for x in nodfs_null['LEVEL']]
     nodfs_null = nodfs_null.sort_values(['LEVEL_SORT', 'NODF_TYPE'], ascending=True)
-
-    nodfs_null = nodfs_null.drop(columns=[
-        'FEATURE_SUBSET', 'SAMPLE_SUBSET', 'RAREF', 'MODE', 'METADATA'
-    ])
-
+    nodfs_null = nodfs_null.drop(columns=['FEATURE_SUBSET', 'SAMPLE_SUBSET', 'RAREF', 'MODE', 'METADATA'])
     table_fpo = '%s/nodfs.tsv' % odir
     nodfs_null.to_csv(table_fpo, index=False, sep='\t')
     nodfs_pdf = '%s/nodfs.pdf' % odir
@@ -89,12 +85,13 @@ if arefiles and dat in collapsed:
                     (nodfs_null_mode.SUBSET == SUBSET) &
                     (nodfs_null_mode.NODF_TYPE == 'NODF_OBSERVED')
                 ].drop(columns=['SUBSET'])
-
-                for (LEVEL_SORT, NODF, PVALUE, COMP) in SUBSET_pd[
-                    ['LEVEL_SORT', 'NODF', 'PVALUE', comparison_raref]].values:
+                LEVEL_SORT_rep = dict((x, idx) for idx, x in enumerate(SUBSET_pd.LEVEL_SORT.unique()))
+                SUBSET_pd['LEVEL_SORT_X'] = SUBSET_pd['LEVEL_SORT'].replace(LEVEL_SORT_rep)
+                for (LEVEL_SORT_X, NODF, PVALUE, COMP) in SUBSET_pd[
+                    ['LEVEL_SORT_X', 'NODF', 'PVALUE', comparison_raref]].values:
                     if PVALUE:
                         axes[X].text(
-                            (LEVEL_SORT-1), NODF+0.005, PVALUE,
+                            LEVEL_SORT_X, NODF+0.005, PVALUE,
                             color=nodfs_leg[COMP], fontsize=5
                         )
                 X += 1
@@ -104,3 +101,5 @@ if arefiles and dat in collapsed:
             plt.subplots_adjust(top=.90, hspace=0.3)
             pdf.savefig(bbox_inches='tight', dpi=300)
             plt.close()
+
+    print('[Nestedness] Written:', nodfs_pdf)

@@ -299,9 +299,9 @@ def nestedness_graphs(i_datasets_folder: str, nestedness_res: dict,
                     if '<META_FP>' in line:
                         line_edit = line_edit.replace('<META_FP>', meta_fp)
                     if '<COLORS_SAMPLE>' in line:
-                        line_edit = line_edit.replace('<COLORS_SAMPLE>', str(colors['sample']))
+                        line_edit = line_edit.replace("'<COLORS_SAMPLE>'", str(colors['sample']))
                     if '<COLORS_FEATURE>' in line:
-                        line_edit = line_edit.replace('<COLORS_FEATURE>', str(colors['feature']))
+                        line_edit = line_edit.replace("'<COLORS_FEATURE>'", str(colors['feature']))
                     if '<STATS_TAX_DAT>' in line:
                         line_edit = line_edit.replace('<STATS_TAX_DAT>', stats_tax_dat)
                     if '<SPLIT_TAXA_FP>' in line:
@@ -309,9 +309,9 @@ def nestedness_graphs(i_datasets_folder: str, nestedness_res: dict,
                     if '<LEVEL>' in line:
                         line_edit = line_edit.replace('<LEVEL>', level)
                     if '<COLLAPSED>' in line:
-                        line_edit = line_edit.replace('<COLLAPSED>', str(collapsed))
+                        line_edit = line_edit.replace("'<COLLAPSED>'", str(collapsed))
                     if '<NESTEDNESS_RAREF>' in line:
-                        line_edit = line_edit.replace('<NESTEDNESS_RAREF>', str(nestedness_raref))
+                        line_edit = line_edit.replace("'<NESTEDNESS_RAREF>'", str(nestedness_raref))
                     o.write(line_edit)
 
     job_folder = get_job_folder(i_datasets_folder, 'nestedness_figures')
@@ -358,9 +358,9 @@ def nestedness_nodfs(i_datasets_folder: str, nodfs_fps: dict,
                 if '<ODIR>' in line:
                     line_edit = line_edit.replace('<ODIR>', odir)
                 if '<NODFS>' in line:
-                    line_edit = line_edit.replace('<NODFS>', str(nodfs))
+                    line_edit = line_edit.replace("'<NODFS>'", str(nodfs))
                 if '<COLLAPSED>' in line:
-                    line_edit = line_edit.replace('<COLLAPSED>', str(collapsed))
+                    line_edit = line_edit.replace("'<COLLAPSED>'", str(collapsed))
                 o.write(line_edit)
 
     job_folder = get_job_folder(i_datasets_folder, 'nestedness_figures')
