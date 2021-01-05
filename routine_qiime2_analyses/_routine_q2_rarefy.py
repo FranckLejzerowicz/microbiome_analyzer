@@ -55,7 +55,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
     evaluation = ''
     eval_depths = {}
-    datasets_raref_depths, datasets_raref_evals = check_rarefy_need(
+    datasets_raref_depths, datasets_raref_evals, depths_keeps = check_rarefy_need(
         i_datasets_folder, datasets_read, p_raref_depths)
     if eval_rarefs:
         evaluation = '_eval'
@@ -108,6 +108,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                             depth = int(np.floor(min(tsv_sums)))
                         dat_raref = '%s_raref%s%s' % (dat, evaluation, str(depth))
                         meta_out = '%s/meta_%s.tsv' % (odir, dat_raref)
+                        # depth_keeps = depths_keeps[dat]
                         remaining_samples = tsv_sums[tsv_sums >= depth].index.tolist()
                         meta_raref_pd = meta_pd.loc[meta_pd.sample_name.isin(remaining_samples), :]
                         meta_raref_pd.to_csv(meta_out, index=False, sep='\t')
@@ -185,7 +186,7 @@ def run_rarefy(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
 
 def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
-                      p_raref_depths: str) -> (dict, dict):
+                      p_raref_depths: str) -> (dict, dict, dict):
     """
     Check the distribution of reads per sample and its skewness to
     warn user for the need for rarefaction of the feature tables.
@@ -197,7 +198,9 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
     datasets_raref_depths_yml = get_raref_depths(p_raref_depths)
     datasets_raref_depths = {}
     datasets_raref_evals = {}
+    depths_keeps = {}
     for dat, tsv_meta_pds in datasets_read.items():
+        depths_keeps[dat] = {}
         for (tsv_pd, meta_pd) in tsv_meta_pds:
             tsv_sam_sum = tsv_pd.sum()
             datasets_raref_evals[dat] = set([int(x) for x in tsv_sam_sum.describe(
@@ -206,11 +209,18 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
                 if dat in datasets_raref_depths_yml:
                     depths = datasets_raref_depths_yml[dat]
                     print(dat, depths, min(tsv_sam_sum))
-                    depths = [x for x in depths if int(x) >= min(tsv_sam_sum)]
+                    for depth in depths:
+                        depths_keep = tsv_sam_sum[tsv_sam_sum >= int(depth)].index.tolist()
+                        if len(depths_keep) > 10:
+                            depths_keeps[dat][depth] = depths_keep
+                    depths = sorted(depths_keeps[dat])
                     if not depths:
-                        print('[%s] Proposed rarefaction depths too low: %s (not rarefying)' % (
+                        print('[%s] Min. proposed rarefaction depths would leave <10 samples: %s (not rarefaction)' % (
                             dat, ', '.join(datasets_raref_depths_yml[dat])))
                         continue
+                    elif len(depths) != len(datasets_raref_depths_yml[dat]):
+                        print('[%s] Proposed rarefaction depths would leave <10 samples: %s (not rarefied)' % (
+                            dat, ', '.join([x for x in datasets_raref_depths_yml[dat] if x not in depths])))
                     datasets_raref_depths[dat] = (1, depths)
                     datasets_raref_evals[dat].update(
                         [int(x) if str(x).isdigit() else np.floor(min(tsv_sam_sum)) for x in depths]
@@ -247,6 +257,10 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
                     nfigure = len(str(int(second_quantile)))
                     second_quantile_to_round = second_quantile / ( 10 ** (nfigure - 2) )
                     second_quantile_rounded = round(second_quantile_to_round) * ( 10 ** (nfigure - 2) )
-                    print('[%s] Proposed rarefaction depth: %s (second quantile)' % (dat, second_quantile_rounded))
-                    datasets_raref_depths[dat] = (0, [str(int(second_quantile_rounded))])
-    return datasets_raref_depths, datasets_raref_evals
+                    depth = int(second_quantile_rounded)
+                    print('[%s] Proposed rarefaction depth: %s (second quantile)' % (dat, depth))
+                    datasets_raref_depths[dat] = (0, [str(depth)])
+                    depth_keep = tsv_sam_sum[tsv_sam_sum >= depth].index.tolist()
+                    depths_keeps[dat][depth] = depth_keep
+
+    return datasets_raref_depths, datasets_raref_evals, depths_keeps
