@@ -210,9 +210,12 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
                     depths = datasets_raref_depths_yml[dat]
                     print(dat, depths, min(tsv_sam_sum))
                     for depth in depths:
-                        depths_keep = tsv_sam_sum[tsv_sam_sum >= int(depth)].index.tolist()
-                        if len(depths_keep) > 10:
-                            depths_keeps[dat][depth] = depths_keep
+                        if depth == 'min':
+                            depths_keeps[dat][depth] = tsv_sam_sum.index.tolist()
+                        else:
+                            depths_keep = tsv_sam_sum[tsv_sam_sum >= int(depth)].index.tolist()
+                            if len(depths_keep) > 10:
+                                depths_keeps[dat][depth] = depths_keep
                     depths = sorted(depths_keeps[dat])
                     if not depths:
                         print('[%s] Min. proposed rarefaction depths would leave <10 samples: %s (not rarefaction)' % (
