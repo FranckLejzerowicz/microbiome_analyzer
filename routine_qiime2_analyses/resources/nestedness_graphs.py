@@ -1,53 +1,12 @@
-import glob, sys
+import sys
 import pandas as pd
 import numpy as np
-from os.path import basename, isfile, splitext
+from os.path import isfile, splitext
 
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
-
-
-def get_comparisons_statistics_pd(mode_dir, level, cur_raref, group,
-                                  case, com_sta) -> pd.DataFrame:
-    com_sta_pds = []
-    for com_sta_fp in glob.glob('%s/*_%s.csv' % (mode_dir, com_sta)):
-        mode = mode_dir.split('/')[-1]
-        com_sta_pd = pd.read_csv(com_sta_fp)
-        if com_sta == 'simulate':
-            com_sta_pd['NULL'] = basename(com_sta_fp).split('_')[0]
-            if mode == 'overall':
-                meta_name = np.nan
-            else:
-                meta_name = basename(com_sta_fp).split('_simulate')[0].split('_', 1)[1]
-            com_sta_pd['METADATA'] = meta_name
-            com_sta_pd['MODE'] = mode
-            com_sta_pd['LEVEL'] = level
-            com_sta_pd['RAREF'] = cur_raref
-            com_sta_pd['FEATURE_SUBSET'] = group
-            com_sta_pd['SAMPLE_SUBSET'] = case
-            bins_lt = ['', '>', '>>', '>>>']
-            bins_gt = ['', '<', '<<', '<<<']
-            bins_vals = [0, 0.95, 0.97, 0.99]
-            ps = []
-            for (p, b) in [('PR_LT_OBSERVED', bins_lt), ('PR_GT_OBSERVED', bins_gt)]:
-                ps.append(p)
-                com_sta_pd[p] = [b[x-1] for x in np.digitize(com_sta_pd[p], bins=bins_vals)]
-            com_sta_pd['PVALUE'] = com_sta_pd[ps].apply(func=lambda x: ''.join(x), axis=1)
-            com_sta_pd = com_sta_pd.drop(columns=(['PR_ET_OBSERVED', 'NODF_SES'] + ps))
-        else:
-            com_sta_pd['COMPARISON'] = com_sta_pd.fillna('overall')[
-                ['VERTEX_1_CLASSIFICATION', 'VERTEX_2_CLASSIFICATION']
-            ].apply(
-                func=lambda x: '-'.join(list(set(x))), axis=1
-            )
-            com_sta_pd = com_sta_pd[['GRAPH_ID', 'COMPARISON']].drop_duplicates()
-        com_sta_pds.append(com_sta_pd)
-    if com_sta_pds:
-        com_sta_pd = pd.concat(com_sta_pds)
-        return com_sta_pd
-    return pd.DataFrame()
 
 
 dat = '<DAT>'
@@ -263,17 +222,3 @@ for (group, case), res in nestedness_raref.items():
             plt.close()
 
     print('[Nestedness] Written:', graphs_pdf_simples)
-
-    for mode_dir in res['modes']:
-        comparisons_pd = get_comparisons_statistics_pd(
-            mode_dir, level, cur_raref, group, case, 'comparisons')
-        if not comparisons_pd.shape[0]:
-            continue
-        simulate_pd = get_comparisons_statistics_pd(
-            mode_dir, level, cur_raref, group, case, 'simulate')
-        if not simulate_pd.shape[0]:
-            continue
-        nodf_pd = simulate_pd[simulate_pd['GRAPH_EDGE_COUNT'] > 5].merge(
-            comparisons_pd, on='GRAPH_ID', how='left')
-        nodf_fpo = '%s/nodfs.tsv' % mode_dir
-        nodf_pd.to_csv(nodf_fpo, index=False, sep='\t')

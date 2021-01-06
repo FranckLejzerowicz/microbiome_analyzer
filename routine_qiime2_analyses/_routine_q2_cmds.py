@@ -1121,7 +1121,8 @@ def write_nestedness_graph(new_biom_meta: str, odir: str, graphs: str,
 
 def write_nestedness_nodfs(new_biom_meta: str, odir: str,
                            binary: str, nodfs_valid: list,
-                           mode: str, nulls: list, cur_sh: TextIO) -> list:
+                           mode: str, nulls: list,
+                           params: dict, cur_sh: TextIO) -> list:
     """
     https://github.com/jladau/Nestedness
     """
@@ -1129,7 +1130,6 @@ def write_nestedness_nodfs(new_biom_meta: str, odir: str,
     cmd = 'mkdir -p %s\n' % odir
     for ndx, nodf in enumerate(nodfs_valid):
         nodf_comparisons = '%s/%s_comparisons.csv' % (odir, nodf)
-        print("   --> nodf_comparisons:", nodf_comparisons)
         if not isfile(nodf_comparisons):
             to_write.append(nodf_comparisons)
             cmd += 'java -Xmx5g -cp %s \\\n' % binary
@@ -1149,28 +1149,26 @@ def write_nestedness_nodfs(new_biom_meta: str, odir: str,
             # cmd += '--iPrevalenceMinimum=1\n'
 
         for null in nulls:
-            nodf_stats = '%s/%s_%s_statistics.csv' % (odir, null, nodf)
-            print("   --> nodf_stats:", nodf_stats)
-            if not isfile(nodf_stats):
-                to_write.append(nodf_stats)
-                cmd += 'java -cp %s \\\n' % binary
-                cmd += 'edu.ucsf.Nestedness.Calculator.CalculatorLauncher \\\n'
-                cmd += '--sBIOMPath=%s \\\n' % new_biom_meta
-                cmd += '--sOutputPath=%s \\\n' % nodf_stats
-                cmd += '--bCheckRarefied=false \\\n'
-                cmd += '--bNormalize=true \\\n'
-                cmd += '--bPresenceAbsence=false \\\n'
-                cmd += '--sTaxonRank=otu \\\n'
-                cmd += '--sComparisonsPath=%s \\\n' % nodf_comparisons
-                cmd += '--iNullModelIterations=1000 \\\n'
-                cmd += '--bOrderedNODF=false \\\n'
-                cmd += '--sNestednessAxis=sample \\\n'
-                cmd += '--sNestednessNullModel=%s \\\n' % null
-                cmd += '--bSimulate=false\n'
+            # nodf_stats = '%s/%s_%s_statistics.csv' % (odir, null, nodf)
+            # if not isfile(nodf_stats):
+            #     to_write.append(nodf_stats)
+            #     cmd += 'java -cp %s \\\n' % binary
+            #     cmd += 'edu.ucsf.Nestedness.Calculator.CalculatorLauncher \\\n'
+            #     cmd += '--sBIOMPath=%s \\\n' % new_biom_meta
+            #     cmd += '--sOutputPath=%s \\\n' % nodf_stats
+            #     cmd += '--bCheckRarefied=false \\\n'
+            #     cmd += '--bNormalize=true \\\n'
+            #     cmd += '--bPresenceAbsence=false \\\n'
+            #     cmd += '--sTaxonRank=otu \\\n'
+            #     cmd += '--sComparisonsPath=%s \\\n' % nodf_comparisons
+            #     cmd += '--iNullModelIterations=1000 \\\n'
+            #     cmd += '--bOrderedNODF=false \\\n'
+            #     cmd += '--sNestednessAxis=sample \\\n'
+            #     cmd += '--sNestednessNullModel=%s \\\n' % null
+            #     cmd += '--bSimulate=false\n'
 
             nodf_simul = '%s/%s_%s_simulate.csv' % (odir, null, nodf)
             if not isfile(nodf_simul):
-                print("   --> nodf_simul:", nodf_simul)
                 to_write.append(nodf_simul)
                 cmd += 'java -cp %s \\\n' % binary
                 cmd += 'edu.ucsf.Nestedness.Calculator.CalculatorLauncher \\\n'
@@ -1181,7 +1179,7 @@ def write_nestedness_nodfs(new_biom_meta: str, odir: str,
                 cmd += '--bPresenceAbsence=false \\\n'
                 cmd += '--sTaxonRank=otu \\\n'
                 cmd += '--sComparisonsPath=%s \\\n' % nodf_comparisons
-                cmd += '--iNullModelIterations=1000 \\\n'
+                cmd += '--iNullModelIterations=%s \\\n' % str(params['iterations'])
                 cmd += '--bOrderedNODF=false \\\n'
                 cmd += '--sNestednessAxis=sample \\\n'
                 cmd += '--sNestednessNullModel=%s \\\n' % null

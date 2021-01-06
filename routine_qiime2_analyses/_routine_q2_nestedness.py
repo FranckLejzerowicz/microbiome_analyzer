@@ -6,9 +6,10 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os, glob
+import os
+import glob
 import pandas as pd
-# import numpy as np
+import numpy as np
 import pkg_resources
 from os.path import basename, isdir, isfile, splitext
 
@@ -30,37 +31,52 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 )
 from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
 
-# from matplotlib.backends.backend_pdf import PdfPages
-# import matplotlib.pyplot as plt
-# import matplotlib.patches as mpatches
-# import seaborn as sns
+
+def get_stats_tax_dat(dat, datasets_collapsed_map):
+    stats_tax_dat = dat
+    level = 'feature'
+    if dat in datasets_collapsed_map:
+        stats_tax_dat = datasets_collapsed_map[dat]
+        level = ('%s_tx-' % stats_tax_dat).join(dat.split('%s_tx-' % stats_tax_dat)[1:])
+    return stats_tax_dat, level
 
 
-def get_nestedness_config(nestedness_config: dict) -> (dict, list, dict, list, list):
+def get_nestedness_config(nestedness_config: dict) -> (dict, list, dict,
+                                                       list, list, dict):
+
     subsets = {'ALL': [[]]}
     if 'subsets' in nestedness_config:
         subsets.update(nestedness_config['subsets'])
+
     nodfs = []
     if 'nodfs' in nestedness_config:
         nodfs.extend(nestedness_config['nodfs'])
+
     colors = {'sample': [], 'feature': []}
     if 'sample_colors' in nestedness_config:
         colors['sample'].extend(nestedness_config['sample_colors'])
     if 'feature_colors' in nestedness_config:
         colors['feature'].extend(nestedness_config['feature_colors'])
+
     nulls = ['equiprobablefixed']
     if 'nulls' in nestedness_config:
         nulls = nestedness_config['nulls']
+
     modes = ['betweeneachpairoftypes']
     if 'modes' in nestedness_config:
         modes = nestedness_config['modes']
-    return subsets, nodfs, colors, nulls, modes
+
+    params = {'iterations': 100}
+    if 'params' in nestedness_config:
+        params.update(nestedness_config['params'])
+
+    return subsets, nodfs, colors, nulls, modes, params
 
 
-def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str,
-                   datasets_rarefs: dict, force: bool, prjct_nm: str, qiime_env: str,
-                   chmod: str, noloc: bool, split: bool, run_params: dict,
-                   filt_raref: str, jobs: bool, chunkit: int) -> (dict, list):
+def run_nestedness(i_datasets_folder: str, betas: dict, datasets_collapsed_map: dict,
+                   p_nestedness_groups: str, datasets_rarefs: dict, force: bool,
+                   prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, split: bool,
+                   run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> (dict, list):
 
     job_folder2 = get_job_folder(i_datasets_folder, 'nestedness/chunks')
     nestedness_config = read_yaml_file(p_nestedness_groups)
@@ -74,13 +90,16 @@ def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str
         if not isfile(binary):
             print('Must provide the path to the Nestedness soft (containing bin/Autocorrelation.jar)')
             return {}
-    subsets, nodfs, colors, nulls, modes = get_nestedness_config(nestedness_config)
+    subsets, nodfs, colors, nulls, modes, params = get_nestedness_config(nestedness_config)
 
     all_sh_pbs = {}
     nestedness_res = {}
     for dat, rarefs_metrics_groups_metas_qzas_dms_trees in betas.items():
         if not split:
             out_sh = '%s/run_nestedness_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
+
+        stats_tax_dat, level = get_stats_tax_dat(dat, datasets_collapsed_map)
+
         nestedness_res[dat] = []
         for idx, metrics_groups_metas_qzas_dms_trees in enumerate(rarefs_metrics_groups_metas_qzas_dms_trees):
             nestedness_raref = {}
@@ -90,14 +109,14 @@ def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str
                 out_sh = '%s/run_nestedness_%s_%s%s%s.sh' % (job_folder2, prjct_nm, dat, cur_raref, filt_raref)
             for _, groups_metas_qzas_dms_trees in metrics_groups_metas_qzas_dms_trees.items():
                 for group, metas_qzas_mat_qzas_trees in groups_metas_qzas_dms_trees.items():
-                    print()
-                    print()
-                    print()
-                    print("dat, cur_raref", dat, cur_raref)
-                    print("_", _)
-                    print("group", group)
+                    # print()
+                    # print()
+                    # print()
+                    # print("dat, cur_raref", dat, cur_raref)
+                    # print("_", _)
+                    # print("group", group)
                     meta, qza, mat_qza, tree = metas_qzas_mat_qzas_trees[0]
-                    print("meta", meta)
+                    # print("meta", meta)
                     meta_pd = read_meta_pd(meta).set_index('sample_name')
                     cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(subsets), 'nestedness')
                     for case_var, case_vals_list in cases_dict.items():
@@ -106,11 +125,12 @@ def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str
                             cur_sh = '%s/run_nestedness_%s%s_%s_%s%s.sh' % (
                                 job_folder2, dat, cur_raref, group, case, filt_raref)
                             cur_sh = cur_sh.replace(' ', '-')
-                            print("case", case)
+                            # print("case", case)
                             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                            res = run_single_nestedness(odir, group, meta_pd, nodfs, nulls,
-                                                        modes, cur_sh, qza, case, case_var,
-                                                        case_vals, binary, force)
+                            res = run_single_nestedness(odir, cur_raref, level, group,
+                                                        meta_pd, nodfs, nulls, modes, cur_sh,
+                                                        qza, case, case_var, case_vals,
+                                                        binary, params, force)
                             nestedness_raref[(group, case)] = res
                 break
             nestedness_res[dat].append(nestedness_raref)
@@ -131,10 +151,68 @@ def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str
     return nestedness_res, colors
 
 
-def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: list,
-                          nulls: list, modes: list, cur_sh: str, qza: str, case: str,
-                          case_var: str, case_vals: list, binary: str, force: bool) -> dict:
+def get_comparisons_statistics_pd(mode_dir, level, cur_raref, group,
+                                  case, com_sta) -> pd.DataFrame:
+    com_sta_pds = []
+    for com_sta_fp in glob.glob('%s/*_%s.csv' % (mode_dir, com_sta)):
+        mode = mode_dir.split('/')[-1]
+        com_sta_pd = pd.read_csv(com_sta_fp)
+        if com_sta == 'simulate':
+            com_sta_pd['NULL'] = basename(com_sta_fp).split('_')[0]
+            if mode == 'overall':
+                meta_name = np.nan
+            else:
+                meta_name = basename(com_sta_fp).split('_simulate')[0].split('_', 1)[1]
+            com_sta_pd['METADATA'] = meta_name
+            com_sta_pd['MODE'] = mode
+            com_sta_pd['LEVEL'] = level
+            com_sta_pd['RAREF'] = cur_raref
+            com_sta_pd['FEATURE_SUBSET'] = group
+            com_sta_pd['SAMPLE_SUBSET'] = case
+            bins_lt = ['', '>', '>>', '>>>']
+            bins_gt = ['', '<', '<<', '<<<']
+            bins_vals = [0, 0.95, 0.97, 0.99]
+            ps = []
+            for (p, b) in [('PR_LT_OBSERVED', bins_lt), ('PR_GT_OBSERVED', bins_gt)]:
+                ps.append(p)
+                com_sta_pd[p] = [b[x-1] for x in np.digitize(com_sta_pd[p], bins=bins_vals)]
+            com_sta_pd['PVALUE'] = com_sta_pd[ps].apply(func=lambda x: ''.join(x), axis=1)
+            com_sta_pd = com_sta_pd.drop(columns=(['PR_ET_OBSERVED', 'NODF_SES'] + ps))
+        else:
+            com_sta_pd['COMPARISON'] = com_sta_pd.fillna('overall')[
+                ['VERTEX_1_CLASSIFICATION', 'VERTEX_2_CLASSIFICATION']
+            ].apply(
+                func=lambda x: '-'.join(list(set(x))), axis=1
+            )
+            com_sta_pd = com_sta_pd[['GRAPH_ID', 'COMPARISON']].drop_duplicates()
+        com_sta_pds.append(com_sta_pd)
+    if com_sta_pds:
+        com_sta_pd = pd.concat(com_sta_pds)
+        return com_sta_pd
+    return pd.DataFrame()
+
+
+def write_nodf_table(mode_dir: str, cur_raref: str, group: str,
+                     case: str, level: str, ) -> str:
+    comparisons_pd = get_comparisons_statistics_pd(
+        mode_dir, level, cur_raref, group, case, 'comparisons')
+    simulate_pd = get_comparisons_statistics_pd(
+        mode_dir, level, cur_raref, group, case, 'simulate')
+    nodf_fpo = ''
+    if comparisons_pd.shape[0] and simulate_pd.shape[0]:
+        nodf_pd = simulate_pd[simulate_pd['GRAPH_EDGE_COUNT'] > 5].merge(
+            comparisons_pd, on='GRAPH_ID', how='left')
+        nodf_fpo = '%s/nodfs.tsv' % mode_dir
+        nodf_pd.to_csv(nodf_fpo, index=False, sep='\t')
+    return nodf_fpo
+
+
+def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
+                          meta_pd: pd.DataFrame, nodfs: list, nulls: list, modes: list,
+                          cur_sh: str, qza: str, case: str, case_var: str, case_vals: list,
+                          binary: str, params: dict, force: bool) -> dict:
     res = {}
+    nodfs_fps = {}
     remove = True
     with open(cur_sh, 'w') as cur_sh_o:
         if group:
@@ -145,12 +223,12 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
             os.makedirs(cur_rad)
 
         new_meta = '%s.meta' % cur_rad
-        print("cur_rad", cur_rad)
-        print("new_meta", new_meta)
+        # print("cur_rad", cur_rad)
+        # print("new_meta", new_meta)
         new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-        if 'empo_1' in new_meta_pd.columns:
-            print('empo_1')
-            print(new_meta_pd['empo_1'].value_counts())
+        # if 'empo_1' in new_meta_pd.columns:
+            # print('empo_1')
+            # print(new_meta_pd['empo_1'].value_counts())
         cols = set()
         lat_lon_date = ['latitude', 'longitude', 'datetime']
         nodfs_valid = []
@@ -164,8 +242,8 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
             cols.add(col)
             if col in nodfs:
                 nodfs_valid.append(col)
-        print('nodfs_valid', nodfs_valid)
-        print("group", group, " / cur_rad", cur_rad)
+        # print('nodfs_valid', nodfs_valid)
+        # print("group", group, " / cur_rad", cur_rad)
         new_meta_pd = new_meta_pd[sorted(cols)].reset_index()
         new_meta_pd.columns = (['#SampleID'] + sorted(cols))
         new_meta_pd.to_csv(new_meta, index=False, sep='\t')
@@ -173,7 +251,7 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
         new_biom = '%s.biom' % cur_rad
         new_tsv = '%s.tsv' % cur_rad
         new_biom_meta = '%s_w-md.biom' % cur_rad
-        print("new_biom_meta", new_biom_meta)
+        # print("new_biom_meta", new_biom_meta)
         if not isfile(new_biom):
             cmd = filter_feature_table(qza, new_qza, new_meta)
             cmd += run_export(new_qza, new_tsv, 'FeatureTable')
@@ -197,61 +275,25 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
             remove = False
 
         for mode in modes:
-            print(" === mode:", mode)
+            # print(" === mode:", mode)
             odir = '%s/%s' % (cur_rad, mode)
             if not isdir(odir):
                 os.makedirs(odir)
 
             to_write = write_nestedness_nodfs(
                 new_biom_meta, odir, binary,
-                nodfs_valid, mode, nulls, cur_sh_o)
+                nodfs_valid, mode, nulls, params, cur_sh_o)
             if to_write:
                 remove = False
             res.setdefault('modes', []).append(odir)
+
+            # collect already run nestedness result and make them a nodfs.tsv file
+            nodf_fpo = write_nodf_table(odir, cur_raref, group, case, level)
+            if nodf_fpo:
+                nodfs_fps.setdefault(stats_tax_dat, []).append(nodf_fpo)
+
     if remove:
         os.remove(cur_sh)
-    return res
-
-
-# def get_comparisons_statistics_pd(mode_dir, level, cur_raref, group,
-#                                   case, com_sta) -> pd.DataFrame:
-#     com_sta_pds = []
-#     for com_sta_fp in glob.glob('%s/*_%s.csv' % (mode_dir, com_sta)):
-#         mode = mode_dir.split('/')[-1]
-#         com_sta_pd = pd.read_csv(com_sta_fp)
-#         if com_sta == 'simulate':
-#             com_sta_pd['NULL'] = basename(com_sta_fp).split('_')[0]
-#             if mode == 'overall':
-#                 meta_name = np.nan
-#             else:
-#                 meta_name = basename(com_sta_fp).split('_simulate')[0].split('_', 1)[1]
-#             com_sta_pd['METADATA'] = meta_name
-#             com_sta_pd['MODE'] = mode
-#             com_sta_pd['LEVEL'] = level
-#             com_sta_pd['RAREF'] = cur_raref
-#             com_sta_pd['FEATURE_SUBSET'] = group
-#             com_sta_pd['SAMPLE_SUBSET'] = case
-#             bins_lt = ['', '>', '>>', '>>>']
-#             bins_gt = ['', '<', '<<', '<<<']
-#             bins_vals = [0, 0.95, 0.97, 0.99]
-#             ps = []
-#             for (p, b) in [('PR_LT_OBSERVED', bins_lt), ('PR_GT_OBSERVED', bins_gt)]:
-#                 ps.append(p)
-#                 com_sta_pd[p] = [b[x-1] for x in np.digitize(com_sta_pd[p], bins=bins_vals)]
-#             com_sta_pd['PVALUE'] = com_sta_pd[ps].apply(func=lambda x: ''.join(x), axis=1)
-#             com_sta_pd = com_sta_pd.drop(columns=(['PR_ET_OBSERVED', 'NODF_SES'] + ps))
-#         else:
-#             com_sta_pd['COMPARISON'] = com_sta_pd.fillna('overall')[
-#                 ['VERTEX_1_CLASSIFICATION', 'VERTEX_2_CLASSIFICATION']
-#             ].apply(
-#                 func=lambda x: '-'.join(list(set(x))), axis=1
-#             )
-#             com_sta_pd = com_sta_pd[['GRAPH_ID', 'COMPARISON']].drop_duplicates()
-#         com_sta_pds.append(com_sta_pd)
-#     if com_sta_pds:
-#         com_sta_pd = pd.concat(com_sta_pds)
-#         return com_sta_pd
-#     return pd.DataFrame()
 
 
 def nestedness_graphs(i_datasets_folder: str, nestedness_res: dict,
@@ -272,19 +314,12 @@ def nestedness_graphs(i_datasets_folder: str, nestedness_res: dict,
     for dat, nestedness_rarefs in nestedness_res.items():
         if not split:
             out_sh = '%s/run_nestedness_graphs_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
-        stats_tax_dat = dat
-        level = 'feature'
-        if dat in datasets_collapsed_map:
-            stats_tax_dat = datasets_collapsed_map[dat]
-            level = ('%s_tx-' % stats_tax_dat).join(dat.split('%s_tx-' % stats_tax_dat)[1:])
+
+        stats_tax_dat, level = get_stats_tax_dat(dat, datasets_collapsed_map)
 
         for idx, nestedness_raref in enumerate(nestedness_rarefs):
-            for _, res in nestedness_raref.items():
-                for mode_dir in res['modes']:
-                    nodf_fpo = '%s/nodfs.tsv' % mode_dir
-                    nodfs_fps.setdefault(stats_tax_dat, []).append(nodf_fpo)
-
             cur_raref = datasets_rarefs[dat][idx]
+
             if split:
                 out_sh = '%s/run_nestedness_graphs_%s_%s%s%s.sh' % (job_folder2, prjct_nm, dat, cur_raref, filt_raref)
             out_py = out_sh.replace('.sh', '.py')
@@ -331,7 +366,7 @@ def nestedness_graphs(i_datasets_folder: str, nestedness_res: dict,
                     o.write(line_edit)
 
     job_folder = get_job_folder(i_datasets_folder, 'nestedness_figures')
-    main_sh = write_main_sh(job_folder, 'run_nestedness_graphs_%s' % filt_raref, all_sh_pbs,
+    main_sh = write_main_sh(job_folder, 'run_nestedness_graphs%s' % filt_raref, all_sh_pbs,
                             '%s.nstd.grph%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
@@ -355,6 +390,12 @@ def nestedness_nodfs(i_datasets_folder: str, nodfs_fps: dict,
 
     all_sh_pbs = {}
     for dat, nodfs in nodfs_fps.items():
+
+        print('dat')
+        print(dat)
+        print('nodfs')
+        print(nodfs)
+
         out_sh = '%s/run_nestedness_nodfs_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
         out_py = out_sh.replace('.sh', '.py')
 
@@ -380,7 +421,7 @@ def nestedness_nodfs(i_datasets_folder: str, nodfs_fps: dict,
                 o.write(line_edit)
 
     job_folder = get_job_folder(i_datasets_folder, 'nestedness_figures')
-    main_sh = write_main_sh(job_folder, 'run_nestedness_nodfs_%s' % filt_raref, all_sh_pbs,
+    main_sh = write_main_sh(job_folder, 'run_nestedness_nodfs%s' % filt_raref, all_sh_pbs,
                             '%s.nstd.ndf%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],

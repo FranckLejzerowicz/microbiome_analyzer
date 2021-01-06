@@ -377,7 +377,7 @@ def routine_qiime2_analyses(
 
     if 'beta' not in p_skip and p_nestedness_groups and 'nestedness' not in p_skip:
         print('(run_nestedness)')
-        nestedness_res, colors = run_nestedness(i_datasets_folder, betas,
+        nestedness_res, colors = run_nestedness(i_datasets_folder, betas, datasets_collapsed_map,
                                                 p_nestedness_groups, datasets_rarefs,
                                                 force, prjct_nm, qiime_env, chmod, noloc,
                                                 split, run_params['nestedness'],

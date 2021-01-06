@@ -14,8 +14,11 @@ nodfs = '<NODFS>'
 collapsed = '<COLLAPSED>'
 
 arefiles = [x for x in nodfs if isfile(x)]
+print(arefiles)
+print(arefilesdfsdfs)
 if arefiles and dat in collapsed:
     nodfs_pd = pd.concat([pd.read_table(x) for x in arefiles])
+    print
     levels = collapsed[dat]
     levels['feature'] = max(levels.values()) + 1
     nodfs = nodfs_pd.drop(columns=['GRAPH_ID'])
