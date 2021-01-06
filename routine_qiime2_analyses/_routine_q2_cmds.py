@@ -1194,11 +1194,9 @@ def write_distance_decay(mat_qza: str, mat_qza_filt: str, new_qza: str,
     cur_sh.write(cmd)
 
 
-
-
 def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat_qza: str,
                                             testing_group: str, beta_type: str, new_qzv: str,
-                                            new_html: str, cur_sh: TextIO) -> None:
+                                            new_html: str, npermutations: str, cur_sh: TextIO) -> None:
     """
     Determine whether groups of samples are significantly different from one
     another using a permutation-based statistical test.
@@ -1229,7 +1227,7 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
         cmd += '--p-method %s \\\n' % beta_type
         cmd += '--m-metadata-file %s \\\n' % new_meta
         cmd += '--m-metadata-column "%s" \\\n' % testing_group
-        cmd += '--p-permutations 2999 \\\n'
+        cmd += '--p-permutations %s \\\n' % npermutations
         cmd += '--o-visualization %s\n' % new_qzv
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write(cmd)

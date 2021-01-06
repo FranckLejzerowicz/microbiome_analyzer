@@ -33,7 +33,7 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 def run_single_perm(odir: str, subset: str, meta_pd: pd.DataFrame,
                     cur_sh: str, metric: str, case_: str, testing_group: str,
                     p_beta_type: tuple, qza: str, mat_qza: str, case_var: str,
-                    case_vals: list, force: bool) -> None:
+                    case_vals: list, npermutations: str, force: bool) -> None:
     """
     Run beta-group-significance: Beta diversity group significance.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta-group-significance/
@@ -70,7 +70,8 @@ def run_single_perm(odir: str, subset: str, meta_pd: pd.DataFrame,
             if force or not isfile(new_html):
                 if len([x for x in new_meta_pd[testing_group].unique() if str(x) != 'nan']) > 1:
                     write_diversity_beta_group_significance(new_meta, mat_qza, new_mat_qza, testing_group,
-                                                            beta_type, new_qzv, new_html, cur_sh_o)
+                                                            beta_type, new_qzv, new_html, npermutations,
+                                                            cur_sh_o)
                     remove = False
     if remove:
         os.remove(cur_sh)
@@ -99,6 +100,8 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
     permanovas = {}
     job_folder2 = get_job_folder(i_datasets_folder, 'permanova/chunks')
     main_cases_dict = get_main_cases_dict(p_perm_groups)
+
+    npermutations = 999
 
     metric_check = set()
     all_sh_pbs = {}
@@ -143,7 +146,7 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
                                     all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                                     run_single_perm(odir, subset, meta_pd, cur_sh, metric, case,
                                                     testing_group, p_beta_type, qza, mat_qza,
-                                                    case_var, case_vals, force)
+                                                    case_var, case_vals, npermutations, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'permanova')
     main_sh = write_main_sh(job_folder, '3_run_beta_group_significance_%s%s' % (prjct_nm, filt_raref), all_sh_pbs,
