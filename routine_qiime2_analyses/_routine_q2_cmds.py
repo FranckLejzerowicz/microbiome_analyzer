@@ -152,11 +152,11 @@ def write_rarefy(qza: str, qza_out: str, depth: str, cur_sh: TextIO) -> None:
     cur_sh.write('%s\n\n' % cmd)
 
 
-def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
-                    odir: str, ranks_tsv: str, ordination_tsv: str,
-                    batch: str, learn: str, epoch: str, prior: str,
-                    thresh_feat: str, latent_dim: str,
-                    train_column: str, n_example: str, gpu: bool,
+def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str, odir: str,
+                    ranks_tsv: str, ordination_tsv: str, stats: str, ranks_null_tsv: str,
+                    ordination_null_tsv: str, stats_null: str, summary: str,
+                    batch: str, learn: str, epoch: str, prior: str, thresh_feat: str,
+                    latent_dim: str, train_column: str, n_example: str, gpu: bool,
                     standalone: bool, cur_sh: TextIO, qiime_env: str) -> None:
     """
     Performs bi-loglinear multinomial regression and calculates the
@@ -206,30 +206,60 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
         cmd += '--ranks-file %s\n' % ranks_tsv
     else:
         ranks_qza = '%s.qza' % splitext(ranks_tsv)[0]
+        ranks_null_qza = '%s.qza' % splitext(ranks_null_tsv)[0]
         ordination_qza = '%s.qza' % splitext(ordination_tsv)[0]
-        if not isfile(ranks_qza) or not isfile(ordination_qza):
+        ordination_null_qza = '%s.qza' % splitext(ordination_null_tsv)[0]
+        summary_html = '%s.html' % splitext(summary)[0]
+        if not isfile(ranks_qza) or not isfile(ordination_qza) or not isfile(stats):
             cmd += 'current_time=$(date "+%y%m%d_%H%M%S")\n'
             cmd += '\ncd %s\n' % odir
-            cmd += '\nqiime mmvec paired-omics \\\n'
-            cmd += '--i-microbes %s \\\n' % qza1
-            cmd += '--i-metabolites %s \\\n' % qza2
-            cmd += '--m-metadata-file %s \\\n' % meta_fp
+            cmd_mmvec = '\nqiime mmvec paired-omics \\\n'
+            cmd_mmvec += '--i-microbes %s \\\n' % qza1
+            cmd_mmvec += '--i-metabolites %s \\\n' % qza2
+            cmd_mmvec += '--m-metadata-file %s \\\n' % meta_fp
             if str(train_column) != 'None':
-                cmd += '--p-training-column %s \\\n' % train_column
+                cmd_mmvec += '--p-training-column %s \\\n' % train_column
             else:
-                cmd += '--p-num-testing-examples %s \\\n' % n_example
-            cmd += '--p-min-feature-count %s \\\n' % thresh_feat
-            cmd += '--p-epochs %s \\\n' % epoch
-            cmd += '--p-batch-size %s \\\n' % batch
-            cmd += '--p-latent-dim %s \\\n' % latent_dim
-            cmd += '--p-input-prior %s \\\n' % prior
-            cmd += '--p-learning-rate %s \\\n' % learn
-            cmd += '--p-summary-interval 30 \\\n'
+                cmd_mmvec += '--p-num-testing-examples %s \\\n' % n_example
+            cmd_mmvec += '--p-min-feature-count %s \\\n' % thresh_feat
+            cmd_mmvec += '--p-epochs %s \\\n' % epoch
+            cmd_mmvec += '--p-batch-size %s \\\n' % batch
+            cmd_mmvec += '--p-latent-dim %s \\\n' % latent_dim
+            cmd_mmvec += '--p-input-prior %s \\\n' % prior
+            cmd_mmvec += '--p-learning-rate %s \\\n' % learn
+            cmd_mmvec += '--p-summary-interval 30 \\\n'
             if qiime_env == 'qiime2-2020.2':
-                cmd += '--p-equalize-biplot \\\n'
-            cmd += '--o-conditionals %s \\\n' % ranks_qza
-            cmd += '--o-conditional-biplot %s \\\n' % ordination_qza
-            cmd += '--output-dir %s/logdir_${current_time}\n' % dirname(ordination_qza)
+                cmd_mmvec += '--p-equalize-biplot \\\n'
+            cmd_mmvec += '--o-conditionals %s \\\n' % ranks_qza
+            cmd_mmvec += '--o-conditional-biplot %s \\\n' % ordination_qza
+            cmd_mmvec += '--o-model-stats %s \\\n' % stats
+            cmd_mmvec += '--output-dir %s/logdir_${current_time}\n' % dirname(ordination_qza)
+
+            cmd += cmd_mmvec
+            cmd += cmd_mmvec.replace(
+                '--p-latent-dim %s' % latent_dim,
+                '--p-latent-dim 0'
+            ).replace(
+                '--o-conditionals %s' % ranks_qza,
+                '--o-conditionals %s' % ranks_null_qza
+            ).replace(
+                '--o-conditional-biplot %s' % ordination_qza,
+                '--o-conditional-biplot %s' % ordination_null_qza
+            ).replace(
+                '--o-model-stats %s' % stats,
+                '--o-model-stats %s' % stats_null
+            ).replace(
+                '%s/logdir_' % dirname(ordination_qza),
+                '%s/logdir_NULL_' % dirname(ordination_qza)
+            )
+
+            cmd_mmvec = '\nqiime mmvec summarize-paired \\\n'
+            cmd_mmvec += '--i-model-stats %s \\\n' % stats
+            cmd_mmvec += '--i-baseline-stats %s \\\n' % stats_null
+            cmd_mmvec += '--o-visualization %s\n' % summary
+            cmd += cmd_mmvec
+            cmd += run_export(summary, summary_html, 'mmvec_summary')
+
         if not isfile(ranks_tsv):
             cmd += run_export(ranks_qza, ranks_tsv, '')
         if not isfile(ordination_tsv):
@@ -473,6 +503,8 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
         elif 'perms' in typ:
             cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
         elif 'songbird' in typ:
+            cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
+        elif 'mmvec_summary' in typ:
             cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
         elif 'mantel' in typ:
             cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
@@ -1097,6 +1129,7 @@ def write_nestedness_nodfs(new_biom_meta: str, odir: str,
     cmd = 'mkdir -p %s\n' % odir
     for ndx, nodf in enumerate(nodfs_valid):
         nodf_comparisons = '%s/%s_comparisons.csv' % (odir, nodf)
+        print("   --> nodf_comparisons:", nodf_comparisons)
         if not isfile(nodf_comparisons):
             to_write.append(nodf_comparisons)
             cmd += 'java -Xmx5g -cp %s \\\n' % binary
@@ -1117,6 +1150,7 @@ def write_nestedness_nodfs(new_biom_meta: str, odir: str,
 
         for null in nulls:
             nodf_stats = '%s/%s_%s_statistics.csv' % (odir, null, nodf)
+            print("   --> nodf_stats:", nodf_stats)
             if not isfile(nodf_stats):
                 to_write.append(nodf_stats)
                 cmd += 'java -cp %s \\\n' % binary
@@ -1136,6 +1170,7 @@ def write_nestedness_nodfs(new_biom_meta: str, odir: str,
 
             nodf_simul = '%s/%s_%s_simulate.csv' % (odir, null, nodf)
             if not isfile(nodf_simul):
+                print("   --> nodf_simul:", nodf_simul)
                 to_write.append(nodf_simul)
                 cmd += 'java -cp %s \\\n' % binary
                 cmd += 'edu.ucsf.Nestedness.Calculator.CalculatorLauncher \\\n'
@@ -1217,11 +1252,12 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     :param new_qzv: VISUALIZATION.
     :param cur_sh: writing file handle.
     """
-    if not isfile(new_qzv):
+    if not isfile(new_mat_qza):
         cmd = 'qiime diversity filter-distance-matrix \\\n'
         cmd += '--m-metadata-file %s \\\n' % new_meta
         cmd += '--i-distance-matrix %s \\\n' % mat_qza
         cmd += '--o-filtered-distance-matrix %s\n' % new_mat_qza
+    if not isfile(new_qzv):
         cmd += 'qiime diversity beta-group-significance \\\n'
         cmd += '--i-distance-matrix %s \\\n' % new_mat_qza
         cmd += '--p-method %s \\\n' % beta_type

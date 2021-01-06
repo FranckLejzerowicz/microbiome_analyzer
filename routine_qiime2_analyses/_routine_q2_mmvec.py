@@ -258,10 +258,16 @@ def run_single_mmvec(odir: str, meta_fp: str, qza1: str, qza2: str, res_dir: str
     with open(cur_sh, 'w') as cur_sh_o:
         ranks_tsv = '%s/ranks.tsv' % odir
         ordination_tsv = '%s/ordination.txt' % odir
-        if force or not isfile(ordination_tsv) or not isfile(ranks_tsv):
+        stats = '%s/model_stats.qza' % odir
+        ranks_null_tsv = '%s/ranks_null.tsv' % odir
+        ordination_null_tsv = '%s/ordination_null.txt' % odir
+        stats_null = '%s/model_stats_null.qza' % odir
+        summary = '%s/paired-summary.qzv' % odir
+        if force or not isfile(summary):
             write_mmvec_cmd(meta_fp, qza1, qza2, res_dir, odir,
-                            ranks_tsv, ordination_tsv,
-                            batch, learn, epoch, prior,
+                            ranks_tsv, ordination_tsv, stats,
+                            ranks_null_tsv, ordination_null_tsv, stats_null,
+                            summary, batch, learn, epoch, prior,
                             thresh_feat, latent_dim, train_column,
                             n_example, gpu, standalone, cur_sh_o, qiime_env)
 
