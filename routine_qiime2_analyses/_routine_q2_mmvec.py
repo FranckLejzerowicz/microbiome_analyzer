@@ -461,13 +461,15 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                     meta_pd = pd.read_table(meta_fp, usecols=['sample_name', train_column.lower()])
                     ntrain = meta_pd[train_column.lower()].value_counts()['Train']
                     if ncommon < (1.2 * ntrain):
-                        print('\t\t--> skipped pair "%s" (too few samples [%s]):' % (pair, ncommon))
+                        print('\t\t--> skipped pair "%s" (too few samples '
+                              '[%s samples for %s training samples]):' % (pair, ncommon))
                         print('\t\t  - %s %s' % (omic1, filt1))
                         print('\t\t  - %s %s' % (omic2, filt2))
                         continue
                 else:
-                    if int(ncommon) < (2 * int(n_example)):
-                        print('\t\t--> skipped pair "%s" (too few samples [%s]):' % (pair, ncommon))
+                    if int(ncommon) < (1.2 * int(n_example)):
+                        print('\t\t--> skipped pair "%s" (too few samples '
+                              '[%s samples for %s examples]):' % (pair, ncommon, n_example))
                         print('\t\t  - %s %s' % (omic1, filt1))
                         print('\t\t  - %s %s' % (omic2, filt2))
                         continue
