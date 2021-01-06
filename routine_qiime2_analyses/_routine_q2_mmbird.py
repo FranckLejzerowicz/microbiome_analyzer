@@ -178,10 +178,10 @@ def get_xmmvec_commands(
         cmd += ' --o-ranks-explored %s' % ranks_html
         cmd += ' --p-omic1-name %s' % omic1
         cmd += ' --p-omic2-name %s' % omic2
-        if nrows > 100:
-            cmd += ' --p-omic1-max 100'
-        if ncols > 100:
-            cmd += ' --p-omic2-max 100'
+        if nrows > 50:
+            cmd += ' --p-omic1-max 50'
+        if ncols > 50:
+            cmd += ' --p-omic2-max 50'
         if xmmvecs and pair in xmmvecs:
             cmd += ' --p-omic1-metadata %s' % meta1_fp
             cmd += ' --p-omic2-metadata %s' % meta2_fp
