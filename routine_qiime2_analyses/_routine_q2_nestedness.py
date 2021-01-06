@@ -90,7 +90,14 @@ def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str
                 out_sh = '%s/run_nestedness_%s_%s%s%s.sh' % (job_folder2, prjct_nm, dat, cur_raref, filt_raref)
             for _, groups_metas_qzas_dms_trees in metrics_groups_metas_qzas_dms_trees.items():
                 for group, metas_qzas_mat_qzas_trees in groups_metas_qzas_dms_trees.items():
+                    print()
+                    print()
+                    print()
+                    print("dat, cur_raref", dat, cur_raref)
+                    print("_", _)
+                    print("group", group)
                     meta, qza, mat_qza, tree = metas_qzas_mat_qzas_trees[0]
+                    print("meta", meta)
                     meta_pd = read_meta_pd(meta).set_index('sample_name')
                     cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(subsets), 'nestedness')
                     for case_var, case_vals_list in cases_dict.items():
@@ -99,6 +106,7 @@ def run_nestedness(i_datasets_folder: str, betas: dict, p_nestedness_groups: str
                             cur_sh = '%s/run_nestedness_%s%s_%s_%s%s.sh' % (
                                 job_folder2, dat, cur_raref, group, case, filt_raref)
                             cur_sh = cur_sh.replace(' ', '-')
+                            print("case", case)
                             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                             res = run_single_nestedness(odir, group, meta_pd, nodfs, nulls,
                                                         modes, cur_sh, qza, case, case_var,
@@ -137,7 +145,12 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
             os.makedirs(cur_rad)
 
         new_meta = '%s.meta' % cur_rad
+        print("cur_rad", cur_rad)
+        print("new_meta", new_meta)
         new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
+        if 'empo_1' in new_meta_pd.columns:
+            print('empo_1')
+            print(new_meta_pd['empo_1'].value_counts())
         cols = set()
         lat_lon_date = ['latitude', 'longitude', 'datetime']
         nodfs_valid = []
@@ -151,6 +164,8 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
             cols.add(col)
             if col in nodfs:
                 nodfs_valid.append(col)
+        print('nodfs_valid', nodfs_valid)
+        print("group", group, " / cur_rad", cur_rad)
         new_meta_pd = new_meta_pd[sorted(cols)].reset_index()
         new_meta_pd.columns = (['#SampleID'] + sorted(cols))
         new_meta_pd.to_csv(new_meta, index=False, sep='\t')
@@ -158,7 +173,7 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
         new_biom = '%s.biom' % cur_rad
         new_tsv = '%s.tsv' % cur_rad
         new_biom_meta = '%s_w-md.biom' % cur_rad
-
+        print("new_biom_meta", new_biom_meta)
         if not isfile(new_biom):
             cmd = filter_feature_table(qza, new_qza, new_meta)
             cmd += run_export(new_qza, new_tsv, 'FeatureTable')
@@ -182,6 +197,7 @@ def run_single_nestedness(odir: str, group: str, meta_pd: pd.DataFrame, nodfs: l
             remove = False
 
         for mode in modes:
+            print(" === mode:", mode)
             odir = '%s/%s' % (cur_rad, mode)
             if not isdir(odir):
                 os.makedirs(odir)
