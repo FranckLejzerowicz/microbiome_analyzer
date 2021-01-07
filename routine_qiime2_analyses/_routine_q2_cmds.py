@@ -1258,7 +1258,7 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write(cmd)
     if not isfile(new_qzv):
-        cmd += 'qiime diversity beta-group-significance \\\n'
+        cmd = 'qiime diversity beta-group-significance \\\n'
         cmd += '--i-distance-matrix %s \\\n' % new_mat_qza
         cmd += '--p-method %s \\\n' % beta_type
         cmd += '--m-metadata-file %s \\\n' % new_meta
