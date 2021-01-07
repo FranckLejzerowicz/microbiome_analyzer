@@ -60,7 +60,7 @@ perms_pd = perms_pd.replace(
 
 mats = {}
 for dataset, perms_dat_pd in perms_pd.groupby('dataset'):
-    pdf_fp = 'ROUTINE_FOLDER/permanova/DATASET/permdisp_matrices.pdf'
+    pdf_fp = 'ROUTINE_FOLDER/qiime/permanova/DATASET_permdisp_matrices.pdf'
     with PdfPages(pdf_fp) as pdf:
         for subset, perms_filt_pd in perms_dat_pd.groupby('subset'):
             print(dataset, subset)
