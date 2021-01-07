@@ -76,9 +76,11 @@ def get_nestedness_config(nestedness_config: dict) -> (dict, list, dict,
 def run_nestedness(i_datasets_folder: str, betas: dict, datasets_collapsed_map: dict,
                    p_nestedness_groups: str, datasets_rarefs: dict, force: bool,
                    prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, split: bool,
-                   run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> (dict, list):
+                   run_params: dict, filt_raref: str, jobs: bool,
+                   chunkit: int) -> (dict, list, dict):
 
     job_folder2 = get_job_folder(i_datasets_folder, 'nestedness/chunks')
+
     nestedness_config = read_yaml_file(p_nestedness_groups)
     if 'soft' not in nestedness_config:
         print('Must provide the path to the Nestedness soft (containing bin/Autocorrelation.jar)')
@@ -90,8 +92,10 @@ def run_nestedness(i_datasets_folder: str, betas: dict, datasets_collapsed_map: 
         if not isfile(binary):
             print('Must provide the path to the Nestedness soft (containing bin/Autocorrelation.jar)')
             return {}
+
     subsets, nodfs, colors, nulls, modes, params = get_nestedness_config(nestedness_config)
 
+    nodfs_fps = {}
     all_sh_pbs = {}
     nestedness_res = {}
     for dat, rarefs_metrics_groups_metas_qzas_dms_trees in betas.items():
@@ -127,10 +131,11 @@ def run_nestedness(i_datasets_folder: str, betas: dict, datasets_collapsed_map: 
                             cur_sh = cur_sh.replace(' ', '-')
                             # print("case", case)
                             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                            res = run_single_nestedness(odir, cur_raref, level, group,
-                                                        meta_pd, nodfs, nulls, modes, cur_sh,
-                                                        qza, case, case_var, case_vals,
+                            res, group_case_nodfs = run_single_nestedness(odir, cur_raref, level,
+                                                        group, meta_pd, nodfs, nulls, modes,
+                                                        cur_sh, qza, case, case_var, case_vals,
                                                         binary, params, force)
+                            nodfs_fps.setdefault(stats_tax_dat, []).extend(group_case_nodfs)
                             nestedness_raref[(group, case)] = res
                 break
             nestedness_res[dat].append(nestedness_raref)
@@ -148,7 +153,7 @@ def run_nestedness(i_datasets_folder: str, betas: dict, datasets_collapsed_map: 
             print("# nestedness")
         print_message('', 'sh', main_sh, jobs)
 
-    return nestedness_res, colors
+    return nestedness_res, colors, nodfs_fps
 
 
 def get_comparisons_statistics_pd(mode_dir, level, cur_raref, group,
@@ -192,27 +197,61 @@ def get_comparisons_statistics_pd(mode_dir, level, cur_raref, group,
     return pd.DataFrame()
 
 
-def write_nodf_table(mode_dir: str, cur_raref: str, group: str,
-                     case: str, level: str, ) -> str:
-    comparisons_pd = get_comparisons_statistics_pd(
-        mode_dir, level, cur_raref, group, case, 'comparisons')
-    simulate_pd = get_comparisons_statistics_pd(
-        mode_dir, level, cur_raref, group, case, 'simulate')
-    nodf_fpo = ''
-    if comparisons_pd.shape[0] and simulate_pd.shape[0]:
+def merge_comparisons_simulate_pds(mode_dir, level, cur_raref, group, case) -> pd.DataFrame:
+    com_sta_pds = []
+    mode = mode_dir.split('/')[-1]
+    for simulate_fp in glob.glob('%s/*_simulate.csv' % mode_dir):
+        simulate_pd = pd.read_csv(simulate_fp)
+        null = basename(simulate_fp).split('_')[0]
+        simulate_pd['NULL'] = null
+        if mode == 'overall':
+            meta_name = np.nan
+        else:
+            meta_name = basename(simulate_fp).split('_simulate')[0].split('_', 1)[1]
+        simulate_pd['METADATA'] = meta_name
+        simulate_pd['MODE'] = mode
+        simulate_pd['LEVEL'] = level
+        simulate_pd['RAREF'] = cur_raref
+        simulate_pd['FEATURE_SUBSET'] = group
+        simulate_pd['SAMPLE_SUBSET'] = case
+        bins_lt = ['', '>', '>>', '>>>']
+        bins_gt = ['', '<', '<<', '<<<']
+        bins_vals = [0, 0.95, 0.97, 0.99]
+        ps = []
+        for (p, b) in [('PR_LT_OBSERVED', bins_lt), ('PR_GT_OBSERVED', bins_gt)]:
+            ps.append(p)
+            simulate_pd[p] = [b[x-1] for x in np.digitize(simulate_pd[p], bins=bins_vals)]
+        simulate_pd['PVALUE'] = simulate_pd[ps].apply(func=lambda x: ''.join(x), axis=1)
+        simulate_pd = simulate_pd.drop(columns=(['PR_ET_OBSERVED', 'NODF_SES'] + ps))
+
+        comparisons_fp = simulate_fp.replace('%s_' % null, '').replace('simulate', 'comparisons')
+        comparisons_pd = pd.read_csv(comparisons_fp)
+        comparisons_pd['COMPARISON'] = comparisons_pd.fillna('overall')[
+            ['VERTEX_1_CLASSIFICATION', 'VERTEX_2_CLASSIFICATION']
+        ].apply(
+            func=lambda x: '-'.join(list(set(x))), axis=1
+        )
+        comparisons_pd = comparisons_pd[['GRAPH_ID', 'COMPARISON']].drop_duplicates()
+
         nodf_pd = simulate_pd[simulate_pd['GRAPH_EDGE_COUNT'] > 5].merge(
-            comparisons_pd, on='GRAPH_ID', how='left')
+            comparisons_pd, on=['GRAPH_ID'], how='left')
+        com_sta_pds.append(nodf_pd)
+
+    nodf_fpo = ''
+    if com_sta_pds:
+        com_sta_pd = pd.concat(com_sta_pds)
         nodf_fpo = '%s/nodfs.tsv' % mode_dir
-        nodf_pd.to_csv(nodf_fpo, index=False, sep='\t')
+        com_sta_pd.to_csv(nodf_fpo, index=False, sep='\t')
+
     return nodf_fpo
 
 
 def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
                           meta_pd: pd.DataFrame, nodfs: list, nulls: list, modes: list,
                           cur_sh: str, qza: str, case: str, case_var: str, case_vals: list,
-                          binary: str, params: dict, force: bool) -> dict:
+                          binary: str, params: dict, force: bool) -> (dict, list):
     res = {}
-    nodfs_fps = {}
+    group_case_nodfs = []
     remove = True
     with open(cur_sh, 'w') as cur_sh_o:
         if group:
@@ -223,12 +262,7 @@ def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
             os.makedirs(cur_rad)
 
         new_meta = '%s.meta' % cur_rad
-        # print("cur_rad", cur_rad)
-        # print("new_meta", new_meta)
         new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-        # if 'empo_1' in new_meta_pd.columns:
-            # print('empo_1')
-            # print(new_meta_pd['empo_1'].value_counts())
         cols = set()
         lat_lon_date = ['latitude', 'longitude', 'datetime']
         nodfs_valid = []
@@ -242,8 +276,7 @@ def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
             cols.add(col)
             if col in nodfs:
                 nodfs_valid.append(col)
-        # print('nodfs_valid', nodfs_valid)
-        # print("group", group, " / cur_rad", cur_rad)
+
         new_meta_pd = new_meta_pd[sorted(cols)].reset_index()
         new_meta_pd.columns = (['#SampleID'] + sorted(cols))
         new_meta_pd.to_csv(new_meta, index=False, sep='\t')
@@ -251,7 +284,6 @@ def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
         new_biom = '%s.biom' % cur_rad
         new_tsv = '%s.tsv' % cur_rad
         new_biom_meta = '%s_w-md.biom' % cur_rad
-        # print("new_biom_meta", new_biom_meta)
         if not isfile(new_biom):
             cmd = filter_feature_table(qza, new_qza, new_meta)
             cmd += run_export(new_qza, new_tsv, 'FeatureTable')
@@ -288,12 +320,14 @@ def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
             res.setdefault('modes', []).append(odir)
 
             # collect already run nestedness result and make them a nodfs.tsv file
-            nodf_fpo = write_nodf_table(odir, cur_raref, group, case, level)
+            nodf_fpo = merge_comparisons_simulate_pds(odir, level, cur_raref, group, case)
             if nodf_fpo:
-                nodfs_fps.setdefault(stats_tax_dat, []).append(nodf_fpo)
+                group_case_nodfs.append(nodf_fpo)
 
     if remove:
         os.remove(cur_sh)
+
+    return res, group_case_nodfs
 
 
 def nestedness_graphs(i_datasets_folder: str, nestedness_res: dict,
@@ -302,14 +336,13 @@ def nestedness_graphs(i_datasets_folder: str, nestedness_res: dict,
                       datasets_collapsed_map: dict, collapsed: dict,
                       filt_raref: str, prjct_nm: str, qiime_env: str,
                       chmod: str, noloc: bool, split: bool, run_params: dict,
-                      jobs: bool, chunkit: int) -> dict:
+                      jobs: bool, chunkit: int):
 
     RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
     nestedness_graphs_fp = '%s/nestedness_graphs.py' % RESOURCES
 
     job_folder2 = get_job_folder(i_datasets_folder, 'nestedness_figures/chunks')
 
-    nodfs_fps = {}
     all_sh_pbs = {}
     for dat, nestedness_rarefs in nestedness_res.items():
         if not split:
@@ -375,8 +408,6 @@ def nestedness_graphs(i_datasets_folder: str, nestedness_res: dict,
         print("# NESTEDNESS GRAPHS")
         print_message('', 'sh', main_sh, jobs)
 
-    return nodfs_fps
-
 
 def nestedness_nodfs(i_datasets_folder: str, nodfs_fps: dict,
                      collapsed: dict, filt_raref: str, prjct_nm: str,
@@ -391,14 +422,8 @@ def nestedness_nodfs(i_datasets_folder: str, nodfs_fps: dict,
     all_sh_pbs = {}
     for dat, nodfs in nodfs_fps.items():
 
-        print('dat')
-        print(dat)
-        print('nodfs')
-        print(nodfs)
-
         out_sh = '%s/run_nestedness_nodfs_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
         out_py = out_sh.replace('.sh', '.py')
-
         cur_sh = '%s/run_nestedness_nodfs_%s%s_tmp.sh' % (job_folder2, dat, filt_raref)
         cur_sh = cur_sh.replace(' ', '-')
         with open(cur_sh, 'w') as o:

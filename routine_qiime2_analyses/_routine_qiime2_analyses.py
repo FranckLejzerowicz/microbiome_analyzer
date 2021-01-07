@@ -377,15 +377,14 @@ def routine_qiime2_analyses(
 
     if 'beta' not in p_skip and p_nestedness_groups and 'nestedness' not in p_skip:
         print('(run_nestedness)')
-        nestedness_res, colors = run_nestedness(i_datasets_folder, betas, datasets_collapsed_map,
-                                                p_nestedness_groups, datasets_rarefs,
-                                                force, prjct_nm, qiime_env, chmod, noloc,
-                                                split, run_params['nestedness'],
-                                                filt_raref, jobs, chunkit)
-        nodfs_fps = {}
+        nestedness_res, colors, nodfs_fps = run_nestedness(
+            i_datasets_folder, betas, datasets_collapsed_map, p_nestedness_groups,
+            datasets_rarefs, force, prjct_nm, qiime_env, chmod, noloc, split,
+            run_params['nestedness'], filt_raref, jobs, chunkit)
+
         if nestedness_res:
             print('(making_nestedness_figures (graphs))')
-            nodfs_fps = nestedness_graphs(i_datasets_folder, nestedness_res, datasets,
+            nestedness_graphs(i_datasets_folder, nestedness_res, datasets,
                                           split_taxa_pds, datasets_rarefs, colors,
                                           datasets_collapsed_map, collapsed, filt_raref,
                                           prjct_nm, qiime_env, chmod, noloc, split,
