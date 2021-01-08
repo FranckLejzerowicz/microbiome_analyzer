@@ -71,7 +71,8 @@ def check_metadata_formulas(meta: str, meta_pd: pd.DataFrame,
     return formulas
 
 
-def check_metadata_models(meta: str, meta_pd: pd.DataFrame, songbird_models: dict) -> dict:
+def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
+                          songbird_models: dict) -> dict:
     """
     :param meta: metadata file name.
     :param meta_pd: metadata table.
@@ -83,56 +84,69 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame, songbird_models: dic
     models = {}
     for model, formula_ in songbird_models.items():
         vars = set()
-        drop = []
-        meta_var = ''
+        drop = {}
         formula = formula_.strip('"').strip("'")
         if formula.startswith('C('):
-            formula_split = [formula.split('C(')[-1].split(',')[0].strip().strip()]
-            meta_var = formula_split[0]
-            vars.add(meta_var)
-            formula = formula.replace('C(%s' % formula_split[0], 'C(%s' % meta_pd_vars[formula_split[0].lower()])
+            formula_split = formula.split('C(')[-1].split(')')
+            formula_split_c = formula_split[0].split(',')[0].strip().strip()
+            formula = 'C(%s)' % formula_split[0].replace(formula_split_c, formula_split_c.lower())
+            formula += formula_split[1].lower()
             if 'Diff' in formula:
-                levels = [x.strip().strip('"').strip("'") for x in formula.split("levels=['")[-1].split("']")[0].split(",")]
+                levels = {formula_split_c.lower(): [
+                    x.strip().strip('"').strip("'")
+                    for x in formula.split("levels=['")[-1].split("']")[0].split(",")
+                ]}
             elif 'Treatment(' in formula:
-                levels = [formula.split("Treatment('")[-1].split("')")[0]]
+                levels = {formula_split_c.lower(): [
+                    formula.split("Treatment('")[-1].split("')")[0]
+                ]}
+            vars.add(formula_split_c.lower())
+            vars.update(set([x.lower() for x in re.split('[+/:*]', formula_split[1]) if x]))
         else:
             formula_split = re.split('[+/:*]', formula)
-            vars.update(set(formula_split))
-            levels = []
+            vars.update(set([x.lower() for x in formula_split]))
+            levels = {}
 
-        formula_split_lower = dict((x.lower(), x) for x in formula_split)
-        common_with_md = set(meta_pd_vars) & set(formula_split_lower)
-        if sorted(set(formula_split_lower)) != sorted(common_with_md):
-            only_formula = [formula_split_lower[x] for x in sorted(set(formula_split_lower) ^ common_with_md)]
-            print('Songbird formula term(s) missing in metadata:\n  %s\n  [not used]: %s=%s\n%s' % (
-                ', '.join(sorted(only_formula)), model, formula, meta))
+        common_with_md = set(meta_pd_vars) & vars
+        if sorted(vars) != sorted(common_with_md):
+            only_formula = sorted(vars ^ common_with_md)
+            print('\t\tSongbird formula term(s) missing in metadata:\n\t\t  %s\n\t\t  [not used]: %s=%s\n\t\t%s' % (
+                ', '.join(only_formula), model, formula, meta))
             continue
 
-        if len(levels):
-            levels_set = sorted([x for x in meta_pd[meta_pd_vars[formula_split[0].lower()]].unique() if str(x) != 'nan'])
+        if levels:
+            # print('levels', levels)
+            # print(meta_pd['sex'].unique())
+            levels_set = sorted([x for x in meta_pd[formula_split_c.lower()].unique() if str(x) != 'nan'])
+            # print('levels_set', levels_set)
             if 'Diff' in formula:
-                common_levels = set(levels_set) & set(levels)
+                cur_levels = levels[formula_split_c.lower()]
+                common_levels = set(levels_set) & set(cur_levels)
                 only_meta = set(levels_set) ^ common_levels
-                only_model = set(levels) ^ common_levels
+                only_model = set(cur_levels) ^ common_levels
+                # print()
+                # print(cur_levels)
+                # print()
+                # print(common_levels)
+                # print()
+                # print(only_meta)
+                # print()
+                # print(only_model)
                 if len(only_model):
-                    print('Songbird formula "Diff" factors(s) missing in metadata "%s": %s\n%s' % (
-                        formula_split[0], list(only_model), meta))
+                    print('\t\tSongbird formula "Diff" factors(s) missing in metadata "%s": %s\n\t\t%s' % (
+                        formula_split_c, list(only_model), meta))
                     continue
                 if len(only_meta):
-                    drop = list(only_meta)
-                    print('Songbird formula "Diff" factors(s) incomplete for metadata "%s":\n'
-                          '  -> skipping samples with %s\n%s' % (formula_split[0], list(only_meta), meta))
+                    drop[formula_split_c.lower()] = list(only_meta)
+                    print('\t\tSongbird formula "Diff" factors(s) incomplete for metadata "%s":\n\t\t'
+                          '  -> skipping samples with %s\n\t\t%s' % (formula_split_c, list(only_meta), meta))
             elif 'Treatment(' in formula:
-                levels = formula.split("Treatment('")[-1].split("')")[0]
+                levels = {formula_split_c.lower(): formula.split("Treatment('")[-1].split("')")[0]}
                 if levels not in levels_set:
-                    print('Songbird formula "Treatment" factors(s) missing in metadata "%s":\n  %s\n%s' % (
-                        formula_split[0], levels, meta))
+                    print('\t\tSongbird formula "Treatment" factors(s) missing in metadata "%s":\n\t\t  %s\n\t\t%s' % (
+                        formula_split_c, levels, meta))
                     continue
-
-        vars = set([meta_pd_vars[x.lower()] for x in vars])
-        if meta_var:
-            meta_var = meta_pd_vars[meta_var.lower()]
-        models[model] = [formula, vars, meta_var, drop]
+        models[model] = [formula, vars, drop]
     return models
 
 

@@ -1239,7 +1239,7 @@ def get_datasets_filtered(
                 case_tsv_pd = tsv_pd_[case_meta_pd.sample_name.tolist()]
                 dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s/%s' % (analysis, dat, case))
                 prevals_abunds = filtering[(dat_, mb)]
-                for (preval_abund, preval, abund) in prevals_abunds:
+                for (preval_abund, preval, abund) in sorted(prevals_abunds):
                     # make sure there's no empty row / column
                     if mb:
                         tsv_pd, res = filter_mb_table(preval, abund, case_tsv_pd)
@@ -1388,7 +1388,7 @@ def check_datasets_filtered(
                 dat_dir = get_analysis_folder(i_datasets_folder, '%s/datasets/%s/%s' % (analysis, dat, case))
 
                 prevals_abunds = unique_filterings[(dat_, mb)]
-                for (preval_abund, preval, abund) in prevals_abunds:
+                for (preval_abund, preval, abund) in sorted(prevals_abunds, key=lambda x: (x[1], x[2])):
                     # make sure there's no empty row / column
                     rad_out = '%s_%s_*s' % (dat, preval_abund)
                     tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)

@@ -99,7 +99,7 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict, filtering: di
                 case = get_case(case_vals, case_var)
                 data_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s/%s' % (pair, case))
                 meta_dir = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s/%s' % (pair, case))
-                for preval_abund, preval_abund_dats in pair_filtering.items():
+                for preval_abund, preval_abund_dats in sorted(pair_filtering.items()):
                     preval_filt1, abund_filter1 = preval_abund_dats[(omic1_, bool1)]
                     preval_filt2, abund_filter2 = preval_abund_dats[(omic2_, bool2)]
                     filt1 = '%s_%s' % (preval_filt1, abund_filter1)
@@ -196,7 +196,7 @@ def check_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
                 case = get_case(case_vals, case_var)
                 data_dir = data_dir_ + '/' + case
                 meta_dir = meta_dir_ + '/' + case
-                for preval_abund in pair_filtering:
+                for preval_abund in sorted(pair_filtering):
                     preval_filt1, abund_filter1 = pair_filtering[preval_abund][(omic1_, bool1)]
                     preval_filt2, abund_filter2 = pair_filtering[preval_abund][(omic2_, bool2)]
                     if not filt_datasets_pass[(omic1, bool1)][(case, preval_abund)] or not filt_datasets_pass[(omic2, bool2)][(case, preval_abund)]:

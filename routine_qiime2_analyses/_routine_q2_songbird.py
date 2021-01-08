@@ -38,7 +38,7 @@ from routine_qiime2_analyses._routine_q2_mmvec import (
 )
 
 
-def get_train_column(new_meta_pd, meta_vars, train):
+def get_train_column(new_meta_pd, meta_vars, train, new_meta_ct):
     if train.isdigit() or train.replace('.', '').isdigit():
         train_column = 'TrainTest'
         if train.isdigit():
@@ -51,29 +51,29 @@ def get_train_column(new_meta_pd, meta_vars, train):
             train_float = float(train)
             if 0 < train_float < 1:
                 train_perc = train_float
-                # train_samples = random.sample(
-                #     new_meta_pd.index.tolist(),
-                #     k=int(train_float * new_meta_pd.shape[0]))
             else:
-                raise IOError('Float passed as percent of samples for'
+                raise IOError('\t\t\t[SONGBIRD] Float passed as percent of samples for'
                               ' training not valid (must be in range 0-1)')
-        meta_var = meta_vars[0]
-        vc = new_meta_pd[meta_var].value_counts()
-        if len(meta_vars) == 1 and str(new_meta_pd[meta_var].dtype) == 'object' and min(vc) > 1:
-            ### TAKE COMPREHENSIVE SET FO SAMPLES TO WARRANT q2 COMPARISONS
-            X = np.array(new_meta_pd.values)
-            y = new_meta_pd.index.tolist()
-            _, __, test_samples, train_samples = train_test_split(
-                X, y, test_size=train_perc,
-                stratify=new_meta_pd[meta_var].tolist()
-            )
-        else:
-            train_samples = random.sample(
-                new_meta_pd.index.tolist(),
-                k=int(train_perc * new_meta_pd.shape[0])
-            )
+        new_meta_pd['concat_cols'] = new_meta_pd[meta_vars].apply(
+            func=lambda x: '__'.join([str(y) for y in x]), axis=1)
+
+        vc = new_meta_pd['concat_cols'].value_counts()
+        # if len(meta_vars) == 1 and str(new_meta_pd['concat_cols'].dtype) == 'object' and min(vc) > 1:
+        X = np.array(new_meta_pd.values)
+        y = new_meta_pd.index.tolist()
+        _, __, test_samples, train_samples = train_test_split(
+            X, y, test_size=train_perc,
+            stratify=new_meta_pd['concat_cols'].tolist()
+        )
+        # else:
+        #     train_samples = random.sample(
+        #         new_meta_pd.index.tolist(),
+        #         k=int(train_perc * new_meta_pd.shape[0])
+        #     )
         new_meta_pd[train_column] = ['Train' if x in train_samples else
                                      'Test' for x in new_meta_pd.index]
+        ct = pd.crosstab(new_meta_pd[train_column], new_meta_pd['concat_cols']).T
+        ct.to_csv(new_meta_ct, sep='\t')
     else:
         if train in new_meta_pd.columns:
             if {'Train', 'Test'}.issubset(new_meta_pd[train]):
@@ -82,10 +82,10 @@ def get_train_column(new_meta_pd, meta_vars, train):
                     new_meta_pd[train].isin(['Train', 'Test'])
                 ]
             else:
-                raise IOError('Columns passed for training do '
+                raise IOError('\t\t\t[SONGBIRD] Columns passed for training do '
                               'not have "Train" and "Test" factors')
         else:
-            raise IOError('Columns passed for training not exists')
+            raise IOError('\t\t\t[SONGBIRD] Columns passed for training not exists')
     return new_meta_pd, train_column
 
 
@@ -169,25 +169,27 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
 #     new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
 #     return train_column
 
-def get_metadata_train_test(meta_pd, meta_vars_, meta_var, new_meta,
-                                     train, drop):
+def get_metadata_train_test(meta_pd, meta_vars, new_meta, train, drop, new_meta_ct):
+
     if train in meta_pd.columns:
-        meta_vars_.append(train)
-    # meta_pd.columns = [x.lower() for x in meta_pd.columns]
-    if meta_var:
-        meta_vars = list(set(list(meta_vars_) + [meta_var]))
-    else:
-        meta_vars = list(meta_vars_)
+        meta_vars.append(train)
+
     new_meta_pd = meta_pd[meta_vars]
     new_meta_pd = new_meta_pd.loc[~new_meta_pd.isna().any(1)]
     new_meta_pd = rename_duplicate_columns(new_meta_pd)
-    if len(drop):
-        new_meta_pd = new_meta_pd.loc[(~new_meta_pd[meta_var.lower()].isin(drop)), :]
+
+    if drop:
+        to_remove = pd.concat([
+            new_meta_pd[meta_var.lower()].isin(var_drop) for meta_var, var_drop in drop.items()],
+            axis=1
+        ).any(axis=1)
+        new_meta_pd = new_meta_pd.loc[~to_remove]
+
     new_meta_pd_ = new_meta_pd.copy()
     new_meta_pd_['tmptmptmp'] = [''.join(map(str, x)) for x in new_meta_pd_.values if str(x) != 'nan']
     if 1 in new_meta_pd_.tmptmptmp.value_counts():
         return None
-    new_meta_pd, train_column = get_train_column(new_meta_pd, meta_vars, train)
+    new_meta_pd, train_column = get_train_column(new_meta_pd, meta_vars, train, new_meta_ct)
     new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
     return train_column
 
@@ -559,7 +561,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     # uni_model_baselines = {}
                     # for model, formula_meta_var_drop in models.items():
                     #     uni_model_baselines[model] = {'1': '"1"'}
-                    #     formula, meta_vars, meta_var, drop = formula_meta_var_drop
+                    #     formula, meta_vars, drop = formula_meta_var_drop
                     #     uni_meta_vars.update(set(meta_vars))
                     #     unil_meta_var.add(meta_var)
                     #     uni_drop.update(set(drop))
@@ -574,7 +576,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     # uni_new_qza = '%s/uni_tab.qza' % uni_datdir
                     # uni_new_meta = '%s/uni_metadata.tsv' % uni_datdir
                     # train_column = get_songbird_metadata_train_test(
-                    #     meta_pd, meta_vars, meta_var, new_meta,
+                    #     meta_pd, meta_vars, new_meta,
                     #     train, case, case_var, case_vals, drop)
                     #
                     # uni_baselines = {}
@@ -583,7 +585,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
                 for modx, model in enumerate(models.keys()):
 
-                    formula, meta_vars, meta_var, drop = models[model]
+                    formula, meta_vars, drop = models[model]
                     # print("meta_pd.shape")
                     # print(meta_pd.shape)
                     # print("meta_pd.columns")
@@ -595,20 +597,15 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     #     print(meta_v)
                     #     print("meta_pd[meta_v].value_counts()")
                     #     print(meta_pd[meta_v].value_counts())
-                    # print("meta_var")
-                    # print(meta_var)
-                    # if meta_var != '':
-                    #     print("meta_pd[meta_var].value_counts()")
-                    #     print(meta_pd[meta_var].value_counts())
 
                     datdir = '%s/%s/%s/%s/%s' % (dat_pair_path, filt, case, params, model)
                     odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
                     new_qza = '%s/tab.qza' % odir
                     new_meta = '%s/metadata.tsv' % odir
+                    new_meta_ct = '%s/metadata_traintest.tsv' % odir
 
                     train_column = get_metadata_train_test(
-                        meta_pd, meta_vars, meta_var, new_meta,
-                        train, drop)
+                        meta_pd, meta_vars, new_meta, train, drop, new_meta_ct)
                     if not train_column:
                         new_meta_invalid = '%s/metadata_invalid' % odir
                         with open(new_meta_invalid, 'w') as invalid:
