@@ -80,7 +80,6 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
     :param analysis: current qiime2 analysis.
     :return: checked songbird models.
     """
-    meta_pd_vars = dict((x.lower(), x) for x in set(meta_pd.columns.tolist()))
     models = {}
     for model, formula_ in songbird_models.items():
         vars = set()
@@ -107,7 +106,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
             vars.update(set([x.lower() for x in formula_split]))
             levels = {}
 
-        common_with_md = set(meta_pd_vars) & vars
+        common_with_md = set(meta_pd.columns.str.lower().values) & vars
         if sorted(vars) != sorted(common_with_md):
             only_formula = sorted(vars ^ common_with_md)
             print('\t\tSongbird formula term(s) missing in metadata:\n\t\t  %s\n\t\t  [not used]: %s=%s\n\t\t%s' % (

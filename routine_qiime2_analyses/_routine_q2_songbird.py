@@ -536,6 +536,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             meta_pd = read_meta_pd(meta)
             meta_pd = rename_duplicate_columns(meta_pd)
             meta_pd = meta_pd.set_index('sample_name')
+            meta_pd.columns = [x.lower() for x in meta_pd.columns]
 
             if dat in songbird_models:
                 models = check_metadata_models(meta, meta_pd, songbird_models[dat])
