@@ -515,7 +515,6 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             songbirds.setdefault(omic2, []).append([case, filt2, omic2_common_fp, meta_common_fp, pair])
 
     uni = 0
-
     all_sh_pbs = {}
     first_print = 0
     songbird_outputs = []
@@ -625,6 +624,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
                     train_column = get_metadata_train_test(
                         meta_pd, meta_vars, new_meta, train, drop, new_meta_ct)
+                    print(model, train_column)
                     if not train_column:
                         new_meta_invalid = '%s/metadata_invalid' % odir
                         with open(new_meta_invalid, 'w') as invalid:
@@ -644,8 +644,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                         cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s_%s.sh' % (
                             job_folder2, dat_pair, filt, case, modx, mdx, idx)
                         cur_sh = cur_sh.replace(' ', '-')
-                        all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
 
+                        all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                         diffs, tensor_html = run_single_songbird(
                             odir, odir_base, qza, new_qza, new_meta, cur_sh,
                             force, batch, learn, epoch, diff_prior, thresh_feat, thresh_sample,
