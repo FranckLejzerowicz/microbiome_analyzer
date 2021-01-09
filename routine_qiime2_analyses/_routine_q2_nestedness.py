@@ -284,9 +284,10 @@ def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
             cur_sh_o.write('echo "%s"\n' % cmd)
             cur_sh_o.write(cmd)
 
-        cmd = run_add_metadata(new_biom, new_biom_meta, new_meta)
-        cur_sh_o.write('echo "%s"\n' % cmd)
-        cur_sh_o.write(cmd)
+        if not isfile(new_biom_meta):
+            cmd = run_add_metadata(new_biom, new_biom_meta, new_meta)
+            cur_sh_o.write('echo "%s"\n' % cmd)
+            cur_sh_o.write(cmd)
 
         graphs = '%s/graphs.csv' % cur_rad
         graphs_pdf = '%s/graphs.pdf' % cur_rad
