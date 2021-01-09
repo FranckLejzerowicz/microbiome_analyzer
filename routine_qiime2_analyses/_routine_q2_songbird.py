@@ -149,6 +149,7 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
     tensor = '%s/tensorboard.qzv' % odir_base
     tensor_html = '%s/tensorboard.html' % odir_base
     with open(cur_sh, 'w') as cur_sh_o:
+        print(cur_sh)
         if force or not isfile(tensor_html):
             write_songbird_cmd(
                 qza, new_qza, new_meta, formula, epoch, batch, diff_prior,
@@ -157,6 +158,7 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
                 base_plot, baseline_formula, tensor, tensor_html, cur_sh_o)
             remove = False
     if remove:
+        print('remove', remove)
         os.remove(cur_sh)
     return diffs, tensor_html
 
@@ -655,6 +657,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                         songbird_outputs.append([dat, filt, '%s_%s' % (params.replace('/', '__'), model), case,
                                                  diffs, model_baseline, tensor_html, pair])
 
+    print(all_sh_pbs)
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
     main_sh = write_main_sh(job_folder, '2_songbird_%s%s' % (prjct_nm, filt_raref), all_sh_pbs,
                             '%s.sngbrd%s' % (prjct_nm, filt_raref),
