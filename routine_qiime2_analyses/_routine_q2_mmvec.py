@@ -9,7 +9,7 @@
 import os
 import itertools
 import pandas as pd
-from os.path import isfile, splitext
+from os.path import isdir, isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
@@ -256,15 +256,25 @@ def run_single_mmvec(odir: str, meta_fp: str, qza1: str, qza2: str, res_dir: str
     """
     remove = True
     with open(cur_sh, 'w') as cur_sh_o:
-        ranks_tsv = '%s/ranks.tsv' % odir
-        ordination_tsv = '%s/ordination.txt' % odir
-        stats = '%s/model_stats.qza' % odir
-        ranks_null_tsv = '%s/ranks_null.tsv' % odir
-        ordination_null_tsv = '%s/ordination_null.txt' % odir
-        stats_null = '%s/model_stats_null.qza' % odir
+
+        model_odir = '%s/model' % odir
+        if not isdir(model_odir):
+            os.makedirs(model_odir)
+        ranks_tsv = '%s/ranks.tsv' % model_odir
+        ordination_tsv = '%s/ordination.txt' % model_odir
+        stats = '%s/stats.qza' % model_odir
+
+        null_odir = '%s/null' % odir
+        if not isdir(null_odir):
+            os.makedirs(null_odir)
+        ranks_null_tsv = '%s/ranks.tsv' % null_odir
+        ordination_null_tsv = '%s/ordination.txt' % null_odir
+        stats_null = '%s/stats.qza' % null_odir
+
         summary = '%s/paired-summary.qzv' % odir
+
         if force or not isfile(summary):
-            write_mmvec_cmd(meta_fp, qza1, qza2, res_dir, odir,
+            write_mmvec_cmd(meta_fp, qza1, qza2, res_dir, model_odir, null_odir,
                             ranks_tsv, ordination_tsv, stats,
                             ranks_null_tsv, ordination_null_tsv, stats_null,
                             summary, batch, learn, epoch, prior,
@@ -500,8 +510,6 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
                     latent_dim, train_column, n_example,
                     gpu, force, standalone, qiime_env
                 )
-    if standalone:
-        qiime_env = 'mmvec2'
 
     main_sh = write_main_sh(job_folder, '3_mmvec_%s%s' % (prjct_nm, filt_raref), all_sh_pbs,
                             '%s.mmvc%s' % (prjct_nm, filt_raref),

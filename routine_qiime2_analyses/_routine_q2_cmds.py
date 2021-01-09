@@ -152,12 +152,12 @@ def write_rarefy(qza: str, qza_out: str, depth: str, cur_sh: TextIO) -> None:
     cur_sh.write('%s\n\n' % cmd)
 
 
-def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str, odir: str,
-                    ranks_tsv: str, ordination_tsv: str, stats: str, ranks_null_tsv: str,
-                    ordination_null_tsv: str, stats_null: str, summary: str,
-                    batch: str, learn: str, epoch: str, prior: str, thresh_feat: str,
-                    latent_dim: str, train_column: str, n_example: str, gpu: bool,
-                    standalone: bool, cur_sh: TextIO, qiime_env: str) -> None:
+def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str, model_odir: str,
+                    null_odir: str, ranks_tsv: str, ordination_tsv: str, stats: str,
+                    ranks_null_tsv: str, ordination_null_tsv: str, stats_null: str,
+                    summary: str, batch: str, learn: str, epoch: str, prior: str,
+                    thresh_feat: str, latent_dim: str, train_column: str, n_example: str,
+                    gpu: bool, standalone: bool, cur_sh: TextIO, qiime_env: str) -> None:
     """
     Performs bi-loglinear multinomial regression and calculates the
     conditional probability ranks of metabolite co-occurence given the microbe
@@ -211,8 +211,7 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str, odir: str,
         ordination_null_qza = '%s.qza' % splitext(ordination_null_tsv)[0]
         summary_html = '%s.html' % splitext(summary)[0]
         if not isfile(ranks_qza) or not isfile(ordination_qza) or not isfile(stats):
-            cmd += 'current_time=$(date "+%y%m%d_%H%M%S")\n'
-            cmd += '\ncd %s\n' % odir
+            cmd += '\ncd %s\n' % model_odir
             cmd_mmvec = '\nqiime mmvec paired-omics \\\n'
             cmd_mmvec += '--i-microbes %s \\\n' % qza1
             cmd_mmvec += '--i-metabolites %s \\\n' % qza2
@@ -233,9 +232,11 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str, odir: str,
             cmd_mmvec += '--o-conditionals %s \\\n' % ranks_qza
             cmd_mmvec += '--o-conditional-biplot %s \\\n' % ordination_qza
             cmd_mmvec += '--o-model-stats %s \\\n' % stats
-            cmd_mmvec += '--output-dir %s/logdir_${current_time}\n' % dirname(ordination_qza)
-
+            cmd_mmvec += '--output-dir %s/logdir\n' % model_odir
+            cmd_mmvec += '\nrm -rf %s/logdir\n' % model_odir
             cmd += cmd_mmvec
+
+            cmd += '\ncd %s\n' % null_odir
             cmd += cmd_mmvec.replace(
                 '--p-latent-dim %s' % latent_dim,
                 '--p-latent-dim 0'
@@ -249,15 +250,14 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str, odir: str,
                 '--o-model-stats %s' % stats,
                 '--o-model-stats %s' % stats_null
             ).replace(
-                '%s/logdir_' % dirname(ordination_qza),
-                '%s/logdir_NULL_' % dirname(ordination_qza)
+                '%s/logdir' % model_odir,
+                '%s/logdir' % null_odir
             )
 
-            cmd_mmvec = '\nqiime mmvec summarize-paired \\\n'
-            cmd_mmvec += '--i-model-stats %s \\\n' % stats
-            cmd_mmvec += '--i-baseline-stats %s \\\n' % stats_null
-            cmd_mmvec += '--o-visualization %s\n' % summary
-            cmd += cmd_mmvec
+            cmd += '\nqiime mmvec summarize-paired \\\n'
+            cmd += '--i-model-stats %s \\\n' % stats
+            cmd += '--i-baseline-stats %s \\\n' % stats_null
+            cmd += '--o-visualization %s\n' % summary
             cmd += run_export(summary, summary_html, 'mmvec_summary')
 
         if not isfile(ranks_tsv):
@@ -496,6 +496,8 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
             cmd += 'mv %s/*.nwk %s\n' % (splitext(output_path)[0], output_path)
         elif 'biplot' in typ:
             cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
+        elif 'mmvec_summary' in typ:
+            cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
         elif 'mmvec' in typ:
             cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
         elif 'pcoa' in typ:
@@ -503,8 +505,6 @@ def run_export(input_path: str, output_path: str, typ: str) -> str:
         elif 'perms' in typ:
             cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
         elif 'songbird' in typ:
-            cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
-        elif 'mmvec_summary' in typ:
             cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
         elif 'mantel' in typ:
             cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
