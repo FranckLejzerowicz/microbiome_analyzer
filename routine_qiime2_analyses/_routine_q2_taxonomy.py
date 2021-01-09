@@ -157,6 +157,7 @@ def get_taxo_levels(taxonomies: dict) -> dict:
                         if str(x) not in ['nan', 'None', 'Unassigned']]
                 if len(set(rank)) == 1:
                     ranks[col] = rank[0]
+
         # remove columns to be removed (safer _after_ parsing)
         if rewrite:
             split_taxa_pd = split_taxa_pd.drop(columns=torm)
