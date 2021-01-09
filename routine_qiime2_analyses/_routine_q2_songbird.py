@@ -150,6 +150,7 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
     tensor_html = '%s/tensorboard.html' % odir_base
     with open(cur_sh, 'w') as cur_sh_o:
         if force or not isfile(tensor_html):
+            print(tensor_html)
             write_songbird_cmd(
                 qza, new_qza, new_meta, formula, epoch, batch, diff_prior,
                 learn, thresh_sample, thresh_feat, train_column, metadatas,
