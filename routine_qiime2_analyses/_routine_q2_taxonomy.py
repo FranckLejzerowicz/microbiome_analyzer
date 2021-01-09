@@ -76,82 +76,108 @@ def extend_split_taxonomy(split_taxa_pd: pd.DataFrame):
 
 def get_split_taxonomy(taxa, extended=False, taxo_sep=';'):
 
-    # get the taxon name split per "taxon" level
-    # split_chars = taxo_sep
-    # if len([1 for x in taxa if '|' in x]) > (0.5 * len(taxa)):
-    #     split_chars += "|\|"
-    # if len([1 for x in taxa if '.' in x]) > (0.5 * len(taxa)):
-    #     split_chars += "|\."
-
     split_lens = set()
     split_taxa = []
     for taxon in taxa:
-        taxon_split = [x.strip() for x in str(taxon).split(taxo_sep) if len(x.strip()) and not x.startswith('x__')]
-        # taxon_split = [x.strip() for x in re.split(split_chars, str(taxon)) if len(x.strip()) and not x.startswith('x__')]
-        split_lens.add(len(taxon_split))
-        split_taxa.append(taxon_split)
+        if str(taxon) == 'nan':
+            split_lens.add(1)
+            split_taxa.append(pd.Series(['Unassigned']))
+        else:
+            taxon_split = [x.strip().replace(' ', '_') for x in str(taxon).split(taxo_sep)
+                           if len(x.strip()) and not x.startswith('x__')]
+            if set(taxon_split) == {'unclassified'}:
+                split_lens.add(1)
+                split_taxa.append(pd.Series(['Unassigned']))
+            else:
+                split_lens.add(len(taxon_split))
+                split_taxa.append(pd.Series(taxon_split))
 
+    # if the parsed and split taxonomies have
+    # very variable number of fields or very long split results
+    # it is terminated here as a taxonomy that does not make sense
     if len(split_lens) > 15 or max(split_lens) > 15:
         return pd.DataFrame([[x] for x in taxa], columns=['not_really_taxon'])
 
+    # build a dataframe from the spit taxonomy
     split_taxa_pd = pd.DataFrame(split_taxa)
+    # add a column label
     ALPHA = 'ABCDEFGHIJKLMNOPQRST'
-    split_taxa_pd_cols = ['Taxolevel_%s' % (ALPHA[idx]) for idx in range(split_taxa_pd.shape[1])]
-    split_taxa_pd.columns = split_taxa_pd_cols
-    # get the max number of fields
-    # max_new_rows = max([len(new_row) for new_row in new_rows])
-    # padded_new_rows_list = get_padded_new_rows_list(new_rows, max_new_rows)
-    # padded_new_rows_pd = add_alpha_level_label(taxa, padded_new_rows_list, max_new_rows)
+    split_taxa_pd.columns = ['Taxolevel_%s' % (ALPHA[idx]) for idx in range(split_taxa_pd.shape[1])]
+
+    # add dummie 0-1 encoding of columns items that are less les 50 per column
     if extended:
         padded_extended_pd = extend_split_taxonomy(split_taxa_pd)
         if padded_extended_pd.shape[0]:
             split_taxa_pd = pd.concat([split_taxa_pd, padded_extended_pd], axis=1)
-        # split_taxa_pd = split_taxa_pd.reset_index().rename(columns={'index': 'Taxon'})
+
     return split_taxa_pd
 
 
 def get_taxo_levels(taxonomies: dict) -> dict:
 
     split_taxa_pds = {}
+    # for each dataset and its taxonomic file
     for dat, tax_fp in taxonomies.items():
+        # default as not necessary to rewrite
         rewrite = False
+        # skip if the taxonomic file does not exist
         if not isfile(tax_fp[-1]):
             continue
+        # read taxonomy with features as index, format and collect features IDs list
         tax_pd = pd.read_csv(tax_fp[-1], header=0, sep='\t', dtype=str)
         tax_pd.rename(columns={tax_pd.columns[0]: 'Feature ID'}, inplace=True)
         tax_fpo = '%s_splitaxa.tsv' % splitext(tax_fp[-1])[0]
         features = tax_pd['Feature ID'].tolist()
+
+        # perform the taxonomic split on the Taxon list and give the Feature as index
         split_taxa_pd = get_split_taxonomy(tax_pd.Taxon.tolist())
+
         split_taxa_pd.index = features
+        # write and collect (table, filename) if get_split_taxonomy()
+        # found nothing to split (i.e. no taxonomic path)
         if split_taxa_pd.shape[1] == 1:
             split_taxa_pds[dat] = (split_taxa_pd, tax_fpo)
             split_taxa_pd.to_csv(tax_fpo, index=True, sep='\t')
             continue
 
         torm = []
+        ranks = {}
+        # not_collapsable = False
+        # parse each column/levels to determine which is
+        # (i) to be removed or (ii) labelled with consistent rank (e.g. "k__"))
         for col in split_taxa_pd.columns:
+            # if some levels of the split taxonomy are the feature IDs themselves:
+            # remove these levels (as it would be a copy of the non-collapsed table)
             col_features = split_taxa_pd[col].tolist()
             if features == col_features:
                 rewrite = True
                 torm.append(col)
-
+            else:
+                rank = [x.split('__')[0] for x in split_taxa_pd[col]
+                        if str(x) not in ['nan', 'None', 'Unassigned']]
+                if len(set(rank)) == 1:
+                    ranks[col] = rank[0]
+        # remove columns to be removed (safer _after_ parsing)
         if rewrite:
             split_taxa_pd = split_taxa_pd.drop(columns=torm)
+        # declare table not collapsable if not rank labeled with rank ID
+        # if not ranks:
+        #     not_collapsable = True
 
-        ranks = {}
-        not_collapsable = False
-        for col in split_taxa_pd.columns:
-            rank = [x.split('_')[0] for x in split_taxa_pd[col] if str(x) not in ['nan', 'None', 'Unassigned']]
-            # if len(rank) == split_taxa_pd.shape[0]:
-            if len(set(rank)) == 1:
-                ranks[col] = list(rank)[0]
-            else:
-                not_collapsable = True
+        # #
+        # ranks = {}
+        # not_collapsable = False
+        # for col in split_taxa_pd.columns:
+        #     rank = [x.split('_')[0] for x in split_taxa_pd[col] if str(x) not in ['nan', 'None', 'Unassigned']]
+        #     if len(set(rank)) == 1:
+        #         ranks[col] = list(rank)[0]
+        #     else:
+        #         not_collapsable = True
 
-        if not_collapsable:
-            split_taxa_pds[dat] = (split_taxa_pd, tax_fpo)
-            split_taxa_pd.to_csv(tax_fpo, index=True, sep='\t')
-            continue
+        # if not_collapsable:
+        #     split_taxa_pds[dat] = (split_taxa_pd, tax_fpo)
+        #     split_taxa_pd.to_csv(tax_fpo, index=True, sep='\t')
+        #     continue
 
         if len(ranks) == split_taxa_pd.shape[1]:
             split_taxa_pd = split_taxa_pd.rename(columns=ranks)
@@ -160,42 +186,34 @@ def get_taxo_levels(taxonomies: dict) -> dict:
             alpha = 'ABCDEFGHIJKLMNOPQRST'
             cols = [alpha[x] for x in range(split_taxa_pd.shape[1])]
             split_taxa_pd = pd.DataFrame(
-                [['%s__%s' % (cols[idx], str(x).replace(' ', '_')) for idx, x in enumerate(row)]
-                  for row in split_taxa_pd.values],
-                columns=cols
+                [pd.Series([
+                    '%s__%s' % (cols[idx], str(x).replace(' ', '_'))
+                    for idx, x in enumerate(row) if str(x) != 'nan'
+                ]) for row in split_taxa_pd.values]
             )
-        split_taxa_pd.index = features
+            split_taxa_pd.columns = cols
+            split_taxa_pd.index = features
         split_taxa_pd.to_csv(tax_fpo, index=True, sep='\t')
         split_taxa_pds[dat] = (split_taxa_pd, tax_fpo)
         if rewrite:
             split_taxa_pd = pd.DataFrame({
                 'Feature ID': features,
-                'Taxon_edit': [';'.join([x for x in row if str(x)]) for row in split_taxa_pd.values]
+                'Taxon_edit': [';'.join([x for x in row if str(x) != 'nan']) for row in split_taxa_pd.values]
             })
             split_taxa_fpo = '%s_taxSplit.tsv' % splitext(tax_fp[-1])[0]
             tax_extended_pd = tax_pd.merge(split_taxa_pd, on='Feature ID', how='left')
             tax_extended_pd.to_csv(split_taxa_fpo, index=False, sep='\t')
-
     return split_taxa_pds
 
 
-def get_split_levels(dat, collapse_taxo: dict, split_taxa_pds: dict):
+def get_split_levels(collapse_levels: dict, split_taxa_pd: pd.DataFrame):
     split_levels = {}
-    taxo = collapse_taxo[dat]
-    split_taxa_pd, split_taxa_fp = split_taxa_pds[dat]
-
-    print()
-    print(taxo)
-    print()
-    print(split_taxa_pd)
-    print(fds)
-
-    # taxo levels are the header of split_taxa_pd
-    for taxo_name, taxo_header in taxo.items():
-        if isinstance(taxo_header, int):
-            split_levels[str(taxo_name)] = taxo_header
+    for taxo_name, taxo_header_index in collapse_levels.items():
+        if isinstance(taxo_header_index, int):
+            split_taxa_index = taxo_header_index
         else:
-            split_levels[taxo_name] = split_taxa_pd.columns.tolist().index(taxo_header)+1
+            split_taxa_index = split_taxa_pd.columns.tolist().index(taxo_header_index) + 1
+        split_levels[str(taxo_name)] = split_taxa_index
     return split_levels
 
 
@@ -310,13 +328,13 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
     collapse_taxo.update(dict((datasets_filt[dat], x)
                               for dat, x in collapse_taxo.items()
                               if dat in datasets_filt))
-    stop_for_collapse = False
     main_written = 0
     collapsed = {}
     datasets_update = {}
     datasets_read_update = {}
     datasets_features_update = {}
     datasets_phylo_update = {}
+    stop_for_collapse = False
     job_folder = get_job_folder(i_datasets_folder, 'collapsed_taxo')
     job_folder2 = get_job_folder(i_datasets_folder, 'collapsed_taxo/chunks')
     run_pbs = '%s/3_run_collapsed_taxo_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
@@ -324,17 +342,24 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
         for dat, tab_meta_fps in datasets.items():
             if dat not in collapse_taxo:
                 continue
+            # get the taxonomic levels
+            collapse_levels = collapse_taxo[dat]
+            split_taxa_pd, split_taxa_fp = split_taxa_pds[dat]
+            split_levels = get_split_levels(collapse_levels, split_taxa_pd)
+            collapsed[dat] = split_levels
+
+            # files that will be collapsed using qiime2
+            tax_qza, tax_fp = taxonomies[dat][1:]
+
             written = 0
             out_sh = '%s/run_collapsed_taxo_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
-                split_levels = get_split_levels(dat, collapse_taxo, split_taxa_pds)
-                collapsed[dat] = split_levels
-                tax_qza, tax_fp = taxonomies[dat][1:]
                 for idx, tab_meta_fp in enumerate(tab_meta_fps):
                     tab_fp, meta_fp = tab_meta_fp
                     tab_qza = '%s.qza' % splitext(tab_fp)[0]
                     for tax, level in split_levels.items():
+
                         dat_tax = '%s_tx-%s' % (dat, tax)
                         dat_collapsed = '%s_tx-%s' % (splitext(tab_fp)[0].split('/tab_')[-1], tax)
                         datasets_collapsed.setdefault(dat, []).append(dat_collapsed)

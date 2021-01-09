@@ -113,14 +113,8 @@ def run_nestedness(i_datasets_folder: str, betas: dict, datasets_collapsed_map: 
                 out_sh = '%s/run_nestedness_%s_%s%s%s.sh' % (job_folder2, prjct_nm, dat, cur_raref, filt_raref)
             for _, groups_metas_qzas_dms_trees in metrics_groups_metas_qzas_dms_trees.items():
                 for group, metas_qzas_mat_qzas_trees in groups_metas_qzas_dms_trees.items():
-                    # print()
-                    # print()
-                    # print()
-                    # print("dat, cur_raref", dat, cur_raref)
-                    # print("_", _)
-                    # print("group", group)
+
                     meta, qza, mat_qza, tree = metas_qzas_mat_qzas_trees[0]
-                    # print("meta", meta)
                     meta_pd = read_meta_pd(meta).set_index('sample_name')
                     cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(subsets), 'nestedness')
                     for case_var, case_vals_list in cases_dict.items():
@@ -354,7 +348,8 @@ def nestedness_graphs(i_datasets_folder: str, nestedness_res: dict,
             cur_raref = datasets_rarefs[dat][idx]
 
             if split:
-                out_sh = '%s/run_nestedness_graphs_%s_%s%s%s.sh' % (job_folder2, prjct_nm, dat, cur_raref, filt_raref)
+                out_sh = '%s/run_nestedness_graphs_%s_%s%s%s.sh' % (
+                    job_folder2, prjct_nm, dat, cur_raref, filt_raref)
             out_py = out_sh.replace('.sh', '.py')
 
             cur_sh = '%s/run_nestedness_graphs_%s%s%s_tmp.sh' % (
