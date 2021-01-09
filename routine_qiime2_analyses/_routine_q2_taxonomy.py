@@ -183,6 +183,13 @@ def get_split_levels(dat, collapse_taxo: dict, split_taxa_pds: dict):
     split_levels = {}
     taxo = collapse_taxo[dat]
     split_taxa_pd, split_taxa_fp = split_taxa_pds[dat]
+
+    print()
+    print(taxo)
+    print()
+    print(split_taxa_pd)
+    print(fds)
+
     # taxo levels are the header of split_taxa_pd
     for taxo_name, taxo_header in taxo.items():
         if isinstance(taxo_header, int):
