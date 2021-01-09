@@ -38,7 +38,7 @@ from routine_qiime2_analyses._routine_q2_mmvec import (
 )
 
 
-def get_train_column(new_meta_pd, meta_vars, train, new_meta_ct):
+def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
     if train.isdigit() or train.replace('.', '').isdigit():
         train_column = 'TrainTest'
         if train.isdigit():
@@ -55,25 +55,40 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta_ct):
                 raise IOError('\t\t\t[SONGBIRD] Float passed as percent of samples for'
                               ' training not valid (must be in range 0-1)')
         new_meta_pd['concat_cols'] = new_meta_pd[meta_vars].apply(
-            func=lambda x: '__'.join([str(y) for y in x]), axis=1)
+            func=lambda x: '_'.join([str(y) for y in x]), axis=1)
+        rep_d = dict(('_'.join([str(i) for i in r]), list(r)) for r in new_meta_pd[meta_vars].values)
 
         vc = new_meta_pd['concat_cols'].value_counts()
-        # if len(meta_vars) == 1 and str(new_meta_pd['concat_cols'].dtype) == 'object' and min(vc) > 1:
-        X = np.array(new_meta_pd.values)
-        y = new_meta_pd.index.tolist()
-        _, __, test_samples, train_samples = train_test_split(
-            X, y, test_size=train_perc,
-            stratify=new_meta_pd['concat_cols'].tolist()
-        )
-        # else:
-        #     train_samples = random.sample(
-        #         new_meta_pd.index.tolist(),
-        #         k=int(train_perc * new_meta_pd.shape[0])
-        #     )
+        if vc.size < new_meta_pd.shape[0] * 0.5:
+            if 1 in vc.values:
+                vc_in = vc[vc > 1].index.tolist()
+                new_meta_pd_in = new_meta_pd.loc[new_meta_pd['concat_cols'].isin(vc_in)]
+            else:
+                new_meta_pd_in = new_meta_pd.copy()
+
+            X = np.array(new_meta_pd_in.values)
+            y = new_meta_pd_in.index.tolist()
+            _, __, ___, train_samples = train_test_split(
+                X, y, test_size=train_perc,
+                stratify=new_meta_pd_in['concat_cols'].tolist()
+            )
+        else:
+            train_samples = random.sample(
+                new_meta_pd.index.tolist(),
+                k=int(train_perc * new_meta_pd.shape[0])
+            )
         new_meta_pd[train_column] = ['Train' if x in train_samples else
                                      'Test' for x in new_meta_pd.index]
-        ct = pd.crosstab(new_meta_pd[train_column], new_meta_pd['concat_cols']).T
+        ct = pd.crosstab(new_meta_pd[train_column], new_meta_pd['concat_cols']).T.reset_index()
+        ct = pd.concat([
+            pd.DataFrame(
+                [rep_d[x] for x in ct['concat_cols']],
+                columns=meta_vars, index=ct.index
+            ),
+            ct[['Train', 'Test']]
+        ], axis=1)
         ct.to_csv(new_meta_ct, sep='\t')
+        new_meta_pd = new_meta_pd.drop(columns='concat_cols')
     else:
         if train in new_meta_pd.columns:
             if {'Train', 'Test'}.issubset(new_meta_pd[train]):
@@ -86,6 +101,7 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta_ct):
                               'not have "Train" and "Test" factors')
         else:
             raise IOError('\t\t\t[SONGBIRD] Columns passed for training not exists')
+    new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
     return new_meta_pd, train_column
 
 
@@ -186,11 +202,13 @@ def get_metadata_train_test(meta_pd, meta_vars, new_meta, train, drop, new_meta_
         new_meta_pd = new_meta_pd.loc[~to_remove]
 
     new_meta_pd_ = new_meta_pd.copy()
-    new_meta_pd_['tmptmptmp'] = [''.join(map(str, x)) for x in new_meta_pd_.values if str(x) != 'nan']
-    if 1 in new_meta_pd_.tmptmptmp.value_counts():
-        return None
-    new_meta_pd, train_column = get_train_column(new_meta_pd, meta_vars, train, new_meta_ct)
-    new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
+    # new_meta_pd_['tmptmptmp'] = [''.join(map(str, x)) for x in new_meta_pd_.values if str(x) != 'nan']
+    # print(meta_vars)
+    # print(new_meta_pd_.tmptmptmp.value_counts())
+    # if 1 in new_meta_pd_.tmptmptmp.value_counts():
+    #
+    #     return None
+    new_meta_pd, train_column = get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct)
     return train_column
 
 

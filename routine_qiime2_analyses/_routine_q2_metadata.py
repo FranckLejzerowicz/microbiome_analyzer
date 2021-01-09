@@ -123,14 +123,6 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                 common_levels = set(levels_set) & set(cur_levels)
                 only_meta = set(levels_set) ^ common_levels
                 only_model = set(cur_levels) ^ common_levels
-                # print()
-                # print(cur_levels)
-                # print()
-                # print(common_levels)
-                # print()
-                # print(only_meta)
-                # print()
-                # print(only_model)
                 if len(only_model):
                     print('\t\tSongbird formula "Diff" factors(s) missing in metadata "%s": %s\n\t\t%s' % (
                         formula_split_c, list(only_model), meta))
@@ -141,7 +133,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                           '  -> skipping samples with %s\n\t\t%s' % (formula_split_c, list(only_meta), meta))
             elif 'Treatment(' in formula:
                 levels = {formula_split_c.lower(): formula.split("Treatment('")[-1].split("')")[0]}
-                if levels not in levels_set:
+                if levels[formula_split_c.lower()] not in levels_set:
                     print('\t\tSongbird formula "Treatment" factors(s) missing in metadata "%s":\n\t\t  %s\n\t\t%s' % (
                         formula_split_c, levels, meta))
                     continue
