@@ -86,7 +86,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
         drop = {}
         formula = formula_.strip('"').strip("'")
         if formula.startswith('C('):
-            formula_split = formula.split('C(')[-1].split(')')
+            formula_split = formula.split('C(')[-1].rsplit(')', 1)
             formula_split_c = formula_split[0].split(',')[0].strip().strip()
             formula = 'C(%s)' % formula_split[0].replace(formula_split_c, formula_split_c.lower())
             formula += formula_split[1].lower()
@@ -103,6 +103,7 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
             vars.update(set([x.lower() for x in re.split('[+/:*]', formula_split[1]) if x]))
         else:
             formula_split = re.split('[+/:*]', formula)
+            formula = formula.lower()
             vars.update(set([x.lower() for x in formula_split]))
             levels = {}
 
