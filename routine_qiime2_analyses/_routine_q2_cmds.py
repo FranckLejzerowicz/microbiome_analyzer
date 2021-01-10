@@ -1126,9 +1126,10 @@ def write_nestedness_nodfs(new_biom_meta: str, odir: str,
     """
     https://github.com/jladau/Nestedness
     """
+    cmd = ''
     to_write = []
     if not isdir(odir):
-        cmd = 'mkdir -p %s\n' % odir
+        cmd += 'mkdir -p %s\n' % odir
     for ndx, nodf in enumerate(nodfs_valid):
         nodf_comparisons = '%s/%s_comparisons.csv' % (odir, nodf)
         if not isfile(nodf_comparisons):
