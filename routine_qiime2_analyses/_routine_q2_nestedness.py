@@ -273,11 +273,13 @@ def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
 
         new_meta_pd = new_meta_pd[sorted(cols)].reset_index()
         new_meta_pd.columns = (['#SampleID'] + sorted(cols))
+        new_meta_pd = new_meta_pd.loc[~new_meta_pd[nodfs_valid].isna().any(axis=1)]
         new_meta_pd.to_csv(new_meta, index=False, sep='\t')
         new_qza = '%s.qza' % cur_rad
         new_biom = '%s.biom' % cur_rad
         new_tsv = '%s.tsv' % cur_rad
         new_biom_meta = '%s_w-md.biom' % cur_rad
+
         if not isfile(new_biom):
             cmd = filter_feature_table(qza, new_qza, new_meta)
             cmd += run_export(new_qza, new_tsv, 'FeatureTable')
