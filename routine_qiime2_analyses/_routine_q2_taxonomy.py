@@ -209,6 +209,7 @@ def get_taxo_levels(taxonomies: dict) -> dict:
 
 def get_split_levels(collapse_levels: dict, split_taxa_pd: pd.DataFrame):
     split_levels = {}
+    print(split_taxa_pd)
     for taxo_name, taxo_header_index in collapse_levels.items():
         if isinstance(taxo_header_index, int):
             split_taxa_index = taxo_header_index
@@ -346,6 +347,7 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
             # get the taxonomic levels
             collapse_levels = collapse_taxo[dat]
             split_taxa_pd, split_taxa_fp = split_taxa_pds[dat]
+            print('collapse', dat)
             split_levels = get_split_levels(collapse_levels, split_taxa_pd)
             collapsed[dat] = split_levels
 
