@@ -581,9 +581,9 @@ def get_feature_sample_col(meta_tab: str) -> str:
             n += 1
             break
     if n:
-        return line.split()[0]
+        return line.split('\t')[0]
     else:
-        print('Empty now: %s (possily being written elsewhere..)' % meta_tab)
+        print('Empty now: %s (possibly being written elsewhere..)' % meta_tab)
         sys.exit(0)
 
 
