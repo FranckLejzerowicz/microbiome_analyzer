@@ -733,7 +733,7 @@ def edit_taxonomies(i_datasets_folder: str, taxonomies: dict, force: bool,
             taxo = out_pd['Taxon'].tolist()
             taxo_edit = [x.replace(',', '_') for x in taxo]
             written = 0
-            if taxo == taxo_edit:
+            if taxo != taxo_edit:
                 out_pd['Taxon'] = taxo_edit
                 out_pd.to_csv(tsv, index=False, sep='\t')
                 cmd = run_import(tsv, qza, 'FeatureData[Taxonomy]')
