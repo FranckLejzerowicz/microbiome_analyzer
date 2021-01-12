@@ -604,16 +604,14 @@ def get_raref_tab_meta_pds(meta: str, tsv: str) -> (pd.DataFrame, pd.DataFrame):
     return tsv_pd, meta_raref_pd
 
 
-def read_meta_pd(meta_tab: str, rep_col: str ='sample_name') -> pd.DataFrame:
+def read_meta_pd(meta_tab: str, rep_col ='sample_name') -> pd.DataFrame:
     """
     Read metadata wit first column as index.
     :param meta: file path to the metadata file.
     :return: metadata table.
     """
     meta_tab_sam_col = get_feature_sample_col(meta_tab)
-    print(meta_tab_sam_col)
     meta_tab_pd = pd.read_csv(meta_tab, header=0, sep='\t', dtype={meta_tab_sam_col: str}, low_memory=False)
-    print(meta_tab_pd)
     meta_tab_pd.rename(columns={meta_tab_sam_col: rep_col}, inplace=True)
     return meta_tab_pd
 
