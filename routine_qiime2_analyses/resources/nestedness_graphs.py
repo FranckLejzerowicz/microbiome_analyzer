@@ -91,6 +91,16 @@ for (group, case), res in nestedness_raref.items():
     )))
 
     if tax_cols:
+
+        print()
+        print(tax_cols)
+        print()
+        print(tax_pd)
+        print(tax_pd.index)
+        print()
+        print(matrix)
+        print(matrix.index)
+
         cur_tax_pd = tax_pd.loc[matrix.index.tolist(), :].copy()
         cur_tax_leg_hex = cur_tax_pd.apply(func=lambda x: dict(
             zip(x.unique(), sns.color_palette(palette='Paired', n_colors=x.unique().size).as_hex())
