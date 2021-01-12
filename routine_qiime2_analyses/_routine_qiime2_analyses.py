@@ -470,8 +470,7 @@ def routine_qiime2_analyses(
         explore_filtering(i_datasets_folder, datasets, datasets_read,
                           datasets_filt, datasets_filt_map,
                           filts, p_filt3d_config)
-
-    elif p_diff_models and p_mmvec_pairs and 'mmbird' not in p_skip:
+    elif p_mmvec_pairs and 'mmbird' not in p_skip:
         print('(run_mmbird)')
         run_mmbird(
             i_datasets_folder, songbird_outputs, p_mmvec_highlights,
