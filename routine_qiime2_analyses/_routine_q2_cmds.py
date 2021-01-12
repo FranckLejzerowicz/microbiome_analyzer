@@ -1047,6 +1047,16 @@ def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str,
     :param new_meta_pd: metadata table.
     :param new_meta: metadata table file name.
     """
+
+    new_meta_pd = new_meta_pd.replace({testing_group: dict(
+        (x, x.replace('(', '').replace(')', '').replace('/', ''))
+        for x in new_meta_pd[testing_group].astype(str).unique()
+        if str(x) != 'nan' and x != x.replace('(', '').replace(')', '').replace('/', '')
+    )})
+    new_meta_cv = new_meta_pd[testing_group].value_counts()
+    new_meta_cv = new_meta_cv[new_meta_cv > 10]
+    new_meta_pd = new_meta_pd.loc[new_meta_pd[testing_group].isin(new_meta_cv.index)]
+
     col_index = new_meta_pd.index.name
     q2types = pd.DataFrame(
         [(['#q2:types'] + ['categorical'] * new_meta_pd.shape[1])],
@@ -1055,14 +1065,7 @@ def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str,
     q2types.rename(columns={q2types.columns.tolist()[0]: col_index}, inplace=True)
     q2types.set_index(col_index, inplace=True)
     new_meta_pd = pd.concat([q2types, new_meta_pd]).reset_index()
-    new_meta_pd = new_meta_pd.replace({testing_group: dict(
-        (x, x.replace('(', '').replace(')', '').replace('/', ''))
-        for x in new_meta_pd[testing_group].astype(str).unique()
-        if str(x) != 'nan' and x != x.replace('(', '').replace(')', '').replace('/', '')
-    )})
-    new_meta_cv = new_meta_pd[testing_group][1:].value_counts()
-    new_meta_cv = new_meta_cv[new_meta_cv > 10]
-    new_meta_pd = new_meta_pd.loc[new_meta_pd[testing_group].isin(new_meta_cv.index)]
+
     if new_meta_cv.size == 1:
         return 1
     new_meta_pd[[col_index, testing_group]].to_csv(new_meta, index=False, sep='\t')
