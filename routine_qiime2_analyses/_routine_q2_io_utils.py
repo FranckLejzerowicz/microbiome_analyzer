@@ -567,7 +567,8 @@ def get_formulas_dict(p_formulas: str) -> dict:
     return formulas
 
 
-def get_sample_col(meta: str) -> str:
+def get_feature_sample_col(meta_tab: str) -> str:
+
     """
     Get the first column of the metadata file.
 
@@ -575,14 +576,14 @@ def get_sample_col(meta: str) -> str:
     :return: column name
     """
     n = 0
-    with open(meta) as f:
+    with open(meta_tab) as f:
         for line in f:
             n += 1
             break
     if n:
         return line.split()[0]
     else:
-        print('Empty now: %s (possily being written elsewhere..)' % meta)
+        print('Empty now: %s (possily being written elsewhere..)' % meta_tab)
         sys.exit(0)
 
 
@@ -603,17 +604,16 @@ def get_raref_tab_meta_pds(meta: str, tsv: str) -> (pd.DataFrame, pd.DataFrame):
     return tsv_pd, meta_raref_pd
 
 
-def read_meta_pd(meta: str) -> pd.DataFrame:
+def read_meta_pd(meta_tab: str, rep_col: str ='sample_name') -> pd.DataFrame:
     """
     Read metadata wit first column as index.
     :param meta: file path to the metadata file.
     :return: metadata table.
     """
-    meta_sam_col = get_sample_col(meta)
-    meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str}, low_memory=False)
-    meta_pd.rename(columns={meta_sam_col: 'sample_name'}, inplace=True)
-    # meta_pd.set_index('sample_name', inplace=True)
-    return meta_pd
+    meta_tab_sam_col = get_feature_sample_col(meta_tab)
+    meta_tab_pd = pd.read_csv(meta_tab, header=0, sep='\t', dtype={meta_tab_sam_col: str}, low_memory=False)
+    meta_tab_pd.rename(columns={meta_tab_sam_col: rep_col}, inplace=True)
+    return meta_tab_pd
 
 
 def simple_chunks(run_pbs, job_folder2, to_chunk, analysis: str,
@@ -856,8 +856,11 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
         if path.endswith('.biom'):
             path_pd = load_table(path).to_dataframe()
         else:
-            path_pd = pd.read_csv(path, header=0, index_col=0, sep='\t')
-        meta_sam_col = get_sample_col(meta)
+            path_pd = read_meta_pd(path, '#OTU ID')
+            #
+            # tab_feat_col = get_feature_sample_col(path)
+            # path_pd = pd.read_csv(path, header=0, index_col=0, sep='\t')
+        meta_sam_col = get_feature_sample_col(meta)
         meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str}, low_memory=False)
         meta_pd.rename(columns={meta_sam_col: 'sample_name'}, inplace=True)
         datasets[dat] = [[path, meta]]
