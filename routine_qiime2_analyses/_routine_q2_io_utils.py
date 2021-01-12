@@ -865,6 +865,7 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
         datasets_features[dat] = {}
         datasets_phylo[dat] = ('', 0)
         datasets_rarefs[dat] = ['']
+        print(dat)
         gID_or_DNA(dat, path, path_pd, datasets_read, datasets_features, datasets_phylo)
     return datasets, datasets_read, datasets_features, datasets_phylo, datasets_rarefs
 
