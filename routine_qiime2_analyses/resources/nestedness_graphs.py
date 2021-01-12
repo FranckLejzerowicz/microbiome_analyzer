@@ -71,7 +71,7 @@ for (group, case), res in nestedness_raref.items():
 
     fields = [x.strip() for x in open(fields_fp).readlines()]
     new_meta = 'metadata'
-    cur_meta_pd = meta_pd.loc[matrix.columns.tolist(), fields].copy()
+    cur_meta_pd = meta_pd.loc[matrix.columns.astype(str).tolist(), fields].copy()
 
     if new_meta in cur_meta_pd.columns:
         new_meta = 'passed_metadata'
@@ -101,7 +101,7 @@ for (group, case), res in nestedness_raref.items():
         # print(matrix)
         # print(matrix.index)
 
-        cur_tax_pd = tax_pd.loc[matrix.index.tolist(), :].copy()
+        cur_tax_pd = tax_pd.loc[matrix.index.astype(str).tolist(), :].copy()
         cur_tax_leg_hex = cur_tax_pd.apply(func=lambda x: dict(
             zip(x.unique(), sns.color_palette(palette='Paired', n_colors=x.unique().size).as_hex())
         )).to_dict()
