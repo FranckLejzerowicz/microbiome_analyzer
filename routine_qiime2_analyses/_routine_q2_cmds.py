@@ -1057,6 +1057,8 @@ def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str,
     new_meta_cv = new_meta_cv[new_meta_cv > 10]
     if new_meta_cv.size == 1:
         return 1
+    if sum(new_meta_cv) < 30:
+        return 1
 
     new_meta_pd = new_meta_pd.loc[new_meta_pd[testing_group].isin(new_meta_cv.index)]
     col_index = new_meta_pd.index.name
