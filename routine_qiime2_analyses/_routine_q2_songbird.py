@@ -68,7 +68,7 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
 
             X = np.array(new_meta_pd_in.values)
             y = new_meta_pd_in.index.tolist()
-            if train_perc < len(vc_in):
+            if train_perc < new_meta_pd_in['concat_cols'].unique().size:
                 return None
 
             _, __, ___, train_samples = train_test_split(
