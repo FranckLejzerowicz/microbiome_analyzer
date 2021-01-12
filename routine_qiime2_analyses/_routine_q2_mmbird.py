@@ -99,7 +99,7 @@ def get_mmvec_res(mmvec_songbird_pd):
         meta_fp = row['meta_common_fp']
         print()
         print('row')
-        print(row)
+        print(row.to_dict())
         # for each mmvec-parameters result
         for mmvec_out_col in mmvec_out_cols:
 
