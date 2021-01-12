@@ -80,6 +80,8 @@ def merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd):
 
 def get_mmvec_res(mmvec_songbird_pd):
     mmvec_out_cols = [x for x in mmvec_songbird_pd.columns if x.startswith('mmvec_out__')]
+    print("mmvec_out_cols")
+    print(mmvec_out_cols)
     mmvec_res = {}
     # for ech row of the main table that also contain the mmvec output folders
     for r, row in mmvec_songbird_pd.iterrows():
@@ -95,13 +97,14 @@ def get_mmvec_res(mmvec_songbird_pd):
         omic2_common_fp = row['omic2_common_fp']
         n_common = row['n_common']
         meta_fp = row['meta_common_fp']
-
+        print()
+        print('row')
+        print(row)
         # for each mmvec-parameters result
         for mmvec_out_col in mmvec_out_cols:
 
             # get the current parameters output result folder
             mmvec_out = row[mmvec_out_col]
-
             if str(mmvec_out) == 'nan':
                 continue
 
