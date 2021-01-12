@@ -66,8 +66,13 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
             else:
                 new_meta_pd_in = new_meta_pd.copy()
 
+            print()
+            print(new_meta_pd_in)
+            print(train_perc)
             X = np.array(new_meta_pd_in.values)
             y = new_meta_pd_in.index.tolist()
+            print(X)
+            print(y)
             _, __, ___, train_samples = train_test_split(
                 X, y, test_size=train_perc,
                 stratify=new_meta_pd_in['concat_cols'].tolist()
