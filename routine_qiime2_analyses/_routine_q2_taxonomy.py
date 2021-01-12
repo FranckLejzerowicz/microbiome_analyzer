@@ -727,11 +727,13 @@ def edit_taxonomies(i_datasets_folder: str, taxonomies: dict, force: bool,
     main_written = 0
     to_chunk = []
     run_pbs = '%s/1_run_taxonomy_edit_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
+    print(taxonomies)
     with open(run_pbs, 'w') as o:
         for dat, (_, qza, tsv) in taxonomies.items():
             out_pd = pd.read_csv(tsv, dtype=str, sep='\t')
             taxo = out_pd['Taxon'].tolist()
             taxo_edit = [x.replace(',', '_') for x in taxo]
+            print(taxo != taxo_edit)
             written = 0
             if taxo != taxo_edit:
                 out_pd['Taxon'] = taxo_edit

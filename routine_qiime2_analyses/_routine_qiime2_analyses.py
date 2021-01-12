@@ -217,6 +217,7 @@ def routine_qiime2_analyses(
                         force, prjct_nm, qiime_env, chmod, noloc,
                         run_params['barplot'], filt_raref, jobs, chunkit)
 
+        print('(run_edit_taxonomies)')
         edit_taxonomies(i_datasets_folder, taxonomies, force,
                         prjct_nm, qiime_env, chmod, noloc,
                         run_params['taxonomy'], filt_raref, jobs, chunkit)
