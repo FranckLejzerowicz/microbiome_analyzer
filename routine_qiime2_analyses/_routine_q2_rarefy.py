@@ -202,15 +202,12 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
     for dat, tsv_meta_pds in datasets_read.items():
         depths_keeps[dat] = {}
         for (tsv_pd, meta_pd) in tsv_meta_pds:
-            print(tsv_pd)
             tsv_sam_sum = tsv_pd.sum()
             datasets_raref_evals[dat] = set([int(x) for x in tsv_sam_sum.describe(
                 percentiles=[x / 100 for x in range(10, 101, 10)])[4:-1]])
             if datasets_raref_depths_yml:
                 if dat in datasets_raref_depths_yml:
                     depths = datasets_raref_depths_yml[dat]
-                    print(tsv_sam_sum)
-                    print(depths)
                     for depth in depths:
                         if depth == 'min':
                             depths_keeps[dat][depth] = tsv_sam_sum.index.tolist()

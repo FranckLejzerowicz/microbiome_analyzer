@@ -856,9 +856,7 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
         if path.endswith('.biom'):
             path_pd = load_table(path).to_dataframe()
         else:
-            path_pd = read_meta_pd(path, '#OTU ID')
-            print('----')
-            print(path_pd)
+            path_pd = read_meta_pd(path, '#OTU ID').set_index('#OTU ID')
             # tab_feat_col = get_feature_sample_col(path)
             # path_pd = pd.read_csv(path, header=0, index_col=0, sep='\t')
         meta_sam_col = get_feature_sample_col(meta)
