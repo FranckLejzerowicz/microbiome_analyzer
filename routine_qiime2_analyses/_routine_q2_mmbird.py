@@ -157,7 +157,32 @@ def get_order_omics(
         filt1, filt2 = filt2, filt1
     return omic1, omic2, filt1, filt2, omic_feature, omic_sample, omic_microbe, omic_metabolite
 
-import subprocess
+
+def get_paired_heatmaps_command(
+        ranks_fp: str, mc_qza: str, mb_qza: str, taxonomy_tsv: str,
+        features_names: list, topn: int, paired_heatmap_qzv: str
+):
+    cmd = ''
+    if not isfile(paired_heatmap_qzv):
+        cmd = '\nqiime mmvec paired-heatmap'
+        cmd += ' --i-ranks %s.qza' % splitext(ranks_fp)[0]
+        cmd += ' --i-microbes-table ' % mc_qza
+        cmd += ' --i-metabolites-table %s' % mb_qza
+        cmd += ' --m-microbe-metadata-file %s' % taxonomy_tsv
+        cmd += ' --m-microbe-metadata-column Taxon'
+        if features_names:
+            cmd += ' --p-top-k-microbes 0'
+            for features_name in features_names:
+                cmd += ' --p-features %s' % features_name
+        else:
+            cmd += ' --p-top-k-microbes %s' % topn
+        cmd += ' --p-normalize rel_row'
+        cmd += ' --p-top-k-metabolites 100'
+        cmd += ' --p-level 6'
+        cmd += ' --o-visualization %s' % paired_heatmap_qzv
+
+    return cmd
+
 
 def get_xmmvec_commands(
         ordi_edit_fp, omic1, omic2,
@@ -318,6 +343,12 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         # print(mmvec)
         ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp = values
 
+        print(ranks_fp)
+        print(ordi_fp)
+        print(meta_fp)
+        print(omic1_common_fp)
+        print(omic2_common_fp)
+
         order_omics = get_order_omics(omic1, omic2, filt1, filt2, omics_pairs)
         omic1 = order_omics[0]
         omic2 = order_omics[1]
@@ -377,9 +408,21 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
             ordi_edit_fp, omic1, omic2,
             meta1, meta2, xmmvecs, pair
         )
+
+        cmd += get_paired_heatmaps_command(
+            ranks_fp: str, mc_qza: str, mb_qza: str, taxonomy_tsv: str,
+            features_names: list, topn: int, paired_heatmap_qzv: str
+        )
+
         pair_cmds.setdefault(pair, []).append(cmd)
 
+
+
     return pair_cmds, pc_sb_correlations
+
+
+
+
 
 
 def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
