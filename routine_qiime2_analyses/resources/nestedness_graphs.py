@@ -40,7 +40,7 @@ if colors_feature and split_taxa_fp:
         tax_pd = tax_pd.iloc[
                  :, :collapsed[stats_tax_dat][level]
                  ].drop_duplicates()
-        tax_pd['OBSERVATION_ID'] = tax_pd.apply(func=lambda x: ';'.join(x), axis=1)
+        tax_pd['OBSERVATION_ID'] = tax_pd.apply(func=lambda x: ';'.join([y for y in x if str(x) != 'nan']), axis=1)
     else:
         tax_pd = tax_pd.reset_index()
         tax_pd = tax_pd.rename(columns={tax_pd.columns[0]: 'OBSERVATION_ID'})
