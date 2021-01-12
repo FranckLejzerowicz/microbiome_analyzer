@@ -219,7 +219,7 @@ def routine_qiime2_analyses(
 
         edit_taxonomies(i_datasets_folder, taxonomies, force,
                         prjct_nm, qiime_env, chmod, noloc,
-                        run_params, filt_raref, jobs, chunkit)
+                        run_params['taxonomy'], filt_raref, jobs, chunkit)
 
     # TREES ------------------------------------------------------------
     trees = {}
