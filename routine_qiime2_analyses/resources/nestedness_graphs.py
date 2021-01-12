@@ -40,7 +40,7 @@ if colors_feature and split_taxa_fp:
         tax_pd = tax_pd.iloc[
                  :, :collapsed[stats_tax_dat][level]
                  ].drop_duplicates()
-        tax_pd['OBSERVATION_ID'] = tax_pd.apply(func=lambda x: ';'.join([y for y in x if str(x) != 'nan']), axis=1)
+        tax_pd['OBSERVATION_ID'] = tax_pd.apply(func=lambda x: ';'.join([y for y in x if str(y) != 'nan']), axis=1)
     else:
         tax_pd = tax_pd.reset_index()
         tax_pd = tax_pd.rename(columns={tax_pd.columns[0]: 'OBSERVATION_ID'})
@@ -92,14 +92,14 @@ for (group, case), res in nestedness_raref.items():
 
     if tax_cols:
 
-        print()
-        print(tax_cols)
-        print()
-        print(tax_pd)
-        print(tax_pd.index)
-        print()
-        print(matrix)
-        print(matrix.index)
+        # print()
+        # print(tax_cols)
+        # print()
+        # print(tax_pd)
+        # print(tax_pd.index)
+        # print()
+        # print(matrix)
+        # print(matrix.index)
 
         cur_tax_pd = tax_pd.loc[matrix.index.tolist(), :].copy()
         cur_tax_leg_hex = cur_tax_pd.apply(func=lambda x: dict(

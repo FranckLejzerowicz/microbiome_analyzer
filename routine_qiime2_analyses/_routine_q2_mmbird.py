@@ -350,6 +350,8 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         print(omic2_common_fp)
 
         order_omics = get_order_omics(omic1, omic2, filt1, filt2, omics_pairs)
+        print('order_omics')
+        print(order_omics)
         omic1 = order_omics[0]
         omic2 = order_omics[1]
         filt1 = order_omics[2]
@@ -409,9 +411,16 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
             meta1, meta2, xmmvecs, pair
         )
 
+        topn = 5
+        taxonomy_tsv = ''
+        features_names = []
+        if features_names:
+            paired_heatmap_qzv = '%s_paired_heatmaps_custom.qzv' % splitext(ranks_fp)[0]
+        else:
+            paired_heatmap_qzv = '%s_paired_heatmaps_top%s.qzv' % (splitext(ranks_fp)[0], topn)
         cmd += get_paired_heatmaps_command(
-            ranks_fp: str, mc_qza: str, mb_qza: str, taxonomy_tsv: str,
-            features_names: list, topn: int, paired_heatmap_qzv: str
+            ranks_fp, omic1_common_fp, omic2_common_fp, taxonomy_tsv,
+            features_names, topn, paired_heatmap_qzv
         )
 
         pair_cmds.setdefault(pair, []).append(cmd)
