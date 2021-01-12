@@ -612,7 +612,9 @@ def read_meta_pd(meta_tab: str, rep_col ='sample_name') -> pd.DataFrame:
     """
     meta_tab_sam_col = get_feature_sample_col(meta_tab)
     meta_tab_pd = pd.read_csv(meta_tab, header=0, sep='\t', dtype={meta_tab_sam_col: str}, low_memory=False)
+    print(meta_tab_pd)
     meta_tab_pd.rename(columns={meta_tab_sam_col: rep_col}, inplace=True)
+    print(meta_tab_pd)
     return meta_tab_pd
 
 
