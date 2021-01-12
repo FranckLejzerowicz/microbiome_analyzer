@@ -66,13 +66,11 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
             else:
                 new_meta_pd_in = new_meta_pd.copy()
 
-            print()
-            print(new_meta_pd_in)
-            print(train_perc)
             X = np.array(new_meta_pd_in.values)
             y = new_meta_pd_in.index.tolist()
-            print(X)
-            print(y)
+            if train_perc < len(vc_in):
+                return None
+
             _, __, ___, train_samples = train_test_split(
                 X, y, test_size=train_perc,
                 stratify=new_meta_pd_in['concat_cols'].tolist()
@@ -107,7 +105,7 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
         else:
             raise IOError('\t\t\t[SONGBIRD] Columns passed for training not exists')
     new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-    return new_meta_pd, train_column
+    return train_column
 
 
 def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
@@ -213,7 +211,7 @@ def get_metadata_train_test(meta_pd, meta_vars, new_meta, train, drop, new_meta_
     # if 1 in new_meta_pd_.tmptmptmp.value_counts():
     #
     #     return None
-    new_meta_pd, train_column = get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct)
+    train_column = get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct)
     return train_column
 
 
