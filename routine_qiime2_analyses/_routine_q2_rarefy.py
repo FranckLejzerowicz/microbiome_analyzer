@@ -208,7 +208,6 @@ def check_rarefy_need(i_datasets_folder: str, datasets_read: dict,
             if datasets_raref_depths_yml:
                 if dat in datasets_raref_depths_yml:
                     depths = datasets_raref_depths_yml[dat]
-                    print(dat, depths, min(tsv_sam_sum))
                     for depth in depths:
                         if depth == 'min':
                             depths_keeps[dat][depth] = tsv_sam_sum.index.tolist()
