@@ -715,3 +715,50 @@ def create_songbird_feature_metadata(i_datasets_folder: str, taxonomies: dict, q
                 columns={dat_sbs_pd.reset_index().columns.tolist()[0]: 'Feature ID'}
             ).to_csv(fpo_tsv, index=True, sep='\t')
             run_import(fpo_tsv, fpo_qza, 'FeatureData[Differential]')
+
+
+def edit_taxonomies(i_datasets_folder: str, taxonomies: dict, force: bool,
+                    prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
+                    run_params: dict, filt_raref: str, jobs: bool, chunkit: int):
+
+    job_folder = get_job_folder(i_datasets_folder, 'taxonomy')
+    job_folder2 = get_job_folder(i_datasets_folder, 'taxonomy/chunks')
+
+    main_written = 0
+    to_chunk = []
+    run_pbs = '%s/1_run_taxonomy_edit_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
+    with open(run_pbs, 'w') as o:
+        for dat, (_, qza, tsv) in taxonomies.items():
+            out_pd = pd.read_csv(tsv, dtype=str, sep='\t')
+            taxo = out_pd['Taxon'].tolist()
+            taxo_edit = [x.replace(',', '_') for x in taxo]
+            written = 0
+            if taxo == taxo_edit:
+                out_pd['Taxon'] = taxo_edit
+                out_pd.to_csv(tsv, index=False, sep='\t')
+                cmd = run_import(tsv, qza, 'FeatureData[Taxonomy]')
+
+                out_sh = '%s/run_taxonomy_edit_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
+                with open(out_sh, 'w') as cur_sh:
+                    cur_sh.write('echo "%s"\n' % cmd)
+                    cur_sh.write('%s\n\n' % cmd)
+                    main_written += 1
+                    written += 1
+                if written:
+                    to_chunk.append(out_sh)
+                if not chunkit:
+                    run_xpbs(out_sh, out_pbs, '%s.tx.dt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                             run_params["mem_num"], run_params["mem_dim"],
+                             chmod, written, 'single', o, noloc, jobs)
+
+    if to_chunk and chunkit:
+        simple_chunks(run_pbs, job_folder2, to_chunk, 'taxonomy_edit',
+                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                      run_params["mem_num"], run_params["mem_dim"],
+                      qiime_env, chmod, noloc, jobs, chunkit, None)
+
+    if main_written:
+        print_message('# Edit features taxonomy to not contain "," characters', 'sh', run_pbs, jobs)
+

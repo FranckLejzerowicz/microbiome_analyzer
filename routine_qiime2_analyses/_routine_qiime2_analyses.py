@@ -20,7 +20,7 @@ from routine_qiime2_analyses._routine_q2_rarefy import run_rarefy
 from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp, get_precomputed_trees
 from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
 from routine_qiime2_analyses._routine_q2_taxonomy import (run_taxonomy, run_barplot, run_collapse,
-                                                          make_pies, get_taxo_levels,
+                                                          make_pies, get_taxo_levels, edit_taxonomies,
                                                           get_precomputed_taxonomies,
                                                           create_songbird_feature_metadata)
 from routine_qiime2_analyses._routine_q2_doc import run_doc
@@ -216,6 +216,8 @@ def routine_qiime2_analyses(
             run_barplot(i_datasets_folder, datasets, taxonomies,
                         force, prjct_nm, qiime_env, chmod, noloc,
                         run_params['barplot'], filt_raref, jobs, chunkit)
+
+        edit_taxonomies(taxonomies)
 
     # TREES ------------------------------------------------------------
     trees = {}
