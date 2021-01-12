@@ -1254,7 +1254,8 @@ def write_diversity_beta_group_significance(new_meta: str, mat_qza: str, new_mat
     :param new_qzv: VISUALIZATION.
     :param cur_sh: writing file handle.
     """
-    if not isfile(new_mat_qza):
+    # if not isfile(new_mat_qza):
+    if 1:
         cmd = 'qiime diversity filter-distance-matrix \\\n'
         cmd += '--m-metadata-file %s \\\n' % new_meta
         cmd += '--i-distance-matrix %s \\\n' % mat_qza
