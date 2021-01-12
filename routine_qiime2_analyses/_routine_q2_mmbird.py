@@ -661,9 +661,9 @@ def run_mmbird(i_datasets_folder: str, songbird_outputs: list, p_mmvec_highlight
     if not mmvec_outputs:
         print('No mmvec output detected...')
         sys.exit(0)
-    if not songbird_outputs:
-        print('No songbird output detected...')
-        sys.exit(0)
+    # if not songbird_outputs:
+    #     print('No songbird output detected...')
+    #     sys.exit(0)
 
     print('\t-> [mmbird] Get mmvec output...', end=' ')
     mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
