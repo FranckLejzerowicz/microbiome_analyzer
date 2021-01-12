@@ -611,7 +611,9 @@ def read_meta_pd(meta_tab: str, rep_col: str ='sample_name') -> pd.DataFrame:
     :return: metadata table.
     """
     meta_tab_sam_col = get_feature_sample_col(meta_tab)
+    print(meta_tab_sam_col)
     meta_tab_pd = pd.read_csv(meta_tab, header=0, sep='\t', dtype={meta_tab_sam_col: str}, low_memory=False)
+    print(meta_tab_pd)
     meta_tab_pd.rename(columns={meta_tab_sam_col: rep_col}, inplace=True)
     return meta_tab_pd
 
@@ -857,7 +859,6 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
             path_pd = load_table(path).to_dataframe()
         else:
             path_pd = read_meta_pd(path, '#OTU ID')
-            print(path_pd)
             #
             # tab_feat_col = get_feature_sample_col(path)
             # path_pd = pd.read_csv(path, header=0, index_col=0, sep='\t')
