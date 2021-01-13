@@ -219,20 +219,22 @@ def get_xmmvec_commands(
 
 def get_biplot_commands(
         ordi_edit_fp, qza, qzv, omic_feature, omic_sample,
-        meta1_fp, meta2_fp, n_edit
+        meta1_fp, meta2_fp, n_edit, max_r
 ):
+
     cmd = '\n'
-    if not isfile(qza):
-        cmd += '\nqiime tools import'
-        cmd += ' --input-path %s' % ordi_edit_fp
-        cmd += ' --output-path %s' % qza
-        cmd += ' --type "PCoAResults %s Properties([\'biplot\'])"\nsleep 3' % '%'
-    cmd += '\nqiime emperor biplot'
-    cmd += ' --i-biplot %s' % qza
-    cmd += ' --m-%s-metadata-file %s' % (omic_feature, meta1_fp)
-    cmd += ' --m-%s-metadata-file %s' % (omic_sample, meta2_fp)
-    cmd += ' --p-number-of-features %s' % n_edit
-    cmd += ' --o-visualization %s\n' % qzv
+    if max_r >= 2:
+        if not isfile(qza):
+            cmd += '\nqiime tools import'
+            cmd += ' --input-path %s' % ordi_edit_fp
+            cmd += ' --output-path %s' % qza
+            cmd += ' --type "PCoAResults %s Properties([\'biplot\'])"\nsleep 3' % '%'
+        cmd += '\nqiime emperor biplot'
+        cmd += ' --i-biplot %s' % qza
+        cmd += ' --m-%s-metadata-file %s' % (omic_feature, meta1_fp)
+        cmd += ' --m-%s-metadata-file %s' % (omic_sample, meta2_fp)
+        cmd += ' --p-number-of-features %s' % n_edit
+        cmd += ' --o-visualization %s\n' % qzv
     return cmd
 
 
@@ -359,7 +361,7 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         ordi = OrdinationResults.read(ordi_fp)
 
         # start = time.time()
-        cur_pc_sb_correlations = get_pc_sb_correlations(
+        cur_pc_sb_correlations, max_r = get_pc_sb_correlations(
             pair, case, ordi, omic1, omic2, filt1, filt2,
             diff_cols1, meta_pd1, diff_cols2, meta_pd2,
             meta_fp,  omic1_common_fp, omic2_common_fp, ranks_fp)
@@ -378,7 +380,7 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
                     cmd += get_biplot_commands(
                         ordi_edit_fp, qza, qzv,
                         omic_feature, omic_sample,
-                        meta_edit, meta2, n_edit)
+                        meta_edit, meta2, n_edit, max_r)
         ordi_edit_fp = ordi_fp
         qza, qzv = get_qzs(ordi_edit_fp)
         for crowded in crowdeds:
@@ -394,7 +396,7 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
             cmd += get_biplot_commands(
                 ordi_edit_fp, qza, qzv,
                 omic_feature, omic_sample,
-                meta1, meta2, n_ordi_feats)
+                meta1, meta2, n_ordi_feats, max_r)
 
         cmd += get_xmmvec_commands(
             ordi_edit_fp, omic1, omic2,
@@ -575,8 +577,10 @@ def get_pc_sb_correlations(pair, case, ordi, omic1, omic2, filt1, filt2,
                            diff_cols1, meta_pd1, diff_cols2, meta_pd2,
                            meta_fp, omic1_common_fp, omic2_common_fp, ranks_fp):
     corrs = []
+    max_r = 0
     for r in range(3):
         if ordi.features.shape[1] > r:
+            max_r = r
             feats = ordi.features[r]
             if len(diff_cols1):
                 for model in diff_cols1:
@@ -613,7 +617,7 @@ def get_pc_sb_correlations(pair, case, ordi, omic1, omic2, filt1, filt2,
         'features_fp',
         'ranks_fp'
     ])
-    return corrs_pd
+    return corrs_pd, max_r
 
 
 def get_log_ratios(pc_sb_correlations_pd, correlation_threshold = 0.75):
