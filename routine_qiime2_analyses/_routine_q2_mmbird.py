@@ -165,6 +165,7 @@ def get_paired_heatmaps_command(
 
     cmd = ''
     if not isfile(paired_heatmap_qzv):
+
         omic1_common_fp_tmp = '%s_tmp.tsv' % splitext(omic1_common_fp)[0]
         omic2_common_fp_tmp = '%s_tmp.tsv' % splitext(omic2_common_fp)[0]
         omic1_common_qza_tmp = '%s_tmp.qza' % splitext(omic1_common_fp)[0]
@@ -198,6 +199,10 @@ def get_paired_heatmaps_command(
                     o.write(line.replace('RANKS_QZA_TMP', ranks_qza_tmp))
                 elif "'RANKS_FP'" in line:
                     o.write(line.replace('RANKS_FP', ranks_fp))
+                else:
+                    o.write(line)
+
+        cmd += '\npython3 %s\n' % pre_paired_heatmap_py
 
         cmd += '\nqiime mmvec paired-heatmap'
         cmd += ' --i-ranks %s' % ranks_qza_tmp
