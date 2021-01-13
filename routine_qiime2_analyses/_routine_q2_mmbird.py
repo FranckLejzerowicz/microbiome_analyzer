@@ -164,7 +164,7 @@ def get_paired_heatmaps_command(
     if not isfile(paired_heatmap_qzv):
         cmd = '\nqiime mmvec paired-heatmap'
         cmd += ' --i-ranks %s.qza' % splitext(ranks_fp)[0]
-        cmd += ' --i-microbes-table ' % omic1_common_qza
+        cmd += ' --i-microbes-table %s' % omic1_common_qza
         cmd += ' --i-metabolites-table %s' % omic2_common_qza
         cmd += ' --m-microbe-metadata-file %s' % taxonomy_tsv
         cmd += ' --m-microbe-metadata-column Taxon'
@@ -576,7 +576,6 @@ def get_pc_sb_correlations(pair, case, ordi, omic1, omic2, filt1, filt2,
                            meta_fp, omic1_common_fp, omic2_common_fp, ranks_fp):
     corrs = []
     for r in range(3):
-        print(ordi.features.shape)
         if ordi.features.shape[1] > r:
             feats = ordi.features[r]
             if len(diff_cols1):
