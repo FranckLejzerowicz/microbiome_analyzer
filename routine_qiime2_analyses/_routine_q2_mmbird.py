@@ -177,7 +177,7 @@ def get_paired_heatmaps_command(
         cmd += ' --p-normalize rel_row'
         cmd += ' --p-top-k-metabolites 100'
         cmd += ' --p-level 6'
-        cmd += ' --o-visualization %s' % paired_heatmap_qzv
+        cmd += ' --o-visualization %s\n' % paired_heatmap_qzv
 
     return cmd
 
@@ -214,6 +214,7 @@ def get_xmmvec_commands(
             if omic2 in xmmvecs[pair]:
                 if 'color_variable' in xmmvecs[pair][omic2]:
                     cmd += ' --p-omic2-column %s' % xmmvecs[pair][omic2]['color_variable']
+        cmd += '\n'
     return cmd
 
 
