@@ -1100,16 +1100,17 @@ def write_nestedness_graph(new_biom_meta: str, odir: str, graphs: str,
     https://github.com/jladau/Nestedness
     """
 
-    cmd = 'mkdir -p %s\n' % odir
+    cmd = '\nmkdir -p %s\n' % odir
     if not isfile(fields):
         for ndx, nodf in enumerate(nodfs_valid):
             if ndx:
                 cmd += 'echo "%s" >> %s\n' % (nodf, fields)
             else:
                 cmd += 'echo "%s" > %s\n' % (nodf, fields)
+        cur_sh.write('%s\n' % cmd)
 
     if not isfile(graphs):
-        cmd += 'java -cp %s \\\n' % binary
+        cmd = 'java -cp %s \\\n' % binary
         cmd += 'edu.ucsf.Nestedness.Grapher.GrapherLauncher \\\n'
         cmd += '--sBIOMPath=%s \\\n' % new_biom_meta
         cmd += '--bCheckRarefied=false \\\n'
@@ -1119,8 +1120,8 @@ def write_nestedness_graph(new_biom_meta: str, odir: str, graphs: str,
         cmd += '--sOutputPath=%s \\\n' % graphs
         cmd += '--rgsSampleMetadataFields=%s\n' % ','.join(nodfs_valid)
 
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n' % cmd)
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n' % cmd)
 
 
 def write_nestedness_nodfs(new_biom_meta: str, odir: str,
@@ -1132,12 +1133,11 @@ def write_nestedness_nodfs(new_biom_meta: str, odir: str,
     """
     cmd = ''
     to_write = []
-    if not isdir(odir):
-        cmd += 'mkdir -p %s\n' % odir
     for ndx, nodf in enumerate(nodfs_valid):
         nodf_comparisons = '%s/%s_comparisons.csv' % (odir, nodf)
         if not isfile(nodf_comparisons):
             to_write.append(nodf_comparisons)
+            cmd += '\nmkdir -p %s\n' % odir
             cmd += 'java -Xmx5g -cp %s \\\n' % binary
             cmd += 'edu.ucsf.Nestedness.ComparisonSelector.ComparisonSelectorLauncher \\\n'
             cmd += '--sBIOMPath=%s \\\n' % new_biom_meta
