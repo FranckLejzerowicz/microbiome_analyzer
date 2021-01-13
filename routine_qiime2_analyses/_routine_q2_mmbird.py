@@ -576,6 +576,7 @@ def get_pc_sb_correlations(pair, case, ordi, omic1, omic2, filt1, filt2,
                            meta_fp, omic1_common_fp, omic2_common_fp, ranks_fp):
     corrs = []
     for r in range(3):
+        print(ordi.features.shape)
         if ordi.features.shape[1] >= r:
             feats = ordi.features[r]
             if len(diff_cols1):
