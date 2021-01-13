@@ -46,17 +46,9 @@ for root, dirs, files in os.walk(rt):
                           number_of_groups, test_statistic, p_value, cv])
             if dataset == 'index.html':
                 print(path)
+
 perms_pd = pd.DataFrame(perms, columns=['dataset', 'metric', 'subset', 'method', 'test', 'size',
                                         'number_of_groups', 'test_statistic', 'p_value', 'cv'])
-perms_pd = perms_pd.replace(
-    {'test': dict(
-        (x, x.replace('__vioscreen_component_percents', ''))
-        for x in perms_pd.test.unique().tolist() if '__vioscreen_component_percents' in x)})
-perms_pd = perms_pd.replace(
-    {'test': dict(
-        (x, x.replace('__vioscreen_micromacro', ''))
-        for x in perms_pd.test.unique().tolist() if '__vioscreen_micromacro' in x)})
-
 
 mats = {}
 for dataset, perms_dat_pd in perms_pd.groupby('dataset'):
@@ -92,7 +84,7 @@ for dataset, perms_dat_pd in perms_pd.groupby('dataset'):
 
             perms_filt_cvs = dict(x for x in perms_filt_pd[['test', 'cv']].values)
 
-            ntests = perms_filt_test['test'].unique().size
+            ntests = perms_filt_test.shape[0]
 
             fig, axes = plt.subplots(2, 1, figsize=((2 + ntests), 4))
             for mdx, method in enumerate(['permanova', 'permdisp']):
