@@ -141,14 +141,14 @@ def get_heatmap_qzs(ranks_fp):
 
 def get_order_omics(
         omic1, omic2,
-        filt1, filt2,
+        filt1, filt2, case,
         omics_pairs
 ):
     omic_feature, omic_sample = ('feature', 'sample')
     omic_microbe, omic_metabolite = ('microbe', 'metabolite')
-    omic_filt2 = '%s__%s' % (omic1, filt1)
-    omic_filt1 = '%s__%s' % (omic2, filt2)
-    if (omic_filt2, omic_filt1) not in omics_pairs:
+    omic_filt1 = '%s__%s__%s' % (omic1, case, filt1)
+    omic_filt2 = '%s__%s__%s' % (omic2, case, filt2)
+    if (omic_filt2, omic_filt1) in omics_pairs:
         omic_feature, omic_sample = ('sample', 'feature')
         omic_microbe, omic_metabolite = ('metabolite', 'microbe')
         omic1, omic2 = omic2, omic1
@@ -344,12 +344,9 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         omic1_common_qza = '%s.qza' % splitext(omic1_common_fp)[0]
         omic2_common_qza = '%s.qza' % splitext(omic2_common_fp)[0]
 
-        print(omic1, omic2)
-        order_omics = get_order_omics(omic1, omic2, filt1, filt2, omics_pairs)
+        order_omics = get_order_omics(omic1, omic2, filt1, filt2, case, omics_pairs)
         omic1 = order_omics[0]
         omic2 = order_omics[1]
-        print(omic1, omic2)
-        print(omic1fds)
         filt1 = order_omics[2]
         filt2 = order_omics[3]
         omic_feature = order_omics[4]
@@ -413,8 +410,9 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
             paired_heatmap_qzv = '%s_paired_heatmaps_custom.qzv' % splitext(ranks_fp)[0]
         else:
             paired_heatmap_qzv = '%s_paired_heatmaps_top%s.qzv' % (splitext(ranks_fp)[0], topn)
+
         cmd += get_paired_heatmaps_command(
-            ranks_fp, omic1_common_qza, omic2_common_qza, meta2,
+            ranks_fp, omic1_common_qza, omic2_common_qza, meta1,
             features_names, topn, paired_heatmap_qzv
         )
         pair_cmds.setdefault(pair, []).append(cmd)
