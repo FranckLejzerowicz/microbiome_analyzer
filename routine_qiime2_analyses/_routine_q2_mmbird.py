@@ -80,8 +80,6 @@ def merge_mmvec_songbird_outputs(mmvec_outputs_pd, songbird_outputs_pd):
 
 def get_mmvec_res(mmvec_songbird_pd):
     mmvec_out_cols = [x for x in mmvec_songbird_pd.columns if x.startswith('mmvec_out__')]
-    print("mmvec_out_cols")
-    print(mmvec_out_cols)
     mmvec_res = {}
     # for ech row of the main table that also contain the mmvec output folders
     for r, row in mmvec_songbird_pd.iterrows():
@@ -97,9 +95,6 @@ def get_mmvec_res(mmvec_songbird_pd):
         omic2_common_fp = row['omic2_common_fp']
         n_common = row['n_common']
         meta_fp = row['meta_common_fp']
-        print()
-        print('row')
-        print(row.to_dict())
         # for each mmvec-parameters result
         for mmvec_out_col in mmvec_out_cols:
 
@@ -109,8 +104,8 @@ def get_mmvec_res(mmvec_songbird_pd):
                 continue
 
             # get the ordination file and the ranks file and skip + warning if not performed
-            mmvec_out_ranks = mmvec_out + '/ranks.tsv'
-            mmvec_out_ordi = mmvec_out + '/ordination.txt'
+            mmvec_out_ranks = mmvec_out + '/model/ranks.tsv'
+            mmvec_out_ordi = mmvec_out + '/model/ordination.txt'
             if not isfile(mmvec_out_ranks) or not isfile(mmvec_out_ordi):
                 print('\t\t[run mmvec first] %s (%s) %s (%s)' % (omic1, filt1, omic2, filt2))
                 continue
@@ -162,15 +157,15 @@ def get_order_omics(
 
 
 def get_paired_heatmaps_command(
-        ranks_fp: str, mc_qza: str, mb_qza: str, taxonomy_tsv: str,
-        features_names: list, topn: int, paired_heatmap_qzv: str
+        ranks_fp: str, omic1_common_qza: str, omic2_common_qza: str,
+        taxonomy_tsv: str, features_names: list, topn: int, paired_heatmap_qzv: str
 ):
     cmd = ''
     if not isfile(paired_heatmap_qzv):
         cmd = '\nqiime mmvec paired-heatmap'
         cmd += ' --i-ranks %s.qza' % splitext(ranks_fp)[0]
-        cmd += ' --i-microbes-table ' % mc_qza
-        cmd += ' --i-metabolites-table %s' % mb_qza
+        cmd += ' --i-microbes-table ' % omic1_common_qza
+        cmd += ' --i-metabolites-table %s' % omic2_common_qza
         cmd += ' --m-microbe-metadata-file %s' % taxonomy_tsv
         cmd += ' --m-microbe-metadata-column Taxon'
         if features_names:
@@ -341,9 +336,6 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
     for keys, values in mmvec_res.items():
 
         pair, case, omic1, omic2, filt1, filt2, sams, mmvec = keys
-        # print()
-        # print(pair, omic1, omic2, filt1, filt2, sams)
-        # print(mmvec)
         ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp = values
 
         print(ranks_fp)
@@ -351,6 +343,8 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         print(meta_fp)
         print(omic1_common_fp)
         print(omic2_common_fp)
+        omic1_common_qza = '%s.qza' % splitext(omic1_common_fp)[0]
+        omic2_common_qza = '%s.qza' % splitext(omic2_common_fp)[0]
 
         order_omics = get_order_omics(omic1, omic2, filt1, filt2, omics_pairs)
         print('order_omics')
@@ -422,7 +416,7 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         else:
             paired_heatmap_qzv = '%s_paired_heatmaps_top%s.qzv' % (splitext(ranks_fp)[0], topn)
         cmd += get_paired_heatmaps_command(
-            ranks_fp, omic1_common_fp, omic2_common_fp, taxonomy_tsv,
+            ranks_fp, omic1_common_qza, omic2_common_qza, taxonomy_tsv,
             features_names, topn, paired_heatmap_qzv
         )
 
