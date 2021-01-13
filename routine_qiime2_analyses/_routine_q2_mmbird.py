@@ -410,7 +410,7 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         else:
             paired_heatmap_qzv = '%s_paired_heatmaps_top%s.qzv' % (splitext(ranks_fp)[0], topn)
         cmd += get_paired_heatmaps_command(
-            ranks_fp, omic1_common_qza, omic2_common_qza, meta1,
+            ranks_fp, omic1_common_qza, omic2_common_qza, meta2,
             features_names, topn, paired_heatmap_qzv
         )
         pair_cmds.setdefault(pair, []).append(cmd)
