@@ -83,19 +83,19 @@ def get_split_taxonomy(taxa, extended=False, taxo_sep=';'):
             split_lens.add(1)
             split_taxa.append(pd.Series(['Unassigned']))
         else:
-            taxon_split = [x.strip().replace(' ', '_') for x in str(taxon).split(taxo_sep)
+            taxon_split = [x.strip() for x in str(taxon).split(taxo_sep)
                            if len(x.strip()) and not x.startswith('x__')]
-            set_taxon_split = set(taxon_split)
-            set_taxon_split_no_rank = set(['__'.join(x.split('__')[1:]) for x in taxon_split])
-            if set_taxon_split == {'unclassified'} or set_taxon_split == {'unassigned'}:
-                split_lens.add(1)
-                split_taxa.append(pd.Series(['Unassigned']))
-            elif set_taxon_split_no_rank == {'unclassified'} or set_taxon_split_no_rank == {'unassigned'}:
-                split_lens.add(1)
-                split_taxa.append(pd.Series(['Unassigned']))
-            else:
-                split_lens.add(len(taxon_split))
-                split_taxa.append(pd.Series(taxon_split))
+            # set_taxon_split = set(taxon_split)
+            # set_taxon_split_no_rank = set(['__'.join(x.split('__')[1:]) for x in taxon_split])
+            # if set_taxon_split == {'unclassified'} or set_taxon_split == {'unassigned'}:
+            #     split_lens.add(1)
+            #     split_taxa.append(pd.Series(['Unassigned']))
+            # elif set_taxon_split_no_rank == {'unclassified'} or set_taxon_split_no_rank == {'unassigned'}:
+            #     split_lens.add(1)
+            #     split_taxa.append(pd.Series(['Unassigned']))
+            # else:
+            split_lens.add(len(taxon_split))
+            split_taxa.append(pd.Series(taxon_split))
 
     # if the parsed and split taxonomies have
     # very variable number of fields or very long split results
