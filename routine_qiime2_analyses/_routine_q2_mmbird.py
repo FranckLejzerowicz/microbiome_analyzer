@@ -411,16 +411,8 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
             ranks_fp, omic1_common_qza, omic2_common_qza, meta1,
             features_names, topn, paired_heatmap_qzv
         )
-
         pair_cmds.setdefault(pair, []).append(cmd)
-
-
-
     return pair_cmds, pc_sb_correlations
-
-
-
-
 
 
 def get_omics_songbirds_taxa(i_datasets_folder, mmvec_songbird_pd, taxo_pds):
@@ -584,28 +576,29 @@ def get_pc_sb_correlations(pair, case, ordi, omic1, omic2, filt1, filt2,
                            meta_fp, omic1_common_fp, omic2_common_fp, ranks_fp):
     corrs = []
     for r in range(3):
-        feats = ordi.features[r]
-        if len(diff_cols1):
-            for model in diff_cols1:
-                x = meta_pd1.loc[
-                    [x for x in meta_pd1.index if x in feats.index], model
-                ].astype(float)
-                x = x[x.notnull()]
-                y = feats[x.index]
-                r2, p2 = spearmanr(x, y)
-                corrs.append([pair, case, omic1, filt1, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
-                              meta_fp,  omic1_common_fp, ranks_fp])
-        sams = ordi.samples[r]
-        if len(diff_cols2):
-            for model in diff_cols2:
-                x = meta_pd2.loc[
-                    [x for x in meta_pd2.index if x in sams.index], model
-                ].astype(float)
-                x = x[x.notnull()]
-                y = sams[x.index]
-                r2, p2 = spearmanr(x, y)
-                corrs.append([pair, case, omic2, filt2, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
-                              meta_fp, omic2_common_fp, ranks_fp])
+        if ordi.features.shape[1] >= r:
+            feats = ordi.features[r]
+            if len(diff_cols1):
+                for model in diff_cols1:
+                    x = meta_pd1.loc[
+                        [x for x in meta_pd1.index if x in feats.index], model
+                    ].astype(float)
+                    x = x[x.notnull()]
+                    y = feats[x.index]
+                    r2, p2 = spearmanr(x, y)
+                    corrs.append([pair, case, omic1, filt1, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
+                                  meta_fp,  omic1_common_fp, ranks_fp])
+            sams = ordi.samples[r]
+            if len(diff_cols2):
+                for model in diff_cols2:
+                    x = meta_pd2.loc[
+                        [x for x in meta_pd2.index if x in sams.index], model
+                    ].astype(float)
+                    x = x[x.notnull()]
+                    y = sams[x.index]
+                    r2, p2 = spearmanr(x, y)
+                    corrs.append([pair, case, omic2, filt2, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
+                                  meta_fp, omic2_common_fp, ranks_fp])
     corrs_pd = pd.DataFrame(corrs, columns=[
         'pair',
         'case',
