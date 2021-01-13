@@ -6,10 +6,9 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os
 import sys
 import glob
-import time
+import pkg_resources
 import pandas as pd
 from os.path import dirname, isfile, splitext
 
@@ -157,16 +156,54 @@ def get_order_omics(
 
 
 def get_paired_heatmaps_command(
-        ranks_fp: str, omic1_common_qza: str, omic2_common_qza: str,
+        ranks_fp: str, omic1_common_fp: str, omic2_common_fp: str,
         taxonomy_tsv: str, features_names: list, topn: int, paired_heatmap_qzv: str
 ):
+
+    RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
+    mmvec_pre_paired_fp = '%s/mmvec_pre_paired-heatmaps.py' % RESOURCES
+
     cmd = ''
     if not isfile(paired_heatmap_qzv):
-        cmd = '\nqiime mmvec paired-heatmap'
-        cmd += ' --i-ranks %s.qza' % splitext(ranks_fp)[0]
-        cmd += ' --i-microbes-table %s' % omic1_common_qza
-        cmd += ' --i-metabolites-table %s' % omic2_common_qza
-        cmd += ' --m-microbe-metadata-file %s' % taxonomy_tsv
+        omic1_common_fp_tmp = '%s_tmp.tsv' % splitext(omic1_common_fp)[0]
+        omic2_common_fp_tmp = '%s_tmp.tsv' % splitext(omic2_common_fp)[0]
+        omic1_common_qza_tmp = '%s_tmp.qza' % splitext(omic1_common_fp)[0]
+        omic2_common_qza_tmp = '%s_tmp.qza' % splitext(omic2_common_fp)[0]
+        taxonomy_tsv_tmp = '%s_tmp.tsv' % splitext(taxonomy_tsv)[0]
+        ranks_fp_tmp = '%s_tmp.tsv' % splitext(ranks_fp)[0]
+        ranks_qza_tmp = '%s_tmp.qza' % splitext(ranks_fp)[0]
+
+        pre_paired_heatmap_py = '%s.py' % splitext(paired_heatmap_qzv)[0]
+        with open(pre_paired_heatmap_py, 'w') as o, open(mmvec_pre_paired_fp) as f:
+            for line in f:
+                if "'OMIC1_COMMON_FP_TMP'" in line:
+                    o.write(line.replace('OMIC1_COMMON_FP_TMP', omic1_common_fp_tmp))
+                elif "'OMIC2_COMMON_FP_TMP'" in line:
+                    o.write(line.replace('OMIC2_COMMON_FP_TMP', omic2_common_fp_tmp))
+                elif "'OMIC1_COMMON_QZA_TMP'" in line:
+                    o.write(line.replace('OMIC1_COMMON_QZA_TMP', omic1_common_qza_tmp))
+                elif "'OMIC2_COMMON_QZA_TMP'" in line:
+                    o.write(line.replace('OMIC2_COMMON_QZA_TMP', omic2_common_qza_tmp))
+                elif "'OMIC1_COMMON_FP'" in line:
+                    o.write(line.replace('OMIC1_COMMON_FP', omic1_common_fp))
+                elif "'OMIC2_COMMON_FP'" in line:
+                    o.write(line.replace('OMIC2_COMMON_FP', omic2_common_fp))
+                elif "'TAXONOMY_TSV_TMP'" in line:
+                    o.write(line.replace('TAXONOMY_TSV_TMP', taxonomy_tsv_tmp))
+                elif "'TAXONOMY_TSV'" in line:
+                    o.write(line.replace('TAXONOMY_TSV', taxonomy_tsv))
+                elif "'RANKS_FP_TMP'" in line:
+                    o.write(line.replace('RANKS_FP_TMP', ranks_fp_tmp))
+                elif "'RANKS_QZA_TMP'" in line:
+                    o.write(line.replace('RANKS_QZA_TMP', ranks_qza_tmp))
+                elif "'RANKS_FP'" in line:
+                    o.write(line.replace('RANKS_FP', ranks_fp))
+
+        cmd += '\nqiime mmvec paired-heatmap'
+        cmd += ' --i-ranks %s' % ranks_qza_tmp
+        cmd += ' --i-microbes-table %s' % omic1_common_qza_tmp
+        cmd += ' --i-metabolites-table %s' % omic2_common_qza_tmp
+        cmd += ' --m-microbe-metadata-file %s' % taxonomy_tsv_tmp
         cmd += ' --m-microbe-metadata-column Taxon'
         if features_names:
             cmd += ' --p-top-k-microbes 0'
@@ -179,6 +216,10 @@ def get_paired_heatmaps_command(
         cmd += ' --p-level 6'
         cmd += ' --o-visualization %s\n' % paired_heatmap_qzv
 
+        cmd += '\nrm %s %s %s %s\n' % (
+            ranks_qza_tmp, omic1_common_qza_tmp,
+            omic2_common_qza_tmp, taxonomy_tsv_tmp
+        )
     return cmd
 
 
@@ -341,9 +382,6 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         pair, case, omic1, omic2, filt1, filt2, sams, mmvec = keys
         ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp = values
 
-        omic1_common_qza = '%s.qza' % splitext(omic1_common_fp)[0]
-        omic2_common_qza = '%s.qza' % splitext(omic2_common_fp)[0]
-
         order_omics = get_order_omics(omic1, omic2, filt1, filt2, case, omics_pairs)
         omic1 = order_omics[0]
         omic2 = order_omics[1]
@@ -412,7 +450,7 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
             paired_heatmap_qzv = '%s_paired_heatmaps_top%s.qzv' % (splitext(ranks_fp)[0], topn)
 
         cmd += get_paired_heatmaps_command(
-            ranks_fp, omic1_common_qza, omic2_common_qza, meta1,
+            ranks_fp, omic1_common_fp, omic2_common_fp, meta1,
             features_names, topn, paired_heatmap_qzv
         )
         pair_cmds.setdefault(pair, []).append(cmd)

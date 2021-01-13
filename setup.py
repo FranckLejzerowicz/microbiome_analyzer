@@ -78,6 +78,7 @@ setup(
             'resources/nestedness_graphs.py',
             'resources/nestedness_nodfs.py',
             'resources/wol_tree.nwk',
+            'resources/mmvec_pre_paired-heatmaps.py',
             'examples/*'
         ],
     },
