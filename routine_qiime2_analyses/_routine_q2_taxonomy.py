@@ -351,7 +351,6 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
             # get the taxonomic levels
             collapse_levels = collapse_taxo[dat]
             split_taxa_pd, split_taxa_fp = split_taxa_pds[dat]
-            print('collapse', dat)
             split_levels = get_split_levels(collapse_levels, split_taxa_pd)
             collapsed[dat] = split_levels
 

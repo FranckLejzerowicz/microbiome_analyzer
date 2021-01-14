@@ -83,8 +83,6 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
         new_meta_pd[train_column] = ['Train' if x in train_samples else
                                      'Test' for x in new_meta_pd.index]
         ct = pd.crosstab(new_meta_pd[train_column], new_meta_pd['concat_cols']).T.reset_index()
-        print(new_meta_pd)
-        print(ct)
         ct = pd.concat([
             pd.DataFrame(
                 [rep_d[x] for x in ct['concat_cols']],
