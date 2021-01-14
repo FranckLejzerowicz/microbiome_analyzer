@@ -361,22 +361,23 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
             out_sh = '%s/run_collapsed_taxo_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
+                collapsed_removed = set()
                 for idx, tab_meta_fp in enumerate(tab_meta_fps):
                     tab_fp, meta_fp = tab_meta_fp
                     tab_qza = '%s.qza' % splitext(tab_fp)[0]
                     for tax, level in split_levels.items():
-
+                        if (tax, level) in collapsed_removed:
+                            continue
                         dat_tax = '%s_tx-%s' % (dat, tax)
                         dat_collapsed = '%s_tx-%s' % (splitext(tab_fp)[0].split('/tab_')[-1], tax)
-
                         collapsed_tsv = '%s_tx-%s.tsv' % (splitext(tab_fp)[0], tax)
                         collapsed_qza = collapsed_tsv.replace('.tsv', '.qza')
                         collapsed_meta = '%s_tx-%s.tsv' % (splitext(meta_fp)[0], tax)
-
                         if isfile(collapsed_tsv) and isfile(collapsed_meta):
                             collapsed_pd = pd.read_csv(collapsed_tsv, index_col=0, header=0, sep='\t')
-                            if collapsed_pd.shape[0] < 30:
-                                print('Not using %s collapsed at level %s (< 30 features)' % (dat, tax))
+                            if collapsed_pd.shape[0] < 5:
+                                collapsed_removed.add((dat, tax))
+                                print('Not using %s collapsed at level %s (< 5 features)' % (dat, tax))
                                 continue
                             with open(collapsed_meta) as f:
                                 for line in f:
