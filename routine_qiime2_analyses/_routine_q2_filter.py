@@ -421,3 +421,45 @@ def explore_filtering(i_datasets_folder, datasets, datasets_read,
             html_fo = '%s/%s_%s.html' % (out_dir, dat, mb)
             print(' -> Written:', html_fo)
             plotly.offline.plot(fig, filename=html_fo, auto_open=False)
+
+
+def clear_poor_datasets(
+        datasets: dict,
+        datasets_read: dict,
+        datasets_features: dict,
+        datasets_phylo: dict,
+        datasets_rarefs: dict
+):
+
+    to_delete = {}
+    for dat, tab_meta_pds in datasets_read.items():
+        for idx, (tsv_pd, meta_pd) in enumerate(datasets_read[dat]):
+            if tsv_pd.shape[0] < 30:
+                to_delete.setdefault(dat, []).append(idx)
+    if to_delete:
+        print('\n\n\tREMOVING THE FOLLOWING DATASET(S) INSTANCE(S) BECAUSE <30 FEATURES ONLY:')
+            # if not idx:
+            #     print('\t\t- %s (raw)' % dat)
+            # else:
+            #     print('\t\t- %s (%s)' % (dat, datasets_rarefs[dat][idx]))
+
+        datasets_out = {}
+        datasets_read_out = {}
+        datasets_features_out = {}
+        datasets_phylo_out = {}
+        datasets_rarefs_out = {}
+        for dat, dat_list in datasets.items():
+            for ldx, l in enumerate(dat_list):
+                if dat in to_delete and ldx in to_delete[dat]:
+                    continue
+                datasets_out.setdefault(dat, []).append(l)
+                datasets_read_out.setdefault(dat, []).append(l)
+                datasets_features_out.setdefault(dat, []).append(l)
+                datasets_phylo_out.setdefault(dat, []).append(l)
+                datasets_rarefs_out.setdefault(dat, []).append(l)
+
+        return datasets_out, datasets_read_out, datasets_features_out, datasets_phylo_out, datasets_rarefs_out
+
+
+
+

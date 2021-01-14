@@ -15,7 +15,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (get_prjct_nm, get_data
                                                           get_analysis_folder)
 from routine_qiime2_analyses._routine_q2_filter import (import_datasets, filter_rare_samples,
                                                         get_filt3d_params, explore_filtering,
-                                                        deleted_non_filt)
+                                                        deleted_non_filt, clear_poor_datasets)
 from routine_qiime2_analyses._routine_q2_rarefy import run_rarefy
 from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp, get_precomputed_trees
 from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
@@ -260,6 +260,14 @@ def routine_qiime2_analyses(
                                  datasets_collapsed, datasets_collapsed_map, force,
                                  prjct_nm, qiime_env, chmod, noloc,
                                  run_params["collapse"], filt_raref, jobs)
+
+    # datasets, datasets_read, datasets_feature, datasets_phylo, datasets_rarefs = clear_poor_datasets(
+    #     datasets,
+    #     datasets_read,
+    #     datasets_features,
+    #     datasets_phylo
+    # )
+
     # ALPHA ------------------------------------------------------------
     if 'alpha' not in p_skip:
         print('(alpha)')

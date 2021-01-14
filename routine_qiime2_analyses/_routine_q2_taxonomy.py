@@ -369,19 +369,16 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
 
                         dat_tax = '%s_tx-%s' % (dat, tax)
                         dat_collapsed = '%s_tx-%s' % (splitext(tab_fp)[0].split('/tab_')[-1], tax)
-                        datasets_collapsed.setdefault(dat, []).append(dat_collapsed)
-                        datasets_collapsed_map[dat_collapsed] = dat
 
                         collapsed_tsv = '%s_tx-%s.tsv' % (splitext(tab_fp)[0], tax)
                         collapsed_qza = collapsed_tsv.replace('.tsv', '.qza')
                         collapsed_meta = '%s_tx-%s.tsv' % (splitext(meta_fp)[0], tax)
 
-                        datasets_update.setdefault(dat_tax, []).append([collapsed_tsv, collapsed_meta])
-                        datasets_rarefs.setdefault(dat_tax, []).append(datasets_rarefs[dat][idx])
-                        datasets_phylo_update[dat_tax] = ('', 0)
-
                         if isfile(collapsed_tsv) and isfile(collapsed_meta):
                             collapsed_pd = pd.read_csv(collapsed_tsv, index_col=0, header=0, sep='\t')
+                            if collapsed_pd.shape[0] < 30:
+                                print('Not using %s collapsed at level %s (< 30 features)' % (dat, tax))
+                                continue
                             with open(collapsed_meta) as f:
                                 for line in f:
                                     break
@@ -390,6 +387,11 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
                             )
                             datasets_read_update.setdefault(dat_tax, []).append(
                                 [collapsed_pd, collapsed_meta_pd])
+                            datasets_collapsed.setdefault(dat, []).append(dat_collapsed)
+                            datasets_collapsed_map[dat_collapsed] = dat
+                            datasets_update.setdefault(dat_tax, []).append([collapsed_tsv, collapsed_meta])
+                            datasets_rarefs.setdefault(dat_tax, []).append(datasets_rarefs[dat][idx])
+                            datasets_phylo_update[dat_tax] = ('', 0)
                             continue
                         else:
                             written += 1
@@ -425,6 +427,7 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
     datasets_phylo.update(datasets_phylo_update)
 
     return collapsed
+
 
 def run_taxonomy_others(force: bool, tsv_pd: pd.DataFrame,
                         out_qza: str, out_tsv: str) -> str:
