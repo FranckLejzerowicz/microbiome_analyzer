@@ -92,6 +92,7 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 ct[['Train', 'Test']]
             ], axis=1)
             ct.to_csv(new_meta_ct, sep='\t')
+            new_meta_pd = new_meta_pd.drop(columns='concat_cols')
         else:
             train_samples = random.sample(
                 new_meta_pd.index.tolist(),
@@ -99,7 +100,6 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
             )
         new_meta_pd[train_column] = ['Train' if x in train_samples else
                                      'Test' for x in new_meta_pd.index]
-        new_meta_pd = new_meta_pd.drop(columns='concat_cols')
     else:
         if train in new_meta_pd.columns:
             if {'Train', 'Test'}.issubset(new_meta_pd[train]):
