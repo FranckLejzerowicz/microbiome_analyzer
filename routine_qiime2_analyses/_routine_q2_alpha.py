@@ -215,7 +215,7 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: di
                         if isfile(out_fp_tsv):
                             with open(out_fp_tsv) as f:
                                 for line in f:
-                                    indices = line.strip().split('\t')
+                                    indices = line.strip().split('\t')[1:]
                                     break
                             divs_alphas = [x[1] for x in divs]
                             if len(indices) < len(divs_alphas):
