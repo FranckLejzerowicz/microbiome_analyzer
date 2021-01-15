@@ -59,6 +59,8 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
         rep_d = dict(('_'.join([str(i) for i in r]), list(r)) for r in new_meta_pd[meta_vars].values)
 
         vc = new_meta_pd['concat_cols'].value_counts()
+        print(new_meta_pd)
+        print(vc)
         if vc.size < new_meta_pd.shape[0] * 0.5:
             if 1 in vc.values:
                 vc_in = vc[vc > 1].index.tolist()
