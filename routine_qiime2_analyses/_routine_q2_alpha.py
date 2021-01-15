@@ -535,7 +535,7 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
             cur_raref = datasets_rarefs[dat][idx]
             raref_diversities = diversities[dat][idx]
 
-            presence_mat = [1 for qza in raref_diversities[''] if isfile(qza)]
+            presence_mat = [1 for (qza, metric) in raref_diversities[''] if isfile(qza)]
             if not presence_mat:
                 if not first_print:
                     print('Alpha diversity must be measured already to automatise Kruskal-Wallis tests\n'
