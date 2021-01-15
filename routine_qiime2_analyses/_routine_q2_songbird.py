@@ -54,29 +54,43 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
             else:
                 raise IOError('\t\t\t[SONGBIRD] Float passed as percent of samples for'
                               ' training not valid (must be in range 0-1)')
-        new_meta_pd['concat_cols'] = new_meta_pd[meta_vars].apply(
-            func=lambda x: '_'.join([str(y) for y in x]), axis=1)
-        rep_d = dict(('_'.join([str(i) for i in r]), list(r)) for r in new_meta_pd[meta_vars].values)
 
-        vc = new_meta_pd['concat_cols'].value_counts()
-        print(new_meta_pd)
-        print(vc)
-        if vc.size < new_meta_pd.shape[0] * 0.5:
+        new_meta_vars_pd = new_meta_pd[meta_vars].copy()
+        cat_vars = [x for x in new_meta_vars_pd.columns if str(new_meta_vars_pd[x].dtype) == 'object']
+        if cat_vars:
+            new_meta_cat_pd = new_meta_vars_pd[cat_vars].copy()
+            new_meta_cat_pd['concat_cols'] = new_meta_cat_pd.apply(
+                func=lambda x: '_'.join([str(y) for y in x]), axis=1)
+            rep_d = dict(('_'.join([str(i) for i in r]), list(r)) for r in new_meta_cat_pd[cat_vars].values)
+            vc = new_meta_vars_pd['concat_cols'].value_counts()
+        if cat_vars and vc.size < new_meta_vars_pd.shape[0] * 0.5:
             if 1 in vc.values:
                 vc_in = vc[vc > 1].index.tolist()
-                new_meta_pd_in = new_meta_pd.loc[new_meta_pd['concat_cols'].isin(vc_in)]
+                new_meta_vars_pd_in = new_meta_vars_pd.loc[new_meta_vars_pd['concat_cols'].isin(vc_in)]
             else:
-                new_meta_pd_in = new_meta_pd.copy()
+                new_meta_vars_pd_in = new_meta_vars_pd.copy()
 
-            X = np.array(new_meta_pd_in.values)
-            y = new_meta_pd_in.index.tolist()
-            if train_perc < new_meta_pd_in['concat_cols'].unique().size:
+            X = np.array(new_meta_vars_pd_in.values)
+            y = new_meta_vars_pd_in.index.tolist()
+            if train_perc < new_meta_vars_pd_in['concat_cols'].unique().size:
                 return None
 
             _, __, ___, train_samples = train_test_split(
                 X, y, test_size=train_perc,
-                stratify=new_meta_pd_in['concat_cols'].tolist()
+                stratify=new_meta_vars_pd_in['concat_cols'].tolist()
             )
+            new_meta_vars_pd[train_column] = ['Train' if x in train_samples else
+                                              'Test' for x in new_meta_vars_pd.index]
+            ct = pd.crosstab(new_meta_vars_pd[train_column],
+                             new_meta_vars_pd['concat_cols']).T.reset_index()
+            ct = pd.concat([
+                pd.DataFrame(
+                    [rep_d[x] for x in ct['concat_cols']],
+                    columns=cat_vars, index=ct.index
+                ),
+                ct[['Train', 'Test']]
+            ], axis=1)
+            ct.to_csv(new_meta_ct, sep='\t')
         else:
             train_samples = random.sample(
                 new_meta_pd.index.tolist(),
@@ -84,17 +98,6 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
             )
         new_meta_pd[train_column] = ['Train' if x in train_samples else
                                      'Test' for x in new_meta_pd.index]
-        ct = pd.crosstab(new_meta_pd[train_column], new_meta_pd['concat_cols']).T.reset_index()
-        print("ct")
-        print(ct)
-        ct = pd.concat([
-            pd.DataFrame(
-                [rep_d[x] for x in ct['concat_cols']],
-                columns=meta_vars, index=ct.index
-            ),
-            ct[['Train', 'Test']]
-        ], axis=1)
-        ct.to_csv(new_meta_ct, sep='\t')
         new_meta_pd = new_meta_pd.drop(columns='concat_cols')
     else:
         if train in new_meta_pd.columns:
