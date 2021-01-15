@@ -1411,17 +1411,17 @@ def write_procrustes_mantel(
     cur_sh.write('%s\n' % cmd)
 
 
-def get_metric(metrics: list, file_name: str) -> str:
-    """
-    Get the current diversity from the file name.
-    :param metrics: all the diversity metrics.
-    :param file_name: file name.
-    :return: either diversity metric or nothing.
-    """
-    for metric in metrics:
-        if metric in file_name:
-            return metric
-    return ''
+# def get_metric(metrics: list, file_name: str) -> str:
+#     """
+#     Get the current diversity from the file name.
+#     :param metrics: all the diversity metrics.
+#     :param file_name: file name.
+#     :return: either diversity metric or nothing.
+#     """
+#     for metric in metrics:
+#         if metric in file_name:
+#             return metric
+#     return ''
 
 
 def get_case(case_vals: list, case_var: str, form: str = None) -> str:
@@ -1549,7 +1549,7 @@ def write_metadata_tabulate(out_fp: str, divs: list, meta: str, cur_sh: TextIO) 
     cmd = 'qiime metadata tabulate \\\n'
     cmd += '--o-visualization %s \\\n' % out_fp
     for div in divs:
-        cmd += '--m-input-file %s \\\n' % div
+        cmd += '--m-input-file %s \\\n' % div[0]
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
 

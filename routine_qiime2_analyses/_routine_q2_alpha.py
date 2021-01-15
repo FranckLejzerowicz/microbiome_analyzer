@@ -22,7 +22,8 @@ from routine_qiime2_analyses._routine_q2_cmds import (
     get_case, write_alpha_group_significance_cmd,
     get_new_meta_pd, get_new_alpha_div, write_metadata_tabulate,
     write_diversity_alpha, write_diversity_alpha_correlation,
-    write_longitudinal_volatility, get_metric, get_subset,
+    write_longitudinal_volatility, get_subset,
+    # write_longitudinal_volatility, get_metric, get_subset,
     write_filter_features, run_export
 )
 
@@ -94,7 +95,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                             cur_sh.write('%s\n\n' % cmd)
                             written += 1
                             main_written += 1
-                        divs.setdefault('', []).append(out_fp)
+                        divs.setdefault('', []).append((out_fp, metric))
 
                     if alpha_subsets and dat in alpha_subsets:
                         for subset, subset_regex in alpha_subsets[dat].items():
@@ -139,7 +140,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                                     cur_sh.write('%s\n\n' % cmd)
                                     written += 1
                                     main_written += 1
-                                divs.setdefault(subset, []).append(out_fp)
+                                divs.setdefault(subset, []).append((out_fp, metric))
                     diversities[dat].append(divs)
             to_chunk.append(out_sh)
             if not chunkit:
@@ -211,6 +212,14 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: di
                         else:
                             out_fp = '%s/%s_alphas_noDropout__%s.qzv' % (output_folder, base, group)
                         out_fp_tsv = '%s.tsv' % splitext(out_fp)[0]
+                        if isfile(out_fp_tsv):
+                            with open(out_fp_tsv) as f:
+                                for line in f:
+                                    indices = line.strip().split('\t')
+                                    break
+                            divs_alphas = [x[1] for x in divs]
+                            if len(indices) < len(divs_alphas):
+                                force = True
                         to_export_groups.append(out_fp_tsv)
                         if force or not isfile(out_fp):
                             write_metadata_tabulate(out_fp, divs, meta, cur_sh)
@@ -367,7 +376,7 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                                 odir = get_analysis_folder(i_datasets_folder, 'alpha_correlations/%s%s/%s' % (dat, cur_raref, group))
                             else:
                                 odir = get_analysis_folder(i_datasets_folder, 'alpha_correlations/%s%s' % (dat, cur_raref))
-                            for qza in divs:
+                            for qza in [x[0] for x in divs]:
                                 out_fp = '%s/alpha_corr_%s' % (odir, basename(qza).replace('.qza', '_%s.qzv' % method))
                                 if force or not isfile(out_fp):
                                     write_diversity_alpha_correlation(out_fp, qza, method, meta, cur_sh)
@@ -513,7 +522,7 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
     """
 
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha_group_significance/chunks')
-    alpha_metrics = get_metrics('alpha_metrics', As)
+    # alpha_metrics = get_metrics('alpha_metrics', As)
     main_cases_dict = get_main_cases_dict(p_perm_groups)
 
     jobs = []
@@ -539,8 +548,8 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'alpha Kruskal-Wallis')
 
             odir = get_analysis_folder(i_datasets_folder, 'alpha_group_significance/%s%s' % (dat, cur_raref))
-            for qza in raref_diversities['']:
-                metric = get_metric(alpha_metrics, qza)
+            for (qza, metric) in raref_diversities['']:
+                # metric = get_metric(alpha_metrics, qza)
                 div_tsv = '%s.tsv' % splitext(qza)[0]
                 if not isfile(div_tsv) or not isfile(div_tsv):
                     print('  [KRUSKAL-WALLIS] metric %s not calculated\nSkipping it...' % metric)
