@@ -263,13 +263,8 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
                  '# Filter samples for a min number of %s reads' % p_filt_threshs,
                  None, noloc, jobs)
 
-    print()
-    print()
-    print('BEFORE', datasets)
+    # after this update, the raw dataset remain included
     datasets.update(datasets_update)
-    print()
-    print()
-    print('AFTER', datasets)
     datasets_read.update(datasets_read_update)
     datasets_features.update(datasets_features_update)
     datasets_phylo.update(datasets_phylo_update)
