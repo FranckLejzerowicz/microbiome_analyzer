@@ -56,7 +56,9 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                               ' training not valid (must be in range 0-1)')
 
         new_meta_vars_pd = new_meta_pd[meta_vars].copy()
+        print(new_meta_vars_pd)
         cat_vars = [x for x in new_meta_vars_pd.columns if str(new_meta_vars_pd[x].dtype) == 'object']
+        print(cat_vars)
         if cat_vars:
             new_meta_cat_pd = new_meta_vars_pd[cat_vars].copy()
             new_meta_cat_pd['concat_cols'] = new_meta_cat_pd.apply(
