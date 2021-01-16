@@ -124,9 +124,6 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
         procrustes_subsets = {'ALL': [[]]}
     else:
         procrustes_pairs, procrustes_subsets = get_procrustes_mantel_dicts(p_procrustes)
-    print()
-    print()
-    print(betas)
     get_job_folder(i_datasets_folder, 'procrustes%s' % evaluation)
     dms_tab = []
     all_sh_pbs = {}
@@ -135,11 +132,7 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
 
         dat1, raref1 = get_dat_idx(dat1_, evaluation, datasets_filt, filt_only)
         dat2, raref2 = get_dat_idx(dat2_, evaluation, datasets_filt, filt_only)
-        print()
-        print()
-        print(pair)
-        print(dat1, raref1)
-        print(dat2, raref2)
+
         if check_dat_exists(betas, dat1, missing_dats) or check_dat_exists(betas, dat2, missing_dats):
             continue
 
