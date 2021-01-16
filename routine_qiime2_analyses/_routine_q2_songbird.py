@@ -71,27 +71,27 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
             print(new_meta_cat_pd)
             print(rep_d)
             print(vc)
-        if cat_vars and vc.size < new_meta_vars_pd.shape[0] * 0.5:
+        if cat_vars and vc.size < new_meta_cat_pd.shape[0] * 0.5:
             print("cat_vars:", cat_vars)
             if 1 in vc.values:
                 vc_in = vc[vc > 1].index.tolist()
-                new_meta_vars_pd_in = new_meta_vars_pd.loc[new_meta_vars_pd['concat_cols'].isin(vc_in)]
+                new_meta_cat_pd_in = new_meta_cat_pd.loc[new_meta_cat_pd['concat_cols'].isin(vc_in)]
             else:
-                new_meta_vars_pd_in = new_meta_vars_pd.copy()
+                new_meta_cat_pd_in = new_meta_cat_pd.copy()
 
-            X = np.array(new_meta_vars_pd_in.values)
-            y = new_meta_vars_pd_in.index.tolist()
-            if train_perc < new_meta_vars_pd_in['concat_cols'].unique().size:
+            X = np.array(new_meta_cat_pd_in.values)
+            y = new_meta_cat_pd_in.index.tolist()
+            if train_perc < new_meta_cat_pd_in['concat_cols'].unique().size:
                 return None
 
             _, __, ___, train_samples = train_test_split(
                 X, y, test_size=train_perc,
-                stratify=new_meta_vars_pd_in['concat_cols'].tolist()
+                stratify=new_meta_cat_pd_in['concat_cols'].tolist()
             )
-            new_meta_vars_pd[train_column] = ['Train' if x in train_samples else
-                                              'Test' for x in new_meta_vars_pd.index]
-            ct = pd.crosstab(new_meta_vars_pd[train_column],
-                             new_meta_vars_pd['concat_cols']).T.reset_index()
+            new_meta_cat_pd[train_column] = ['Train' if x in train_samples else
+                                             'Test' for x in new_meta_cat_pd.index]
+            ct = pd.crosstab(new_meta_cat_pd[train_column],
+                             new_meta_cat_pd['concat_cols']).T.reset_index()
             ct = pd.concat([
                 pd.DataFrame(
                     [rep_d[x] for x in ct['concat_cols']],
@@ -100,7 +100,7 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 ct[['Train', 'Test']]
             ], axis=1)
             ct.to_csv(new_meta_ct, sep='\t')
-            new_meta_pd = new_meta_pd.drop(columns='concat_cols')
+            # new_meta_pd = new_meta_cat_pd.drop(columns='concat_cols')
         else:
             train_samples = random.sample(
                 new_meta_pd.index.tolist(),
