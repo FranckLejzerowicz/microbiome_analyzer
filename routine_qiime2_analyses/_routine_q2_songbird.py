@@ -57,7 +57,7 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
 
         new_meta_vars_pd = new_meta_pd[meta_vars].copy()
         print(new_meta_vars_pd)
-        cat_vars = [x for x in new_meta_vars_pd.columns if str(new_meta_vars_pd[x].dtype) == 'object']
+        cat_vars = [x for x in meta_vars if str(new_meta_vars_pd[x].dtype) == 'object']
         print(cat_vars)
         if cat_vars:
             new_meta_cat_pd = new_meta_vars_pd[cat_vars].copy()
@@ -65,6 +65,9 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 func=lambda x: '_'.join([str(y) for y in x]), axis=1)
             rep_d = dict(('_'.join([str(i) for i in r]), list(r)) for r in new_meta_cat_pd[cat_vars].values)
             vc = new_meta_vars_pd['concat_cols'].value_counts()
+            print(new_meta_cat_pd)
+            print(rep_d)
+            print(vc)
         if cat_vars and vc.size < new_meta_vars_pd.shape[0] * 0.5:
             print("cat_vars:", cat_vars)
             if 1 in vc.values:
