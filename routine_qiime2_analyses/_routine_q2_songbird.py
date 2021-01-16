@@ -61,6 +61,8 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
         print(cat_vars)
         if cat_vars:
             new_meta_cat_pd = new_meta_vars_pd[cat_vars].copy()
+            print(new_meta_cat_pd)
+            print(new_meta_cat_pd.apply(func=lambda x: '_'.join([str(y) for y in x]), axis=1))
             new_meta_cat_pd['concat_cols'] = new_meta_cat_pd.apply(
                 func=lambda x: '_'.join([str(y) for y in x]), axis=1)
             rep_d = dict(('_'.join([str(i) for i in r]), list(r)) for r in new_meta_cat_pd[cat_vars].values)
