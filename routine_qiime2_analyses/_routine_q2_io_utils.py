@@ -1137,6 +1137,7 @@ def get_meta_alpha(raref_dir, dat_rt, raref):
             meta = sorted(meta)[0]
     else:
         meta = sorted(meta)[0]
+    print(' =====> meta:', meta)
     return meta
 
 
