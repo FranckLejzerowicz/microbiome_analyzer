@@ -646,9 +646,9 @@ def simple_chunks(run_pbs, job_folder2, to_chunk, analysis: str,
             if jobs:
                 if cur_written:
                     out_pbs = '%s.pbs' % splitext(out_sh)[0]
-                    run_xpbs(out_sh, out_pbs, '%s.%s' % (prjct_nm, dat), qiime_env,
-                             time, n_nodes, n_procs, mem_num, mem_dim, chmod, 1,
-                             '', None, noloc, jobs, tmp)
+                    run_xpbs(out_sh, out_pbs, '%s.%s.%s' % (prjct_nm, dat, analysis),
+                             qiime_env, time, n_nodes, n_procs, mem_num, mem_dim,
+                             chmod, 1, '', None, noloc, jobs, tmp)
                     if os.getcwd().startswith('/panfs'):
                         out_pbs = out_pbs.replace(os.getcwd(), '')
                     main_o.write('qsub %s\n' % out_pbs)
