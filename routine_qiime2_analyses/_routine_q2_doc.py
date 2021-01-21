@@ -38,7 +38,7 @@ def run_single_doc(i_dataset_folder: str, odir: str, tsv: str,
         for case_vals in case_vals_list:
             token = ''.join([str(random.choice(range(100))) for x in range(3)])
             case = get_case(case_vals, '', case_var)
-            cur_rad = '%s/%s_%s%s' % (odir, case.strip('_'), filt, cur_raref)
+            cur_rad = '%s/%s%s/%s' % (odir, case.strip('_'), cur_raref, filt)
             cases.append(cur_rad)
             cur_rad_r = '%s/R' % cur_rad
             cur_rad_token = '%s/tmp/%s' % (i_dataset_folder, token)
