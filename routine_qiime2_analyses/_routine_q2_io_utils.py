@@ -474,7 +474,8 @@ def get_doc_config(p_doc_config: str) -> (dict, dict, dict):
         'nulls': 1,
         'non_zero': 1,
         'null': 1,
-        'use_mp': False
+        'use_mp': False,
+        'replicate': None,
     }
     main_cases_dict = {'ALL': [[]]}
     if p_doc_config:

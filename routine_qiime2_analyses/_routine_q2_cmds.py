@@ -933,6 +933,8 @@ def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
         cmd += '--use_mp \\\n'
     else:
         cmd += '--p-cpus 1 \\\n'
+    if doc_params['replicate']:
+        cmd += '-k %s \\\n' % doc_params['replicate']
     cmd += '--p-r %s \\\n' % doc_params['r']
     cmd += '--p-subr %s \\\n' % doc_params['subr']
     cmd += '--p-mov-avg %s \\\n' % doc_params['mov_avg']
