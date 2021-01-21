@@ -431,7 +431,7 @@ def routine_qiime2_analyses(
         phates = {}
 
     # DISSIMILARITY OVERLAP --------------------------------------------
-    if 'doc' not in p_skip:
+    if 'doc' not in p_skip and p_doc_config:
         print('(run_doc)')
         run_doc(i_datasets_folder, datasets, p_doc_config,
                 datasets_rarefs, force, prjct_nm, qiime_env, chmod, noloc,
