@@ -140,7 +140,7 @@ def run_doc(i_datasets_folder: str, datasets: dict, p_doc_config: str,
         if dat in doc_filtering:
             filters = doc_filtering[dat]
         else:
-            filters = {'0_0': ['0', '0']}
+            filters = {'0-0': ['0', '0']}
         for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
             dat_phates = []
             if dat in phates:
