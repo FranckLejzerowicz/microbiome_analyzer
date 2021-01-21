@@ -66,7 +66,7 @@ if arefiles and dat in collapsed:
 
     nodfs_pdf = '%s/nodfs.pdf' % odir
     with PdfPages(nodfs_pdf) as pdf:
-        for (mode_metadata), nodfs_and_null_mode_ in nodfs_and_null.groupby('MODE_METADATA'):
+        for (mode_metadata, null), nodfs_and_null_mode_ in nodfs_and_null.groupby(['MODE_METADATA', 'NULL']):
             nodfs_and_null_mode = nodfs_and_null_mode_.drop(columns=['MODE_METADATA'])
             nodfs_and_null_mode['LEVEL_SORT_LEVEL'] = nodfs_and_null_mode['LEVEL_SORT'].astype(str) + \
                                                       nodfs_and_null_mode['LEVEL']
@@ -99,7 +99,7 @@ if arefiles and dat in collapsed:
                             color=nodfs_leg[COMP], fontsize=5
                         )
 
-            suptitle = '%s - %s' % (dat, mode_metadata)
+            suptitle = '%s - %s (%s)' % (dat, mode_metadata, null)
             plt.suptitle(suptitle, fontsize=12)
             plt.subplots_adjust(top=.90, hspace=0.3)
             pdf.savefig(bbox_inches='tight', dpi=300)
