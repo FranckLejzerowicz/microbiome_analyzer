@@ -113,11 +113,13 @@ for dataset, perms_dat_pd in perms_pd.groupby('dataset'):
                     g.set_xticklabels(['' for x in g.get_xticklabels()])
                     g.set_xlabel('')
                 else:
-                    g.set_xticklabels(['%s [%s]' % (
-                        x.get_text(), ', '.join(
-                            ['%s:%s' % (y, z) for y, z in perms_filt_cvs[x.get_text()].items()]
-                        )
-                    ) for x in g.get_xticklabels()])
+                    g.set_xticklabels(g.get_xticklabels(), rotation=90, ha='right')
+                # else:
+                #     g.set_xticklabels(['%s [%s]' % (
+                #         x.get_text(), ', '.join(
+                #             ['%s:%s' % (y, z) for y, z in perms_filt_cvs[x.get_text()].items()]
+                #         )
+                #     ) for x in g.get_xticklabels()], rotation=90, ha='right')
 
             plt.suptitle('%s - %s (%s samples)' % (
                 dataset, subset, method_perms_filt_size.stack().astype(int).max()))
