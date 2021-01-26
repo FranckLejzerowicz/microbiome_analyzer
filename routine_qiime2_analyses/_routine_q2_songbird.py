@@ -76,6 +76,10 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 new_meta_cat_pd_in = new_meta_cat_pd.copy()
             X = np.array(new_meta_cat_pd_in.values)
             y = new_meta_cat_pd_in.index.tolist()
+            print("new_meta_cat_pd_in['concat_cols'].unique()")
+            print(new_meta_cat_pd_in['concat_cols'].unique())
+            print("train_perc")
+            print(train_perc)
             if train_perc < new_meta_cat_pd_in['concat_cols'].unique().size:
                 return None
 
