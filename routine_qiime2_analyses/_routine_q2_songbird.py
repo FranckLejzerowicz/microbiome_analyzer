@@ -52,7 +52,8 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
             if 0 < train_float < 1:
                 train_perc = train_float
             else:
-                raise IOError('\t\t\t[SONGBIRD] Float passed as percent of samples for'
+                train_column = ''
+                print('\t\t\t[SONGBIRD] Float passed as percent of samples for'
                               ' training not valid (must be in range 0-1)')
 
         new_meta_vars_pd = new_meta_pd[meta_vars].copy()
@@ -97,8 +98,10 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 new_meta_pd.index.tolist(),
                 k=int(train_perc * new_meta_pd.shape[0])
             )
-        new_meta_vars_pd[train_column] = ['Train' if x in train_samples else
-                                     'Test' for x in new_meta_pd.index]
+        new_meta_vars_pd[train_column] = [
+            'Train' if x in train_samples else
+            'Test' for x in new_meta_pd.index
+        ]
     else:
         if train in new_meta_pd.columns:
             if {'Train', 'Test'}.issubset(new_meta_pd[train]):
@@ -107,10 +110,12 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                     new_meta_pd[train].isin(['Train', 'Test'])
                 ]
             else:
-                raise IOError('\t\t\t[SONGBIRD] Columns passed for training do '
+                train_column = ''
+                print('\t\t\t[SONGBIRD] Columns passed for training do '
                               'not have "Train" and "Test" factors')
         else:
-            raise IOError('\t\t\t[SONGBIRD] Columns passed for training not exists')
+            train_column = ''
+            print('\t\t\t[SONGBIRD] Columns passed for training not exists')
     new_meta_vars_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
     return train_column
 
