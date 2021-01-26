@@ -80,7 +80,8 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
             print(new_meta_cat_pd_in['concat_cols'].unique())
             print("train_perc")
             print(train_perc)
-            if train_perc < new_meta_cat_pd_in['concat_cols'].unique().size:
+            if new_meta_cat_pd_in['concat_cols'].unique().size < 2:
+            # if train_perc < new_meta_cat_pd_in['concat_cols'].unique().size:
                 return None
 
             _, __, ___, train_samples = train_test_split(
