@@ -575,7 +575,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                 models = check_metadata_models(meta, meta_pd, songbird_models[dat])
             else:
                 continue
-
+            print("models")
+            print(models)
             #####################################################################
             # snakemake here: config to organise the inputs/depedencies (joblib)
             #####################################################################
