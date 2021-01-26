@@ -93,6 +93,12 @@ def run_deicode(i_datasets_folder: str, datasets: dict, datasets_rarefs: dict,
         for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
             cur_raref = datasets_rarefs[dat][idx]
             tsv, meta = tsv_meta_pds
+            meta_alphas = meta.replace('.tsv', '_alphas.tsv')
+            meta_alphas_full = meta.replace('.tsv', '_alphas_full.tsv')
+            if isfile(meta_alphas_full):
+                meta = meta_alphas_full
+            elif isfile(meta_alphas):
+                meta = meta_alphas
             meta_pd = read_meta_pd(meta)
             meta_pd = meta_pd.set_index('sample_name')
             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'DEICODE')
