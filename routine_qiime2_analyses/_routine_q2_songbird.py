@@ -58,19 +58,22 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
 
         new_meta_vars_pd = new_meta_pd[meta_vars].copy()
         cat_vars = [x for x in meta_vars if str(new_meta_vars_pd[x].dtype) == 'object']
+        print("cat_vars")
+        print(cat_vars)
         if cat_vars:
             new_meta_cat_pd = new_meta_vars_pd[cat_vars].copy()
             new_meta_cat_pd['concat_cols'] = new_meta_cat_pd.apply(
                 func=lambda x: '_'.join([str(y) for y in x]), axis=1)
             rep_d = dict(('_'.join([str(i) for i in r]), list(r)) for r in new_meta_cat_pd[cat_vars].values)
             vc = new_meta_cat_pd['concat_cols'].value_counts()
+            print("vc")
+            print(vc)
         if cat_vars and vc.size < new_meta_cat_pd.shape[0] * 0.5:
             if 1 in vc.values:
                 vc_in = vc[vc > 1].index.tolist()
                 new_meta_cat_pd_in = new_meta_cat_pd.loc[new_meta_cat_pd['concat_cols'].isin(vc_in)]
             else:
                 new_meta_cat_pd_in = new_meta_cat_pd.copy()
-
             X = np.array(new_meta_cat_pd_in.values)
             y = new_meta_cat_pd_in.index.tolist()
             if train_perc < new_meta_cat_pd_in['concat_cols'].unique().size:
@@ -224,6 +227,8 @@ def get_metadata_train_test(meta_pd, meta_vars, new_meta, train, drop, new_meta_
     # if 1 in new_meta_pd_.tmptmptmp.value_counts():
     #
     #     return None
+    print("new_meta_pd")
+    print(new_meta_pd)
     train_column = get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct)
     return train_column
 
