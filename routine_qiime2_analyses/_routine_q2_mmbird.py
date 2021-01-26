@@ -164,7 +164,8 @@ def get_paired_heatmaps_command(
     mmvec_pre_paired_fp = '%s/mmvec_pre_paired-heatmaps.py' % RESOURCES
 
     cmd = ''
-    if not isfile(paired_heatmap_qzv):
+    # if not isfile(paired_heatmap_qzv):
+    if 1:
 
         omic1_common_fp_tmp = '%s_tmp.tsv' % splitext(omic1_common_fp)[0]
         omic2_common_fp_tmp = '%s_tmp.tsv' % splitext(omic2_common_fp)[0]
@@ -241,7 +242,8 @@ def get_xmmvec_commands(
         ncols = pd.read_table(ranks_fp, nrows=3, index_col=0).shape[1]
 
     ranks_html = ordi_edit_fp.replace('ordination.txt', 'ranks.html')
-    if not isfile(ranks_html):
+    # if not isfile(ranks_html):
+    if 1:
         cmd += '\nXmmvec'
         cmd += ' --i-ranks-path %s' % ranks_fp
         cmd += ' --o-ranks-explored %s' % ranks_html
