@@ -102,6 +102,7 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
             'Train' if x in train_samples else
             'Test' for x in new_meta_pd.index
         ]
+        print('1', train_column)
     else:
         if train in new_meta_pd.columns:
             if {'Train', 'Test'}.issubset(new_meta_pd[train]):
