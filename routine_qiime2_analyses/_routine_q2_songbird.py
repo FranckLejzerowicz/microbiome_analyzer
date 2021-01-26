@@ -57,22 +57,13 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
 
         new_meta_vars_pd = new_meta_pd[meta_vars].copy()
         cat_vars = [x for x in meta_vars if str(new_meta_vars_pd[x].dtype) == 'object']
-        print()
-        print()
-        print(cat_vars)
         if cat_vars:
             new_meta_cat_pd = new_meta_vars_pd[cat_vars].copy()
-            print(new_meta_cat_pd)
-            print(new_meta_cat_pd.apply(func=lambda x: '_'.join([str(y) for y in x]), axis=1))
             new_meta_cat_pd['concat_cols'] = new_meta_cat_pd.apply(
                 func=lambda x: '_'.join([str(y) for y in x]), axis=1)
             rep_d = dict(('_'.join([str(i) for i in r]), list(r)) for r in new_meta_cat_pd[cat_vars].values)
             vc = new_meta_cat_pd['concat_cols'].value_counts()
-            print(new_meta_cat_pd)
-            print(rep_d)
-            print(vc)
         if cat_vars and vc.size < new_meta_cat_pd.shape[0] * 0.5:
-            print("cat_vars:", cat_vars)
             if 1 in vc.values:
                 vc_in = vc[vc > 1].index.tolist()
                 new_meta_cat_pd_in = new_meta_cat_pd.loc[new_meta_cat_pd['concat_cols'].isin(vc_in)]
@@ -106,13 +97,13 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 new_meta_pd.index.tolist(),
                 k=int(train_perc * new_meta_pd.shape[0])
             )
-        new_meta_pd[train_column] = ['Train' if x in train_samples else
+        new_meta_vars_pd[train_column] = ['Train' if x in train_samples else
                                      'Test' for x in new_meta_pd.index]
     else:
         if train in new_meta_pd.columns:
             if {'Train', 'Test'}.issubset(new_meta_pd[train]):
                 train_column = train
-                new_meta_pd = new_meta_pd.loc[
+                new_meta_vars_pd = new_meta_pd.loc[
                     new_meta_pd[train].isin(['Train', 'Test'])
                 ]
             else:
@@ -120,7 +111,7 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                               'not have "Train" and "Test" factors')
         else:
             raise IOError('\t\t\t[SONGBIRD] Columns passed for training not exists')
-    new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
+    new_meta_vars_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
     return train_column
 
 
