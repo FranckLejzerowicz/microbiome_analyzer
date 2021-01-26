@@ -55,19 +55,20 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 train_column = ''
                 print('\t\t\t[SONGBIRD] Float passed as percent of samples for'
                               ' training not valid (must be in range 0-1)')
+                return None
 
         new_meta_vars_pd = new_meta_pd[meta_vars].copy()
         cat_vars = [x for x in meta_vars if str(new_meta_vars_pd[x].dtype) == 'object']
-        print("cat_vars")
-        print(cat_vars)
+        # print("cat_vars")
+        # print(cat_vars)
         if cat_vars:
             new_meta_cat_pd = new_meta_vars_pd[cat_vars].copy()
             new_meta_cat_pd['concat_cols'] = new_meta_cat_pd.apply(
                 func=lambda x: '_'.join([str(y) for y in x]), axis=1)
             rep_d = dict(('_'.join([str(i) for i in r]), list(r)) for r in new_meta_cat_pd[cat_vars].values)
             vc = new_meta_cat_pd['concat_cols'].value_counts()
-            print("vc")
-            print(vc)
+            # print("vc")
+            # print(vc)
         if cat_vars and vc.size < new_meta_cat_pd.shape[0] * 0.5:
             if 1 in vc.values:
                 vc_in = vc[vc > 1].index.tolist()
@@ -76,10 +77,10 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 new_meta_cat_pd_in = new_meta_cat_pd.copy()
             X = np.array(new_meta_cat_pd_in.values)
             y = new_meta_cat_pd_in.index.tolist()
-            print("new_meta_cat_pd_in['concat_cols'].unique()")
-            print(new_meta_cat_pd_in['concat_cols'].unique())
-            print("train_perc")
-            print(train_perc)
+            # print("new_meta_cat_pd_in['concat_cols'].unique()")
+            # print(new_meta_cat_pd_in['concat_cols'].unique())
+            # print("train_perc")
+            # print(train_perc)
             if new_meta_cat_pd_in['concat_cols'].unique().size < 2:
             # if train_perc < new_meta_cat_pd_in['concat_cols'].unique().size:
                 return None
@@ -110,7 +111,6 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
             'Train' if x in train_samples else
             'Test' for x in new_meta_pd.index
         ]
-        print('1', train_column)
     else:
         if train in new_meta_pd.columns:
             if {'Train', 'Test'}.issubset(new_meta_pd[train]):
@@ -122,9 +122,11 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 train_column = ''
                 print('\t\t\t[SONGBIRD] Columns passed for training do '
                               'not have "Train" and "Test" factors')
+                return None
         else:
             train_column = ''
             print('\t\t\t[SONGBIRD] Columns passed for training not exists')
+            return None
     new_meta_vars_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
     return train_column
 
@@ -232,8 +234,8 @@ def get_metadata_train_test(meta_pd, meta_vars, new_meta, train, drop, new_meta_
     # if 1 in new_meta_pd_.tmptmptmp.value_counts():
     #
     #     return None
-    print("new_meta_pd")
-    print(new_meta_pd)
+    # print("new_meta_pd")
+    # print(new_meta_pd)
     train_column = get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct)
     return train_column
 
@@ -585,8 +587,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                 models = check_metadata_models(meta, meta_pd, songbird_models[dat])
             else:
                 continue
-            print("models")
-            print(models)
+            # print("models")
+            # print(models)
             #####################################################################
             # snakemake here: config to organise the inputs/depedencies (joblib)
             #####################################################################
