@@ -586,7 +586,8 @@ def write_qza_subset(qza: str, qza_case_fp: str, new_meta: str, cur_sh: TextIO):
 def write_collapse_taxo(tab_qza: str, tax_qza: str,
                         collapsed_qza: str, collapsed_tsv: str,
                         meta_fp: str, collapsed_meta: str,
-                        level: int, cur_sh: TextIO) -> None:
+                        level: int, remove_empty: list,
+                        cur_sh: TextIO) -> None:
     """
     :param tab_qza:
     :param tax_qza:
@@ -606,6 +607,22 @@ def write_collapse_taxo(tab_qza: str, tax_qza: str,
         cmd += '--o-collapsed-table %s\n' % collapsed_qza
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n\n' % cmd)
+
+    if remove_empty:
+        tax_tmp = '%s_filtempty%s.tsv' % (splitext(tax_qza)[0], level)
+        with open(tax_tmp, 'w') as o:
+            o.write('Feature ID\tTaxon\n')
+            for tax in remove_empty:
+                o.write('%s\tremove\n' % tax)
+        cmd += '\nqiime feature-table filter-features \\\n'
+        cmd += '--i-table %s \\\n' % collapsed_qza
+        cmd += '--m-metadata-file %s \\\n' % tax_tmp
+        cmd += '--o-filtered-table %s2.qza \\\n' % collapsed_qza
+        cmd += '--p-exclude-ids \n'
+        cur_sh.write('echo "%s"\n' % cmd)
+        cur_sh.write('%s\n\n' % cmd)
+        cur_sh.write('mv %s2.qza %s\n' % (collapsed_qza, collapsed_qza))
+
     if not isfile(collapsed_tsv):
         cmd = run_export(collapsed_qza, collapsed_tsv, 'FeatureTable')
         cur_sh.write('%s\n\n' % cmd)
