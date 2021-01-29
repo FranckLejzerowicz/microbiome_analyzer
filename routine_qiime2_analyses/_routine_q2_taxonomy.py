@@ -385,7 +385,7 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
                     tab_fp, meta_fp = tab_meta_fp
                     tab_qza = '%s.qza' % splitext(tab_fp)[0]
                     for tax, level in split_levels.items():
-                        remove_empty = {}
+                        remove_empty = set()
                         if tax in remove_empties:
                             remove_empty = remove_empties[tax]
                         if (tax, level) in collapsed_removed:
