@@ -234,7 +234,7 @@ def get_split_levels(collapse_levels: dict, split_taxa_pd: pd.DataFrame):
         split_levels[str(taxo_name)] = split_taxa_index
         for tdx, tax in enumerate(split_taxa_pd.iloc[:, (split_taxa_index-1)].tolist()):
             if str(tax) != 'nan' and len(tax.replace(str(taxo_name), '').strip('__')) < 3:
-                remove_empties.setdefault(taxo_name, []).append(
+                remove_empties.setdefault(taxo_name, set()).add(
                     ';'.join(split_taxa_pd.iloc[tdx, :split_taxa_index])
                 )
     return split_levels, remove_empties
@@ -352,7 +352,7 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
                               for dat, x in collapse_taxo.items()
                               if dat in datasets_filt))
     main_written = 0
-    noempty_collapse = 0
+    noempty_collapse = 1
     collapsed = {}
     datasets_update = {}
     datasets_read_update = {}
@@ -397,21 +397,21 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
                         collapsed_meta = '%s_tx-%s.tsv' % (splitext(meta_fp)[0], tax)
                         if isfile(collapsed_tsv) and isfile(collapsed_meta):
                             collapsed_pd = pd.read_csv(collapsed_tsv, index_col=0, header=0, sep='\t')
-                            # if collapsed_pd.shape[0] < 5:
-                            #     collapsed_removed.add((dat, tax))
-                            #     print('Not using %s collapsed at level %s (< 5 features)' % (dat, tax))
-                            #     continue
+                            if collapsed_pd.shape[0] < 5:
+                                collapsed_removed.add((dat, tax))
+                                print('Not using %s collapsed at level %s (< 5 features)' % (dat, tax))
+                                continue
                             with open(collapsed_meta) as f:
                                 for line in f:
                                     break
                             collapsed_meta_pd = pd.read_table(
                                 collapsed_meta, dtype={line.split('\t')[0]: str}
                             )
-                            if noempty_collapse and len(set(remove_empty) & set(collapsed_pd.index)):
+                            if noempty_collapse and len(remove_empty & set(collapsed_pd.index)):
                                 written += 1
                                 main_written += 1
                                 collapsed_pd = collapsed_pd.drop(
-                                    index=list(set(remove_empty) & set(collapsed_pd.index))
+                                    index=list(remove_empty & set(collapsed_pd.index))
                                 )
                                 collapsed_pd = collapsed_pd.loc[:, collapsed_pd.sum() > 0]
                                 collapsed_pd.to_csv(collapsed_tsv, index=True, sep='\t')
