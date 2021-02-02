@@ -58,7 +58,7 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                               ' training not valid (must be in range 0-1)')
                 return None
 
-        new_meta_vars_pd = new_meta_pd[meta_vars].copy()
+        new_meta_vars_pd = new_meta_pd.set_index('sample_name')[meta_vars].copy()
         cat_vars = [x for x in meta_vars if str(new_meta_vars_pd[x].dtype) == 'object']
         # print("cat_vars")
         # print(cat_vars)
