@@ -108,6 +108,11 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/collapse_taxo.yml' and README)."
 )
 @click.option(
+    "-tt", "--p-train-test", required=False, show_default=True, default=False,
+    help="Train test split per dataset. Must be a yaml file, e.g.\n"
+         "(see example in 'examples/train_test.yml' and README)."
+)
+@click.option(
     "-a", "--p-adonis-formulas", required=False, default=False, show_default=True,
     help="Formula for Adonis tests for each PERMANOVA subset. Must be a yaml file, e.g.\n"
          "(see example in 'examples/adonis_formulas.yml' and README)."
@@ -274,6 +279,7 @@ def standalone_routine(
         p_mantel,
         p_distance_decay,
         p_collapse_taxo,
+        p_train_test,
         p_adonis_formulas,
         p_doc_config,
         p_sourcetracking_config,
@@ -325,6 +331,7 @@ def standalone_routine(
         p_mantel,
         p_distance_decay,
         p_collapse_taxo,
+        p_train_test,
         p_adonis_formulas,
         p_doc_config,
         p_sourcetracking_config,

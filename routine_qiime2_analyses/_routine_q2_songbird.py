@@ -19,6 +19,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_job_folder,
     get_analysis_folder,
     get_songbird_dicts,
+    get_train_test_dict,
     write_main_sh,
     read_meta_pd,
 )
@@ -89,28 +90,30 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 X, y, test_size=train_perc,
                 stratify=new_meta_cat_pd_in['concat_cols'].tolist()
             )
-            new_meta_cat_pd[train_column] = ['Train' if x in train_samples else
-                                             'Test' for x in new_meta_cat_pd.index]
-            ct = pd.crosstab(new_meta_cat_pd[train_column],
-                             new_meta_cat_pd['concat_cols']).T.reset_index()
-            ct = pd.concat([
-                pd.DataFrame(
-                    [rep_d[x] for x in ct['concat_cols']],
-                    columns=cat_vars, index=ct.index
-                ),
-                ct[['Train', 'Test']]
-            ], axis=1)
-            ct.to_csv(new_meta_ct, sep='\t')
-            # new_meta_pd = new_meta_cat_pd.drop(columns='concat_cols')
+            new_meta_cat_sams = ['Train' if x in train_samples else
+                                 'Test' for x in new_meta_cat_pd.index]
+            new_meta_cat_pd[train_column] = new_meta_cat_sams
+            if new_meta_ct:
+                ct = pd.crosstab(new_meta_cat_pd[train_column],
+                                 new_meta_cat_pd['concat_cols']).T.reset_index()
+                ct = pd.concat([
+                    pd.DataFrame(
+                        [rep_d[x] for x in ct['concat_cols']],
+                        columns=cat_vars, index=ct.index
+                    ),
+                    ct[['Train', 'Test']]
+                ], axis=1)
+                ct.to_csv(new_meta_ct, sep='\t')
         else:
             train_samples = random.sample(
                 new_meta_pd.index.tolist(),
                 k=int(train_perc * new_meta_pd.shape[0])
             )
-        new_meta_vars_pd[train_column] = [
+        new_meta_cat_sams = [
             'Train' if x in train_samples else
             'Test' for x in new_meta_pd.index
         ]
+        new_meta_vars_pd[train_column] = new_meta_cat_sams
     else:
         if train in new_meta_pd.columns:
             if {'Train', 'Test'}.issubset(new_meta_pd[train]):
@@ -127,8 +130,9 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
             train_column = ''
             print('\t\t\t[SONGBIRD] Columns passed for training not exists')
             return None
-    new_meta_vars_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-    return train_column
+    if new_meta:
+        new_meta_vars_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
+    return train_column, new_meta_cat_sams
 
 
 def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
@@ -227,17 +231,8 @@ def get_metadata_train_test(meta_pd, meta_vars, new_meta, train, drop, new_meta_
         ).any(axis=1)
         new_meta_pd = new_meta_pd.loc[~to_remove]
 
-    new_meta_pd_ = new_meta_pd.copy()
-    # new_meta_pd_['tmptmptmp'] = [''.join(map(str, x)) for x in new_meta_pd_.values if str(x) != 'nan']
-    # print(meta_vars)
-    # print(new_meta_pd_.tmptmptmp.value_counts())
-    # if 1 in new_meta_pd_.tmptmptmp.value_counts():
-    #
-    #     return None
-    # print("new_meta_pd")
-    # print(new_meta_pd)
-    train_column = get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct)
-    return train_column
+    train_column, new_meta_cat_sams = get_train_column(new_meta_pd, meta_vars, str(train), new_meta, new_meta_ct)
+    return train_column, new_meta_cat_sams
 
 
 def get_unique_filterings(songbird_filtering):
@@ -248,228 +243,28 @@ def get_unique_filterings(songbird_filtering):
     return unique_filterings
 
 
-# def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
-#                  datasets_read: dict, datasets_filt: dict, input_to_filtered: dict,
-#                  mmvec_outputs: list, force: bool, prjct_nm: str, qiime_env: str,
-#                  chmod: str, noloc: bool, split: bool,
-#                  run_params: dict, filt_raref: str) -> list:
-#     """
-#     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
-#     https://github.com/biocore/songbird
-#     Main per-dataset looper for the songbird datasets.
-#
-#     :param p_diff_models: Formulas for multinomial regression-based differential abundance ranking.
-#     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-#     :param datasets: list of datasets.
-#     :param force: Force the re-writing of scripts for all commands.
-#     :param prjct_nm: Nick name for your project.
-#     :param qiime_env: qiime2-xxxx.xx conda environment.
-#     :param chmod: whether to change permission of output files (default: 775).
-#     """
-#     job_folder = get_job_folder(i_datasets_folder, 'songbird')
-#     job_folder2 = get_job_folder(i_datasets_folder, 'songbird/chunks')
-#     songbird_dicts = get_songbird_dicts(p_diff_models)
-#     songbird_models = songbird_dicts[0]
-#     songbird_filtering = songbird_dicts[1]
-#     unique_filtering = get_unique_filterings(songbird_filtering)
-#
-#     params = songbird_dicts[2]
-#     models_baselines = songbird_dicts[3]
-#     songbird_datasets = songbird_dicts[4]
-#     main_cases_dict = songbird_dicts[5]
-#
-#     trains = params['train']
-#     batches = params['batches']
-#     learns = params['learns']
-#     epochs = params['epochs']
-#     thresh_feats = params['thresh_feats']
-#     thresh_samples = params['thresh_samples']
-#     diff_priors = params['diff_priors']
-#
-#     filt_datasets_done, common_datasets_done = check_filtered_and_common_dataset(
-#         i_datasets_folder, datasets, datasets_filt, songbird_datasets,
-#         {}, songbird_filtering, unique_filtering,
-#         'songbird', input_to_filtered, {})
-#
-#     already_computed = {}
-#     filt_datasets, common_datasets = make_filtered_and_common_dataset(
-#         i_datasets_folder, datasets, datasets_filt,
-#         datasets_read, songbird_datasets, {}, songbird_filtering,
-#         unique_filtering, job_folder, force, prjct_nm, qiime_env,
-#         chmod, noloc, 'songbird', filt_raref, filt_datasets_done,
-#         common_datasets_done, input_to_filtered, already_computed)
-#
-#     songbird_models.update(dict((input_to_filtered[x], y)
-#         for x, y in songbird_models.items() if x in input_to_filtered))
-#
-#     songbirds = {}
-#     for dat, filts_files in filt_datasets.items():
-#         for filts, files in filts_files.items():
-#             songbirds.setdefault(dat[0], []).append([filts, files[0], files[2], ''])
-#
-#     if mmvec_outputs:
-#         mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
-#         mmvec_outputs_pd.to_csv('~/testtest.txt', index=False, sep='\t')
-#         for r, row in mmvec_outputs_pd.iterrows():
-#             pair = row['pair']
-#             omic1 = row['omic1']
-#             omic2 = row['omic2']
-#             filt1 = row['filt1']
-#             filt2 = row['filt2']
-#             omic1_common_fp = row['omic1_common_fp']
-#             omic2_common_fp = row['omic2_common_fp']
-#             meta_common_fp = row['meta_common_fp']
-#             songbirds.setdefault(omic1, []).append([filt1, omic1_common_fp, meta_common_fp, pair])
-#             songbirds.setdefault(omic2, []).append([filt2, omic2_common_fp, meta_common_fp, pair])
-#
-#     uni = 0
-#
-#     all_sh_pbs = {}
-#     first_print = 0
-#     songbird_outputs = []
-#     for dat, filts_tsvs_metas_pair in songbirds.items():
-#         if not split:
-#             out_sh = '%s/run_songbird_%s%s.sh' % (job_folder2, dat, filt_raref)
-#         for (filt, tsv, meta_, pair) in filts_tsvs_metas_pair:
-#             if split:
-#                 if pair:
-#                     out_sh = '%s/run_songbird_%s_%s_%s%s.sh' % (job_folder2, dat, filt, pair, filt_raref)
-#                 else:
-#                     out_sh = '%s/run_songbird_%s_%s%s.sh' % (job_folder2, dat, filt, filt_raref)
-#
-#             meta_alphas = '%s_alphas_full.tsv' % splitext(meta_)[0]
-#             if isfile(meta_alphas):
-#                 meta = meta_alphas
-#             else:
-#                 meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
-#                 if isfile(meta_alphas):
-#                     meta = meta_alphas
-#                 else:
-#                     meta = meta_
-#                     if not first_print:
-#                         print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
-#                               '\t(if you have alpha diversity as a factors in the models)!')
-#                         first_print += 1
-#             if pair:
-#                 dat_pair = '%s_%s' % (dat, pair)
-#                 dat_pair_path = '%s/%s' % (dat, pair)
-#             else:
-#                 dat_pair = '%s' % dat
-#                 dat_pair_path = '%s' % dat
-#
-#             qza = '%s.qza' % splitext(tsv)[0]
-#             meta_pd = read_meta_pd(meta)
-#             meta_pd = rename_duplicate_columns(meta_pd)
-#             meta_pd = meta_pd.set_index('sample_name')
-#
-#             if dat in songbird_models:
-#                 models = check_metadata_models(meta, meta_pd, songbird_models[dat])
-#             else:
-#                 continue
-#
-#             cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'songbird')
-#             for case_var, case_vals_list in cases_dict.items():
-#                 for case_vals in case_vals_list:
-#
-#                     #####################################################################
-#                     # snakemake here: config to organise the inputs/depedencies (joblib)
-#                     #####################################################################
-#
-#                     case = get_case(case_vals, case_var)
-#                     for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
-#                                                                thresh_feats, thresh_samples, trains)):
-#                         batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, train = [str(x) for x in it]
-#                         params = 'filt_f%s_s%s/%s_%s_%s_%s_%s' % (
-#                             thresh_feat, thresh_sample, batch, learn, epoch,
-#                             diff_prior.replace('.', ''), train.replace('.', '') )
-#                         if uni:
-#                             pass
-#                             # TO DEVELOP: RUN ALL MODELS BASED ON THE SAME SET OF TESTTRAIN SAMPLES
-#                             # uni_meta_vars, unil_meta_var, uni_drop = set(), set(), set()
-#                             # uni_datdir = '%s/%s/%s/%s' % (dat_pair_path, filt, case, params)
-#                             # uni_datdir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % uni_datdir)
-#                             # uni_models = {}
-#                             # uni_model_baselines = {}
-#                             # for model, formula_meta_var_drop in models.items():
-#                             #     uni_model_baselines[model] = {'1': '"1"'}
-#                             #     formula, meta_vars, meta_var, drop = formula_meta_var_drop
-#                             #     uni_meta_vars.update(set(meta_vars))
-#                             #     unil_meta_var.add(meta_var)
-#                             #     uni_drop.update(set(drop))
-#                             #     uni_models[model] = formula
-#                             #     if dat in models_baselines and model in models_baselines[dat]:
-#                             #         uni_model_baselines[model].update(models_baselines[dat][model])
-#                             #
-#                             # print(uni_meta_vars, unil_meta_var, uni_drop)
-#                             # print(uni_datdir)
-#                             # print(uni_models)
-#                             # print(uni_model_baselines)
-#                             # uni_new_qza = '%s/uni_tab.qza' % uni_datdir
-#                             # uni_new_meta = '%s/uni_metadata.tsv' % uni_datdir
-#                             # train_column = get_songbird_metadata_train_test(
-#                             #     meta_pd, meta_vars, meta_var, new_meta,
-#                             #     train, case, case_var, case_vals, drop)
-#                             #
-#                             # uni_baselines = {}
-#                             # uni_metadata = {}
-#                             # print(gfds)
-#
-#                         for model, formula_meta_var_drop in models.items():
-#
-#                             datdir = '%s/%s/%s/%s/%s' % (dat_pair_path, filt, case, params, model)
-#                             odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
-#                             new_qza = '%s/tab.qza' % odir
-#                             new_meta = '%s/metadata.tsv' % odir
-#
-#                             formula, meta_vars, meta_var, drop = formula_meta_var_drop
-#                             train_column = get_songbird_metadata_train_test(
-#                                 meta_pd, meta_vars, meta_var, new_meta,
-#                                 train, case, case_var, case_vals, drop)
-#                             if not train_column:
-#                                 new_meta_invalid = '%s/metadata_invalid' % odir
-#                                 with open(new_meta_invalid, 'w') as invalid:
-#                                     pass
-#                                 continue
-#
-#                             baselines = {}
-#                             metadatas = {}
-#                             model_baselines = {'1': '"1"'}
-#                             if dat in models_baselines and model in models_baselines[dat]:
-#                                 model_baselines = models_baselines[dat][model]
-#
-#                             for model_baseline, baseline_formula in model_baselines.items():
-#                                 odir_base = get_analysis_folder(i_datasets_folder, 'songbird/%s/b-%s' % (datdir, model_baseline))
-#
-#                                 cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s_%s.sh' % (
-#                                     job_folder2, dat_pair, filt, case, model, model_baseline, idx)
-#                                 cur_sh = cur_sh.replace(' ', '-')
-#                                 all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-#
-#                                 diffs, tensor_html = run_single_songbird(
-#                                     odir, odir_base, qza, new_qza, new_meta, cur_sh,
-#                                     force, batch, learn, epoch, diff_prior, thresh_feat, thresh_sample,
-#                                     formula, train_column, metadatas, baselines, model_baseline, baseline_formula
-#                                 )
-#                                 songbird_outputs.append([dat, filt, '%s_%s' % (params.replace('/', '__'), model), case,
-#                                                          diffs, model_baseline, tensor_html, pair])
-#
-#     job_folder = get_job_folder(i_datasets_folder, 'songbird')
-#     main_sh = write_main_sh(job_folder, '2_songbird%s' % filt_raref, all_sh_pbs,
-#                             '%s.sngbrd%s' % (prjct_nm, filt_raref),
-#                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-#                             run_params["mem_num"], run_params["mem_dim"],
-#                             qiime_env, chmod, noloc)
-#     if main_sh:
-#         if p_diff_models.startswith('/panfs'):
-#             p_diff_models = p_diff_models.replace(os.getcwd(), '')
-#         print_message("# Songbird (configs in %s)" % p_diff_models, 'sh', main_sh)
-#     return songbird_outputs
+def make_train_test_column(p_train_test, datasets, datasets_read):
+    train_test_dict = get_train_test_dict(p_train_test)
+    datasets_read_update = {}
+    for dat in sorted(datasets_read.keys()):
+        tsvs_meta_pds = datasets_read[dat]
+        if 'datasets' in train_test_dict and dat in train_test_dict['datasets']:
+            datasets_read_update[dat] = []
+            for idx, (_, meta_pd) in enumerate(tsvs_meta_pds):
+                meta_tt_pd = meta_pd.copy()
+                for tt, tt_vars in train_test_dict['datasets'][dat].items():
+                    train_column, new_meta_cat_sams = get_metadata_train_test(
+                        meta_pd, tt_vars, '', train_test_dict['train'], {}, '')
+                    meta_tt_pd[tt] = new_meta_cat_sams
+                datasets_read_update[dat].append([_, meta_tt_pd])
+                meta_tt_pd.to_csv(datasets[dat][idx][1], index=False, sep='\t')
+    datasets_read.update(datasets_read_update)
 
 
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                  datasets_read: dict, datasets_filt: dict, input_to_filtered: dict,
                  mmvec_outputs: list, force: bool, prjct_nm: str, qiime_env: str,
-                 chmod: str, noloc: bool, split: bool, run_params: dict,
+                 chmod: str, noloc: bool, split: bool, train_test: dict, run_params: dict,
                  filt_raref: str, jobs: bool, chunkit: int) -> list:
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
@@ -651,7 +446,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     new_meta = '%s/metadata.tsv' % odir
                     new_meta_ct = '%s/metadata_traintest.tsv' % odir
 
-                    train_column = get_metadata_train_test(
+                    train_column, new_meta_cat_sams = get_metadata_train_test(
                         meta_pd, meta_vars, new_meta, train, drop, new_meta_ct)
                     if not train_column:
                         new_meta_invalid = '%s/metadata_invalid' % odir

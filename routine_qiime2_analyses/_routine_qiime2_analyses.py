@@ -39,7 +39,7 @@ from routine_qiime2_analyses._routine_q2_permanova import run_permanova, summari
 from routine_qiime2_analyses._routine_q2_nestedness import run_nestedness, nestedness_graphs, nestedness_nodfs
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
 from routine_qiime2_analyses._routine_q2_phate import run_phate
-from routine_qiime2_analyses._routine_q2_songbird import run_songbird
+from routine_qiime2_analyses._routine_q2_songbird import run_songbird, make_train_test_column
 from routine_qiime2_analyses._routine_q2_mmvec import run_mmvec
 from routine_qiime2_analyses._routine_q2_mmbird import run_mmbird
 
@@ -62,6 +62,7 @@ def routine_qiime2_analyses(
         p_mantel: str,
         p_distance_decay: str,
         p_collapse_taxo: str,
+        p_train_test: str,
         p_formulas: str,
         p_doc_config: str,
         p_sourcetracking_config: str,
@@ -460,6 +461,9 @@ def routine_qiime2_analyses(
                                       noloc, split, filt_raref, run_params['mmvec'],
                                       input_to_filtered, jobs, chunkit)
 
+    if p_train_test:
+        train_test = make_train_test_column(p_train_test, datasets, datasets_read)
+
     songbird_outputs = []
     if p_diff_models:
         if filt3d:
@@ -469,7 +473,7 @@ def routine_qiime2_analyses(
             songbird_outputs = run_songbird(p_diff_models, i_datasets_folder,
                                             datasets, datasets_read, datasets_filt,
                                             input_to_filtered, mmvec_outputs, force, prjct_nm,
-                                            qiime_env, chmod, noloc, split,
+                                            qiime_env, chmod, noloc, split, train_test,
                                             run_params['songbird'], filt_raref, jobs, chunkit)
             q2s_pd = summarize_songbirds(i_datasets_folder)
             out_folder = get_analysis_folder(i_datasets_folder, 'songbird')

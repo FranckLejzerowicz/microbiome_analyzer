@@ -400,6 +400,33 @@ def get_highlights_mmbird(highlights_mmbird_fp: str) -> dict:
     return highlights_mmbird
 
 
+def get_train_test_dict(p_train_test: str) -> dict:
+    """
+    Collect from on the passed yaml file:
+    - subsets to perform songbird on
+    - formulas for songbird
+    - paramters for the modelling.
+    :param p_perm_groups: path to the yaml file containing groups.
+    :return: subset groups.
+    """
+    if not isfile(p_train_test):
+        print('yaml file containing groups does not exist:\n%s\nExiting...' % p_train_test)
+        sys.exit(0)
+    with open(p_train_test) as handle:
+        try:
+            train_test_dict = yaml.load(handle, Loader=yaml.FullLoader)
+        except AttributeError:
+            train_test_dict = yaml.load(handle)
+
+    if 'train' not in train_test_dict:
+        train_test_dict['train'] = 0.7
+    elif float(train_test_dict['train']) < 0 or float(train_test_dict['train']) > 1:
+        train_test_dict['train'] = 0.7
+
+    return train_test_dict
+
+
+
 def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict, dict):
     """
     Collect from on the passed yaml file:
