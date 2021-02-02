@@ -260,6 +260,7 @@ def make_train_test_column(p_train_test, datasets, datasets_read):
                 for tt, tt_vars in train_test_dict['datasets'][dat].items():
                     train_column, train_samples = get_metadata_train_test(
                         meta_pd, tt_vars, '', train_test_dict['train'], {}, '')
+                    print(meta_tt_pd)
                     meta_tt_pd[tt] = [
                         'Train' if x in train_samples else
                         'Test' for x in meta_tt_pd.sample_name.tolist()
