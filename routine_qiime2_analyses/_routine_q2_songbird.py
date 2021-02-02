@@ -221,7 +221,7 @@ def get_metadata_train_test(meta_pd, meta_vars, new_meta, train, drop, new_meta_
     if train in meta_pd.columns:
         meta_vars.append(train)
 
-    new_meta_pd = meta_pd.set_index('sample_name')[meta_vars]
+    new_meta_pd = meta_pd[meta_vars]
     new_meta_pd = new_meta_pd.loc[~new_meta_pd.isna().any(1)]
     new_meta_pd = rename_duplicate_columns(new_meta_pd)
 
@@ -256,7 +256,7 @@ def make_train_test_column(p_train_test, datasets, datasets_read):
                 meta_tt_pd = meta_pd.copy()
                 for tt, tt_vars in train_test_dict['datasets'][dat].items():
                     train_column, train_samples = get_metadata_train_test(
-                        meta_pd, tt_vars, '', train_test_dict['train'], {}, '')
+                        meta_pd.set_index('sample_name'), tt_vars, '', train_test_dict['train'], {}, '')
                     meta_tt_pd[tt] = [
                         'Train' if x in train_samples else
                         'Test' for x in meta_tt_pd.sample_name.tolist()
