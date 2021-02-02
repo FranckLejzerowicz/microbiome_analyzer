@@ -90,9 +90,10 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 X, y, test_size=train_perc,
                 stratify=new_meta_cat_pd_in['concat_cols'].tolist()
             )
-            new_meta_cat_sams = ['Train' if x in train_samples else
-                                 'Test' for x in new_meta_cat_pd.index]
-            new_meta_cat_pd[train_column] = new_meta_cat_sams
+            new_meta_cat_pd[train_column] = [
+                'Train' if x in train_samples else
+                'Test' for x in new_meta_cat_pd.index
+            ]
             if new_meta_ct:
                 ct = pd.crosstab(new_meta_cat_pd[train_column],
                                  new_meta_cat_pd['concat_cols']).T.reset_index()
@@ -109,12 +110,12 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 new_meta_pd.index.tolist(),
                 k=int(train_perc * new_meta_pd.shape[0])
             )
-        new_meta_cat_sams = [
+        new_meta_vars_pd[train_column] = [
             'Train' if x in train_samples else
             'Test' for x in new_meta_pd.index
         ]
-        new_meta_vars_pd[train_column] = new_meta_cat_sams
     else:
+        train_samples = []
         if train in new_meta_pd.columns:
             if {'Train', 'Test'}.issubset(new_meta_pd[train]):
                 train_column = train
@@ -132,7 +133,7 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
             return None
     if new_meta:
         new_meta_vars_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-    return train_column, new_meta_cat_sams
+    return train_column, train_samples
 
 
 def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
@@ -231,8 +232,8 @@ def get_metadata_train_test(meta_pd, meta_vars, new_meta, train, drop, new_meta_
         ).any(axis=1)
         new_meta_pd = new_meta_pd.loc[~to_remove]
 
-    train_column, new_meta_cat_sams = get_train_column(new_meta_pd, meta_vars, str(train), new_meta, new_meta_ct)
-    return train_column, new_meta_cat_sams
+    train_column, train_samples = get_train_column(new_meta_pd, meta_vars, str(train), new_meta, new_meta_ct)
+    return train_column, train_samples
 
 
 def get_unique_filterings(songbird_filtering):
@@ -253,9 +254,12 @@ def make_train_test_column(p_train_test, datasets, datasets_read):
             for idx, (_, meta_pd) in enumerate(tsvs_meta_pds):
                 meta_tt_pd = meta_pd.copy()
                 for tt, tt_vars in train_test_dict['datasets'][dat].items():
-                    train_column, new_meta_cat_sams = get_metadata_train_test(
+                    train_column, train_samples = get_metadata_train_test(
                         meta_pd, tt_vars, '', train_test_dict['train'], {}, '')
-                    meta_tt_pd[tt] = new_meta_cat_sams
+                    meta_tt_pd[tt] = [
+                        'Train' if x in train_samples else
+                        'Test' for x in meta_tt_pd.sample_name.tolist()
+                    ]
                 datasets_read_update[dat].append([_, meta_tt_pd])
                 meta_tt_pd.to_csv(datasets[dat][idx][1], index=False, sep='\t')
     datasets_read.update(datasets_read_update)
@@ -446,7 +450,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     new_meta = '%s/metadata.tsv' % odir
                     new_meta_ct = '%s/metadata_traintest.tsv' % odir
 
-                    train_column, new_meta_cat_sams = get_metadata_train_test(
+                    train_column, train_samples = get_metadata_train_test(
                         meta_pd, meta_vars, new_meta, train, drop, new_meta_ct)
                     if not train_column:
                         new_meta_invalid = '%s/metadata_invalid' % odir
