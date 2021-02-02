@@ -94,6 +94,10 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 'Train' if x in train_samples else
                 'Test' for x in new_meta_cat_pd.index
             ]
+            train_samples_names = [
+                new_meta_cat_pd.loc[x, 'sample_name'].tolist()[0]
+                for x in new_meta_cat_pd.index if x in train_samples
+            ]
             if new_meta_ct:
                 ct = pd.crosstab(new_meta_cat_pd[train_column],
                                  new_meta_cat_pd['concat_cols']).T.reset_index()
@@ -110,12 +114,16 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 new_meta_pd.index.tolist(),
                 k=int(train_perc * new_meta_pd.shape[0])
             )
+            train_samples_names = [
+                new_meta_pd.loc[x, 'sample_name'].tolist()[0]
+                for x in new_meta_pd.index if x in train_samples
+            ]
         new_meta_vars_pd[train_column] = [
             'Train' if x in train_samples else
             'Test' for x in new_meta_pd.index
         ]
     else:
-        train_samples = []
+        train_samples_name = []
         if train in new_meta_pd.columns:
             print(train)
             print(new_meta_pd[train].unique())
@@ -137,7 +145,7 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
             return None
     if new_meta:
         new_meta_vars_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
-    return train_column, train_samples
+    return train_column, train_samples_names
 
 
 def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
@@ -236,8 +244,9 @@ def get_metadata_train_test(meta_pd, meta_vars, new_meta, train, drop, new_meta_
         ).any(axis=1)
         new_meta_pd = new_meta_pd.loc[~to_remove]
 
-    train_column, train_samples = get_train_column(new_meta_pd, meta_vars, str(train), new_meta, new_meta_ct)
-    return train_column, train_samples
+    train_column, train_samples_name = get_train_column(
+        new_meta_pd, meta_vars, str(train), new_meta, new_meta_ct)
+    return train_column, train_samples_name
 
 
 def get_unique_filterings(songbird_filtering):
@@ -258,9 +267,9 @@ def make_train_test_column(p_train_test, datasets, datasets_read):
             for idx, (_, meta_pd) in enumerate(tsvs_meta_pds):
                 meta_tt_pd = meta_pd.copy()
                 for tt, tt_vars in train_test_dict['datasets'][dat].items():
-                    train_column, train_samples = get_metadata_train_test(
+                    train_column, train_samples_name = get_metadata_train_test(
                         meta_pd, tt_vars, '', train_test_dict['train'], {}, '')
-                    print(train_samples)
+                    print(train_samples_name)
                     print(meta_tt_pd)
                     meta_tt_pd[tt] = [
                         'Train' if x in train_samples else
