@@ -268,7 +268,7 @@ def make_train_test_column(p_train_test, datasets, datasets_read):
 def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                  datasets_read: dict, datasets_filt: dict, input_to_filtered: dict,
                  mmvec_outputs: list, force: bool, prjct_nm: str, qiime_env: str,
-                 chmod: str, noloc: bool, split: bool, train_test: dict, run_params: dict,
+                 chmod: str, noloc: bool, split: bool, run_params: dict,
                  filt_raref: str, jobs: bool, chunkit: int) -> list:
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
@@ -451,7 +451,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     new_meta_ct = '%s/metadata_traintest.tsv' % odir
 
                     train_column, train_samples = get_metadata_train_test(
-                        meta_pd, meta_vars, new_meta, train, drop, new_meta_ct)
+                        meta_pd, list(meta_vars), new_meta, train, drop, new_meta_ct)
                     if not train_column:
                         new_meta_invalid = '%s/metadata_invalid' % odir
                         with open(new_meta_invalid, 'w') as invalid:

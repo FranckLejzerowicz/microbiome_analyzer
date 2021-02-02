@@ -473,7 +473,7 @@ def routine_qiime2_analyses(
             songbird_outputs = run_songbird(p_diff_models, i_datasets_folder,
                                             datasets, datasets_read, datasets_filt,
                                             input_to_filtered, mmvec_outputs, force, prjct_nm,
-                                            qiime_env, chmod, noloc, split, train_test,
+                                            qiime_env, chmod, noloc, split,
                                             run_params['songbird'], filt_raref, jobs, chunkit)
             q2s_pd = summarize_songbirds(i_datasets_folder)
             out_folder = get_analysis_folder(i_datasets_folder, 'songbird')
