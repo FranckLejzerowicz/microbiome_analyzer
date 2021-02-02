@@ -117,6 +117,10 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
     else:
         train_samples = []
         if train in new_meta_pd.columns:
+            print(train)
+            print(new_meta_pd[train].unique())
+            print(new_meta_pd[train].value_counts())
+            print(new_meta_pd[train])
             if {'Train', 'Test'}.issubset(new_meta_pd[train]):
                 train_column = train
                 new_meta_vars_pd = new_meta_pd.loc[
