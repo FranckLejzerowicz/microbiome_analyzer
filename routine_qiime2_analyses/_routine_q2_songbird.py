@@ -94,6 +94,7 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 'Train' if x in train_samples else
                 'Test' for x in new_meta_cat_pd.index
             ]
+            print(new_meta_cat_pd)
             train_samples_names = [
                 new_meta_cat_pd.loc[x, 'sample_name'].tolist()[0]
                 for x in new_meta_cat_pd.index if x in train_samples
