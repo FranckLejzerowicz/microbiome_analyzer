@@ -39,7 +39,7 @@ from routine_qiime2_analyses._routine_q2_mmvec import (
 )
 
 
-def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
+def get_train_column(meta, new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
     if train.isdigit() or train.replace('.', '').isdigit():
         train_column = 'TrainTest'
         if train.isdigit():
@@ -126,6 +126,7 @@ def get_train_column(new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
                 train_column = ''
                 print('\t\t\t[SONGBIRD] Columns passed for training do '
                               'not have "Train" and "Test" factors')
+                print('\t\t\t\->', meta)
                 return None
         else:
             train_column = ''
@@ -216,7 +217,7 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
 #     new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
 #     return train_column
 
-def get_metadata_train_test(meta_pd, meta_vars, new_meta, train, drop, new_meta_ct):
+def get_metadata_train_test(meta, meta_pd, meta_vars, new_meta, train, drop, new_meta_ct):
 
     if train in meta_pd.columns:
         meta_vars.append(train)
@@ -233,7 +234,7 @@ def get_metadata_train_test(meta_pd, meta_vars, new_meta, train, drop, new_meta_
         new_meta_pd = new_meta_pd.loc[~to_remove]
 
     train_column, train_samples = get_train_column(
-        new_meta_pd, meta_vars, str(train), new_meta, new_meta_ct)
+        meta, new_meta_pd, meta_vars, str(train), new_meta, new_meta_ct)
     return train_column, train_samples
 
 
@@ -256,7 +257,7 @@ def make_train_test_column(p_train_test, datasets, datasets_read):
                 meta_tt_pd = meta_pd.copy()
                 for tt, tt_vars in train_test_dict['datasets'][dat].items():
                     train_column, train_samples = get_metadata_train_test(
-                        meta_pd.set_index('sample_name'), tt_vars, '', train_test_dict['train'], {}, '')
+                        '', meta_pd.set_index('sample_name'), tt_vars, '', train_test_dict['train'], {}, '')
                     meta_tt_pd[tt] = [
                         'Train' if x in train_samples else
                         'Test' for x in meta_tt_pd.sample_name.tolist()
@@ -452,7 +453,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     new_meta_ct = '%s/metadata_traintest.tsv' % odir
 
                     train_column, train_samples = get_metadata_train_test(
-                        meta_pd, list(meta_vars), new_meta, train, drop, new_meta_ct)
+                        meta, meta_pd, list(meta_vars), new_meta, train, drop, new_meta_ct)
                     if not train_column:
                         new_meta_invalid = '%s/metadata_invalid' % odir
                         with open(new_meta_invalid, 'w') as invalid:
