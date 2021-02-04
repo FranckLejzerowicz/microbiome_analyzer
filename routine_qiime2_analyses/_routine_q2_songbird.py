@@ -221,6 +221,10 @@ def get_metadata_train_test(meta_pd, meta_vars, new_meta, train, drop, new_meta_
     if train in meta_pd.columns:
         meta_vars.append(train)
 
+    print("meta_vars")
+    print(meta_vars)
+    print("meta_pd")
+    print(meta_pd)
     new_meta_pd = meta_pd[meta_vars]
     new_meta_pd = new_meta_pd.loc[~new_meta_pd.isna().any(1)]
     new_meta_pd = rename_duplicate_columns(new_meta_pd)
