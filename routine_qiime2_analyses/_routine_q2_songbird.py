@@ -131,6 +131,7 @@ def get_train_column(meta, new_meta_pd, meta_vars, train, new_meta, new_meta_ct)
         else:
             train_column = ''
             print('\t\t\t[SONGBIRD] Columns passed for training not exists')
+            print('\t\t\t\->', meta)
             return None
     if new_meta:
         new_meta_vars_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
