@@ -218,10 +218,14 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
 #     new_meta_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
 #     return train_column
 
-def get_metadata_train_test(meta, meta_pd, meta_vars, new_meta, train, drop, new_meta_ct):
+def get_metadata_train_test(meta_fp, meta_pd, meta_vars, new_meta, train, drop, new_meta_ct):
 
+    print(train, meta_fp)
     if train in meta_pd.columns:
+        print('IN')
         meta_vars.append(train)
+    else:
+        print('OUT')
 
     new_meta_pd = meta_pd[meta_vars]
     new_meta_pd = new_meta_pd.loc[~new_meta_pd.isna().any(1)]
@@ -235,7 +239,7 @@ def get_metadata_train_test(meta, meta_pd, meta_vars, new_meta, train, drop, new
         new_meta_pd = new_meta_pd.loc[~to_remove]
 
     train_column, train_samples = get_train_column(
-        meta, new_meta_pd, meta_vars, str(train), new_meta, new_meta_ct)
+        meta_fp, new_meta_pd, meta_vars, str(train), new_meta, new_meta_ct)
     return train_column, train_samples
 
 
@@ -255,10 +259,11 @@ def make_train_test_column(p_train_test, datasets, datasets_read):
         if 'datasets' in train_test_dict and dat in train_test_dict['datasets']:
             datasets_read_update[dat] = []
             for idx, (_, meta_pd) in enumerate(tsvs_meta_pds):
+                meta_fp = datasets[dat][idx][1]
                 meta_tt_pd = meta_pd.copy()
                 for tt, tt_vars in train_test_dict['datasets'][dat].items():
                     train_column, train_samples = get_metadata_train_test(
-                        '', meta_pd.set_index('sample_name'), tt_vars, '', train_test_dict['train'], {}, '')
+                        meta_fp, meta_pd.set_index('sample_name'), tt_vars, '', train_test_dict['train'], {}, '')
                     meta_tt_pd[tt] = [
                         'Train' if x in train_samples else
                         'Test' for x in meta_tt_pd.sample_name.tolist()
