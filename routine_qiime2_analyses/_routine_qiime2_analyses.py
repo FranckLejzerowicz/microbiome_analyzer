@@ -447,6 +447,9 @@ def routine_qiime2_analyses(
                            filt_raref, split, jobs, chunkit)
 
     # MMVEC AND SONGBIRD --------------------------------------------------------
+    if p_train_test:
+        train_test = make_train_test_column(p_train_test, datasets, datasets_read)
+
     filts = {}
     input_to_filtered = {}
     mmvec_outputs = []
@@ -460,9 +463,6 @@ def routine_qiime2_analyses(
                                       standalone, prjct_nm, qiime_env, chmod,
                                       noloc, split, filt_raref, run_params['mmvec'],
                                       input_to_filtered, jobs, chunkit)
-
-    if p_train_test:
-        train_test = make_train_test_column(p_train_test, datasets, datasets_read)
 
     songbird_outputs = []
     if p_diff_models:
