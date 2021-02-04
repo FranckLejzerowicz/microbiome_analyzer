@@ -257,6 +257,9 @@ def make_train_test_column(p_train_test, datasets, datasets_read):
         if 'datasets' in train_test_dict and dat in train_test_dict['datasets']:
             datasets_read_update[dat] = []
             for idx, (_, meta_pd) in enumerate(tsvs_meta_pds):
+                print(dat)
+                print(idx)
+                print(datasets[dat][idx])
                 meta_tt_pd = meta_pd.copy()
                 for tt, tt_vars in train_test_dict['datasets'][dat].items():
                     train_column, train_samples = get_metadata_train_test(
