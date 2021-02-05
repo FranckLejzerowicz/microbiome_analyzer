@@ -1290,16 +1290,16 @@ def get_datasets_filtered(
                             meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
                             tsv_out_mmvec = tsv_out.replace('/songbird/', '/mmvec/')
                             tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
-                            if isfile(meta_out_mmvec):
-                                meta_out = meta_out_mmvec
-                                with open(meta_out) as f:
-                                    for line in f:
-                                        break
-                                meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
-                                                      dtype={line.split('\t')[0]: str},
-                                                      low_memory=False)
-                            else:
-                                meta_pd = write_filtered_meta(meta_out, case_meta_pd, tsv_pd)
+                            # if isfile(meta_out_mmvec):
+                            #     meta_out = meta_out_mmvec
+                            #     with open(meta_out) as f:
+                            #         for line in f:
+                            #             break
+                            #     meta_pd = pd.read_csv(meta_out, header=0, sep='\t',
+                            #                           dtype={line.split('\t')[0]: str},
+                            #                           low_memory=False)
+                            # else:
+                            meta_pd = write_filtered_meta(meta_out, case_meta_pd, tsv_pd)
 
                             if tsv_hash in already_computed:
                                 drop_keys.setdefault((dat_, mb), []).append((preval_abund, preval, abund))
