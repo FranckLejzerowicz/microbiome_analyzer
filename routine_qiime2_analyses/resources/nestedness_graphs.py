@@ -58,9 +58,10 @@ else:
 
     for (group, case), res in nestedness_raref.items():
 
-        fields_fp = res['fields']
+        # fields_fp = res['fields']
         graphs_fp = res['graph']
-        if not isfile(fields_fp) or not isfile(graphs_fp):
+        # if not isfile(fields_fp) or not isfile(graphs_fp):
+        if not isfile(graphs_fp):
             continue
 
         graphs = pd.read_csv(graphs_fp, header=0, sep=',', dtype={'SAMPLE_ID': str})
@@ -72,8 +73,8 @@ else:
             values='log10_reads', index='OBSERVATION_ID', columns='SAMPLE_ID')
         matrix = matrix.loc[features_order, samples_order]
 
-        fields = [x.strip() for x in open(fields_fp).readlines()]
-        cur_meta_pd = meta_pd.loc[matrix.columns.astype(str).tolist(), fields].copy()
+        # fields = [x.strip() for x in open(fields_fp).readlines()]
+        cur_meta_pd = meta_pd.loc[matrix.columns.astype(str).tolist(), colors_in].copy()
 
         # new_meta = 'metadata'
         # if new_meta in cur_meta_pd.columns:
