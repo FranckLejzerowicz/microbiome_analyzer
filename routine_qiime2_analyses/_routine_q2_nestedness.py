@@ -303,7 +303,7 @@ def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
         res['fields'] = fields
         if not isfile(graphs):
             write_nestedness_graph(
-                new_biom_meta, cur_rad, graphs, binary,
+                new_biom_meta, graphs, binary,
                 nodfs_valid, cur_sh_o)
             remove = False
 
