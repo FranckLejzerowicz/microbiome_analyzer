@@ -73,13 +73,13 @@ else:
         matrix = matrix.loc[features_order, samples_order]
 
         fields = [x.strip() for x in open(fields_fp).readlines()]
-        new_meta = 'metadata'
         cur_meta_pd = meta_pd.loc[matrix.columns.astype(str).tolist(), fields].copy()
 
-        if new_meta in cur_meta_pd.columns:
-            new_meta = 'passed_metadata'
-        if len(fields) > 1:
-            cur_meta_pd[new_meta] = cur_meta_pd[fields].apply(func=lambda x: '-'.join(x), axis=1)
+        # new_meta = 'metadata'
+        # if new_meta in cur_meta_pd.columns:
+        #     new_meta = 'passed_metadata'
+        # if len(fields) > 1:
+        #     cur_meta_pd[new_meta] = cur_meta_pd[fields].apply(func=lambda x: '-'.join(x), axis=1)
         cur_meta_leg_hex = cur_meta_pd.apply(func=lambda x: dict(
             zip(x.unique(), sns.color_palette(palette='Set1', n_colors=x.unique().size).as_hex())
         )).to_dict()
