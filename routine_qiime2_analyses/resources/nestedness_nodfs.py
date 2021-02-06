@@ -57,9 +57,9 @@ if arefiles and dat in collapsed:
     nodfs_and_null['MODE_METADATA'] = nodfs_and_null[
         ['MODE', 'METADATA']].fillna('').apply(func=lambda x: ' - '.join([y for y in x if y]), axis=1)
     levels = dict(
-        (y[0], x) for x, y in enumerate(sorted(collapsed[dat].items(),
-                                               key=lambda item: item[1]))
-        if y[0] in nodfs_and_null.LEVEL.unique()
+        (y[0], x) for x, y in enumerate(
+            sorted(collapsed[dat].items(), key=lambda item: item[1])
+        ) if y[0] in nodfs_and_null.LEVEL.unique()
     )
     levels['feature'] = max(levels.values()) + 1
     nodfs_and_null['LEVEL_SORT'] = [levels[x] for x in nodfs_and_null['LEVEL']]
