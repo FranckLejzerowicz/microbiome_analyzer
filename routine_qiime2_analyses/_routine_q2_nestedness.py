@@ -294,13 +294,17 @@ def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
         graphs = '%s/graphs.csv' % cur_rad
         graphs_pdf = '%s/graphs.pdf' % cur_rad
         fields = '%s/fields.txt' % cur_rad
+        with open(fields, 'w') as fields_o:
+            for ndx, nodf in enumerate(nodfs_valid):
+                fields_o.write('%s\n' % nodf)
+
         res['graph'] = graphs
         res['graph_pdf'] = graphs_pdf
         res['fields'] = fields
-        if not isfile(graphs) or not isfile(fields):
+        if not isfile(graphs):
             write_nestedness_graph(
                 new_biom_meta, cur_rad, graphs, binary,
-                fields, nodfs_valid, cur_sh_o)
+                nodfs_valid, cur_sh_o)
             remove = False
 
         for mode in modes:

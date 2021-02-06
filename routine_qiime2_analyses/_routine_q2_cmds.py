@@ -1113,22 +1113,12 @@ def check_absence_mat(mat_qzas: list, first_print: int, analysis: str) -> bool:
     return False
 
 
-def write_nestedness_graph(new_biom_meta: str, odir: str, graphs: str,
-                           binary: str, fields: str, nodfs_valid: list,
+def write_nestedness_graph(new_biom_meta: str, graphs: str,
+                           binary: str, nodfs_valid: list,
                            cur_sh: TextIO) -> None:
     """
     https://github.com/jladau/Nestedness
     """
-
-    cmd = '\nmkdir -p %s\n' % odir
-    if not isfile(fields):
-        for ndx, nodf in enumerate(nodfs_valid):
-            if ndx:
-                cmd += 'echo "%s" >> %s\n' % (nodf, fields)
-            else:
-                cmd += 'echo "%s" > %s\n' % (nodf, fields)
-        cur_sh.write('%s\n' % cmd)
-
     if not isfile(graphs):
         cmd = 'java -cp %s \\\n' % binary
         cmd += 'edu.ucsf.Nestedness.Grapher.GrapherLauncher \\\n'
@@ -1139,7 +1129,6 @@ def write_nestedness_graph(new_biom_meta: str, odir: str, graphs: str,
         cmd += '--sTaxonRank=otu \\\n'
         cmd += '--sOutputPath=%s \\\n' % graphs
         cmd += '--rgsSampleMetadataFields=%s\n' % ','.join(nodfs_valid)
-
         cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
 
