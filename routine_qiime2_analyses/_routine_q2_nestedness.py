@@ -260,23 +260,16 @@ def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
         cols = set()
         lat_lon_date = ['latitude', 'longitude', 'datetime']
         nodfs_valid = []
-        print(nodfs)
         for col in (nodfs + lat_lon_date):
-            print(new_meta_pd[col].value_counts())
             if col not in set(new_meta_pd.columns):
-                print('A')
                 continue
             if new_meta_pd[col].unique().size == 1:
-                print('B')
                 continue
             if col not in lat_lon_date and min(new_meta_pd[col].value_counts()) == 1:
-                print('C')
                 continue
             cols.add(col)
             if col in nodfs:
                 nodfs_valid.append(col)
-        print(nodfs_valid)
-        print(nodfs_validfds)
 
         new_meta_pd = new_meta_pd[sorted(cols)].reset_index()
         new_meta_pd.columns = (['#SampleID'] + sorted(cols))

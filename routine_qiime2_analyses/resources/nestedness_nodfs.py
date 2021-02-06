@@ -16,8 +16,6 @@ collapsed = '<COLLAPSED>'
 arefiles = [x for x in nodfs if isfile(x)]
 if arefiles and dat in collapsed:
     nodfs_pd = pd.concat([pd.read_csv(x, sep='\t') for x in arefiles], sort=False)
-    levels = dict((y[0], x) for x, y in enumerate(sorted(collapsed[dat].items(), key=lambda item: item[1])))
-    levels['feature'] = max(levels.values()) + 1
     nodfs = nodfs_pd.drop(columns=['GRAPH_ID'])
     nodfs_cols = ['NODF_OBSERVED', 'NODF_NULL_MEAN']
     nodfs = nodfs.set_index([x for x in nodfs.columns if x not in nodfs_cols])
@@ -58,6 +56,12 @@ if arefiles and dat in collapsed:
 
     nodfs_and_null['MODE_METADATA'] = nodfs_and_null[
         ['MODE', 'METADATA']].fillna('').apply(func=lambda x: ' - '.join([y for y in x if y]), axis=1)
+    levels = dict(
+        (y[0], x) for x, y in enumerate(sorted(collapsed[dat].items(),
+                                               key=lambda item: item[1]))
+        if y[0] in nodfs_and_null.LEVEL.unique()
+    )
+    levels['feature'] = max(levels.values()) + 1
     nodfs_and_null['LEVEL_SORT'] = [levels[x] for x in nodfs_and_null['LEVEL']]
     nodfs_and_null = nodfs_and_null.sort_values(['LEVEL_SORT', 'NODF_TYPE'], ascending=True)
     nodfs_and_null = nodfs_and_null.drop(columns=['FEATURE_SUBSET', 'SAMPLE_SUBSET', 'RAREF', 'MODE', 'METADATA'])
@@ -92,7 +96,8 @@ if arefiles and dat in collapsed:
                     (nodfs_and_null_mode.NODF_TYPE == 'NODF_OBSERVED')
                 ].drop(columns=['SUBSET'])
                 for (LEVEL_SORT, NODF, PVALUE, COMP) in SUBSET_pd[
-                    ['LEVEL_SORT', 'NODF', 'PVALUE', comparison_raref]].values:
+                    ['LEVEL_SORT', 'NODF', 'PVALUE', comparison_raref]
+                ].values:
                     if PVALUE:
                         axes[sdx].text(
                             LEVEL_SORT, NODF+0.005, PVALUE,
