@@ -262,11 +262,15 @@ def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
         nodfs_valid = []
         print(nodfs)
         for col in (nodfs + lat_lon_date):
+            print(new_meta_pd[col].value_counts())
             if col not in set(new_meta_pd.columns):
+                print('A')
                 continue
             if new_meta_pd[col].unique().size == 1:
+                print('B')
                 continue
             if col not in lat_lon_date and min(new_meta_pd[col].value_counts()) == 1:
+                print('C')
                 continue
             cols.add(col)
             if col in nodfs:
