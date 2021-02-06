@@ -10,6 +10,10 @@ import seaborn as sns
 
 
 dat = '<DAT>'
+if '_tx-' in dat:
+    taxo_level = dat.split('_tx-')[-1]
+else:
+    taxo_level = 'Features'
 cur_raref = '<CUR_RAREF>'
 tab_pd = pd.read_table('<TAB_FP>', index_col=0)
 if tab_pd.shape[0] > 1000:
@@ -214,13 +218,13 @@ else:
                         axes.legend(handles=hands, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
                         axes.set_title(col)
                         axes.set_xlabel('Samples (sorted by richness)')
-                        axes.set_ylabel('Phyla (sorted by prevalence)')
+                        axes.set_ylabel('%s (sorted by prevalence)' % taxo_level)
                     else:
                         axes[cdx].imshow(mat, aspect="auto")
                         axes[cdx].legend(handles=hands, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
                         axes[cdx].set_title(col)
                         axes[cdx].set_xlabel('Samples (sorted by richness)')
-                        axes[cdx].set_ylabel('Phyla (sorted by prevalence)')
+                        axes[cdx].set_ylabel('%s (sorted by prevalence)' % taxo_level)
                 suptitle = '%s%s (%s coloring)' % (dat, cur_raref, typ)
                 top = .93
                 if case != 'ALL':
