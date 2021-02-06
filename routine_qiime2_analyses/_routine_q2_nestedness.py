@@ -125,10 +125,10 @@ def run_nestedness(i_datasets_folder: str, betas: dict, datasets_collapsed_map: 
                             cur_sh = cur_sh.replace(' ', '-')
                             # print("case", case)
                             all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
-                            res, group_case_nodfs = run_single_nestedness(odir, cur_raref, level,
-                                                        group, meta_pd, nodfs, nulls, modes,
-                                                        cur_sh, qza, case, case_var, case_vals,
-                                                        binary, params, force)
+                            res, group_case_nodfs = run_single_nestedness(
+                                odir, cur_raref, level, group, meta_pd, nodfs, nulls, modes,
+                                cur_sh, qza, case, case_var, case_vals, binary, params, force
+                            )
                             nodfs_fps.setdefault(stats_tax_dat, []).extend(group_case_nodfs)
                             nestedness_raref[(group, case)] = res
                 break
@@ -260,6 +260,7 @@ def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
         cols = set()
         lat_lon_date = ['latitude', 'longitude', 'datetime']
         nodfs_valid = []
+        print(nodfs)
         for col in (nodfs + lat_lon_date):
             if col not in set(new_meta_pd.columns):
                 continue
@@ -270,6 +271,8 @@ def run_single_nestedness(odir: str, cur_raref: str, level: str, group: str,
             cols.add(col)
             if col in nodfs:
                 nodfs_valid.append(col)
+        print(nodfs_valid)
+        print(nodfs_validfds)
 
         new_meta_pd = new_meta_pd[sorted(cols)].reset_index()
         new_meta_pd.columns = (['#SampleID'] + sorted(cols))
