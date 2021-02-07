@@ -71,6 +71,10 @@ from routine_qiime2_analyses import __version__
          "(multiple values are possible, e.g. '-d sex -d age_cat')."
 )
 @click.option(
+    "-tmin", "--p-perm-tests-min", required=False, show_default=True, default=30,
+    help="Minimum number of samples per group for PERMANOVA test to happen,"
+)
+@click.option(
     "-g", "--p-beta-groups", required=False, show_default=True, default=False,
     help="Subsets for DMs, PCoAs, PERMANOVAs, etc. Must be a yaml file, e.g.\n"
          "(see example in 'examples/permanova_subsets.yml' and README)."
@@ -203,6 +207,10 @@ from routine_qiime2_analyses import __version__
     help="Beta to use: 'jaccard','braycurtis','aitchison','unweighted_unifrac','weighted_unifrac'."
 )
 @click.option(
+    "--do_biplots/--no-do_biplots", default=False, show_default=True,
+    help="Whether to do the PCoA biplots or not"
+)
+@click.option(
     "--force/--no-force", default=False, show_default=True,
     help="Force the re-writing of scripts for all commands"
          "(default is to not re-run if output file exists)."
@@ -272,6 +280,7 @@ def standalone_routine(
         p_alpha_subsets,
         p_beta_subsets,
         p_perm_tests,
+        p_perm_tests_min,
         p_beta_groups,
         p_nestedness_groups,
         p_beta_type,
@@ -284,6 +293,7 @@ def standalone_routine(
         p_doc_config,
         p_sourcetracking_config,
         p_phate_config,
+        do_biplots,
         force,
         i_classifier,
         i_wol_tree,
@@ -324,6 +334,7 @@ def standalone_routine(
         p_alpha_subsets,
         p_beta_subsets,
         p_perm_tests,
+        p_perm_tests_min,
         p_beta_groups,
         p_nestedness_groups,
         p_beta_type,
@@ -336,6 +347,7 @@ def standalone_routine(
         p_doc_config,
         p_sourcetracking_config,
         p_phate_config,
+        do_biplots,
         force,
         i_classifier,
         i_wol_tree,

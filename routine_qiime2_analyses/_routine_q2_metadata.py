@@ -143,7 +143,9 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
 
 
 def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame,
-                                  main_testing_groups: tuple, analysis: str) -> list:
+                                  main_testing_groups: tuple,
+                                  p_perm_tests_min: int,
+                                  analysis: str) -> list:
     """
     :param meta: metadata file name.
     :param meta_pd: metadata table.
@@ -154,11 +156,17 @@ def check_metadata_testing_groups(meta: str, meta_pd: pd.DataFrame,
     meta_pd_vars = set(meta_pd.columns.tolist())
     main_testing = []
     for variable in main_testing_groups:
+        meta_var = meta_pd[variable]
         if variable not in meta_pd_vars:
             print('  [%s] variable %s not in %s' % (analysis, variable, basename(meta)))
             continue
-        if meta_pd[variable].unique().size > (meta_pd.shape[0] * .8):
+        if meta_var.unique().size > (meta_pd.shape[0] * .8):
             print('  [%s] variable %s from %s not suitable for permanova' % (analysis, variable, basename(meta)))
+            continue
+        meta_var_vc = meta_var.value_counts()
+        meta_var_vc = meta_var_vc[meta_var_vc >= p_perm_tests_min]
+        if not meta_var_vc.size >= 2:
+            print('  [%s] less than 2 factors in variable %s have >= %s samples' % (analysis, variable, p_perm_tests_min))
             continue
         main_testing.append(variable)
     return main_testing

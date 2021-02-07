@@ -55,6 +55,7 @@ def routine_qiime2_analyses(
         p_alpha_subsets: str,
         p_beta_subsets: str,
         p_perm_tests: tuple,
+        p_perm_tests_min: int,
         p_beta_groups: str,
         p_nestedness_groups: str,
         p_beta_type: tuple,
@@ -67,6 +68,7 @@ def routine_qiime2_analyses(
         p_doc_config: str,
         p_sourcetracking_config: str,
         p_phate_config: str,
+        do_biplots: bool,
         force: bool,
         i_classifier: str,
         i_wol_tree: str,
@@ -327,7 +329,7 @@ def routine_qiime2_analyses(
                 run_empress(i_datasets_folder, pcoas, trees, datasets_phylo,
                             datasets_rarefs, taxonomies, prjct_nm, qiime_env, chmod,
                             noloc, run_params['empress'], filt_raref, jobs, chunkit)
-        if 'biplot' not in p_skip:
+        if do_biplots and 'biplot' not in p_skip:
             print('(run_biplots)')
             biplots, biplots_raw = run_biplots(i_datasets_folder, betas,
                                                datasets_rarefs,  taxonomies,
@@ -360,7 +362,7 @@ def routine_qiime2_analyses(
 
     if 'beta' not in p_skip and p_perm_tests and 'permanova' not in p_skip:
         print('(run_permanova)')
-        permanovas = run_permanova(i_datasets_folder, betas, p_perm_tests,
+        permanovas = run_permanova(i_datasets_folder, betas, p_perm_tests, p_perm_tests_min,
                                    p_beta_type, datasets_rarefs, p_beta_groups,
                                    force, prjct_nm, qiime_env, chmod, noloc, split,
                                    run_params['permanova'], filt_raref, jobs, chunkit)

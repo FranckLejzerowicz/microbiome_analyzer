@@ -78,8 +78,8 @@ def run_single_perm(odir: str, subset: str, meta_pd: pd.DataFrame,
 
 
 def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tuple,
-                  p_beta_type: tuple, datasets_rarefs: dict, p_perm_groups: str,
-                  force: bool, prjct_nm: str, qiime_env: str, chmod: str,
+                  p_perm_tests_min: int, p_beta_type: tuple, datasets_rarefs: dict,
+                  p_perm_groups: str, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
                   noloc: bool, split: bool, run_params: dict,
                   filt_raref: str,  jobs: bool, chunkit: int) -> dict:
     """
@@ -130,7 +130,7 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
                         meta_pd = read_meta_pd(meta)
                         meta_pd = meta_pd.set_index('sample_name')
                         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'PERMANOVA')
-                        testing_groups = check_metadata_testing_groups(meta, meta_pd, main_testing_groups, 'PERMANOVA')
+                        testing_groups = check_metadata_testing_groups(meta, meta_pd, main_testing_groups, p_perm_tests_min, 'PERMANOVA')
                         metric_check.add((dat, subset))
 
                     for case_var, case_vals_list in cases_dict.items():
