@@ -71,7 +71,7 @@ from routine_qiime2_analyses import __version__
          "(multiple values are possible, e.g. '-d sex -d age_cat')."
 )
 @click.option(
-    "-tmin", "--p-perm-tests-min", required=False, show_default=True, default=30,
+    "-tmin", "--p-perm-tests-min", required=False, show_default=True, default=10,
     help="Minimum number of samples per group for PERMANOVA test to happen,"
 )
 @click.option(

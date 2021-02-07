@@ -1060,7 +1060,8 @@ def write_deicode_biplot(qza: str, new_meta: str, new_qza: str, ordi_qza: str,
 
 
 def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str,
-                         testing_group: str, new_cv: str) -> int:
+                         testing_group: str, p_perm_tests_min: int,
+                         new_cv: str) -> int:
     """
     Merge the q2-types to the metadata for PERMANOVA.
 
@@ -1074,7 +1075,7 @@ def add_q2_types_to_meta(new_meta_pd: pd.DataFrame, new_meta: str,
         if str(x) != 'nan' and x != x.replace('(', '').replace(')', '').replace('/', '')
     )})
     new_meta_cv = new_meta_pd[testing_group].value_counts()
-    new_meta_cv = new_meta_cv[new_meta_cv > 10]
+    new_meta_cv = new_meta_cv[new_meta_cv >= p_perm_tests_min]
     if new_meta_cv.size == 1:
         return 1
     if sum(new_meta_cv) < 30:

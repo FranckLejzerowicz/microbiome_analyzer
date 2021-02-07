@@ -32,7 +32,8 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 
 def run_single_perm(odir: str, subset: str, meta_pd: pd.DataFrame,
                     cur_sh: str, metric: str, case_: str, testing_group: str,
-                    p_beta_type: tuple, qza: str, mat_qza: str, case_var: str,
+                    p_perm_tests_min: int, p_beta_type: tuple,
+                    qza: str, mat_qza: str, case_var: str,
                     case_vals: list, npermutations: str, force: bool) -> None:
     """
     Run beta-group-significance: Beta diversity group significance.
@@ -65,7 +66,7 @@ def run_single_perm(odir: str, subset: str, meta_pd: pd.DataFrame,
             new_cv = '%s_%s.cv' % (cur_rad, beta_type)
             new_mat_qza = odir + '/' + basename(mat_qza).replace('.qza', '_%s_DM.qza' % case)
             new_meta_pd = get_new_meta_pd(meta_pd, case, case_var, case_vals)
-            if add_q2_types_to_meta(new_meta_pd, new_meta, testing_group, new_cv):
+            if add_q2_types_to_meta(new_meta_pd, new_meta, testing_group, p_perm_tests_min, new_cv):
                 continue
             if force or not isfile(new_html):
                 if len([x for x in new_meta_pd[testing_group].unique() if str(x) != 'nan']) > 1:
@@ -130,7 +131,8 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
                         meta_pd = read_meta_pd(meta)
                         meta_pd = meta_pd.set_index('sample_name')
                         cases_dict = check_metadata_cases_dict(meta, meta_pd, dict(main_cases_dict), 'PERMANOVA')
-                        testing_groups = check_metadata_testing_groups(meta, meta_pd, main_testing_groups, p_perm_tests_min, 'PERMANOVA')
+                        testing_groups = check_metadata_testing_groups(meta, meta_pd, main_testing_groups,
+                                                                       p_perm_tests_min, 'PERMANOVA')
                         metric_check.add((dat, subset))
 
                     for case_var, case_vals_list in cases_dict.items():
@@ -145,7 +147,7 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
                                 cur_sh = cur_sh.replace(' ', '-')
                                 all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                                 run_single_perm(odir, subset, meta_pd, cur_sh, metric, case,
-                                                testing_group, p_beta_type, qza, mat_qza,
+                                                testing_group, p_perm_tests_min, p_beta_type, qza, mat_qza,
                                                 case_var, case_vals, npermutations, force)
 
     job_folder = get_job_folder(i_datasets_folder, 'permanova')
