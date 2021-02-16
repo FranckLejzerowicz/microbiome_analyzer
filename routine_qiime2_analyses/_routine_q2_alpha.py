@@ -400,7 +400,7 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
         print_message('# Correlate numeric metadata variables with alpha diversity indices', 'sh', run_pbs, jobs)
 
 
-def run_run_alpha_rarefaction(i_datasets_folder: str, datasets: dict, datasets_rarefs: dict,
+def run_alpha_rarefaction(i_datasets_folder: str, datasets: dict, datasets_rarefs: dict,
                               datasets_phylo: dict, trees: dict, force: bool, prjct_nm: str,
                               qiime_env: str, chmod: str, noloc: bool, As: tuple,
                               run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
