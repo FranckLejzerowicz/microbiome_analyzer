@@ -347,7 +347,8 @@ def get_songbird_params(p_diff_models: str, diff_dict: dict) -> dict:
         'epochs': ['5000'],
         'thresh_feats': ['0'],
         'thresh_samples': ['0'],
-        'diff_priors': ['0.5']
+        'diff_priors': ['0.5'],
+        'summary_interval': ['1']
     }
     if 'params' not in diff_dict:
         print('No parameters set in %s:\nUsing defaults: %s' % (
@@ -424,7 +425,6 @@ def get_train_test_dict(p_train_test: str) -> dict:
         train_test_dict['train'] = 0.7
 
     return train_test_dict
-
 
 
 def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict, dict):

@@ -141,8 +141,9 @@ def get_train_column(meta, new_meta_pd, meta_vars, train, new_meta, new_meta_ct)
 def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
                         new_meta: str, cur_sh: str, force: bool, batch: str,
                         learn: str, epoch: str, diff_prior: str, thresh_feat: str,
-                        thresh_sample: str, formula: str, train_column: str, metadatas: dict,
-                        baselines: dict, model_baseline: str, baseline_formula: str) -> (str, str):
+                        thresh_sample: str, formula: str, train_column: str,
+                        summary_interval: str, metadatas: dict, baselines: dict,
+                        model_baseline: str, baseline_formula: str) -> (str, str):
     """
     Run songbird: Vanilla regression methods for microbiome differential abundance analysis.
     https://github.com/biocore/songbird
@@ -185,8 +186,8 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
         if force or not isfile(tensor_html):
             write_songbird_cmd(
                 qza, new_qza, new_meta, formula, epoch, batch, diff_prior,
-                learn, thresh_sample, thresh_feat, train_column, metadatas,
-                diffs, diffs_qza, stats, plot, base_diff_qza, base_stats,
+                learn, thresh_sample, thresh_feat, train_column, summary_interval,
+                metadatas, diffs, diffs_qza, stats, plot, base_diff_qza, base_stats,
                 base_plot, baseline_formula, tensor, tensor_html, cur_sh_o)
             remove = False
     if remove:
@@ -310,6 +311,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     thresh_feats = params['thresh_feats']
     thresh_samples = params['thresh_samples']
     diff_priors = params['diff_priors']
+    summary_interval = params['summary_interval']
 
     filt_datasets_done, common_datasets_done = check_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_filt, songbird_datasets,
@@ -400,11 +402,15 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             # snakemake here: config to organise the inputs/depedencies (joblib)
             #####################################################################
             for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
-                                                       thresh_feats, thresh_samples, trains)):
-                batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, train = [str(x) for x in it]
-                params = 'filt_f%s_s%s/%s_%s_%s_%s_%s' % (
+                                                       thresh_feats, thresh_samples, trains,
+                                                       summary_interval)):
+                batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, train, summary_interval = [
+                    str(x) for x in it
+                ]
+                params = 'filt_f%s_s%s/%s_%s_%s_%s_%s_%s' % (
                     thresh_feat, thresh_sample, batch, learn, epoch,
-                    diff_prior.replace('.', ''), train.replace('.', '') )
+                    diff_prior.replace('.', ''), train.replace('.', ''),
+                    summary_interval.replace('.', ''))
                 if uni:
                     pass
                     # TO DEVELOP: RUN ALL MODELS BASED ON THE SAME SET OF TESTTRAIN SAMPLES
@@ -484,7 +490,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                         diffs, tensor_html = run_single_songbird(
                             odir, odir_base, qza, new_qza, new_meta, cur_sh,
                             force, batch, learn, epoch, diff_prior, thresh_feat, thresh_sample,
-                            formula, train_column, metadatas, baselines, model_baseline, baseline_formula
+                            formula, train_column, summary_interval, metadatas,
+                            baselines, model_baseline, baseline_formula
                         )
                         songbird_outputs.append([dat, filt, '%s_%s' % (params.replace('/', '__'), model), case,
                                                  diffs, model_baseline, tensor_html, pair])

@@ -22,6 +22,7 @@ from routine_qiime2_analyses._routine_q2_cmds import (
     get_case, write_alpha_group_significance_cmd,
     get_new_meta_pd, get_new_alpha_div, write_metadata_tabulate,
     write_diversity_alpha, write_diversity_alpha_correlation,
+    write_diversity_alpha_rarefaction,
     write_longitudinal_volatility, get_subset,
     # write_longitudinal_volatility, get_metric, get_subset,
     write_filter_features, run_export
@@ -397,6 +398,56 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
 
     if main_written:
         print_message('# Correlate numeric metadata variables with alpha diversity indices', 'sh', run_pbs, jobs)
+
+
+def run_run_alpha_rarefaction(i_datasets_folder: str, datasets: dict, datasets_rarefs: dict,
+                              datasets_phylo: dict, trees: dict, force: bool, prjct_nm: str,
+                              qiime_env: str, chmod: str, noloc: bool, As: tuple,
+                              run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+    """
+    Run alpha-rarefaction: Alpha rarefaction
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-rarefaction/
+    """
+    alpha_metrics = get_metrics('alpha_metrics', As)
+    job_folder = get_job_folder(i_datasets_folder, 'alpha_rarefaction')
+    job_folder2 = get_job_folder(i_datasets_folder, 'alpha_rarefaction/chunks')
+    main_written = 0
+    run_pbs = '%s/4_run_alpha_rarefaction_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
+    to_chunk = []
+    with open(run_pbs, 'w') as o:
+        for dat, tsv_meta_pds_ in datasets.items():
+            written = 0
+            out_sh = '%s/run_alpha_rarefaction_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
+            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            with open(out_sh, 'w') as cur_sh:
+                for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
+                    tsv, meta = tsv_meta_pds
+                    qza = '%s.qza' % splitext(tsv)[0]
+                    cur_raref = datasets_rarefs[dat][idx]
+                    odir = get_analysis_folder(i_datasets_folder, 'alpha_rarefaction/%s%s' % (dat, cur_raref))
+                    for metric in alpha_metrics:
+                        out_fp = '%s/rarefcurve_%s%s_%s.qzv' % (odir, dat, cur_raref, metric)
+                        if force or not isfile(out_fp):
+                            if write_diversity_alpha_rarefaction(out_fp, qza, metric, datasets_phylo,
+                                                                 trees, dat, meta, cur_sh):
+                                continue
+                            written += 1
+                            main_written += 1
+            to_chunk.append(out_sh)
+            if not chunkit:
+                run_xpbs(out_sh, out_pbs, '%s.lphrrf.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
+                         run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                         run_params["mem_num"], run_params["mem_dim"],
+                         chmod, written, 'single', o, noloc, jobs)
+
+    if to_chunk and chunkit:
+        simple_chunks(run_pbs, job_folder2, to_chunk, 'alpha_rarefaction',
+                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+                      run_params["mem_num"], run_params["mem_dim"],
+                      qiime_env, chmod, noloc, jobs, chunkit, None)
+
+    if main_written:
+        print_message('# Compute rarefaction curve on alpha diversity indices', 'sh', run_pbs, jobs)
 
 
 def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,

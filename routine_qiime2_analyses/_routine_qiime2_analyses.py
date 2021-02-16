@@ -26,7 +26,7 @@ from routine_qiime2_analyses._routine_q2_taxonomy import (run_taxonomy, run_barp
 from routine_qiime2_analyses._routine_q2_doc import run_doc
 from routine_qiime2_analyses._routine_q2_sourcetracking import run_sourcetracking
 from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
-                                                       run_correlations, run_volatility,
+                                                       run_correlations, run_alpha_rarefaction, run_volatility,
                                                        run_alpha_group_significance)
 from routine_qiime2_analyses._routine_q2_beta import (run_beta, export_beta,
                                                       run_pcoas, run_biplots,
@@ -294,6 +294,12 @@ def routine_qiime2_analyses(
                              datasets_rarefs, force, prjct_nm, qiime_env,
                              chmod, noloc, run_params['alpha_correlations'],
                              filt_raref, jobs, chunkit)
+        if 'alpha_rarefaction' not in p_skip:
+            print('(run_alpha_rarefaction)')
+            run_alpha_rarefaction(i_datasets_folder, datasets, datasets_rarefs,
+                                  force, prjct_nm, qiime_env, chmod, noloc, As,
+                                  run_params['alpha_rarefaction'], filt_raref,
+                                  jobs, chunkit)
         if p_longi_column:
             if 'volatility' not in p_skip:
                 print('(run_volatility)')

@@ -285,10 +285,10 @@ def filter_feature_table(qza: str, new_qza: str, meta: str) -> str:
 def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
                        epoch: str, batch: str, diff_prior: str, learn: str,
                        thresh_sample: str, thresh_feat: str, train_column: str,
-                       metadatas: dict, diffs: str, diffs_qza: str, stats: str,
-                       plot: str, base_diff_qza: str, base_stats: str, base_plot: str,
-                       baseline_formula: str, tensor: str, tensor_html: str,
-                       cur_sh: TextIO) -> None:
+                       summary_interval: str, metadatas: dict, diffs: str,
+                       diffs_qza: str, stats: str, plot: str, base_diff_qza: str,
+                       base_stats: str, base_plot: str, baseline_formula: str,
+                       tensor: str, tensor_html: str, cur_sh: TextIO) -> None:
     """
     :param qza:
     :param new_qza:
@@ -331,7 +331,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd += ' --p-min-sample-count %s \\\n' % thresh_sample
         cmd += ' --p-min-feature-count %s \\\n' % thresh_feat
         cmd += ' --p-training-column %s \\\n' % train_column
-        cmd += ' --p-summary-interval 2 \\\n'
+        cmd += ' --p-summary-interval %s \\\n' % summary_interval
         cmd += ' --o-differentials %s \\\n' % diffs_qza
         cmd += ' --o-regression-stats %s \\\n' % stats
         cmd += ' --o-regression-biplot %s\n' % plot
@@ -354,7 +354,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd += ' --p-min-sample-count %s \\\n' % thresh_sample
         cmd += ' --p-min-feature-count %s \\\n' % thresh_feat
         cmd += ' --p-training-column %s \\\n' % train_column
-        cmd += ' --p-summary-interval 2 \\\n'
+        cmd += ' --p-summary-interval %s \\\n' % summary_interval
         cmd += ' --o-differentials %s \\\n' % base_diff_qza
         cmd += ' --o-regression-stats %s \\\n' % base_stats
         cmd += ' --o-regression-biplot %s\n' % base_plot
@@ -1485,6 +1485,30 @@ def write_longitudinal_volatility(out_fp: str, meta_alphas: str,
     cmd += '--o-visualization %s\n' % out_fp
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n\n' % cmd)
+
+
+def write_diversity_alpha_rarefaction(out_fp: str, qza: str, metric: str,
+                                      datasets_phylo: dict, trees: dict, dat: str,
+                                      meta: str, cur_sh: TextIO) -> bool:
+
+    cmd = 'qiime diversity alpha-rarefaction \\\n'
+    if metric in ['faith_pd']:
+        if not datasets_phylo[dat][0] or dat not in trees:
+            return True
+        if datasets_phylo[dat][1]:
+            cmd += '--i-table %s \\\n' % trees[dat][0]
+        else:
+            cmd += '--i-table %s \\\n' % qza
+        cmd += '--i-phylogeny %s \\\n' % trees[dat][1]
+    else:
+        cmd += '--i-table %s \\\n' % qza
+    cmd += '--p-metrics %s \\\n' % metric
+    cmd += '--m-metadata-file %s \\\n' % meta
+    cmd += '--p-max-depth 10000 \\\n'
+    cmd += '--o-visualization %s\n' % out_fp
+    cur_sh.write('echo "%s"\n' % cmd)
+    cur_sh.write('%s\n\n' % cmd)
+    return False
 
 
 def write_diversity_alpha_correlation(out_fp: str, qza: str, method: str,
