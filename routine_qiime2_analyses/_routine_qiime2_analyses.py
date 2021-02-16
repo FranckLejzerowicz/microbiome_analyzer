@@ -297,9 +297,9 @@ def routine_qiime2_analyses(
         if 'alpha_rarefaction' not in p_skip:
             print('(run_alpha_rarefaction)')
             run_alpha_rarefaction(i_datasets_folder, datasets, datasets_rarefs,
-                                  force, prjct_nm, qiime_env, chmod, noloc, As,
-                                  run_params['alpha_rarefaction'], filt_raref,
-                                  jobs, chunkit)
+                                  datasets_phylo, trees, force, prjct_nm, qiime_env,
+                                  chmod, noloc, As, run_params['alpha_rarefaction'],
+                                  filt_raref, jobs, chunkit)
         if p_longi_column:
             if 'volatility' not in p_skip:
                 print('(run_volatility)')
