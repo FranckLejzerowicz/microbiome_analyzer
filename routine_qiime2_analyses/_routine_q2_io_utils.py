@@ -1196,10 +1196,13 @@ def write_filtered_tsv(tsv_out: str, tsv_pd: pd.DataFrame) -> None:
 def write_filtered_meta(dat: str, meta_out: str, meta_pd_: pd.DataFrame,
                         tsv_pd: pd.DataFrame, train_test_dict: dict) -> pd.DataFrame:
     meta_filt_pd = meta_pd_.loc[meta_pd_.sample_name.isin(tsv_pd.columns), :].copy()
-    if not os.path.isdir(os.path.dirname(meta_out)):
-        os.makedirs(os.path.dirname(meta_out))
+    # if not os.path.isdir(os.path.dirname(meta_out)):
+    #     os.makedirs(os.path.dirname(meta_out))
     meta_filt_traintest, train_cols = make_train_test_column(meta_out, train_test_dict, meta_filt_pd, dat)
-    if len(train_cols & set(pd.read_table(meta_out, nrows=2).columns)) != len(train_cols):
+    if isfile(meta_out):
+        if len(train_cols & set(pd.read_table(meta_out, nrows=2).columns)) != len(train_cols):
+            meta_filt_traintest.to_csv(meta_out, index=False, sep='\t')
+    else:
         meta_filt_traintest.to_csv(meta_out, index=False, sep='\t')
     return meta_filt_traintest
 
