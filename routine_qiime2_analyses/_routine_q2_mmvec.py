@@ -89,6 +89,8 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict, filtering: di
         # print("pair, pair_datasets")
         # print(pair, pair_datasets)
         (omic1_, bool1), (omic2_, bool2) = pair_datasets
+        if omic1_ not in input_to_filtered or omic2_ not in input_to_filtered:
+            continue
         omic1 = input_to_filtered[omic1_]
         omic2 = input_to_filtered[omic2_]
         if (omic1, bool1) not in filt_datasets or (omic2, bool2) not in filt_datasets:
@@ -187,6 +189,8 @@ def check_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
         data_dir_ = get_analysis_folder(i_datasets_folder, 'mmvec/common/data/%s' % pair)
         meta_dir_ = get_analysis_folder(i_datasets_folder, 'mmvec/common/metadata/%s' % pair)
         (omic1_, bool1), (omic2_, bool2) = pair_datasets
+        if omic1_ not in input_to_filtered or omic2_ not in input_to_filtered:
+            continue
         omic1 = input_to_filtered[omic1_]
         omic2 = input_to_filtered[omic2_]
         if (omic1, bool1) not in filt_datasets_pass or (omic2, bool2) not in filt_datasets_pass:
