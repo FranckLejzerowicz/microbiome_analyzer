@@ -1299,6 +1299,9 @@ def get_datasets_filtered(
                             #                           dtype={line.split('\t')[0]: str},
                             #                           low_memory=False)
                             # else:
+                            print("meta_out_mmvec:", meta_out_mmvec)
+                            print("tsv_out_mmvec:", tsv_out_mmvec)
+                            print("tsv_qza_mmvec:", tsv_qza_mmvec)
                             meta_pd = write_filtered_meta(meta_out, case_meta_pd, tsv_pd)
 
                             if tsv_hash in already_computed:
