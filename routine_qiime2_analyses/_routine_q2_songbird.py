@@ -260,7 +260,12 @@ def make_train_test_column(p_train_test, datasets, datasets_read):
         if 'datasets' in train_test_dict and dat in train_test_dict['datasets']:
             datasets_read_update[dat] = []
             for idx, (_, meta_pd) in enumerate(tsvs_meta_pds):
+                print()
+                print()
+                print("dat, idx, train_test_dict['datasets']")
+                print(dat, idx, train_test_dict['datasets'])
                 meta_fp = datasets[dat][idx][1]
+                print(meta_fp)
                 meta_tt_pd = meta_pd.copy()
                 for tt, tt_vars in train_test_dict['datasets'][dat].items():
                     train_column, train_samples = get_metadata_train_test(
@@ -270,10 +275,6 @@ def make_train_test_column(p_train_test, datasets, datasets_read):
                         'Test' for x in meta_tt_pd.sample_name.tolist()
                     ]
                 datasets_read_update[dat].append([_, meta_tt_pd])
-                print()
-                print()
-                print("dat, idx, train_test_dict['datasets']")
-                print(dat, idx, train_test_dict['datasets'])
                 meta_tt_pd.to_csv(datasets[dat][idx][1], index=False, sep='\t')
                 print('Written:', datasets[dat][idx][1])
     datasets_read.update(datasets_read_update)
