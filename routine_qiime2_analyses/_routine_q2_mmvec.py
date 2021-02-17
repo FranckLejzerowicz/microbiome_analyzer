@@ -361,7 +361,8 @@ def make_filtered_and_common_dataset(
     filt_datasets, filt_jobs = get_datasets_filtered(
         i_datasets_folder, datasets, datasets_read, datasets_filt,
         unique_datasets, unique_filterings, force, analysis,
-        filt_datasets_done, input_to_filtered, already_computed, subsets)
+        filt_datasets_done, input_to_filtered, train_test_dict,
+        already_computed, subsets)
 
     common_jobs = []
     common_datasets = {}

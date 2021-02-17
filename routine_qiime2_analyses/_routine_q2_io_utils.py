@@ -21,7 +21,7 @@ from os.path import basename, dirname, splitext, isfile, isdir, abspath
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
 from routine_qiime2_analyses._routine_q2_cmds import run_import, run_export, get_case, get_new_meta_pd
-from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict
+from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict, make_train_test_column
 
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
 
@@ -1193,10 +1193,14 @@ def write_filtered_tsv(tsv_out: str, tsv_pd: pd.DataFrame) -> None:
     tsv_pd.reset_index().to_csv(tsv_out, index=False, sep='\t')
 
 
-def write_filtered_meta(meta_out: str, meta_pd_: pd.DataFrame, tsv_pd: pd.DataFrame) -> pd.DataFrame:
-    meta_filt_pd = meta_pd_.loc[meta_pd_.sample_name.isin(tsv_pd.columns),:].copy()
-    meta_filt_pd.to_csv(meta_out, index=False, sep='\t')
-    return meta_filt_pd
+def write_filtered_meta(dat: str, meta_out: str, meta_pd_: pd.DataFrame,
+                        tsv_pd: pd.DataFrame, train_test_dict: dict) -> pd.DataFrame:
+    meta_filt_pd = meta_pd_.loc[meta_pd_.sample_name.isin(tsv_pd.columns), :].copy()
+    meta_filt_traintest, train_cols = make_train_test_column(meta_out, train_test_dict, meta_filt_pd, dat)
+    if len(train_cols & set(pd.read_table(meta_out, nrows=2).columns)) != len(train_cols):
+        meta_filt_traintest.to_csv(meta_out, index=False, sep='\t')
+    return meta_filt_traintest
+
 
 
 def get_datasets_filtered(
@@ -1204,7 +1208,7 @@ def get_datasets_filtered(
         datasets_read: dict, datasets_filt: dict,
         unique_datasets: list, filtering: dict, force: bool,
         analysis: str, filt_datasets_done: dict,
-        input_to_filtered: dict,
+        input_to_filtered: dict, train_test_dict: dict,
         already_computed: dict, subsets: dict) -> (dict, dict, list):
     """
     Filter the datasets for use in mmvec.
@@ -1284,10 +1288,9 @@ def get_datasets_filtered(
                     if len(filt_datasets_done[(dat, mb)][(case, preval_abund)]):
                         print('\t\t\t*', '[DONE]', dat, mb, case, preval_abund)
                         dat_filts[(case, preval_abund)] = filt_datasets_done[(dat, mb)][(case, preval_abund)]
-                        meta_pd = write_filtered_meta(meta_out, case_meta_pd, tsv_pd)
+                        meta_pd = write_filtered_meta(dat, meta_out, case_meta_pd, tsv_pd, train_test_dict)
                     else:
-                        # if analysis == 'songbird':
-                        if 0:
+                        if analysis == 'songbird':
                             meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
                             tsv_out_mmvec = tsv_out.replace('/songbird/', '/mmvec/')
                             tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
@@ -1300,10 +1303,7 @@ def get_datasets_filtered(
                             #                           dtype={line.split('\t')[0]: str},
                             #                           low_memory=False)
                             # else:
-                            print("meta_out_mmvec:", meta_out_mmvec)
-                            print("tsv_out_mmvec:", tsv_out_mmvec)
-                            print("tsv_qza_mmvec:", tsv_qza_mmvec)
-                            meta_pd = write_filtered_meta(meta_out, case_meta_pd, tsv_pd)
+                            meta_pd = write_filtered_meta(dat, meta_out, case_meta_pd, tsv_pd, train_test_dict)
 
                             if tsv_hash in already_computed:
                                 drop_keys.setdefault((dat_, mb), []).append((preval_abund, preval, abund))
@@ -1348,7 +1348,7 @@ def get_datasets_filtered(
                                     # print(analysis, 'write (job): tsv_qza', tsv_qza)
                                 already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
                         else:
-                            meta_pd = write_filtered_meta(meta_out, case_meta_pd, tsv_pd)
+                            meta_pd = write_filtered_meta(dat, meta_out, case_meta_pd, tsv_pd, train_test_dict)
                             if tsv_hash in already_computed:
                                 drop_keys.setdefault((dat_, mb), []).append((preval_abund, preval, abund))
                                 already_computed[tsv_hash].append([tsv_out, tsv_qza, meta_out])

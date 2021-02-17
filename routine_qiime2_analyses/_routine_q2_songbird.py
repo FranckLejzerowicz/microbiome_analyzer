@@ -186,7 +186,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
     if mmvec_outputs:
         mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
-        mmvec_outputs_pd.to_csv('~/testtest.txt', index=False, sep='\t')
+        # mmvec_outputs_pd.to_csv('~/testtest.txt', index=False, sep='\t')
         for r, row in mmvec_outputs_pd.iterrows():
             pair = row['pair']
             case = row['case']
@@ -313,6 +313,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     new_meta = '%s/metadata.tsv' % odir
                     new_meta_ct = '%s/metadata_traintest.tsv' % odir
 
+                    print(meta)
                     print(meta_pd.iloc[:3, -5:])
                     train_column, train_samples = get_metadata_train_test(
                         meta, meta_pd, list(meta_vars), new_meta, train, drop, new_meta_ct)
