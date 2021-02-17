@@ -176,6 +176,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
         common_datasets_done, input_to_filtered, already_computed,
         songbird_subsets, jobs)
 
+    print("filt_datasets")
+    print(filt_datasets)
+
     songbird_models.update(dict((input_to_filtered[x], y)
         for x, y in songbird_models.items() if x in input_to_filtered))
 
@@ -313,6 +316,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     new_meta = '%s/metadata.tsv' % odir
                     new_meta_ct = '%s/metadata_traintest.tsv' % odir
 
+                    print(meta_pd)
                     train_column, train_samples = get_metadata_train_test(
                         meta, meta_pd, list(meta_vars), new_meta, train, drop, new_meta_ct)
                     if not train_column:
