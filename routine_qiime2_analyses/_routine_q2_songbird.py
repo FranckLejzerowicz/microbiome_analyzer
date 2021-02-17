@@ -270,7 +270,12 @@ def make_train_test_column(p_train_test, datasets, datasets_read):
                         'Test' for x in meta_tt_pd.sample_name.tolist()
                     ]
                 datasets_read_update[dat].append([_, meta_tt_pd])
+                print()
+                print()
+                print("dat, idx, train_test_dict['datasets']")
+                print(dat, idx, train_test_dict['datasets'])
                 meta_tt_pd.to_csv(datasets[dat][idx][1], index=False, sep='\t')
+                print('Written:', datasets[dat][idx][1])
     datasets_read.update(datasets_read_update)
 
 
