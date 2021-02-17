@@ -160,7 +160,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     thresh_feats = params['thresh_feats']
     thresh_samples = params['thresh_samples']
     diff_priors = params['diff_priors']
-    summary_interval = params['summary_interval']
+    summary_intervals = params['summary_interval']
 
     filt_datasets_done, common_datasets_done = check_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_filt, songbird_datasets,
@@ -252,7 +252,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             #####################################################################
             for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
                                                        thresh_feats, thresh_samples, trains,
-                                                       summary_interval)):
+                                                       summary_intervals)):
                 batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, train, summary_interval = [
                     str(x) for x in it
                 ]
