@@ -12,7 +12,7 @@ from os.path import abspath, exists, isdir, isfile
 
 from routine_qiime2_analyses._routine_q2_io_utils import (get_prjct_nm, get_datasets,
                                                           get_run_params, summarize_songbirds,
-                                                          get_analysis_folder)
+                                                          get_analysis_folder, get_train_test_dict)
 from routine_qiime2_analyses._routine_q2_filter import (import_datasets, filter_rare_samples,
                                                         get_filt3d_params, explore_filtering,
                                                         deleted_non_filt)
@@ -39,7 +39,7 @@ from routine_qiime2_analyses._routine_q2_permanova import run_permanova, summari
 from routine_qiime2_analyses._routine_q2_nestedness import run_nestedness, nestedness_graphs, nestedness_nodfs
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
 from routine_qiime2_analyses._routine_q2_phate import run_phate
-from routine_qiime2_analyses._routine_q2_songbird import run_songbird, make_train_test_column
+from routine_qiime2_analyses._routine_q2_songbird import run_songbird
 from routine_qiime2_analyses._routine_q2_mmvec import run_mmvec
 from routine_qiime2_analyses._routine_q2_mmbird import run_mmbird
 
@@ -455,8 +455,9 @@ def routine_qiime2_analyses(
                            filt_raref, split, jobs, chunkit)
 
     # MMVEC AND SONGBIRD --------------------------------------------------------
+    train_test_dict = {}
     if p_train_test:
-        train_test = make_train_test_column(p_train_test, datasets, datasets_read)
+        train_test_dict = get_train_test_dict(p_train_test)
 
     filts = {}
     input_to_filtered = {}
@@ -467,19 +468,18 @@ def routine_qiime2_analyses(
         elif 'mmvec' not in p_skip:
             print('(run_mmvec)')
             mmvec_outputs = run_mmvec(p_mmvec_pairs, i_datasets_folder, datasets,
-                                      datasets_filt, datasets_read, force, gpu,
-                                      standalone, prjct_nm, qiime_env, chmod,
+                                      datasets_filt, datasets_read, train_test_dict, force,
+                                      gpu, standalone, prjct_nm, qiime_env, chmod,
                                       noloc, split, filt_raref, run_params['mmvec'],
                                       input_to_filtered, jobs, chunkit)
-
     songbird_outputs = []
     if p_diff_models:
         if filt3d:
             filts.update(get_filt3d_params(p_diff_models, 'songbird'))
         elif 'songbird' not in p_skip:
             print('(run_songbird)')
-            songbird_outputs = run_songbird(p_diff_models, i_datasets_folder,
-                                            datasets, datasets_read, datasets_filt,
+            songbird_outputs = run_songbird(p_diff_models, i_datasets_folder, datasets,
+                                            datasets_read, datasets_filt, train_test_dict,
                                             input_to_filtered, mmvec_outputs, force, prjct_nm,
                                             qiime_env, chmod, noloc, split,
                                             run_params['songbird'], filt_raref, jobs, chunkit)

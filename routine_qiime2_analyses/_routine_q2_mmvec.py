@@ -20,7 +20,9 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     get_datasets_filtered,
     check_datasets_filtered
 )
-from routine_qiime2_analyses._routine_q2_metadata import rename_duplicate_columns
+from routine_qiime2_analyses._routine_q2_metadata import (
+    rename_duplicate_columns, make_train_test_column
+)
 from routine_qiime2_analyses._routine_q2_cmds import (
     filter_feature_table, get_case,
     run_export, write_mmvec_cmd
@@ -35,7 +37,8 @@ def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFram
 
 
 def merge_and_write_metas(meta_subset1: pd.DataFrame, meta_subset2: pd.DataFrame,
-                          meta_fp: str) -> pd.DataFrame:
+                          meta_fp: str, omic1: str, omic2: str,
+                          train_test_dict: dict) -> pd.DataFrame:
     """
     :param meta_subset1:
     :param meta_subset2:
@@ -68,14 +71,16 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame, meta_subset2: pd.DataFrame
     )
     sorting_col = ['sample_name'] + [x for x in meta_subset.columns.tolist() if x != 'sample_name']
     meta_subset = meta_subset[sorting_col]
-    meta_subset.to_csv(meta_fp, index=False, sep='\t')
+    meta_subset_traintest, train_cols = make_train_test_column(meta_fp, train_test_dict, meta_subset, omic1, omic2)
+    if len(train_cols & set(pd.read_table(meta_fp, nrows=2).columns)) != len(train_cols):
+        meta_subset_traintest.to_csv(meta_fp, index=False, sep='\t')
     return meta_subset
 
 
 def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict, filtering: dict,
                         filt_datasets: dict, common_datasets_done: dict,
-                        input_to_filtered: dict, force: bool,
-                        subsets: dict) -> (dict, list):
+                        input_to_filtered: dict, train_test_dict: dict,
+                        force: bool, subsets: dict) -> (dict, list):
     """
     :param i_datasets_folder:
     :param mmvec_pairs:
@@ -106,22 +111,12 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict, filtering: di
                     preval_filt2, abund_filter2 = preval_abund_dats[(omic2_, bool2)]
                     filt1 = '%s_%s' % (preval_filt1, abund_filter1)
                     filt2 = '%s_%s' % (preval_filt2, abund_filter2)
-                    if (case, preval_abund) not in filt_datasets[(omic1, bool1)] or (case, preval_abund) not in filt_datasets[(omic2, bool2)]:
+                    if (case, preval_abund) not in filt_datasets[(omic1, bool1)]:
+                        continue
+                    if (case, preval_abund) not in filt_datasets[(omic2, bool2)]:
                         continue
                     tsv1, qza1, meta1, meta_pd1, sams1 = filt_datasets[(omic1, bool1)][(case, preval_abund)]
                     tsv2, qza2, meta2, meta_pd2, sams2 = filt_datasets[(omic2, bool2)][(case, preval_abund)]
-                    # print()
-                    # print()
-                    # print('omic_filt1', omic_filt1)
-                    # print('omic_filt2', omic_filt2)
-                    # print('tsv1, qza1, meta1')
-                    # print(' -', tsv1)
-                    # print(' -', qza1)
-                    # print(' -', meta1)
-                    # print('tsv2, qza2, meta2')
-                    # print(' -', tsv2)
-                    # print(' -', qza2)
-                    # print(' -', meta2)
                     common_sams = sorted(set(sams1) & set(sams2))
                     len_common_sams = len(common_sams)
                     if len_common_sams < 10:
@@ -150,7 +145,7 @@ def get_common_datasets(i_datasets_folder: str, mmvec_pairs: dict, filtering: di
                     )
                     meta_subset1 = get_meta_common_sorted(meta_pd1, common_sams)
                     meta_subset2 = get_meta_common_sorted(meta_pd2, common_sams)
-                    merge_and_write_metas(meta_subset1, meta_subset2, meta_fp)
+                    merge_and_write_metas(meta_subset1, meta_subset2, meta_fp, omic1, omic2, train_test_dict)
                     if meta_fp in common_datasets_done[pair]:
                         print('\t\t\t* [DONE]', pair, ':', omic1, filt1, omic2, filt2)
                         continue
@@ -203,7 +198,9 @@ def check_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
                 for preval_abund in sorted(pair_filtering):
                     preval_filt1, abund_filter1 = pair_filtering[preval_abund][(omic1_, bool1)]
                     preval_filt2, abund_filter2 = pair_filtering[preval_abund][(omic2_, bool2)]
-                    if not filt_datasets_pass[(omic1, bool1)][(case, preval_abund)] or not filt_datasets_pass[(omic2, bool2)][(case, preval_abund)]:
+                    if not filt_datasets_pass[(omic1, bool1)][(case, preval_abund)]:
+                        continue
+                    if not filt_datasets_pass[(omic2, bool2)][(case, preval_abund)]:
                         continue
                     filt1 = '_'.join([preval_filt1, abund_filter1])
                     filt2 = '_'.join([preval_filt2, abund_filter2])
@@ -338,10 +335,10 @@ def check_filtered_and_common_dataset(
 
 
 def make_filtered_and_common_dataset(
-        i_datasets_folder:str, datasets: dict, datasets_filt: dict,
-        datasets_read: dict, unique_datasets: list,
-        mmvec_pairs: dict, filtering: dict, unique_filterings: dict,
-        job_folder: str, force: bool,
+        i_datasets_folder:str, datasets: dict,
+        datasets_filt: dict, datasets_read: dict, unique_datasets: list,
+        train_test_dict: dict, mmvec_pairs: dict, filtering: dict,
+        unique_filterings: dict, job_folder: str, force: bool,
         prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
         analysis: str, filt_raref: str, filt_datasets_done: dict,
         common_datasets_done: dict, input_to_filtered: dict,
@@ -372,7 +369,8 @@ def make_filtered_and_common_dataset(
         print('\t-> [mmvec] Get common datasets...')
         common_datasets, common_jobs = get_common_datasets(
             i_datasets_folder, mmvec_pairs, filtering, filt_datasets,
-            common_datasets_done, input_to_filtered, force, subsets)
+            common_datasets_done, input_to_filtered, train_test_dict,
+            force, subsets)
 
     pre_jobs = filt_jobs + common_jobs
     if len(pre_jobs):
@@ -399,10 +397,10 @@ def get_unique_mmvec_filtering(mmvec_filtering):
 
 
 def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
-              datasets_filt: dict, datasets_read: dict, force: bool,
-              gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
-              chmod: str, noloc: bool, split: bool, filt_raref: str,
-              run_params: dict, input_to_filtered: dict, jobs: bool, chunkit: int) -> list:
+              datasets_filt: dict, datasets_read: dict, train_test_dict: dict,
+              force: bool, gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
+              chmod: str, noloc: bool, split: bool, filt_raref: str, run_params: dict,
+              input_to_filtered: dict, jobs: bool, chunkit: int) -> list:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
     https://github.com/biocore/mmvec
@@ -438,9 +436,9 @@ def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
     job_folder = get_job_folder(i_datasets_folder, 'mmvec')
     filt_datasets, common_datasets = make_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_filt, datasets_read,
-        unique_datasets, mmvec_pairs, mmvec_filtering, unique_filterings, job_folder,
-        force, prjct_nm, qiime_env, chmod, noloc, 'mmvec',
-        filt_raref, filt_datasets_done, common_datasets_done,
+        unique_datasets, train_test_dict, mmvec_pairs, mmvec_filtering,
+        unique_filterings, job_folder, force, prjct_nm, qiime_env, chmod,
+        noloc, 'mmvec', filt_raref, filt_datasets_done, common_datasets_done,
         input_to_filtered, already_computed, mmvec_subsets, jobs)
 
     all_sh_pbs = {}
