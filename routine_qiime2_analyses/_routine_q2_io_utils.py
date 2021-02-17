@@ -1202,7 +1202,6 @@ def write_filtered_meta(dat: str, meta_out: str, meta_pd_: pd.DataFrame,
     return meta_filt_traintest
 
 
-
 def get_datasets_filtered(
         i_datasets_folder: str, datasets: dict,
         datasets_read: dict, datasets_filt: dict,
@@ -1284,13 +1283,14 @@ def get_datasets_filtered(
                     tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
                     tsv_qza = '%s.qza' % splitext(tsv_out)[0]
                     meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
-                    print("meta_out")
-                    print(meta_out)
                     tsv_hash = hash_pandas_object(tsv_pd).sum()
-                    if len(filt_datasets_done[(dat, mb)][(case, preval_abund)]):
-                        print('\t\t\t*', '[DONE]', dat, mb, case, preval_abund)
-                        dat_filts[(case, preval_abund)] = filt_datasets_done[(dat, mb)][(case, preval_abund)]
-                        meta_pd = write_filtered_meta(dat, meta_out, case_meta_pd, tsv_pd, train_test_dict)
+                    if 0:
+                        pass
+                    # if len(filt_datasets_done[(dat, mb)][(case, preval_abund)]):
+                    #     print('\t\t\t*', '[DONE]', dat, mb, case, preval_abund)
+                    #     meta_pd = write_filtered_meta(dat, meta_out, case_meta_pd, tsv_pd, train_test_dict)
+                    #     dat_filts[(case, preval_abund)] = filt_datasets_done[(dat, mb)][(case, preval_abund)]
+                    #     dat_filts[(case, preval_abund)][-2] = meta_pd
                     else:
                         if analysis == 'songbird':
                             meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
@@ -1377,8 +1377,7 @@ def get_datasets_filtered(
                                     filt_jobs.append(cmd)
                                 already_computed[tsv_hash] = [[tsv_out, tsv_qza, meta_out]]
                         print('\t\t\t* [TODO]', dat, mb, case, preval_abund, ':', tsv_pd.shape)
-                        dat_filts[(case, preval_abund)] = [
-                            tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()]
+                        dat_filts[(case, preval_abund)] = [tsv_out, tsv_qza, meta_out, meta_pd, tsv_pd.columns.tolist()]
         filt_datasets[(dat, mb)] = dat_filts
     return filt_datasets, filt_jobs
 
