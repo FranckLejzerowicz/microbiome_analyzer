@@ -1284,6 +1284,8 @@ def get_datasets_filtered(
                     tsv_out = '%s/tab_%s.tsv' % (dat_dir, rad_out)
                     tsv_qza = '%s.qza' % splitext(tsv_out)[0]
                     meta_out = '%s/meta_%s.tsv' % (dat_dir, rad_out)
+                    print("meta_out")
+                    print(meta_out)
                     tsv_hash = hash_pandas_object(tsv_pd).sum()
                     if len(filt_datasets_done[(dat, mb)][(case, preval_abund)]):
                         print('\t\t\t*', '[DONE]', dat, mb, case, preval_abund)
