@@ -1286,7 +1286,8 @@ def get_datasets_filtered(
                         dat_filts[(case, preval_abund)] = filt_datasets_done[(dat, mb)][(case, preval_abund)]
                         meta_pd = write_filtered_meta(meta_out, case_meta_pd, tsv_pd)
                     else:
-                        if analysis == 'songbird':
+                        if 0:
+                        # if analysis == 'songbird':
                             meta_out_mmvec = meta_out.replace('/songbird/', '/mmvec/')
                             tsv_out_mmvec = tsv_out.replace('/songbird/', '/mmvec/')
                             tsv_qza_mmvec = tsv_qza.replace('/songbird/', '/mmvec/')
