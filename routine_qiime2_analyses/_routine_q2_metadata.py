@@ -32,7 +32,7 @@ def get_train_column(meta, new_meta_pd, meta_vars, train, new_meta, new_meta_ct)
                 train_column = ''
                 print('\t\t\t[SONGBIRD] Float passed as percent of samples for'
                               ' training not valid (must be in range 0-1)')
-                return None
+                return None, None
 
         new_meta_vars_pd = new_meta_pd[meta_vars].copy()
         cat_vars = [x for x in meta_vars if str(new_meta_vars_pd[x].dtype) == 'object']
@@ -60,7 +60,7 @@ def get_train_column(meta, new_meta_pd, meta_vars, train, new_meta, new_meta_ct)
             # print(train_perc)
             if new_meta_cat_pd_in['concat_cols'].unique().size < 2:
             # if train_perc < new_meta_cat_pd_in['concat_cols'].unique().size:
-                return None
+                return None, None
 
             _, __, ___, train_samples = train_test_split(
                 X, y, test_size=train_perc,
@@ -103,12 +103,12 @@ def get_train_column(meta, new_meta_pd, meta_vars, train, new_meta, new_meta_ct)
                 print('\t\t\t[SONGBIRD] Columns passed for training do '
                               'not have "Train" and "Test" factors')
                 print('\t\t\t\->', meta)
-                return None
+                return None, None
         else:
             train_column = ''
             print('\t\t\t[SONGBIRD] Columns passed for training not exists')
             print('\t\t\t\->', meta)
-            return None
+            return None, None
     if new_meta:
         new_meta_vars_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
     return train_column, train_samples
