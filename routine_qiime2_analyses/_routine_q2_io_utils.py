@@ -1199,13 +1199,7 @@ def write_filtered_meta(dat: str, meta_out: str, meta_pd_: pd.DataFrame,
     # if not os.path.isdir(os.path.dirname(meta_out)):
     #     os.makedirs(os.path.dirname(meta_out))
     meta_filt_traintest, train_cols = make_train_test_column(meta_out, train_test_dict, meta_filt_pd, dat)
-    if isfile(meta_out):
-        print('A')
-        if len(train_cols & set(pd.read_table(meta_out, nrows=2).columns)) != len(train_cols):
-            meta_filt_traintest.to_csv(meta_out, index=False, sep='\t')
-    else:
-        print('B')
-        meta_filt_traintest.to_csv(meta_out, index=False, sep='\t')
+    meta_filt_traintest.to_csv(meta_out, index=False, sep='\t')
     return meta_filt_traintest
 
 
