@@ -106,7 +106,6 @@ def get_split_taxonomy(taxa, extended=False, taxo_sep=';'):
     # if the parsed and split taxonomies have
     # very variable number of fields or very long split results
     # it is terminated here as a taxonomy that does not make sense
-    print()
     print(len(split_lens))
     print(split_lens)
     if len(split_lens) > 15 or max(split_lens) > 15:
@@ -157,6 +156,10 @@ def get_taxo_levels(taxonomies: dict) -> dict:
         features = tax_pd['Feature ID'].tolist()
 
         # perform the taxonomic split on the Taxon list and give the Feature as index
+        print()
+        print(dat)
+        print(tax_fp)
+        print(tax_pd)
         split_taxa_pd = get_split_taxonomy(tax_pd.Taxon.tolist())
         split_taxa_pd.index = features
         # write and collect (table, filename) if get_split_taxonomy()
