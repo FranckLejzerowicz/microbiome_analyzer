@@ -78,10 +78,14 @@ def get_split_taxonomy(taxa, extended=False, taxo_sep=';'):
 
     split_lens = set()
     split_taxa = []
-    for taxon in taxa:
+    for tdx, taxon in enumerate(taxa):
+        if tdx < 10:
+            print(tdx, taxon)
         if str(taxon) == 'nan':
             split_lens.add(1)
             split_taxa.append(pd.Series(['Unassigned']))
+            if tdx < 10:
+                print(' - Unassigned')
         else:
             taxon_split = [x.strip() for x in str(taxon).split(taxo_sep)
                            if len(x.strip()) and not x.startswith('x__')]
@@ -94,12 +98,17 @@ def get_split_taxonomy(taxa, extended=False, taxo_sep=';'):
             #     split_lens.add(1)
             #     split_taxa.append(pd.Series(['Unassigned']))
             # else:
+            if tdx < 10:
+                print(' -', taxon_split)
             split_lens.add(len(taxon_split))
             split_taxa.append(pd.Series(taxon_split))
 
     # if the parsed and split taxonomies have
     # very variable number of fields or very long split results
     # it is terminated here as a taxonomy that does not make sense
+    print()
+    print(len(split_lens))
+    print(split_lens)
     if len(split_lens) > 15 or max(split_lens) > 15:
         return pd.DataFrame([[x] for x in taxa], columns=['not_really_taxon'])
 
