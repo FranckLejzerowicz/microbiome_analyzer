@@ -1159,8 +1159,11 @@ def read_yaml_file(file_path: str) -> dict:
     yaml_dict = {}
     if isfile(file_path):
         with open(file_path) as yaml_handle:
-            yaml_dict = yaml.load(
-                yaml_handle, Loader=yaml.FullLoader)
+            try:
+                yaml_dict = yaml.load(
+                    yaml_handle, Loader=yaml.FullLoader)
+            except AttributeError:
+                yaml_dict = yaml.load(yaml_handle)
     else:
         print('%s do not exist' % file_path)
     return yaml_dict
