@@ -195,8 +195,6 @@ def routine_qiime2_analyses(
     get_precomputed_taxonomies(i_datasets_folder, datasets,
                                datasets_filt_map, taxonomies,
                                method)
-    print(taxonomies)
-    print(taxonomiesfds)
     if i_qemistree and 'qemistree' not in p_skip:
         if isdir(i_qemistree):
             print('(run_qemistree)')

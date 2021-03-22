@@ -550,30 +550,58 @@ def run_taxonomy_amplicon(dat: str, i_datasets_folder: str, force: bool, tsv_pd:
     return cmd
 
 
-def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict, datasets_read: dict,
-                 datasets_phylo: dict, datasets_features: dict, datasets_filt_map: dict,
-                 i_classifier: str, taxonomies: dict, force: bool, prjct_nm: str, qiime_env: str,
-                 chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict,
+                 datasets_read: dict, datasets_phylo: dict,
+                 datasets_features: dict, datasets_filt_map: dict,
+                 i_classifier: str, taxonomies: dict, force: bool,
+                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
+                 run_params: dict, filt_raref: str, jobs: bool,
+                 chunkit: int) -> None:
     """
-    classify-sklearn: Pre-fitted sklearn-based taxonomy classifier
 
-    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :param datasets: dataset -> [tsv, meta]
-    :param datasets_read: dataset -> [tsv table, meta table]
-    :param datasets_phylo: to be updated with ('tree_to_use', 'corrected_or_not') per dataset.
-    :param datasets_features: dataset -> list of features names in the dataset tsv / biom file.
-    :param i_classifier: Path to the taxonomic classifier.
-    :param taxonomies: dataset -> [method, assignment qza]
-    :param force: Force the re-writing of scripts for all commands.
-    :param prjct_nm: Short nick name for your project.
-    :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
-    :param chmod: whether to change permission of output files (defalt: 775).
+    Parameters
+    ----------
+    method
+    i_datasets_folder : str
+        Path to the folder containing the data/metadata subfolders.
+    datasets : dict
+        Mappring dataset name -> [data file path, metadata file path].
+    datasets_read : dict
+        Mapping dataset name -> [data table, metadata table]
+    datasets_phylo : dict
+        To be updated with ('tree_to_use', 'corrected_or_not') per dataset.
+    datasets_features : dict
+        Mapping dataset name -> list of features names in
+                                the dataset tsv / biom file.
+    datasets_filt_map : dict
+    i_classifier : str
+        Path to the taxonomic classifier.
+    taxonomies : dict
+        Mapping Dataset name -> [method, assignment qza]
+    force : bool
+        Force the re-writing of scripts for all commands.
+    prjct_nm : str
+        Short nick name for your project.
+    qiime_env : str
+        Name of your qiime2 conda environment (e.g. qiime2-2019.10).
+    chmod : str
+        Whether to change permission of output files (default: 744).
+    noloc : str
+    run_params : dict
+    filt_raref : str
+    jobs : bool
+    chunkit : int
+
+    Returns
+    -------
+
     """
     job_folder = get_job_folder(i_datasets_folder, 'taxonomy')
     job_folder2 = get_job_folder(i_datasets_folder, 'taxonomy/chunks')
-    amplicon_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'amplicon']
-    wol_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'wol']
-
+    amplicon_datasets = [dat for dat, (tree, correction) in
+                         datasets_phylo.items() if tree == 'amplicon']
+    wol_datasets = [dat for dat, (tree, correction)
+                    in datasets_phylo.items() if tree == 'wol']
     main_written = 0
     to_chunk = []
     run_pbs = '%s/1_run_taxonomy_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
