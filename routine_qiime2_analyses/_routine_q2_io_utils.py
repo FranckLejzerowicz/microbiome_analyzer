@@ -11,6 +11,7 @@ import re
 import sys
 import yaml
 import glob
+import subprocess
 import pkg_resources
 import pandas as pd
 import numpy as np
@@ -24,6 +25,27 @@ from routine_qiime2_analyses._routine_q2_cmds import run_import, run_export, get
 from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict, make_train_test_column
 
 RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
+
+
+def check_xpbs_install() ->  None:
+    """Try to get the install path of third party tool
+    Xpbs (https://github.com/FranckLejzerowicz/Xpbs).
+    If it exists, nothing happens and the code proceeds.
+    Otherwise, the code ends and tells what to do.
+    """
+    ret_code, ret_path = subprocess.getstatusoutput('which Xpbs')
+    if ret_code:
+        print('Xpbs is not installed (and make sure '
+              'to edit its config.txt)\nExiting...')
+        sys.exit(1)
+    else:
+        with open(ret_path) as f:
+            for line in f:
+                break
+        if line.startswith('$HOME'):
+            print('Xpbs is installed but its config.txt '
+                  'need editing!\nExiting...')
+            sys.exit(1)
 
 
 def summarize_songbirds(i_datasets_folder) -> pd.DataFrame:
@@ -100,25 +122,25 @@ def get_songbird_outputs(songbird_outputs: list) -> pd.DataFrame:
     return songbird_outputs_pd
 
 
-def read_yaml_file(p_yaml_file: str) -> dict:
-    """
-    :param p_subsets: Subsets for alpha diversity.
-    """
-    if p_yaml_file:
-        if not isfile(p_yaml_file):
-            print('[Warning] yaml file for subsets does not exist: %s\n' % p_yaml_file)
-        else:
-            with open(p_yaml_file) as handle:
-                try:
-                    yaml_content = yaml.load(handle, Loader=yaml.FullLoader)
-                except AttributeError:
-                    yaml_content = yaml.load(handle)
-            if not isinstance(yaml_content, dict):
-                print('[Warning] %s must be a dictionary\n' % p_yaml_file)
-            else:
-                return yaml_content
-    return {}
-
+# def read_yaml_file(p_yaml_file: str) -> dict:
+#     """
+#     :param p_subsets: Subsets for alpha diversity.
+#     """
+#     if p_yaml_file:
+#         if not isfile(p_yaml_file):
+#             print('[Warning] yaml file for subsets does not exist: %s\n' % p_yaml_file)
+#         else:
+#             with open(p_yaml_file) as handle:
+#                 try:
+#                     yaml_content = yaml.load(handle, Loader=yaml.FullLoader)
+#                 except AttributeError:
+#                     yaml_content = yaml.load(handle)
+#             if not isinstance(yaml_content, dict):
+#                 print('[Warning] %s must be a dictionary\n' % p_yaml_file)
+#             else:
+#                 return yaml_content
+#     return {}
+#
 
 def update_filtering_abundance(mmvec_dict: dict, p_mmvec_pairs: str, filtering: dict) -> dict:
     if 'abundance' in mmvec_dict['filtering']:
@@ -918,13 +940,20 @@ def get_prjct_nm(project_name: str) -> str:
     """
     Get a smaller name for printing in qstat / squeue.
 
-    :param project_name: Nick name for your project.
-    :return: Shorter name (without vows).
+    Parameters
+    ----------
+    project_name : str
+        Command-line passed project name.
+
+    Returns
+    -------
+    prjct_nm : str
+        Same name without the vows ("aeiouy").
     """
     alpha = 'aeiouy'
     prjct_nm = ''.join(x for x in project_name if x.lower() not in alpha)
     if prjct_nm == '':
-        prjct_nm = 'q2.routine'
+        prjct_nm = project_name
     return prjct_nm
 
 
@@ -1068,27 +1097,154 @@ def parse_g2lineage() -> dict:
     return g2lineage
 
 
-def get_run_params(p_run_params: str) -> dict:
+def check_qiime2_env(
+        qiime_env: str,
+        conda_envs: set) -> None:
+    """Checks that the qiime2 environment
+    exists (i.e., is in the set if discovered
+    conda environments.
 
-    run_params_default_fp = '%s/run_params.yml' % RESOURCES
-    with open(run_params_default_fp) as handle:
-        try:
-            run_params_default = yaml.load(handle, Loader=yaml.FullLoader)
-        except AttributeError:
-            run_params_default = yaml.load(handle)
+    Parameters
+    ----------
+    qiime_env : str
+        Qiime2 conda enviroment.
+    conda_envs : set
+        Conda environments.
+    """
+    if qiime_env not in conda_envs:
+        print('%s is not an existing conda environment' % qiime_env)
+        sys.exit(1)
 
-    if p_run_params and isfile(p_run_params):
-        run_params_fp = p_run_params
-        with open(run_params_fp) as handle:
-            try:
-                run_params = yaml.load(handle, Loader=yaml.FullLoader)
-            except AttributeError:
-                run_params = yaml.load(handle)
-        run_params_default.update(run_params)
+
+def get_conda_envs(qiime_env: str) -> set:
+    """Get the names of the conda environments.
+
+    Parameters
+    ----------
+    qiime_env : str
+        Qiime2 conda enviroment.
+
+    Returns
+    -------
+    conda_envs : set
+        Conda environments.
+    """
+    conda_envs = set()
+    for conda_env in subprocess.getoutput('conda env list').split('\n'):
+        if len(conda_env) and conda_env[0] != '#':
+            conda_envs.add(conda_env.split()[0])
+
+    # check that qiime2 environment exists
+    check_qiime2_env(qiime_env, conda_envs)
+
+    return conda_envs
+
+
+def read_yaml_file(file_path: str) -> dict:
+    """Simply reads a yaml and return
+    its contents in a dictionary structure.
+
+    Parameters
+    ----------
+    file_path: str
+        Path to a yaml file.
+
+    Returns
+    -------
+    yaml_dict : dict
+        Dictionary object returned
+        by reading the yaml file.
+        (could be an empty dict)
+    """
+    yaml_dict = {}
+    if isfile(file_path):
+        with open(file_path) as yaml_handle:
+            yaml_dict = yaml.load(
+                yaml_handle, Loader=yaml.FullLoader)
     else:
-        print('using run parameters from', run_params_default_fp)
+        print('%s do not exist' % file_path)
+    return yaml_dict
 
-    return run_params_default
+
+def check_run_params(
+        run_params: dict,
+        run_params_user: dict,
+        conda_envs: set) -> dict:
+    """Verify that the keys/values passed for
+    an analysis are valid.
+
+    Parameters
+    ----------
+    run_params : dict
+        Default run parameters.
+    run_params_user : dict
+        Passed run parameters.
+    conda_envs: set
+        Conda environments.
+
+    Returns
+    -------
+    run_params : dict
+        Validated run parameters.
+    """
+    integer_values = [
+        'time', 'n_nodes', 'n_procs', 'mem_num'
+    ]
+    mem_dim = ['kb', 'mb', 'gb']
+    for analysis in list(run_params_user.keys()):
+        for param in list(run_params_user[analysis].keys()):
+            param_val = run_params_user[analysis][param]
+            if param in integer_values:
+                if str(param_val).isdigit():
+                    run_params[analysis][param] = param_val
+            elif param == 'mem_dim':
+                if param_val in mem_dim:
+                    run_params[analysis][param] = param_val
+            elif param == 'env':
+                # check that qiime2 environment exists
+                check_qiime2_env(param_val, conda_envs)
+                run_params[analysis][param] = param_val
+    return run_params
+
+
+def get_run_params(
+        p_run_params: str,
+        conda_envs: set) -> dict:
+    """Get the run parameters based on the default
+    values, that are possibly updated by the user.
+
+    Parameters
+    ----------
+    p_run_params: str
+        User-defined run parameters.
+    conda_envs: set
+        Conda environments.
+
+    Returns
+    -------
+    run_params: dict
+        Valid run parameters, which for each analysis could be
+            'time': an integer
+            'n_nodes': an integer
+            'n_procs': an integer
+            'mem_num': an integer
+            'mem_dim': either on of ['kb', 'mb', 'gb']
+            'env': an existing conda environment
+    """
+
+    # read default run parameters (one set for each analysis)
+    run_params_default_fp = '%s/run_params.yml' % RESOURCES
+    run_params = read_yaml_file(run_params_default_fp)
+    # update these run parameters is file is passed
+    if p_run_params and isfile(p_run_params):
+        run_params_update = read_yaml_file(p_run_params)
+        # update these run parameters is file is passed
+        run_params = check_run_params(
+            run_params, run_params_update, conda_envs)
+    else:
+        print('Using run parameters from', run_params_default_fp)
+
+    return run_params
 
 
 def filter_mb_table(preval: str, abund: str,

@@ -10,9 +10,11 @@ import sys
 import subprocess
 from os.path import abspath, exists, isdir, isfile
 
-from routine_qiime2_analyses._routine_q2_io_utils import (get_prjct_nm, get_datasets,
-                                                          get_run_params, summarize_songbirds,
-                                                          get_analysis_folder, get_train_test_dict)
+from routine_qiime2_analyses._routine_q2_io_utils import (
+    check_xpbs_install, get_conda_envs, get_prjct_nm, get_datasets,
+    get_run_params, summarize_songbirds, get_analysis_folder,
+    get_train_test_dict
+)
 from routine_qiime2_analyses._routine_q2_filter import (import_datasets, filter_rare_samples,
                                                         get_filt3d_params, explore_filtering,
                                                         deleted_non_filt)
@@ -134,21 +136,16 @@ def routine_qiime2_analyses(
         print('%s is a file. Needs a folder as input\nExiting...' % i_datasets_folder)
         sys.exit(1)
 
-    # check Xpbs
-    ret_code, ret_path = subprocess.getstatusoutput('which Xpbs')
-    if ret_code:
-        print('Xpbs is not installed (and make sure to edit its config.txt)\nExiting...')
-        sys.exit(1)
-    else:
-        with open(ret_path) as f:
-            for line in f:
-                break
-        if line.startswith('$HOME'):
-            print('Xpbs is installed but its config.txt need editing!\nExiting...')
-            sys.exit(1)
-
+    # Initialization checks
+    if jobs:
+        # Xpbs must be installed (to make .pbs scripts) if required
+        check_xpbs_install()
+    # get jobs' project name for display in torque scheduler
     prjct_nm = get_prjct_nm(project_name)
-    run_params = get_run_params(p_run_params)
+    # get the names of the conda environments
+    conda_envs = get_conda_envs(qiime_env)
+    # get default, per-analysis run parameters (i.e. memory, #cpus, etc)
+    run_params = get_run_params(p_run_params, conda_envs)
 
     # READ ------------------------------------------------------------
     print('(get_datasets)')
@@ -198,6 +195,8 @@ def routine_qiime2_analyses(
     get_precomputed_taxonomies(i_datasets_folder, datasets,
                                datasets_filt_map, taxonomies,
                                method)
+    print(taxonomies)
+    print(taxonomiesfds)
     if i_qemistree and 'qemistree' not in p_skip:
         if isdir(i_qemistree):
             print('(run_qemistree)')
@@ -211,9 +210,10 @@ def routine_qiime2_analyses(
     if 'taxonomy' not in p_skip:
         print('(run_taxonomy)')
         run_taxonomy(method, i_datasets_folder, datasets, datasets_read,
-                     datasets_phylo, datasets_features, datasets_filt_map, i_classifier,
-                     taxonomies, force, prjct_nm, qiime_env, chmod, noloc,
-                     run_params['taxonomy'], filt_raref, jobs, chunkit)
+                     datasets_phylo, datasets_features, datasets_filt_map,
+                     i_classifier, taxonomies, force, prjct_nm, qiime_env,
+                     chmod, noloc, run_params['taxonomy'], filt_raref, jobs,
+                     chunkit)
         if 'barplot' not in p_skip:
             print('(run_barplot)')
             run_barplot(i_datasets_folder, datasets, taxonomies,
