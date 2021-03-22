@@ -457,6 +457,7 @@ def routine_qiime2_analyses(
     # MMVEC AND SONGBIRD --------------------------------------------------------
     train_test_dict = {}
     if p_train_test:
+        # read config to create train-test metadata columns
         train_test_dict = get_train_test_dict(p_train_test)
 
     filts = {}

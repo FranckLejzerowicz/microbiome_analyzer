@@ -402,26 +402,41 @@ def get_highlights_mmbird(highlights_mmbird_fp: str) -> dict:
 
 
 def get_train_test_dict(p_train_test: str) -> dict:
+
+    """Read config to create train-test metadata columns.
+    Specifies for each dataset the name of the column to
+    create, the column(s) to use for even split, and the
+    percent of samples to use in train set.
+
+    Parameters
+    ----------
+    p_train_test : str
+        Path to train test config file.
+
+    Returns
+    -------
+    train_test_dict : dict
+        Parsed config, corrected for erroneous percent.
     """
-    Collect from on the passed yaml file:
-    - subsets to perform songbird on
-    - formulas for songbird
-    - paramters for the modelling.
-    :param p_perm_groups: path to the yaml file containing groups.
-    :return: subset groups.
-    """
+
     if not isfile(p_train_test):
         print('yaml file containing groups does not exist:\n%s\nExiting...' % p_train_test)
         sys.exit(0)
+
+    train_test_dict = {}
     with open(p_train_test) as handle:
         try:
-            train_test_dict = yaml.load(handle, Loader=yaml.FullLoader)
+            train_test_read = yaml.load(handle, Loader=yaml.FullLoader)
         except AttributeError:
-            train_test_dict = yaml.load(handle)
+            train_test_read = yaml.load(handle)
+        if train_test_read:
+            train_test_dict.update(train_test_read)
 
     if 'train' not in train_test_dict:
         train_test_dict['train'] = 0.7
-    elif float(train_test_dict['train']) < 0 or float(train_test_dict['train']) > 1:
+    elif float(train_test_dict['train']) < 0:
+        train_test_dict['train'] = 0.7
+    elif float(train_test_dict['train']) > 1:
         train_test_dict['train'] = 0.7
 
     return train_test_dict
