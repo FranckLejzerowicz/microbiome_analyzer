@@ -6,39 +6,41 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import sys
-import subprocess
-from os.path import abspath, exists, isdir, isfile
+from os.path import isdir
 
 from routine_qiime2_analyses._routine_q2_io_utils import (
-    check_xpbs_install, get_conda_envs, get_prjct_nm, get_datasets,
+    check_input, check_xpbs_install, get_conda_envs, get_prjct_nm, get_datasets,
     get_run_params, summarize_songbirds, get_analysis_folder,
-    get_train_test_dict
-)
-from routine_qiime2_analyses._routine_q2_filter import (import_datasets, filter_rare_samples,
-                                                        get_filt3d_params, explore_filtering,
-                                                        deleted_non_filt)
+    get_train_test_dict)
+from routine_qiime2_analyses._routine_q2_filter import (
+    import_datasets, filter_rare_samples, get_filt3d_params, explore_filtering,
+    deleted_non_filt)
 from routine_qiime2_analyses._routine_q2_rarefy import run_rarefy
-from routine_qiime2_analyses._routine_q2_phylo import shear_tree, run_sepp, get_precomputed_trees
+from routine_qiime2_analyses._routine_q2_phylo import (
+    shear_tree, run_sepp, get_precomputed_trees)
 from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
-from routine_qiime2_analyses._routine_q2_taxonomy import (run_taxonomy, run_barplot, run_collapse,
-                                                          make_pies, get_taxo_levels, edit_taxonomies,
-                                                          get_precomputed_taxonomies,
-                                                          create_songbird_feature_metadata)
+from routine_qiime2_analyses._routine_q2_taxonomy import (
+    run_taxonomy, run_barplot, run_collapse, make_pies, get_taxo_levels,
+    edit_taxonomies, get_precomputed_taxonomies,
+    create_songbird_feature_metadata)
 from routine_qiime2_analyses._routine_q2_doc import run_doc
-from routine_qiime2_analyses._routine_q2_sourcetracking import run_sourcetracking
-from routine_qiime2_analyses._routine_q2_alpha import (run_alpha, merge_meta_alpha, export_meta_alpha,
-                                                       run_correlations, run_alpha_rarefaction, run_volatility,
-                                                       run_alpha_group_significance)
-from routine_qiime2_analyses._routine_q2_beta import (run_beta, export_beta,
-                                                      run_pcoas, run_biplots,
-                                                      run_emperor, run_emperor_biplot,
-                                                      run_empress, run_empress_biplot)
-from routine_qiime2_analyses._routine_q2_decay import (run_distance_decay, distance_decay_figure)
-from routine_qiime2_analyses._routine_q2_procrustes_mantel import (run_procrustes, run_mantel)
+from routine_qiime2_analyses._routine_q2_sourcetracking import (
+    run_sourcetracking)
+from routine_qiime2_analyses._routine_q2_alpha import (
+    run_alpha, merge_meta_alpha, export_meta_alpha, run_correlations,
+    run_alpha_rarefaction, run_volatility, run_alpha_group_significance)
+from routine_qiime2_analyses._routine_q2_beta import (
+    run_beta, export_beta, run_pcoas, run_biplots, run_emperor,
+    run_emperor_biplot, run_empress, run_empress_biplot)
+from routine_qiime2_analyses._routine_q2_decay import (
+    run_distance_decay, distance_decay_figure)
+from routine_qiime2_analyses._routine_q2_procrustes_mantel import (
+    run_procrustes, run_mantel)
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
-from routine_qiime2_analyses._routine_q2_permanova import run_permanova, summarize_permanova
-from routine_qiime2_analyses._routine_q2_nestedness import run_nestedness, nestedness_graphs, nestedness_nodfs
+from routine_qiime2_analyses._routine_q2_permanova import (
+    run_permanova, summarize_permanova)
+from routine_qiime2_analyses._routine_q2_nestedness import (
+    run_nestedness, nestedness_graphs, nestedness_nodfs)
 from routine_qiime2_analyses._routine_q2_adonis import run_adonis
 from routine_qiime2_analyses._routine_q2_phate import run_phate
 from routine_qiime2_analyses._routine_q2_songbird import run_songbird
@@ -98,44 +100,102 @@ def routine_qiime2_analyses(
         filt_only: bool,
         jobs: bool,
         chunkit: int) -> None:
-    """
-    Main qiime2 functions writer.
+    """Main qiime2 functions writer.
 
-    :param i_datasets: Internal name identifying the datasets in the input folder.
-    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :param project_name: Nick name for your project.
-    :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
-    :param p_alpha_subsets: Subsets for alpha diversity.
-    :param p_perm_tests: Subsets for PERMANOVA.
-    :param p_perm_groups: Groups to test between in each PERMANOVA subset (yml file path).
-    :param p_formulas: Formula for Adonis tests for each PERMANOVA subset (yml file path).
-    :param p_longi_column: If data is longitudinal; provide the time metadata column for volatility analysis.
-    :param p_filt_threshs:
-    :param force: Force the re-writing of scripts for all commands.
-    :param i_classifier: Path to the taxonomic classifier.
-    :param i_wol_tree: default to ./routine_qiime2_analyses/resources/wol_tree.nwk.
-    :param i_sepp_tree: path to the SEPP database artefact. Default to None.
-    :param i_qemistree: path to the tree generated using Qemistree (for metabolomics datasets).
-    :param p_diff_models: Formulas for multinomial regression-based differential abundance ranking.
-    :param p_mmvec_pairs: Pairs of datasets for which to compute co-occurrences probabilities.
-    :param chmod: whether to change permission of output files (defalt: 775).
-    :param p_skip: steps to skip.
-    :param gpu: Use GPUs instead of CPUs for MMVEC.
-    :param standalone:
-    :param raref: Whether to only perform the routine analyses on the rarefied datasets.
+    Parameters
+    ----------
+        i_datasets : tuple
+            Names identifying the datasets in the input folder
+        i_datasets_folder : str
+            Path to the folder containing the data/metadata sub-folders
+        project_name : str
+            Nick name for the project.
+        p_longi_column : str
+            Time metadata column if data is longitudinal
+        p_filt_threshs : str
+        p_raref_depths : str
+        eval_rarefs : bool
+        p_alpha_subsets : str
+            Features subsets config for alpha diversity
+        p_beta_subsets : str
+        p_perm_tests : tuple
+            Subsets for PERMANOVA
+        p_perm_tests_min : int
+        p_beta_groups : str
+            Config defining the samples groups to test between in each
+            PERMANOVA subset
+        p_nestedness_groups : str
+        p_beta_type : tuple
+        p_procrustes : str
+        p_mantel : str
+        p_distance_decay : str
+        p_collapse_taxo : str
+        p_train_test : str
+        p_formulas : str
+            Config defining the formula for Adonis tests
+            for each PERMANOVA subset
+        p_doc_config : str
+        p_sourcetracking_config : str
+        p_phate_config : str
+        do_biplots : bool
+        force : bool
+            Force the re-writing of scripts for all commands
+        i_classifier : str
+            Path to the taxonomic classifier
+        i_wol_tree : str
+            Path to the Web of Life (WOL) tree for Woltka data or any dataset
+            relying on WOL genomes (default to
+            ./routine_qiime2_analyses/resources/wol_tree.nwk)
+        i_sepp_tree : str
+            Path to the SEPP database QIIME2 artifact (no
+            default: no read placement performed by default)
+        i_qemistree : str
+            Path to the tree generated using Qemistree (for metabolomics
+            datasets)
+        p_diff_models : str
+            Config defining the formulas for multinomial regression-based
+            differential abundance ranking (using songbird)
+        p_mmvec_pairs : str
+            Config defining the pairs of datasets for which to compute
+            co-occurrences probabilities (using mmvec)
+        p_mmvec_highlights : str
+        p_xmmvec : str
+        qiime_env : str
+            Name of a qiime2 conda environment where analysis
+            tools to be run are installed
+        p_run_params : str
+        chmod : str
+            Whether to change permission of output files (default: 744)
+        p_skip : tuple
+            Analysis steps to skip
+        gpu : bool
+            Whether to use GPUs instead of CPUs for mmvec
+        standalone : bool
+            Whether to run songbird and mmvec as standalone
+            (in order to access live, tensorboard visualizer)
+        raref : bool
+            Whether to repeat all analyses on rarefied datasets (must be
+            set for a config passed to `-r` to be used)
+        noloc : bool
+        As : tuple
+        Bs : tuple
+        split : bool
+        dropout : bool
+        doc_phate : bool
+        filt3d : bool
+            Whether to build prevalence-abundance-features 3D plots for each
+            dataset (based on prevalence-abundance filters passed in configs)
+            instead of running any other analysis.
+        p_filt3d_config : str
+            Prevalence-abundance filters
+        filt_only : bool
+        jobs : bool
+        chunkit : int
     """
 
-    # INITIALIZATION ------------------------------------------------------------
+    # INITIALIZATION ----------------------------------------------------------
     # check input
-    if not exists(i_datasets_folder):
-        print('%s is not an existing folder\nExiting...' % i_datasets_folder)
-        sys.exit(1)
-
-    i_datasets_folder = abspath(i_datasets_folder)
-    if isfile(i_datasets_folder):
-        print('%s is a file. Needs a folder as input\nExiting...' % i_datasets_folder)
-        sys.exit(1)
-
+    i_datasets_folder = check_input(i_datasets_folder)
     # Initialization checks
     if jobs:
         # Xpbs must be installed (to make .pbs scripts) if required
@@ -147,10 +207,14 @@ def routine_qiime2_analyses(
     # get default, per-analysis run parameters (i.e. memory, #cpus, etc)
     run_params = get_run_params(p_run_params, conda_envs)
 
-    # READ ------------------------------------------------------------
-    print('(get_datasets)')
-    datasets, datasets_read, datasets_features, datasets_phylo, datasets_rarefs = get_datasets(
-        i_datasets, i_datasets_folder)
+    # READ --------------------------------------------------------------------
+    print('(Get datasets)')
+    datasets_objects = get_datasets(i_datasets, i_datasets_folder)
+    datasets = datasets_objects[0]
+    datasets_read = datasets_objects[1]
+    datasets_features = datasets_objects[2]
+    datasets_phylo = datasets_objects[3]
+    datasets_rarefs = datasets_objects[4]
 
     filt_raref = ''
     if p_filt_threshs:

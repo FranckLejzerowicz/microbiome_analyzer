@@ -18,13 +18,46 @@ import numpy as np
 from biom import load_table
 
 from pandas.util import hash_pandas_object
-from os.path import basename, dirname, splitext, isfile, isdir, abspath
+from os.path import (
+    abspath, basename, dirname, exists, isfile, isdir, splitext)
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs
-from routine_qiime2_analyses._routine_q2_cmds import run_import, run_export, get_case, get_new_meta_pd
-from routine_qiime2_analyses._routine_q2_metadata import check_metadata_cases_dict, make_train_test_column
+from routine_qiime2_analyses._routine_q2_cmds import (
+    run_import, run_export, get_case, get_new_meta_pd)
+from routine_qiime2_analyses._routine_q2_metadata import (
+    check_metadata_cases_dict, make_train_test_column)
 
-RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
+RESOURCES = pkg_resources.resource_filename(
+    "routine_qiime2_analyses", "resources")
+
+
+def check_input(i_datasets_folder: str) -> str:
+    """Check that the main input folder exists
+        and that it is indeed a folder, not a file.
+    Returns its absolute path for unambiguous use
+        in the rest of the code.
+
+    Parameters
+    ----------
+    i_datasets_folder : str
+        Main folder where datasets live.
+
+    Returns
+    -------
+    i_datasets_folder : str
+        Same folder but its absolute path.
+
+    """
+    if not exists(i_datasets_folder):
+        print('%s does exist\nExiting...' % i_datasets_folder)
+        sys.exit(1)
+
+    i_datasets_folder = abspath(i_datasets_folder)
+    if isfile(i_datasets_folder):
+        print('%s is a file. Needs a folder as input\nExiting...' %
+              i_datasets_folder)
+        sys.exit(1)
+    return i_datasets_folder
 
 
 def check_xpbs_install() ->  None:
@@ -676,7 +709,13 @@ def read_meta_pd(meta_tab: str, rep_col ='sample_name') -> pd.DataFrame:
     :return: metadata table.
     """
     meta_tab_sam_col = get_feature_sample_col(meta_tab)
-    meta_tab_pd = pd.read_csv(meta_tab, header=0, sep='\t', dtype={meta_tab_sam_col: str}, low_memory=False)
+    meta_tab_pd = pd.read_csv(
+        meta_tab,
+        header=0,
+        sep='\t',
+        dtype={meta_tab_sam_col: str},
+        low_memory=False
+    )
     meta_tab_pd.rename(columns={meta_tab_sam_col: rep_col}, inplace=True)
     return meta_tab_pd
 
@@ -792,50 +831,80 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
 
 
 def get_corresponding_meta(path: str) -> str:
-    """
-    Automatically gets the metadata file corresponding to the tsv / biom file.
+    """Discover the metadata file corresponding
+    to the already discovered data file for the
+    current dataset.
 
-    :param path: Path of the tsv / biom file.
-    :return: metadata file path.
+    Parameters
+    ----------
+    path : str
+        Absolute path to the tsv (or biom)
+        file for the current dataset
+
+    Returns
+    -------
+    meta_tsv : str
+        Absolute path to the metadata
+        file for the current dataset
+
     """
     path_split = abspath(path).split('/')
-    meta_rad = '%s/metadata/meta_%s' % ('/'.join(path_split[:-2]),
-                                        '_'.join(splitext(basename(path))[0].split('_')[1:]))
+    meta_rad = '%s/metadata/meta_%s' % (
+        '/'.join(path_split[:-2]),
+        '_'.join(splitext(basename(path))[0].split('_')[1:])
+    )
     meta_tsv = '%s.tsv' % meta_rad
-    meta_txt = '%s.txt' % meta_rad
     if isfile(meta_tsv):
         return meta_tsv
-    elif isfile(meta_txt):
-        return meta_txt
     else:
-        print('No metadata found for %s\n(was looking for:\n- %s\n- %s)' % (path, meta_tsv, meta_txt))
-        sys.exit(0)
+        meta_tsv = '%s.txt' % meta_rad
+        if isfile(meta_tsv):
+            return meta_tsv
+        else:
+            print('No metadata found for %s' % path)
+            sys.exit(0)
 
 
-def get_paths(i_datasets: tuple, i_datasets_folder: str) -> dict:
+def get_data_paths(
+        i_datasets: tuple,
+        i_datasets_folder: str) -> dict:
+    """Collect the data and metadata files pairs per dataset.
+
+    Parameters
+    ----------
+    i_datasets : tuple
+        Names identifying the datasets in the input folder
+    i_datasets_folder : str
+        Path to the folder containing the data/metadata sub-folders
+
+    Returns
+    -------
+    paths : dict
+        Paths to the existing datasets
+        e.g. {'dataset_name1': []}
     """
-    Collect the data and metadata files pairs per dataset.
-
-    :param i_datasets: Internal name identifying the datasets in the input folder.
-    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :return: datasets.
-    """
-    tsvs = []
-    paths = {}
+    tsvs = []  # tsv files to be encountered
+    paths = {}  # datasets paths
+    # for each dataset name passed by user
     for i_dataset in i_datasets:
+        # get the expected file paths
         tsv = '%s/data/tab_%s.tsv' % (i_datasets_folder, i_dataset)
         biom = '%s.biom' % splitext(tsv)[0]
-        tsvs.append(tsv)
+        tsvs.append(tsv)  # collect the tsv path in the `tsvs` list
+        # collect the tsv (or biom) path in the `paths` dict
         if isfile(tsv):
             paths[i_dataset] = tsv
         elif isfile(biom):
             paths[i_dataset] = biom
+    # Quit if no input file present in the expected place
     if not paths:
-        print('None of these target files found in input folder %s:' % i_datasets_folder)
+        print('None of these target files found in input folder %s:' %
+              i_datasets_folder)
         for tsv in tsvs:
             print(' - %s (or .biom)' % tsv)
         print('Exiting...')
         sys.exit(0)
+
     return paths
 
 
@@ -885,9 +954,36 @@ def gID_or_DNA(dat: str, path: str, path_pd: pd.DataFrame, datasets_read: dict,
             datasets_phylo[dat] = ('amplicon', 0)
 
 
-def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict, dict, dict):
+def read_data_table(path: str) -> pd.DataFrame:
+    """Read the data table into a pandas dataframe
+    where the features are set as index (`#OTU ID`).
+
+    Parameters
+    ----------
+    path : str
+        Path to the data table file
+
+    Returns
+    -------
+    path_pd : pd.DataFrame
+        Data table with index name `#OTU ID`
+        denoting the features names
     """
-    Collect the pairs of features tables / metadata tables, formatted as in qiime2. e.g:
+    if path.endswith('.biom'):
+        path_pd = load_table(path).to_dataframe()
+    else:
+        # rename function as it also reads data here (not just metadata)
+        path_pd = read_meta_pd(path, '#OTU ID').set_index('#OTU ID')
+    return path_pd
+
+
+def get_datasets(
+        i_datasets: tuple,
+        i_datasets_folder: str
+) -> (dict, dict, dict, dict, dict):
+    """
+    Collect the pairs of features tables / metadata tables, formatted as in
+    qiime2. e.g:
 
         --> Feature table example:
         #Feature ID  BVC.1591.10.10  BVC.1509.10.36  BVC.1584.10.10
@@ -901,12 +997,18 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
         BVC.1509.10.36       3.00      0.77
         BVC.1584.10.10       0.75      0.77
 
-    :param i_datasets: Internal name identifying the datasets in the input folder.
-    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :return datasets infomration.
+    Parameters
+    ----------
+    i_datasets : tuple
+        Names identifying the datasets in the input folder
+    i_datasets_folder : str
+        Path to the folder containing the data/metadata sub-folders
+
+    Returns
+    -------
     """
-    print('# Fetching data and metadata, for:\n - %s' % '\n - '.join(i_datasets))
-    paths = get_paths(i_datasets, i_datasets_folder)
+    print('# Fetching data and metadata for:\n - %s' % '\n - '.join(i_datasets))
+    paths = get_data_paths(i_datasets, i_datasets_folder)
 
     datasets = {}
     datasets_read = {}
@@ -918,15 +1020,9 @@ def get_datasets(i_datasets: tuple, i_datasets_folder: str) -> (dict, dict, dict
         if not isfile(meta):
             print(meta, 'does not exist\n Skipping', dat)
             continue
-        if path.endswith('.biom'):
-            path_pd = load_table(path).to_dataframe()
-        else:
-            path_pd = read_meta_pd(path, '#OTU ID').set_index('#OTU ID')
-            # tab_feat_col = get_feature_sample_col(path)
-            # path_pd = pd.read_csv(path, header=0, index_col=0, sep='\t')
-        meta_sam_col = get_feature_sample_col(meta)
-        meta_pd = pd.read_csv(meta, header=0, sep='\t', dtype={meta_sam_col: str}, low_memory=False)
-        meta_pd.rename(columns={meta_sam_col: 'sample_name'}, inplace=True)
+        path_pd = read_data_table(path)
+        meta_pd = read_meta_pd(meta, 'sample_name')
+
         datasets[dat] = [[path, meta]]
         datasets_read[dat] = [[path_pd, meta_pd]]
         datasets_features[dat] = {}
@@ -1157,7 +1253,7 @@ def read_yaml_file(file_path: str) -> dict:
         (could be an empty dict)
     """
     yaml_dict = {}
-    if isfile(file_path):
+    if file_path and isfile(file_path):
         with open(file_path) as yaml_handle:
             try:
                 yaml_dict = yaml.load(

@@ -9,10 +9,14 @@
 import os
 import unittest
 import pkg_resources
+from pathlib import Path
 from routine_qiime2_analyses._routine_q2_io_utils import (
+    check_input,
     get_prjct_nm,
     read_yaml_file,
-    get_run_params
+    get_run_params,
+    get_data_paths,
+    get_corresponding_meta
 )
 
 TEST = pkg_resources.resource_filename(
@@ -24,13 +28,33 @@ RESOURCES = pkg_resources.resource_filename(
 class InitChecks(unittest.TestCase):
 
     def setUp(self) -> None:
+
+        self.no_dummy_folder = '%s/no_dummy_folder' % TEST
+        self.dummy_folder = '%s/dummy_folder' % TEST
+        os.makedirs(self.dummy_folder)
+        self.dummy_folder_fp = '%s/dummy_folder_fp' % TEST
+        with open(self.dummy_folder_fp, 'w') as _:
+            pass
+
         self.dummy_yaml_fp = '%s/dummy_yaml.yml' % TEST
         with open(self.dummy_yaml_fp, 'w') as o:
             o.write('a:\n  b:\n    - "x"\n    - "y"')
         self.no_dummy_yaml_fp = '%s/no_dummy_yaml.yml' % TEST
 
-    def test_get_prjct_nm(self):
+    def test_check_input(self):
+        with self.assertRaises(SystemExit) as cm:
+            check_input(self.no_dummy_folder)
+        self.assertEqual(cm.exception.code, 1)
 
+        with self.assertRaises(SystemExit) as cm:
+            check_input(self.dummy_folder_fp)
+        self.assertEqual(cm.exception.code, 1)
+
+        observed = check_input(self.dummy_folder)
+        expected = '%s/dummy_folder' % TEST
+        self.assertEqual(observed, expected)
+
+    def test_get_prjct_nm(self):
         project_name = 'abracadabra'
         expected = 'brcdbr'
         observed = get_prjct_nm(project_name)
@@ -49,9 +73,13 @@ class InitChecks(unittest.TestCase):
         expected = {}
         observed = read_yaml_file(self.no_dummy_yaml_fp)
         self.assertEqual(expected, observed)
+        observed = read_yaml_file(None)
+        self.assertEqual(expected, observed)
 
     def tearDown(self) -> None:
         os.remove(self.dummy_yaml_fp)
+        os.remove(self.dummy_folder_fp)
+        os.rmdir(self.dummy_folder)
 
 
 class RunParams(unittest.TestCase):
@@ -107,6 +135,62 @@ class RunParams(unittest.TestCase):
         os.remove(self.update_time_param_fp)
         os.remove(self.update_not_a_env_fp)
         os.remove(self.update_not_mem_dim_fp)
+
+
+class DiscoverDatasets(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.i_datasets_folder = '%s/dataset_discovery' % TEST
+        self.data = '%s/dataset_discovery/data' % TEST
+        self.metadata = '%s/dataset_discovery/metadata' % TEST
+        os.makedirs(self.i_datasets_folder)
+        os.makedirs(self.data)
+        os.makedirs(self.metadata)
+        self.tsv = '%s/dataset_discovery/data/tab_a.tsv' % TEST
+        self.biom = '%s/dataset_discovery/data/tab_a.biom' % TEST
+        self.meta_tsv = '%s/dataset_discovery/metadata/meta_a.tsv' % TEST
+        self.meta_txt = '%s/dataset_discovery/metadata/meta_a.txt' % TEST
+
+    def test_get_data_paths_tsv(self):
+        expected = {'a': self.tsv}
+        Path(self.tsv).touch()
+        observed = get_data_paths(('a',), self.i_datasets_folder)
+        os.remove(self.tsv)
+        self.assertEqual(observed, expected)
+
+    def test_get_data_paths_biom(self):
+        expected = {'a': self.biom}
+        Path(self.biom).touch()
+        observed = get_data_paths(('a',), self.i_datasets_folder)
+        os.remove(self.biom)
+        self.assertEqual(observed, expected)
+
+    def test_get_data_paths_empty(self):
+        with self.assertRaises(SystemExit) as cm:
+            get_data_paths(('a',), self.i_datasets_folder)
+        self.assertEqual(cm.exception.code, 0)
+
+    def test_get_corresponding_meta(self):
+        Path(self.tsv).touch()
+        Path(self.meta_tsv).touch()
+        observed = get_corresponding_meta(self.tsv)
+        os.remove(self.meta_tsv)
+        self.assertEqual(self.meta_tsv, observed)
+
+        Path(self.meta_txt).touch()
+        observed = get_corresponding_meta(self.tsv)
+        os.remove(self.meta_txt)
+        self.assertEqual(self.meta_txt, observed)
+
+        with self.assertRaises(SystemExit) as cm:
+            get_corresponding_meta(self.tsv)
+        self.assertEqual(cm.exception.code, 0)
+        os.remove(self.tsv)
+
+    def tearDown(self) -> None:
+        os.rmdir(self.data)
+        os.rmdir(self.metadata)
+        os.rmdir(self.i_datasets_folder)
 
 
 if __name__ == '__main__':

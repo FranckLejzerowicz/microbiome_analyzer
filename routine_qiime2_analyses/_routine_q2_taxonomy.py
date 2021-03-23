@@ -624,12 +624,8 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict,
     job_folder2 = get_job_folder(i_datasets_folder, 'taxonomy/chunks')
     amplicon_datasets = [dat for dat, (tree, correction) in
                          datasets_phylo.items() if tree == 'amplicon']
-    print("amplicon_datasets")
-    print(amplicon_datasets)
     wol_datasets = [dat for dat, (tree, correction)
                     in datasets_phylo.items() if tree == 'wol']
-    print("wol_datasets")
-    print(wol_datasets)
 
     main_written = 0
     to_chunk = []
