@@ -352,17 +352,19 @@ def make_pies(i_datasets_folder: str, split_taxa_pds: dict,
     return pies_data
 
 
-def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, datasets_read: dict,
-                 datasets_features: dict, datasets_phylo: dict, split_taxa_pds: dict,
+def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
+                 datasets_read: dict, datasets_features: dict,
+                 datasets_phylo: dict, split_taxa_pds: dict,
                  taxonomies: dict, p_collapse_taxo: str, datasets_rarefs: dict,
-                 datasets_collapsed: dict, datasets_collapsed_map: dict, force: bool,
-                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-                 run_params: dict, filt_raref: str, jobs: bool) -> dict:
+                 datasets_collapsed: dict, datasets_collapsed_map: dict,
+                 force: bool, prjct_nm: str, qiime_env: str, chmod: str,
+                 noloc: bool, run_params: dict, filt_raref: str,
+                 jobs: bool) -> dict:
 
     collapse_taxo = get_collapse_taxo(p_collapse_taxo)
-    collapse_taxo.update(dict((datasets_filt[dat], x)
-                              for dat, x in collapse_taxo.items()
-                              if dat in datasets_filt))
+    collapse_taxo.update(
+        dict((datasets_filt[dat], x) for dat, x in
+             collapse_taxo.items() if dat in datasets_filt))
     main_written = 0
     noempty_collapse = 1
     collapsed = {}
@@ -373,7 +375,8 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
     stop_for_collapse = False
     job_folder = get_job_folder(i_datasets_folder, 'collapsed_taxo')
     job_folder2 = get_job_folder(i_datasets_folder, 'collapsed_taxo/chunks')
-    run_pbs = '%s/3_run_collapsed_taxo_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
+    run_pbs = '%s/3_run_collapsed_taxo_%s%s.sh' % (
+        job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tab_meta_fps in datasets.items():
             if dat not in collapse_taxo:
@@ -382,14 +385,16 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
             # get the taxonomic levels
             collapse_levels = collapse_taxo[dat]
             split_taxa_pd, split_taxa_fp = split_taxa_pds[dat]
-            split_levels, remove_empties = get_split_levels(collapse_levels, split_taxa_pd)
+            split_levels, remove_empties = get_split_levels(
+                collapse_levels, split_taxa_pd)
             collapsed[dat] = split_levels
 
             # files that will be collapsed using qiime2
             tax_qza, tax_fp = taxonomies[dat][1:]
 
             written = 0
-            out_sh = '%s/run_collapsed_taxo_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
+            out_sh = '%s/run_collapsed_taxo_%s_%s%s.sh' % (
+                job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 collapsed_removed = set()
@@ -403,15 +408,20 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
                         if (tax, level) in collapsed_removed:
                             continue
                         dat_tax = '%s_tx-%s' % (dat, tax)
-                        dat_collapsed = '%s_tx-%s' % (splitext(tab_fp)[0].split('/tab_')[-1], tax)
-                        collapsed_tsv = '%s_tx-%s.tsv' % (splitext(tab_fp)[0], tax)
+                        dat_collapsed = '%s_tx-%s' % (
+                            splitext(tab_fp)[0].split('/tab_')[-1], tax)
+                        collapsed_tsv = '%s_tx-%s.tsv' % (
+                            splitext(tab_fp)[0], tax)
                         collapsed_qza = collapsed_tsv.replace('.tsv', '.qza')
-                        collapsed_meta = '%s_tx-%s.tsv' % (splitext(meta_fp)[0], tax)
+                        collapsed_meta = '%s_tx-%s.tsv' % (
+                            splitext(meta_fp)[0], tax)
                         if isfile(collapsed_tsv) and isfile(collapsed_meta):
-                            collapsed_pd = pd.read_csv(collapsed_tsv, index_col=0, header=0, sep='\t')
+                            collapsed_pd = pd.read_csv(
+                                collapsed_tsv, index_col=0, header=0, sep='\t')
                             if collapsed_pd.shape[0] < 5:
                                 collapsed_removed.add((dat, tax))
-                                print('Not using %s collapsed at level %s (< 5 features)' % (dat, tax))
+                                print('Not using %s collapsed at level %s (< '
+                                      '5 features)' % (dat, tax))
                                 continue
                             with open(collapsed_meta) as f:
                                 for line in f:
@@ -419,55 +429,65 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict, da
                             collapsed_meta_pd = pd.read_table(
                                 collapsed_meta, dtype={line.split('\t')[0]: str}
                             )
-                            if noempty_collapse and len(remove_empty & set(collapsed_pd.index)):
+                            if noempty_collapse and len(
+                                    remove_empty & set(collapsed_pd.index)):
                                 written += 1
                                 main_written += 1
                                 collapsed_pd = collapsed_pd.drop(
-                                    index=list(remove_empty & set(collapsed_pd.index))
+                                    index=list(remove_empty &
+                                               set(collapsed_pd.index))
                                 )
-                                collapsed_pd = collapsed_pd.loc[:, collapsed_pd.sum() > 0]
-                                collapsed_pd.to_csv(collapsed_tsv, index=True, sep='\t')
-                                cmd = run_import(collapsed_tsv, collapsed_qza, 'FeatureTable[Frequency]')
+                                collapsed_pd = collapsed_pd.loc[:,
+                                               collapsed_pd.sum() > 0]
+                                collapsed_pd.to_csv(
+                                    collapsed_tsv, index=True, sep='\t')
+                                cmd = run_import(
+                                    collapsed_tsv, collapsed_qza,
+                                    'FeatureTable[Frequency]')
                                 cur_sh.write('echo "%s"\n' % cmd)
                                 cur_sh.write('%s\n\n' % cmd)
-                                if collapsed_meta_pd.index.size != collapsed_pd.columns.size:
+                                if collapsed_meta_pd.index.size != \
+                                        collapsed_pd.columns.size:
                                     collapsed_meta_pd = collapsed_meta_pd.loc[
-                                        collapsed_meta_pd.sample_name.isin(collapsed_pd.columns.tolist())]
-                                    collapsed_meta_pd.to_csv(collapsed_meta, index=False, sep='\t')
+                                        collapsed_meta_pd.sample_name.isin(
+                                            collapsed_pd.columns.tolist())]
+                                    collapsed_meta_pd.to_csv(
+                                        collapsed_meta, index=False, sep='\t')
                             datasets_read_update.setdefault(dat_tax, []).append(
                                 [collapsed_pd, collapsed_meta_pd])
-                            datasets_collapsed.setdefault(dat, []).append(dat_collapsed)
+                            datasets_collapsed.setdefault(dat, []).append(
+                                dat_collapsed)
                             datasets_collapsed_map[dat_collapsed] = dat
-                            datasets_update.setdefault(dat_tax, []).append([collapsed_tsv, collapsed_meta])
-                            datasets_rarefs.setdefault(dat_tax, []).append(datasets_rarefs[dat][idx])
+                            datasets_update.setdefault(dat_tax, []).append(
+                                [collapsed_tsv, collapsed_meta])
+                            datasets_rarefs.setdefault(dat_tax, []).append(
+                                datasets_rarefs[dat][idx])
                             datasets_phylo_update[dat_tax] = ('', 0)
                             continue
                         else:
                             written += 1
                             main_written += 1
                             stop_for_collapse = True
-                            write_collapse_taxo(tab_qza, tax_qza, collapsed_qza, collapsed_tsv,
-                                                meta_fp, collapsed_meta, level, remove_empty, cur_sh)
-                            # meta_pd = meta_pd.set_index('sample_name')
-                            # collapsed_meta_pd = meta_pd.loc[collapsed_pd.columns.tolist()].copy()
-                            # collapsed_pd.reset_index().to_csv(collapsed_tsv, index=False, sep='\t')
-                            # collapsed_meta_pd.reset_index().to_csv(collapsed_meta, index=False, sep='\t')
-                            #
-                            # datasets_update[dat_collapsed] = [[collapsed_tsv, collapsed_meta]]
-                            #
-                            # # EXPORT AND READ TO ADD HERE:
-                            # datasets_read_update[dat_collapsed] = [[collapsed_pd, collapsed_meta_pd.reset_index()]]
+                            write_collapse_taxo(
+                                tab_qza, tax_qza, collapsed_qza, collapsed_tsv,
+                                meta_fp, collapsed_meta, level, remove_empty,
+                                cur_sh)
             if written:
-                run_xpbs(out_sh, out_pbs, '%s.cllps.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
-                         run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                         run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                run_xpbs(
+                    out_sh, out_pbs, '%s.cllps.%s%s' % (
+                        prjct_nm, dat, filt_raref),
+                    qiime_env, run_params["time"], run_params["n_nodes"],
+                    run_params["n_procs"], run_params["mem_num"],
+                    run_params["mem_dim"], chmod, written, 'single', o,
+                    noloc, jobs)
 
     if main_written:
-        print_message('# Collapse features for taxo levels defined in %s' % p_collapse_taxo, 'sh', run_pbs, jobs)
+        print_message('# Collapse features for taxo levels defined in %s' %
+                      p_collapse_taxo, 'sh', run_pbs, jobs)
 
     if stop_for_collapse:
-        print('Stopping here as this collapse must be run first for other analyses to work')
+        print('Stopping here as this collapse must be run first for other '
+              'analyses to work')
         sys.exit(0)
 
     datasets.update(datasets_update)
@@ -509,21 +529,24 @@ def run_taxonomy_wol(force: bool, tsv_pd: pd.DataFrame, out_qza: str,
     cmd = ''
     if force or not isfile(out_qza):
         g2lineage = parse_g2lineage()
-        rev_cur_datasets_features = dict((y, x) for x, y in cur_datasets_features.items())
+        rev_cur_datasets_features = dict(
+            (y, x) for x, y in cur_datasets_features.items())
         if not isfile(out_tsv):
             with open(out_tsv, 'w') as o:
                 o.write('Feature ID\tTaxon\n')
                 for feat in tsv_pd.index:
                     if rev_cur_datasets_features[feat] in g2lineage:
-                        o.write('%s\t%s\n' % (feat, g2lineage[rev_cur_datasets_features[feat]]))
+                        o.write('%s\t%s\n' % (
+                            feat, g2lineage[rev_cur_datasets_features[feat]]))
                     else:
                         o.write('%s\t%s\n' % (feat, feat.replace('|', '; ')))
         cmd = run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
     return cmd
 
 
-def run_taxonomy_amplicon(dat: str, i_datasets_folder: str, force: bool, tsv_pd: pd.DataFrame,
-                          out_qza: str, out_tsv: str, i_classifier: str) -> str:
+def run_taxonomy_amplicon(
+        dat: str, i_datasets_folder: str, force: bool, tsv_pd: pd.DataFrame,
+        out_qza: str, out_tsv: str, i_classifier: str) -> str:
     """
     :param dat: Current dataset.
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
@@ -545,7 +568,8 @@ def run_taxonomy_amplicon(dat: str, i_datasets_folder: str, force: bool, tsv_pd:
         if force or not isfile(out_fp_seqs_qza):
             cmd += write_seqs_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, tsv_pd)
         if force or not isfile(out_qza):
-            cmd += write_taxonomy_sklearn(out_qza, out_fp_seqs_qza, ref_classifier_qza)
+            cmd += write_taxonomy_sklearn(out_qza, out_fp_seqs_qza,
+                                          ref_classifier_qza)
             cmd += run_export(out_qza, out_tsv, '')
     return cmd
 
@@ -600,14 +624,20 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict,
     job_folder2 = get_job_folder(i_datasets_folder, 'taxonomy/chunks')
     amplicon_datasets = [dat for dat, (tree, correction) in
                          datasets_phylo.items() if tree == 'amplicon']
+    print("amplicon_datasets")
+    print(amplicon_datasets)
     wol_datasets = [dat for dat, (tree, correction)
                     in datasets_phylo.items() if tree == 'wol']
+    print("wol_datasets")
+    print(wol_datasets)
+
     main_written = 0
     to_chunk = []
     run_pbs = '%s/1_run_taxonomy_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets_read.items():
-            out_sh = '%s/run_taxonomy_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
+            out_sh = '%s/run_taxonomy_%s_%s%s.sh' % (job_folder2, prjct_nm,
+                                                     dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             if dat in datasets_filt_map:
                 taxonomies[dat] = taxonomies[datasets_filt_map[dat]]
@@ -618,16 +648,19 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict,
                     if idx:
                         continue
                     tsv, meta = datasets[dat][idx]
-                    if not isinstance(tsv_meta_pds[0], pd.DataFrame) and tsv_meta_pds[0] == 'raref':
+                    if not isinstance(tsv_meta_pds[0], pd.DataFrame) and \
+                            tsv_meta_pds[0] == 'raref':
                         if not isfile(tsv):
-                            print('Must have run rarefaction to use it further...\nExiting')
+                            print('Must have run rarefaction to use it '
+                                  'further...\nExiting')
                             sys.exit(0)
                         tsv_pd, meta_pd = get_raref_tab_meta_pds(meta, tsv)
                         datasets_read[dat][idx] = [tsv_pd, meta_pd]
                     else:
                         tsv_pd, meta_pd = tsv_meta_pds
 
-                    odir = get_analysis_folder(i_datasets_folder, 'taxonomy/%s' % dat)
+                    odir = get_analysis_folder(i_datasets_folder,
+                                               'taxonomy/%s' % dat)
                     out_rad = '%s/tax_%s' % (odir, dat)
 
                     if dat in amplicon_datasets:
@@ -637,7 +670,8 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict,
                         #     if out_tsv == [dat][-1]:
                         #         continue
                         #     tax_tsv_ref = taxonomies[dat][-1]
-                        #     tax_tsv_ref_pd = pd.read_csv(tax_tsv_ref, header=0, index_col=0, sep='\t')
+                        #     tax_tsv_ref_pd = pd.read_csv(tax_tsv_ref,
+                        #         header=0, index_col=0, sep='\t')
                         #     print(tax_tsv_ref_pd.shape)
                         #     print(tax_tsv_ref_pd.iloc[:3,:3])
                         #     print(tsv_pd.shape)
@@ -649,23 +683,28 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict,
                         # else:
                         taxonomies[dat] = [method, out_qza, out_tsv]
                         if not i_classifier:
-                            print('No classifier passed for 16S data\nExiting...')
+                            print('No classifier passed for 16S '
+                                  'data\nExiting...')
                             continue
-                        cmd = run_taxonomy_amplicon(dat, i_datasets_folder, force, tsv_pd,
-                                                    out_qza, out_tsv, i_classifier)
+                        cmd = run_taxonomy_amplicon(
+                            dat, i_datasets_folder, force, tsv_pd,
+                            out_qza, out_tsv, i_classifier)
                     else:
                         out_qza = '%s.qza' % out_rad
                         out_tsv = '%s.tsv' % out_rad
                         if dat in wol_datasets:
                             cur_datasets_features = datasets_features[dat]
                             taxonomies[dat] = ['wol', out_qza, out_tsv]
-                            cmd = run_taxonomy_wol(force, tsv_pd, out_qza, out_tsv,
-                                                   cur_datasets_features)
+                            cmd = run_taxonomy_wol(
+                                force, tsv_pd, out_qza,
+                                out_tsv, cur_datasets_features)
                         else:
-                            if len([x for x in tsv_pd.index if str(x).isdigit()]) == tsv_pd.shape[0]:
+                            if len([x for x in tsv_pd.index if str(
+                                    x).isdigit()]) == tsv_pd.shape[0]:
                                 continue
                             taxonomies[dat] = ['feat', out_qza, out_tsv]
-                            cmd = run_taxonomy_others(force, tsv_pd, out_qza, out_tsv)
+                            cmd = run_taxonomy_others(
+                                force, tsv_pd, out_qza, out_tsv)
                     if cmd:
                         cur_sh.write('echo "%s"\n' % cmd)
                         cur_sh.write('%s\n\n' % cmd)
@@ -674,35 +713,57 @@ def run_taxonomy(method: str, i_datasets_folder: str, datasets: dict,
             if written:
                 to_chunk.append(out_sh)
                 if not chunkit:
-                    run_xpbs(out_sh, out_pbs, '%s.tx.sklrn.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
-                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                             run_params["mem_num"], run_params["mem_dim"],
-                             chmod, written, 'single', o, noloc, jobs)
+                    run_xpbs(
+                        out_sh, out_pbs,
+                        '%s.tx.sklrn.%s%s' % (prjct_nm, dat, filt_raref),
+                        qiime_env, run_params["time"], run_params["n_nodes"],
+                        run_params["n_procs"], run_params["mem_num"],
+                        run_params["mem_dim"], chmod, written, 'single', o,
+                        noloc, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'taxonomy',
-                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                      run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      prjct_nm, run_params["time"], run_params["n_nodes"],
+                      run_params["n_procs"], run_params["mem_num"],
+                      run_params["mem_dim"], qiime_env, chmod, noloc, jobs,
+                      chunkit, None)
 
     if main_written:
-        print_message('# Classify features using classify-sklearn', 'sh', run_pbs, jobs)
+        print_message('# Classify features using classify-sklearn', 'sh',
+                      run_pbs, jobs)
 
 
 def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
                 force: bool, prjct_nm: str, qiime_env: str,
                 chmod: str, noloc: bool, run_params: dict,
                 filt_raref: str, jobs: bool, chunkit: int) -> None:
-    """
-    barplot: Visualize taxonomy with an interactive bar plot
+    """Visualize taxonomy with an interactive bar plot.
 
-    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :param datasets: dataset -> [tsv, meta]
-    :param taxonomies: dataset -> [classification_method, tax_qza]
-    :param force: Force the re-writing of scripts for all commands.
-    :param prjct_nm: Short nick name for your project.
-    :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
-    :param chmod: whether to change permission of output files (defalt: 775).
+    Parameters
+    ----------
+    i_datasets_folder : str
+        Path to the folder containing the data/metadata subfolders
+    datasets : dict
+        Mappig dataset name -> [tsv file path, metadata file path]
+    taxonomies : dict
+        Mappig dataset name -> [classification_method, tax_qza]
+    force : bool
+        Force the re-writing of scripts for all commands
+    prjct_nm : str
+        Short nick name for your project
+    qiime_env : str
+        Mame of a qiime2 conda environment
+    chmod : str
+        Whether to change permission of output files (defalt: 744)
+    noloc : bool
+    run_params : dict
+    filt_raref : str
+    jobs : bool
+    chunkit : int
+
+    Returns
+    -------
+
     """
     job_folder = get_job_folder(i_datasets_folder, 'barplot')
     job_folder2 = get_job_folder(i_datasets_folder, 'barplot/chunks')
@@ -712,7 +773,8 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
     run_pbs = '%s/1_run_barplot_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
-            out_sh = '%s/run_barplot_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
+            out_sh = '%s/run_barplot_%s_%s%s.sh' % (job_folder2, prjct_nm,
+                                                    dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for tsv_meta_pds in tsv_meta_pds_:
@@ -723,36 +785,51 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
                     if not method:
                         method = 'taxofromfile'
                     qza = '%s.qza' % splitext(tsv)[0]
-                    odir = get_analysis_folder(i_datasets_folder, 'barplot/%s' % dat)
+                    odir = get_analysis_folder(i_datasets_folder,
+                                               'barplot/%s' % dat)
                     out_qzv = '%s/bar_%s_%s.qzv' % (odir, dat, method)
                     if force or not isfile(out_qzv):
                         write_barplots(out_qzv, qza, meta, tax_qza, cur_sh)
                         written += 1
             to_chunk.append(out_sh)
             if not chunkit:
-                run_xpbs(out_sh, out_pbs, '%s.brplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
-                     run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                     run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc, jobs)
+                run_xpbs(
+                    out_sh, out_pbs, '%s.brplt.%s%s' % (
+                        prjct_nm, dat, filt_raref),
+                    qiime_env, run_params["time"], run_params["n_nodes"],
+                    run_params["n_procs"], run_params["mem_num"],
+                    run_params["mem_dim"], chmod, written, 'single', o,
+                    noloc, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'barplot',
-                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                      run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      prjct_nm, run_params["time"], run_params["n_nodes"],
+                      run_params["n_procs"], run_params["mem_num"],
+                      run_params["mem_dim"], qiime_env, chmod, noloc, jobs,
+                      chunkit, None)
 
     if written:
-        print_message('# Make sample compositions barplots', 'sh', run_pbs, jobs)
+        print_message('# Make sample compositions barplots',
+                      'sh', run_pbs, jobs)
 
 
-def get_precomputed_taxonomies(i_datasets_folder: str, datasets: dict,
-                               datasets_filt_map: dict, taxonomies: dict,
-                               method: str) -> None:
+def get_precomputed_taxonomies(
+        i_datasets_folder: str, datasets: dict, datasets_filt_map: dict,
+        taxonomies: dict, method: str) -> None:
+    """Update taxonomies dict with file found existing
+
+    Parameters
+    ----------
+    i_datasets_folder
+        Path to the folder containing the data/metadata subfolders
+    datasets : dict
+        Mapping dataset name -> [tsv file path, metadata file path]
+    datasets_filt_map : dict
+    taxonomies : dict
+        Mapping dataset name -> [classification_method, tax_qza]
+    method : str
     """
-    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :param datasets: dataset -> [tsv/biom path, meta path]
-    :param taxonomies: dataset -> [classification_method, tax_qza]
-    """
+
     for dat in datasets:
 
         if dat in datasets_filt_map:
@@ -760,7 +837,8 @@ def get_precomputed_taxonomies(i_datasets_folder: str, datasets: dict,
         else:
             dat_tax = dat
 
-        analysis_folder = get_analysis_folder(i_datasets_folder, 'taxonomy/%s' % dat_tax)
+        analysis_folder = get_analysis_folder(
+            i_datasets_folder, 'taxonomy/%s' % dat_tax)
 
         tax_qza = '%s/tax_%s_%s.qza' % (analysis_folder, dat_tax, method)
         tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
@@ -824,6 +902,8 @@ def edit_taxonomies(i_datasets_folder: str, taxonomies: dict, force: bool,
     run_pbs = '%s/1_run_taxonomy_edit_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
     with open(run_pbs, 'w') as o:
         for dat, (_, qza, tsv) in taxonomies.items():
+            if not isfile(tsv):
+                continue
             out_pd = pd.read_csv(tsv, dtype=str, sep='\t')
             taxo = out_pd['Taxon'].tolist()
             taxo_edit = get_taxo_edit(taxo)
