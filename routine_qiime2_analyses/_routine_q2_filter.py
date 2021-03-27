@@ -25,19 +25,38 @@ from routine_qiime2_analyses._routine_q2_mmvec import get_mmvec_dicts
 from routine_qiime2_analyses._routine_q2_songbird import get_songbird_dicts
 
 
-def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
-                    force: bool, prjct_nm: str, qiime_env: str,  chmod: str,
-                    noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
-    """
-    Initial import of the .tsv datasets in to Qiime2 Artefact.
+def import_datasets(
+        i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
+        force: bool, prjct_nm: str, qiime_env: str,  chmod: str,
+        noloc: bool, run_params: dict, filt_raref: str, jobs: bool,
+        chunkit: int) -> tuple:
+    """Initial imports of the .tsv datasets in to Qiime2 Artefacts
 
-    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :param datasets: dataset -> [tsv/biom path, meta path]
-    :param datasets_phylo: to be updated with ('tree_to_use', 'corrected_or_not') per dataset.
-    :param force: Force the re-writing of scripts for all commands.
-    :param prjct_nm: Short nick name for your project.
-    :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
-    :param chmod: whether to change permission of output files (defalt: 775).
+    Parameters
+    ----------
+    i_datasets_folder : str
+        Names identifying the datasets in the input folder
+    datasets : dict
+        Mapping dataset name -> [data file path, metadata file path]
+    datasets_phylo : dict
+        Mapping dataset name -> ('tree_to_use', 'corrected_or_not')
+    force : bool
+        Force the re-writing of scripts for all commands
+    prjct_nm : str
+        Nick name for the project.
+    qiime_env : str
+        Name of a qiime2 conda environment where analysis
+        tools to be run are installed
+    chmod : str
+    noloc : bool
+    run_params : dict
+    filt_raref : str
+    jobs : bool
+    chunkit : int
+
+    Returns
+    -------
+
     """
     job_folder = get_job_folder(i_datasets_folder, 'import_tables')
     job_folder2 = get_job_folder(i_datasets_folder, 'import_tables/chunks')
@@ -48,7 +67,8 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
             written = 0
-            out_sh = '%s/0_run_import_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
+            out_sh = '%s/0_run_import_%s_%s%s.sh' % (
+                job_folder2, prjct_nm, dat, filt_raref)
             out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for tsv_meta_pds in tsv_meta_pds_:  # REMOVE IF FIXED NOT KEPT
@@ -68,15 +88,21 @@ def import_datasets(i_datasets_folder: str, datasets: dict, datasets_phylo: dict
                 main_written += 1
                 to_chunk.append(out_sh)
                 if not chunkit:
-                    run_xpbs(out_sh, out_pbs, '%s.mprt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
-                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                             run_params["mem_num"], run_params["mem_dim"],
-                             chmod, written, 'single', o, noloc, jobs)
+                    job_nane = '%s.mprt.%s%s' % (prjct_nm, dat, filt_raref)
+                    run_xpbs(
+                        out_sh, out_pbs, job_nane, qiime_env,
+                        run_params["time"], run_params["n_nodes"],
+                        run_params["n_procs"], run_params["mem_num"],
+                        run_params["mem_dim"], chmod, written, 'single',
+                        o, noloc, jobs
+                    )
     if to_chunk and chunkit:
-        simple_chunks(run_pbs, job_folder2, to_chunk, 'imports',
-                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                      run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+        simple_chunks(
+            run_pbs, job_folder2, to_chunk, 'imports', prjct_nm,
+            run_params["time"], run_params["n_nodes"], run_params["n_procs"],
+            run_params["mem_num"], run_params["mem_dim"], qiime_env, chmod,
+            noloc, jobs, chunkit, None
+        )
 
     if main_written:
         print_message('# Import tables to qiime2', 'sh', run_pbs, jobs)

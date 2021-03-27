@@ -457,7 +457,6 @@ def get_highlights_mmbird(highlights_mmbird_fp: str) -> dict:
 
 
 def get_train_test_dict(p_train_test: str) -> dict:
-
     """Read config to create train-test metadata columns.
     Specifies for each dataset the name of the column to
     create, the column(s) to use for even split, and the
@@ -474,30 +473,19 @@ def get_train_test_dict(p_train_test: str) -> dict:
         Parsed config, corrected for erroneous percent.
     """
 
-    if not isfile(p_train_test):
-        print('yaml file containing groups does not exist:\n%s\nExiting...' % p_train_test)
-        sys.exit(0)
-
     train_test_dict = {}
-    with open(p_train_test) as handle:
-        try:
-            train_test_read = yaml.load(handle, Loader=yaml.FullLoader)
-        except AttributeError:
-            train_test_read = yaml.load(handle)
-        if train_test_read:
-            train_test_dict.update(train_test_read)
-
+    train_test_dict.update(read_yaml_file(p_train_test))
     if 'train' not in train_test_dict:
         train_test_dict['train'] = 0.7
     elif float(train_test_dict['train']) < 0:
         train_test_dict['train'] = 0.7
     elif float(train_test_dict['train']) > 1:
         train_test_dict['train'] = 0.7
-
     return train_test_dict
 
 
-def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict, dict):
+def get_songbird_dicts(
+        p_diff_models: str) -> (dict, dict, dict, dict, dict, dict):
     """
     Collect from on the passed yaml file:
     - subsets to perform songbird on
@@ -507,7 +495,8 @@ def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict, dic
     :return: subset groups.
     """
     if not isfile(p_diff_models):
-        print('yaml file containing groups does not exist:\n%s\nExiting...' % p_diff_models)
+        print('yaml file containing groups does not exist:\n%s\nExiting...' %
+              p_diff_models)
         sys.exit(0)
     with open(p_diff_models) as handle:
         try:
@@ -529,7 +518,8 @@ def get_songbird_dicts(p_diff_models: str) -> (dict, dict, dict, dict, dict, dic
 
 def get_phate_dicts(p_phate_config: str) -> (dict, list, dict, dict):
     if not isfile(p_phate_config):
-        print('yaml file containing groups does not exist:\n%s\nExiting...' % p_phate_config)
+        print('yaml file containing groups does not exist:\n%s\nExiting...' %
+              p_phate_config)
         sys.exit(0)
     with open(p_phate_config) as handle:
         try:
@@ -577,7 +567,8 @@ def get_doc_config(p_doc_config: str) -> (dict, dict, dict):
     main_cases_dict = {'ALL': [[]]}
     if p_doc_config:
         if not isfile(p_doc_config):
-            print('DOC config yaml file does not exist:\n%s\nExiting...' % p_doc_config)
+            print('DOC config yaml file does not exist:\n%s\nExiting...' %
+                  p_doc_config)
             sys.exit(0)
         with open(p_doc_config) as handle:
             try:
@@ -594,7 +585,8 @@ def get_doc_config(p_doc_config: str) -> (dict, dict, dict):
     return doc_filtering, doc_params, main_cases_dict
 
 
-def get_sourcetracking_config(p_sourcetracking_config: str) -> (dict, dict, dict, dict):
+def get_sourcetracking_config(
+        p_sourcetracking_config: str) -> (dict, dict, dict, dict):
     sourcetracking_filtering = {}
     sourcetracking_params = {
         'method': ['q2'],
@@ -604,7 +596,8 @@ def get_sourcetracking_config(p_sourcetracking_config: str) -> (dict, dict, dict
     }
     main_cases_dict = {'ALL': [[]]}
     if not p_sourcetracking_config or not isfile(p_sourcetracking_config):
-        print('DOC config yaml file does not exist:\n%s\nExiting...' % p_sourcetracking_config)
+        print('DOC config yaml file does not exist:\n%s\nExiting...' %
+              p_sourcetracking_config)
         sys.exit(0)
     with open(p_sourcetracking_config) as handle:
         try:
@@ -622,7 +615,7 @@ def get_sourcetracking_config(p_sourcetracking_config: str) -> (dict, dict, dict
         main_cases_dict.update(sourcetracking_config['subsets'])
     if 'params' in sourcetracking_config:
         sourcetracking_params.update(sourcetracking_config['params'])
-    return sourcetracking_sourcesink, sourcetracking_filtering, sourcetracking_params, main_cases_dict
+    return sourcetracking_sourcesink, sourcetracking_filtering, sourcetracking_params, main_cases_dic
 
 
 def get_main_cases_dict(p_perm_groups: str) -> dict:
@@ -635,7 +628,8 @@ def get_main_cases_dict(p_perm_groups: str) -> dict:
     main_cases_dict = {'ALL': [[]]}
     if p_perm_groups:
         if not isfile(p_perm_groups):
-            print('yaml file containing groups does not exist:\n%s\nExiting...' % p_perm_groups)
+            print('yaml file containing groups does not '
+                  'exist:\n%s\nExiting...' % p_perm_groups)
             sys.exit(0)
         with open(p_perm_groups) as handle:
             try:
@@ -666,12 +660,17 @@ def get_formulas_dict(p_formulas: str) -> dict:
 
 
 def get_feature_sample_col(meta_tab: str) -> str:
+    """Get the first column of the metadata file.
 
-    """
-    Get the first column of the metadata file.
+    Parameters
+    ----------
+    meta_tab : str
+        Data of metadata file path
 
-    :param meta: metadata file name
-    :return: column name
+    Returns
+    -------
+    first_column : str
+        name of the first column in the table
     """
     n = 0
     with open(meta_tab) as f:
@@ -679,7 +678,8 @@ def get_feature_sample_col(meta_tab: str) -> str:
             n += 1
             break
     if n:
-        return line.split('\t')[0]
+        first_column = line.split('\t')[0]
+        return first_column
     else:
         print('Empty now: %s (possibly being written elsewhere..)' % meta_tab)
         sys.exit(0)
@@ -702,11 +702,22 @@ def get_raref_tab_meta_pds(meta: str, tsv: str) -> (pd.DataFrame, pd.DataFrame):
     return tsv_pd, meta_raref_pd
 
 
-def read_meta_pd(meta_tab: str, rep_col ='sample_name') -> pd.DataFrame:
-    """
-    Read metadata wit first column as index.
-    :param meta: file path to the metadata file.
-    :return: metadata table.
+def read_meta_pd(
+        meta_tab: str,
+        rep_col: str = 'sample_name') -> pd.DataFrame:
+    """Read metadata with first column as index.
+
+    Parameters
+    ----------
+    meta_tab : str
+        Path to the data table file
+    rep_col : str
+        Columns to use for index name
+
+    Returns
+    -------
+    meta_tab_pd : pd.DataFrame
+        Metadata table
     """
     meta_tab_sam_col = get_feature_sample_col(meta_tab)
     meta_tab_pd = pd.read_csv(
@@ -716,7 +727,10 @@ def read_meta_pd(meta_tab: str, rep_col ='sample_name') -> pd.DataFrame:
         dtype={meta_tab_sam_col: str},
         low_memory=False
     )
-    meta_tab_pd.rename(columns={meta_tab_sam_col: rep_col}, inplace=True)
+    meta_tab_pd.rename(
+        columns={meta_tab_sam_col: rep_col},
+        inplace=True
+    )
     return meta_tab_pd
 
 
@@ -908,48 +922,160 @@ def get_data_paths(
     return paths
 
 
-def gID_or_DNA(dat: str, path: str, path_pd: pd.DataFrame, datasets_read: dict,
-               datasets_features: dict, datasets_phylo: dict) -> None:
+def collect_genome_id(
+        dat: str,
+        path: str,
+        data_pd: pd.DataFrame,
+        genome_ids: dict,
+        datasets_features: dict,
+        datasets_read: dict,
+        datasets_phylo: dict,
+        correction_needed: bool):
+    """Collect the genome IDs
+
+    Parameters
+    ----------
+    dat : str
+        Name identifying a datasets in the input folder
+    path : str
+        Path to the feature table file
+    data_pd : pd.DataFrame
+        Feature table
+    genome_ids : dict
+        Mapping genome ID -> Feature taxon
+    datasets_features : dict
+        Mapping genome ID -> Feature taxon
+        To be updated with mapping: GenomeID -> feature name (no ';' or ' ')
+    datasets_read : dict
+        Data tables for each dataset.
+        Mapping Dataset -> [tsv table, meta table]
+        (here it updates tsv table after features correction)
+    datasets_phylo : dict
+        Phylogenetic data for each dataset.
+        To be updated with ('tree_to_use', 'corrected_or_not')
+    correction_needed : bool
+        Whether the features
+    """
+    datasets_features[dat] = genome_ids
+    if correction_needed:
+        data_pd.index = data_pd.index.str.replace(r'[; ]+', '|')
+        data_pd.reset_index().to_csv(path, index=False, sep='\t')
+        datasets_read[dat][0] = data_pd
+        datasets_phylo[dat] = ('wol', 1)
+    else:
+        datasets_phylo[dat] = ('wol', 0)
+
+
+def check_if_not_dna(
+        feature: str,
+        dna: bool,
+        not_dna) -> bool:
+    """
+    Checks whether a feature name do not contain
+    any DNA character, as for a SEPP-based sequence
+    placement need all features to be DNA sequences.
+
+    Parameters
+    ----------
+    feature : str
+        Feature name
+    dna : bool
+        Whether the previous feature name is not DNA
+    not_dna
+        Regex pattern to find the first non-DNA character
+
+    Returns
+    -------
+    dna : bool
+        Whether the current feature name is not DNA
+    """
+    if dna and bool(not_dna.search(feature)):
+        dna = False
+    return dna
+
+
+def check_features(features: list) -> tuple:
+    """Parse the feature names anb check whether these are
+    all DNA sequences, whether they contain genome IDs,
+    or if they have been corrected for " " ot ";"
+
+    Parameters
+    ----------
+    features : list
+        Features names
+
+    Returns
+    -------
+    genome_ids : dict
+        Mapping Genome ID -> corrected ID (taxonomy without ";" or " ")
+    dna : bool
+        Whether the features are all DNA sequences or not
+    correct : bool
+        Whether the feature names have been corrected
+    """
+    # regex to find the first non-DNA character
+    not_dna = re.compile('[^ACGTN].*?')
+    # init genome IDs mapping to corrected ID (when also containing taxonomy)
+    dna = True
+    correct = False
+    genome_ids = {}
+    for feature in features:
+        dna = check_if_not_dna(feature, dna, not_dna)
+        if re.search('G\d{9}', feature):
+            if ';' in feature:
+                correct = True
+                feature_corr = feature.replace(';', '|').replace(' ', '')
+            else:
+                feature_corr = feature
+            genome_ids[re.search('G\d{9}', feature).group(0)] = feature_corr
+    return genome_ids, dna, correct
+
+
+def genome_id_or_dna(
+        dat: str,
+        path: str,
+        data_pd: pd.DataFrame,
+        datasets_read: dict,
+        datasets_features: dict,
+        datasets_phylo: dict) -> None:
     """
     Check whether the features of the current dataset are or contain:
-    - genome IDs: then collect the gID -> corrected feature names for Web of Life tree shearing.
-    - DNA sequences (e.g. typically deblur): then have a flag for sepp/phylo placement.
-    (- to be developed for non-DNA OTU IDs associated with fasta sequences for sepp/phylo placement.)
+        - genome IDs:
+            then collect the gID -> corrected featur
+            names for Web of Life tree shearing
+        - DNA sequences (e.g. typically deblur):
+            then have a flag for sepp/phylo placement
+        (- to be developed for non-DNA OTU IDs associated
+           with fasta sequences for sepp/phylo placement)
 
-    :param dat: name of the current dataset.
-    :param path: feature table file path in the ./data folder.
-    :param path_pd: feature table cotaining the features names in index.
-    :param datasets_read: dataset -> [tsv table, meta table] (here it updates tsv table after features correction)
-    :param datasets_features: to be updated with {gID: corrected feature name (no ';' or ' ')} per dataset.
-    :param datasets_phylo: to be updated with ('tree_to_use', 'corrected_or_not') per dataset.
+    Parameters
+    ----------
+    dat : str
+        Name identifying a dataset in the input folder
+    path : str
+        Path to the feature table file
+    data_pd : pd.DataFrame
+        Feature table cotaining the features names in index.
+    datasets_read : dict
+        Data tables for each dataset.
+        Mapping Dataset -> [tsv table, meta table]
+        (here it updates tsv table after features correction)
+    datasets_features : dict
+        Features data for each dataset.
+        To be updated with mapping: GenomeID -> feature name (no ';' or ' ')
+    datasets_phylo : dict
+        Phylogenetic data for each dataset.
+        To be updated with ('tree_to_use', 'corrected_or_not')
     """
-    # regex to find the fist non-DNA character
-    not_dna = re.compile('[^ACGTN].*?')
-    if str(path_pd.index.dtype) == 'object':
-        features_names = path_pd.index.tolist()
-        # check if that's genome IDs
-        found_gids = {}
-        dna = True
-        correction_needed = False
-        for features_name in features_names:
-            if dna and bool(not_dna.search(features_name)):
-                dna = False
-            if re.search('G\d{9}', features_name):
-                if ';' in features_name:
-                    correction_needed = True
-                    features_name_corr = features_name.replace(';', '|').replace(' ', '')
-                else:
-                    features_name_corr = features_name
-                found_gids[re.search('G\d{9}', features_name).group(0)] = features_name_corr
-        if len(found_gids) == len(features_names):
-            datasets_features[dat] = found_gids
-            if correction_needed:
-                path_pd.index = path_pd.index.str.replace(r'[; ]+', '|')
-                path_pd.reset_index().to_csv(path, index=False, sep='\t')
-                datasets_read[dat][0] = path_pd
-                datasets_phylo[dat] = ('wol', 1)
-            else:
-                datasets_phylo[dat] = ('wol', 0)
+    if str(data_pd.index.dtype) == 'object':
+        features = data_pd.index.tolist()
+        # check if that's genome IDs od DNA sequences
+        genome_ids, dna, correction_needed = check_features(features)
+        # if all the features are genome IDs
+        if len(genome_ids) == len(features):
+            collect_genome_id(
+                dat, path, data_pd, genome_ids, datasets_features,
+                datasets_read, datasets_phylo, correction_needed)
         elif dna:
             datasets_phylo[dat] = ('amplicon', 0)
 
@@ -979,8 +1105,7 @@ def read_data_table(path: str) -> pd.DataFrame:
 
 def get_datasets(
         i_datasets: tuple,
-        i_datasets_folder: str
-) -> (dict, dict, dict, dict, dict):
+        i_datasets_folder: str) -> tuple:
     """
     Collect the pairs of features tables / metadata tables, formatted as in
     qiime2. e.g:
@@ -1006,6 +1131,16 @@ def get_datasets(
 
     Returns
     -------
+    datasets : dict
+        Mapping dataset name -> [data file path, metadata file path]
+    datasets_read : dict
+        Mapping dataset name -> [data frame, metadata frame]
+    datasets_features : dict
+        Mapping dataset name -> ['feature_names', ...]
+    datasets_phylo : dict
+        Mapping dataset name -> ('tree_to_use', 'corrected_or_not')
+    datasets_rarefs : dict
+        Mapping dataset name -> []
     """
     print('# Fetching data and metadata for:\n - %s' % '\n - '.join(i_datasets))
     paths = get_data_paths(i_datasets, i_datasets_folder)
@@ -1015,21 +1150,59 @@ def get_datasets(
     datasets_phylo = {}
     datasets_features = {}
     datasets_rarefs = {}
+
     for dat, path in paths.items():
+
         meta = get_corresponding_meta(path)
         if not isfile(meta):
             print(meta, 'does not exist\n Skipping', dat)
             continue
-        path_pd = read_data_table(path)
+        data_pd = read_data_table(path)
         meta_pd = read_meta_pd(meta, 'sample_name')
 
         datasets[dat] = [[path, meta]]
-        datasets_read[dat] = [[path_pd, meta_pd]]
+        datasets_read[dat] = [[data_pd, meta_pd]]
         datasets_features[dat] = {}
         datasets_phylo[dat] = ('', 0)
         datasets_rarefs[dat] = ['']
-        gID_or_DNA(dat, path, path_pd, datasets_read, datasets_features, datasets_phylo)
-    return datasets, datasets_read, datasets_features, datasets_phylo, datasets_rarefs
+        # detect whether features are DNA, genome ID or neither of these
+        genome_id_or_dna(dat, path, data_pd, datasets_read,
+                         datasets_features, datasets_phylo)
+
+    datasets_objects = (
+        datasets,
+        datasets_read,
+        datasets_features,
+        datasets_phylo,
+        datasets_rarefs
+    )
+    return datasets_objects
+
+
+def get_filt_raref_suffix(p_filt_threshs: str, raref: bool) -> str:
+    """Create a suffix based on passed config to denote
+     whether the run is for filtered and/or rarefied data.
+
+    Parameters
+    ----------
+    p_filt_threshs : str
+        Minimum sample read abundance to be kept in the sample
+    raref : bool
+        Whether to repeat all analyses on rarefied datasets (must be
+        set for a config passed to `-r` to be used)
+
+    Returns
+    -------
+    filt_raref : str
+        Suffix for output scripts denoting whether the
+        run is for filtered and/or rarefied data
+    """
+    filt_raref = ''
+    if p_filt_threshs:
+        filt_raref += '_flt'
+    if raref:
+        filt_raref += '_rrf'
+    return filt_raref
 
 
 def get_prjct_nm(project_name: str) -> str:

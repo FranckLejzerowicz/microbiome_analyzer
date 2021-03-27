@@ -8,7 +8,8 @@
 
 import click
 
-from routine_qiime2_analyses._routine_qiime2_analyses import routine_qiime2_analyses
+from routine_qiime2_analyses._routine_qiime2_analyses import (
+    routine_qiime2_analyses)
 from routine_qiime2_analyses import __version__
 
 
@@ -19,19 +20,23 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "-d", "--i-datasets", multiple=True, required=True,
-    help="Dataset(s) identifier(s). Multiple is possible: e.g. -d dataset_number_1 and "
-         "-d dataset_number_2 for 'tab_dataset_number_1.tsv' and tab_dataset_number_2.tsv'."
+    help="Dataset(s) identifier(s). Multiple is possible: e.g. "
+         "-d dataset_number_1 and -d dataset_number_2 for "
+         "'tab_dataset_number_1.tsv' and tab_dataset_number_2.tsv'."
 )
 @click.option(
-    "-w", "--i-wol-tree", required=False, show_default=True, default = 'resources/wol_tree.nwk',
-    help="path to the tree containing the genome IDs (will check if exist in features names)"
-         "(On barnacle, it is there: /projects/wol/profiling/dbs/wol/phylogeny/tree.nwk)."
+    "-w", "--i-wol-tree", required=False, show_default=True,
+    default='resources/wol_tree.nwk',
+    help="path to the tree containing the genome IDs (will check if exist in "
+         "features names) (On barnacle, it is there: "
+         "/projects/wol/profiling/dbs/wol/phylogeny/tree.nwk)."
 )
 @click.option(
     "-x", "--i-sepp-tree", required=False, show_default=True, default = None,
     help="Qiime2 SEPP reference database to use for 16S reads placement: "
-         "https://docs.qiime2.org/2019.10/data-resources/#sepp-reference-databases "
-         "(auto detection of datasets' tables with sequences as features)."
+         "https://docs.qiime2.org/2019.10/data-resources/#sepp-reference-"
+         "databases (auto detection of datasets' tables with sequences as "
+         "features)."
 )
 @click.option(
     "-q", "--i-qemistree", required=False, show_default=True, default = None,
@@ -41,9 +46,11 @@ from routine_qiime2_analyses import __version__
          "(named 'qemistree_<dataset_identifier>.qza')."
 )
 @click.option(
-    "-z", "--i-classifier", required=False, show_default=True, default = None,
-    help="Qiime2 reference taxonomic classifier database to use for 16S reads assignment: "
-         "https://docs.qiime2.org/2020.2/data-resources/#taxonomy-classifiers-for-use-with-q2-feature-classifier"
+    "-z", "--i-classifier", required=False, show_default=True, default=None,
+    help="Qiime2 reference taxonomic classifier database to use for 16S"
+         "reads assignment: https://docs.qiime2.org/2020.2/"
+         "data-resources/#taxonomy-classifiers-for-use-with-q2-"
+         "feature-classifier"
 )
 @click.option(
     "-n", "--p-project-name", required=True, show_default=True,
@@ -59,20 +66,23 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "-b", "--p-alpha-subsets", required=False, show_default=True, default=None,
-    help="Regex to use for subsetting features for alpha diversity subsets (yml file)."
+    help="Regex to use for subsetting features for alpha diversity subsets"
+         "(yml file)."
 )
 @click.option(
     "-k", "--p-beta-subsets", required=False, show_default=True, default=None,
-    help="Regex to use for subsetting features for beta diversity subsets (yml file)."
+    help="Regex to use for subsetting features for beta diversity "
+         "subsets (yml file)."
 )
 @click.option(
-    "-t", "--p-perm-tests", multiple=True, required=False, show_default=True, default=False,
-    help="Groups to tests between in each PERMANOVA subset "
+    "-t", "--p-perm-tests", multiple=True, required=False, show_default=True,
+    default=False, help="Groups to tests between in each PERMANOVA subset "
          "(multiple values are possible, e.g. '-d sex -d age_cat')."
 )
 @click.option(
-    "-tmin", "--p-perm-tests-min", required=False, show_default=True, default=10,
-    help="Minimum number of samples per group for PERMANOVA test to happen,"
+    "-tmin", "--p-perm-tests-min", required=False, show_default=True,
+    default=10, help="Minimum number of samples per group for PERMANOVA test "
+                     "to happen,"
 )
 @click.option(
     "-g", "--p-beta-groups", required=False, show_default=True, default=False,
@@ -80,9 +90,10 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
-    "-nstd", "--p-nestedness-groups", required=False, show_default=True, default=False,
-    help="Nestedness analysis config. Must be a yaml file, e.g.\n"
-         "(see example in 'examples/nestedness.yml' and README)."
+    "-nstd", "--p-nestedness-groups", required=False, show_default=True,
+    default=False, help="Nestedness analysis config. Must be a yaml file, "
+                        "e.g.\n(see example in 'examples/nestedness.yml' "
+                        "and README)."
 )
 @click.option(
     "-bt", "--p-beta-type", required=False, show_default=False,
@@ -93,8 +104,8 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "-prc", "--p-procrustes", required=False, show_default=True, default=False,
-    help="Pairs and subsets for procrustes/protests. Must be a yaml file, e.g.\n"
-         "(see example in 'examples/procrustes_subsets.yml' and README)."
+    help="Pairs and subsets for procrustes/protests. Must be a yaml file, "
+         "e.g.\n(see example in 'examples/procrustes_subsets.yml' and README)."
 )
 @click.option(
     "-mtl", "--p-mantel", required=False, show_default=True, default=False,
@@ -102,14 +113,16 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/procrustes_subsets.yml' and README)."
 )
 @click.option(
-    "-decay", "--p-distance-decay", required=False, show_default=True, default=False,
-    help="Parameters for distance decay analysis (not geographic). Must be a yaml file, e.g.\n"
-         "(see example in 'examples/distance_decay.yml' and README)."
+    "-decay", "--p-distance-decay", required=False, show_default=True,
+    default=False, help="Parameters for distance decay analysis (not "
+                        "geographic). Must be a yaml file, e.g.\n(see "
+                        "example in 'examples/distance_decay.yml' and README)."
 )
 @click.option(
-    "-coll", "--p-collapse-taxo", required=False, show_default=True, default=False,
-    help="Nominative or rank-based taxonmic collapse per dataset. Must be a yaml file, e.g.\n"
-         "(see example in 'examples/collapse_taxo.yml' and README)."
+    "-coll", "--p-collapse-taxo", required=False, show_default=True,
+    default=False, help="Nominative or rank-based taxonmic collapse per "
+                        "dataset. Must be a yaml file, e.g.\n(see example in "
+                        "'examples/collapse_taxo.yml' and README)."
 )
 @click.option(
     "-tt", "--p-train-test", required=False, show_default=True, default=False,
@@ -117,39 +130,48 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/train_test.yml' and README)."
 )
 @click.option(
-    "-a", "--p-adonis-formulas", required=False, default=False, show_default=True,
-    help="Formula for Adonis tests for each PERMANOVA subset. Must be a yaml file, e.g.\n"
-         "(see example in 'examples/adonis_formulas.yml' and README)."
+    "-a", "--p-adonis-formulas", required=False, default=False,
+    show_default=True, help="Formula for Adonis tests for each PERMANOVA "
+                            "subset. Must be a yaml file, e.g.\n(see example "
+                            "in examples/adonis_formulas.yml' and README)."
 )
 @click.option(
-    "-phate", "--p-phate-config", required=False, default=False, show_default=True,
-    help="Filters, subsets, parameters and stratifications for the PHATE latent space analysis"
-         "Must be a yaml file, (see example in 'examples/phate_config.yml' and README)."
+    "-phate", "--p-phate-config", required=False, default=False,
+    show_default=True, help="Filters, subsets, parameters and stratifications "
+                            "for the PHATE latent space analysis\nMust be a "
+                            "yaml file, (see example in "
+                            "'examples/phate_config.yml' and README)."
 )
 @click.option(
-    "-st", "--p-sourcetracking-config", required=False, default=False, show_default=True,
-    help="Filters, subsets, parameters and isn/sources for sourcetracking"
-         "Must be a yaml file, (see example in 'examples/sourcetracking_config.yml' and README)."
+    "-st", "--p-sourcetracking-config", required=False, default=False,
+    show_default=True, help="Filters, subsets, parameters and isn/sources for "
+                            "sourcetracking\nMust be a yaml file, (see example "
+                            "in 'examples/sourcetracking_config.yml' and "
+                            "README)."
 )
 @click.option(
     "-doc", "--p-doc-config", required=False, default=False, show_default=True,
     help="Filters and subsets for the dissimilarity overlap curves analyses"
-         "Must be a yaml file, (see example in 'examples/doc_config.yml' and README)."
+         "Must be a yaml file, (see example in 'examples/doc_config.yml'"
+         "and README)."
 )
 @click.option(
     "-s", "--p-diff-models", required=False, default=False, show_default=True,
-    help="Formulas for multinomial regression-based differential abundance ranking (songbird).\n"
-         "MUST BE YAML FILE, see 'examples/songbird_models.yml' and README."
+    help="Formulas for multinomial regression-based differential "
+         "abundance ranking (songbird).\nMUST BE YAML FILE, "
+         "see 'examples/songbird_models.yml' and README."
 )
 @click.option(
     "-m", "--p-mmvec-pairs", required=False, default=False, show_default=True,
-    help="Pairs of datasets for which to compute co-occurrences probabilities (mmvec).\n"
-         "MUST BE YAML FILE, see 'examples/mmvec_pairs.yml' and README."
+    help="Pairs of datasets for which to compute co-occurrences "
+         "probabilities (mmvec).\nMUST BE YAML FILE, see "
+         "'examples/mmvec_pairs.yml' and README."
 )
 @click.option(
-    "-hlg", "--p-mmvec-highlights", required=False, default=False, show_default=True,
-    help="Features to highlights on mmvec biplot (per dataset).\n"
-         "MUST BE YAML FILE, see 'examples/mmvec_highlight.yml' and README."
+    "-hlg", "--p-mmvec-highlights", required=False, default=False,
+    show_default=True, help="Features to highlights on mmvec biplot (per "
+                            "dataset).\nMUST BE YAML FILE, "
+                            "see 'examples/mmvec_highlight.yml' and README."
 )
 @click.option(
     "-mm", "--p-xmmvec", required=False, default=False, show_default=True,
@@ -163,9 +185,10 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "-f", "--p-filt-threshs", show_default=True, default=False,
-    help="Minimum reads abundance per sample to be kept in the sample / per dataset"
+    help="Minimum sample read abundance to be kept in the sample (per dataset)"
          "(>1 = based on absolute reads, 0-1 = based on relative reads)."
-         "Must be a yaml file, e.g. (see example in 'examples/permanova_subsets.yml' and README)."
+         "Must be a yaml file, e.g. (see example in "
+         "'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
     "-r", "--p-raref-depths", required=False, show_default=False,
@@ -183,10 +206,11 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "-skip", "--p-skip", default=None, show_default=True, multiple=True,
-    type=click.Choice(['alpha', 'merge_alpha', 'export_alpha', 'alpha_correlations',
-                       'alpha_group_significance', 'wol', 'taxonomy', 'barplot',
-                       'volatility', 'beta', 'export_beta', 'pcoa', 'biplot',
-                       'emperor', 'emperor_biplot', 'empress', 'empress_biplot',
+    type=click.Choice(['alpha', 'merge_alpha', 'export_alpha',
+                       'alpha_correlations', 'alpha_group_significance',
+                       'wol', 'taxonomy', 'barplot', 'volatility', 'beta',
+                       'export_beta', 'pcoa', 'biplot', 'emperor',
+                       'emperor_biplot', 'empress', 'empress_biplot',
                        'phate', 'doc', 'deicode', 'sepp', 'do_pies',
                        'alpha_kw', 'permanova', 'procrustes', 'mantel', 'decay',
                        'nestedness', 'adonis', 'songbird', 'mmvec', 'mmbird']),
@@ -194,7 +218,8 @@ from routine_qiime2_analyses import __version__
          "\nSkipping 'alpha' will also skip 'merge_alpha', 'export_alpha',"
          "'alpha_correlations', 'alpha_kw' and 'volatility'."
          "\nSkipping 'beta' will also skip 'export_beta', 'emperor',"
-         "'doc', 'emperor_biplot','deicode', 'permanova', 'adonis', 'procrustes'."
+         "'doc', 'emperor_biplot','deicode', 'permanova', 'adonis',"
+         "'procrustes'."
 )
 @click.option(
     "-As", "--p-alphas", default=None, show_default=True, multiple=True,
@@ -203,8 +228,10 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "-Bs", "--p-betas", default=None, show_default=True, multiple=True,
-    type=click.Choice(['jaccard','braycurtis','aitchison','unweighted_unifrac','weighted_unifrac']),
-    help="Beta to use: 'jaccard','braycurtis','aitchison','unweighted_unifrac','weighted_unifrac'."
+    type=click.Choice(['jaccard', 'braycurtis', 'aitchison',
+                       'unweighted_unifrac', 'weighted_unifrac']),
+    help="Beta to use: 'jaccard', 'braycurtis','aitchison',"
+         "'unweighted_unifrac','weighted_unifrac'."
 )
 @click.option(
     "--do_biplots/--no-do_biplots", default=False, show_default=True,
@@ -221,11 +248,13 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "--standalone/--no-standalone", default=False, show_default=True,
-    help="Whether to run MMVEC using the standalone version (to check tensorboard)."
+    help="Whether to run MMVEC using the standalone "
+         "version (to check tensorboard)."
 )
 @click.option(
     "--raref/--no-raref", default=False, show_default=True,
-    help="Rarefy and only perform the routine analyses on the rarefied dataset(s)."
+    help="Whether to rarefy and only perform the routine "
+         "analyses on the rarefied dataset(s)."
 )
 @click.option(
     "--loc/--no-loc", default=True, show_default=True,
@@ -233,7 +262,8 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "--split/--no-split", default=False, show_default=True,
-    help="whether to split the commands to a lower looping level (i.e. more jobs)."
+    help="whether to split the commands to a "
+         "lower looping level (i.e. more jobs)."
 )
 @click.option(
     "--dropout/--no-dropout", default=True, show_default=True,
@@ -251,7 +281,8 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "--filt-only/--no-filt-only", default=False, show_default=True,
-    help="Only process the filtered version (and not also the raw) version of each dataset."
+    help="Only process the filtered version (and not also the raw) "
+         "version of each dataset."
 )
 @click.option(
     "-filt3d_config", "--p-filt3d-config", required=False, show_default=False,
