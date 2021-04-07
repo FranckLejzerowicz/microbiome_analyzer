@@ -244,7 +244,6 @@ def routine_qiime2_analyses(
     datasets_rarefs = datasets_objects[4]
 
     project = Datasets(i_datasets, i_datasets_folder)
-    print(project.datasets['gOTU_uniq_filt'].__dict__.keys())
 
     # get the "", "_flt", "_rrf" or "_flt_rrf" suffix for the sh/pbs scripts
     # filt_raref = get_filt_raref_suffix(p_filt_threshs, raref)
