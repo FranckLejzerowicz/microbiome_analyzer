@@ -85,11 +85,7 @@ class InitChecks(unittest.TestCase):
         expected = {}
         observed = read_yaml_file(self.no_dummy_yaml_fp)
         self.assertEqual(expected, observed)
-
-        with self.assertRaises(SystemExit) as cm:
-            get_run_params(self.update_not_a_env_fp, self.conda_envs)
-        self.assertEqual(cm.exception.code, 1)
-
+        observed = read_yaml_file(None)
         self.assertEqual(expected, observed)
 
     def test_get_filt_raref_suffix(self):
@@ -458,29 +454,32 @@ class FeatureDetection(unittest.TestCase):
         os.remove(self.tsv)
 
     def test_check_features(self):
-        obs_gids, obs_dna, obs_correct = check_features(['AAA', 'CCC'])
+        data_pd = pd.DataFrame(
+            {'A': [1, 2]},
+            index=['AAA', 'CCC'])
+        obs_gids, obs_dna, obs_correct = check_features(data_pd)
         self.assertEqual(obs_gids, {})
         self.assertTrue(obs_dna)
         self.assertFalse(obs_correct)
 
-        obs_gids, obs_dna, obs_correct = check_features(['AAA', 'BBB'])
+        data_pd.index = ['AAA', 'BBB']
+        obs_gids, obs_dna, obs_correct = check_features(data_pd)
         self.assertEqual(obs_gids, {})
         self.assertFalse(obs_dna)
         self.assertFalse(obs_correct)
 
-        with_gids = ['AAA__G000000001', 'CCC__G000000002', 'GGG__G000000003']
+        data_pd.index = ['AAA__G000000001', 'CCC__G000000002']
         expected_gids = {'G000000001': 'AAA__G000000001',
-                         'G000000002': 'CCC__G000000002',
-                         'G000000003': 'GGG__G000000003'}
-        obs_gids, obs_dna, obs_correct = check_features(with_gids)
+                         'G000000002': 'CCC__G000000002'}
+        obs_gids, obs_dna, obs_correct = check_features(data_pd)
         self.assertEqual(obs_gids, expected_gids)
         self.assertFalse(obs_dna)
         self.assertFalse(obs_correct)
 
-        with_gids = ['A;A;A__G000000001', 'C; C; C__G000000002']
+        data_pd.index = ['A;A;A__G000000001', 'C; C; C__G000000002']
         expected_gids = {'G000000001': 'A|A|A__G000000001',
                          'G000000002': 'C|C|C__G000000002'}
-        obs_gids, obs_dna, obs_correct = check_features(with_gids)
+        obs_gids, obs_dna, obs_correct = check_features(data_pd)
         self.assertEqual(obs_gids, expected_gids)
         self.assertFalse(obs_dna)
         self.assertTrue(obs_correct)
