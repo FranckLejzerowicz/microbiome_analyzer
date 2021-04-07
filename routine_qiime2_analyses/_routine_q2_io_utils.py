@@ -395,7 +395,7 @@ def get_songbird_params(p_diff_models: str, diff_dict: dict) -> dict:
     :return: parameters.
     """
     params = {
-        'train': ['0.2'],
+        'train': ['0.7'],
         'batches': ['2'],
         'learns': ['1e-4'],
         'epochs': ['5000'],
