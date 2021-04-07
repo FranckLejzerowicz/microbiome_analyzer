@@ -318,7 +318,7 @@ def make_train_test_column(meta_fp: str, train_test_dict: dict,
             for tt, tt_vars in train_test_dict['datasets'][dat].items():
                 train_column, train_samples = get_metadata_train_test(
                     meta_fp, meta_pd.set_index('sample_name'), tt_vars,
-                    '', train_test_dict['train'], {}, '')
+                    '', train_test_dict['train'], {})
                 train_cols.add(tt)
                 meta_tt_pd[tt] = [
                     'Train' if x in train_samples else
