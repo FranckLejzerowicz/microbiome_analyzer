@@ -7,12 +7,14 @@
 # ----------------------------------------------------------------------------
 
 import os
+import sys
 import itertools
 import pandas as pd
 from os.path import isdir, isfile, splitext
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
+    read_yaml_file,
     get_job_folder,
     get_analysis_folder,
     get_mmvec_dicts,
@@ -21,7 +23,8 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     check_datasets_filtered
 )
 from routine_qiime2_analyses._routine_q2_metadata import (
-    rename_duplicate_columns, make_train_test_column
+    rename_duplicate_columns, make_train_test_column,
+    get_common_columns, get_different_columns
 )
 from routine_qiime2_analyses._routine_q2_cmds import (
     filter_feature_table, get_case,
@@ -36,9 +39,11 @@ def get_meta_common_sorted(meta: pd.DataFrame, common_sams: list) -> pd.DataFram
     return meta_subset
 
 
-def merge_and_write_metas(meta_subset1: pd.DataFrame, meta_subset2: pd.DataFrame,
-                          meta_fp: str, omic1: str, omic2: str,
-                          train_test_dict: dict) -> pd.DataFrame:
+def merge_and_write_metas(
+        meta_subset1: pd.DataFrame,
+        meta_subset2: pd.DataFrame,
+        meta_fp: str, omic1: str, omic2: str,
+        train_test_dict: dict) -> pd.DataFrame:
     """
     :param meta_subset1:
     :param meta_subset2:
@@ -47,21 +52,10 @@ def merge_and_write_metas(meta_subset1: pd.DataFrame, meta_subset2: pd.DataFrame
     """
     meta_subset1 = rename_duplicate_columns(meta_subset1)
     meta_subset2 = rename_duplicate_columns(meta_subset2)
-
-    # get the columns present in both metadata
-    common_cols = set(meta_subset1.columns) & set(meta_subset2.columns)
-    common_cols = [x for x in common_cols if x != 'sample_name']
+    # get these columns names that are identical in the two metadata
+    common_cols = get_common_columns(meta_subset1, meta_subset2)
     # get these columns that also have different contents
-    diff_cols = []
-    for c in common_cols:
-        try:
-            meta_col1 = meta_subset1[c].tolist()
-        except:
-            print(meta_subset1[c])
-            print(fkkj)
-        meta_col2 = meta_subset2[c].tolist()
-        if meta_col1 != meta_col2:
-            diff_cols.append(c)
+    diff_cols = get_different_columns(meta_subset1, meta_subset2, common_cols)
 
     if len(diff_cols):
         meta_subset2.rename(columns=dict((c, '%s.copy' % c) for c in diff_cols), inplace=True)
@@ -312,11 +306,11 @@ def check_filtered_and_common_dataset(
         unique_datasets, unique_filterings, analysis,
         input_to_filtered, subsets
     )
-    filt_datasets_todo = [x for x, y in filt_datasets_pass.items() if not len(y)]
-    if len(filt_datasets_todo):
-        print('\t\t--> %s dataset(s) to prepare:' % len(filt_datasets_todo))
-        for filt_datasets_td in filt_datasets_todo:
-            print('\t\t\t*', filt_datasets_td)
+    # filt_datasets_todo = [x for x, y in filt_datasets_pass.items() if not len(y)]
+    # if len(filt_datasets_todo):
+    #     print('\t\t--> %s dataset(s) to prepare:' % len(filt_datasets_todo))
+    #     for filt_datasets_td in filt_datasets_todo:
+    #         print('\t\t\t*', filt_datasets_td)
 
     common_datasets_pass = {}
     if analysis == 'mmvec':
@@ -325,11 +319,11 @@ def check_filtered_and_common_dataset(
             i_datasets_folder, mmvec_pairs, mmvec_filtering,
             filt_datasets_pass, input_to_filtered, subsets
         )
-        common_datasets_todo = [x for x, y in common_datasets_pass.items() if not len(y)]
-        if len(common_datasets_todo):
-            print('\t\t--> %s common dataset(s) to prepare:' % len(common_datasets_todo))
-            for common_datasets_td in common_datasets_todo:
-                print('\t\t\t*', common_datasets_td)
+        # common_datasets_todo = [x for x, y in common_datasets_pass.items() if not len(y)]
+        # if len(common_datasets_todo):
+        #     print('\t\t--> %s common dataset(s) to prepare:' % len(common_datasets_todo))
+        #     for common_datasets_td in common_datasets_todo:
+        #         print('\t\t\t*', common_datasets_td)
 
     return filt_datasets_pass, common_datasets_pass
 
@@ -393,40 +387,85 @@ def get_unique_mmvec_filtering(mmvec_filtering):
     for pair, filt_name_d in mmvec_filtering.items():
         for filt_name, dat_d in filt_name_d.items():
             for dat, (preval, abund) in dat_d.items():
-                unique_filterings.setdefault(dat, set()).add((filt_name, preval, abund))
+                unique_filterings.setdefault(
+                    dat, set()).add((filt_name, preval, abund))
     return unique_filterings
 
 
-def run_mmvec(p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
-              datasets_filt: dict, datasets_read: dict, train_test_dict: dict,
-              force: bool, gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
-              chmod: str, noloc: bool, split: bool, filt_raref: str, run_params: dict,
-              input_to_filtered: dict, jobs: bool, chunkit: int) -> list:
-    """
-    Run mmvec: Neural networks for microbe-metabolite interaction analysis.
+def run_mmvec(
+        p_mmvec_pairs: str, i_datasets_folder: str, datasets: dict,
+        datasets_filt: dict, datasets_read: dict, train_test_dict: dict,
+        force: bool, gpu: bool, standalone: bool, prjct_nm: str, qiime_env: str,
+        chmod: str, noloc: bool, split: bool, filt_raref: str, run_params: dict,
+        input_to_filtered: dict, jobs: bool, chunkit: int) -> list:
+
+    """Run mmvec: Neural networks for microbe-metabolite interaction analysis.
     https://github.com/biocore/mmvec
     Main two-datasets looper for the mmvec co-occurrences.
 
-    :param p_mmvec_pairs: Pairs of datasets for which to compute co-occurrences probabilities.
-    :param p_diff_models: Formulas for multinomial regression-based differential abundance ranking.
-    :param datasets: list of data_sets.
-    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :param datasets_read: dataset -> [tsv table, meta table] (here it updates tsv table after features correction)
-    :param force: Force the re-writing of scripts for all commands.
-    :param gpu: Use GPUs instead of CPUs for MMVEC.
-    :param standalone:
-    :param prjct_nm: Nick name for your project.
-    :param qiime_env: qiime2-xxxx.xx conda environment.
-    :param chmod: whether to change permission of output files (default: 644).
-    """
+    Parameters
+    ----------
+    p_mmvec_pairs
+        :param p_mmvec_pairs: Pairs of datasets for which to compute co-occurrences probabilities.
+        :param p_diff_models: Formulas for multinomial regression-based differential abundance ranking.
+        :param datasets: list of data_sets.
+        :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
+        :param datasets_read: dataset -> [tsv table, meta table] (here it updates tsv table after features correction)
+        :param force: Force the re-writing of scripts for all commands.
+        :param gpu: Use GPUs instead of CPUs for MMVEC.
+        :param standalone:
+        :param prjct_nm: Nick name for your project.
+        :param qiime_env: qiime2-xxxx.xx conda environment.
+        :param chmod: whether to change permission of output files (default: 644).
+    i_datasets_folder
+    datasets
+    datasets_filt
+    datasets_read
+    train_test_dict
+    force
+    gpu
+    standalone
+    prjct_nm
+    qiime_env
+    chmod
+    noloc
+    split
+    filt_raref
+    run_params
+    input_to_filtered
+    jobs
+    chunkit
 
+    Returns
+    -------
+
+    """
     mmvec_dicts = get_mmvec_dicts(p_mmvec_pairs)
     mmvec_pairs = mmvec_dicts[0]
     mmvec_filtering = mmvec_dicts[1]
     mmvec_params = mmvec_dicts[2]
     mmvec_subsets = mmvec_dicts[3]
-    unique_datasets = list(set([dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
+    unique_datasets = list(set([
+        dat for pair_dats in mmvec_pairs.values() for dat in pair_dats]))
     unique_filterings = get_unique_mmvec_filtering(mmvec_filtering)
+
+    print(mmvec_pairs)
+    print()
+    print(mmvec_filtering)
+    print()
+    print(mmvec_params)
+    print()
+    print(mmvec_subsets)
+    print()
+    print(unique_datasets)
+    print()
+    print(unique_filterings)
+    print()
+    print("datasets")
+    print(datasets)
+    print("datasets_filt")
+    print(datasets_filt)
+    print(fdsa)
 
     filt_datasets_done, common_datasets_done = check_filtered_and_common_dataset(
         i_datasets_folder, datasets, datasets_filt,

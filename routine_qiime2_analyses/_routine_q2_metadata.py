@@ -7,87 +7,258 @@
 # ----------------------------------------------------------------------------
 
 import re
+import sys
 import random
 random.seed(10)
 import numpy as np
 import pandas as pd
-from os.path import basename
+from os.path import basename, splitext
 from sklearn.model_selection import train_test_split
 
 
-def get_train_column(meta, new_meta_pd, meta_vars, train, new_meta, new_meta_ct):
+def get_common_columns(
+        meta1_pd: pd.DataFrame,
+        meta2_pd: pd.DataFrame) -> list:
+    """Get these columns names that are identical in two metadata
+
+    Parameters
+    ----------
+    meta1_pd : pd.DataFrame
+        A metadata table
+    meta2_pd : pd.DataFrame
+        Another metadata table
+
+    Returns
+    -------
+    common_cols : list
+        Columns names in common between
+        the two input metadata
+    """
+    common_cols = set(meta1_pd.columns) & set(meta2_pd.columns)
+    common_cols = [x for x in common_cols if x != 'sample_name']
+    return common_cols
+
+
+def get_different_columns(
+        meta_subset1: pd.DataFrame,
+        meta_subset2: pd.DataFrame,
+        common_cols: list) -> list:
+    """Find which metadata columns have the
+    same name but their content differ.
+
+    Parameters
+    ----------
+    meta_subset1 : pd.DataFrame
+        A metadata table
+    meta_subset2 : pd.DataFrame
+        Another metadata table
+    common_cols : list
+        Metadata columns that are in common
+        between the two metadata tables
+
+    Returns
+    -------
+    diff_cols : list
+        Metadata columns that are
+        different in contents.
+    """
+    diff_cols = []
+    for c in common_cols:
+        try:
+            meta_col1 = meta_subset1[c].tolist()
+            meta_col2 = meta_subset2[c].tolist()
+        except:
+            print(meta_subset1[c])
+            sys.exit(1)
+        if meta_col1 != meta_col2:
+            diff_cols.append(c)
+    return diff_cols
+
+
+def get_meta_subset(
+        meta1_pd: pd.DataFrame,
+        meta2_pd: pd.DataFrame,
+        sams: set):
+    """Merges two metadata tables. This function pay attention to not
+    reproduce columns in common when these columns have the same
+    contents. Otherwise, these columns are kept in duplicates.
+
+    Parameters
+    ----------
+    meta1_pd : pd.DataFrame
+        A metadata table
+    meta2_pd : pd.DataFrame
+        Another metadata table
+    sams : set
+        Samples names in common between
+        the two input metadata
+
+    Returns
+    -------
+    meta_subset : pd.DataFrame
+        Metadata formed by the merging
+        of the two input metadata
+    """
+    meta_subset1 = meta1_pd.loc[meta1_pd.sample_name.isin(sams), :].copy()
+    meta_subset2 = meta2_pd.loc[meta2_pd.sample_name.isin(sams), :].copy()
+    meta_subset1 = rename_duplicate_columns(meta_subset1)
+    meta_subset2 = rename_duplicate_columns(meta_subset2)
+    comm_cols = get_common_columns(meta_subset1, meta_subset2)
+    diff_cols = get_different_columns(meta_subset1, meta_subset2, comm_cols)
+    if len(diff_cols):
+        meta_subset2.rename(
+            columns=dict((c, '%s.copy' % c) for c in diff_cols), inplace=True
+        )
+    sn = 'sample_name'
+    meta_subset = meta_subset1.merge(
+        meta_subset2, on=([sn] + [c for c in comm_cols if c not in diff_cols])
+    )
+    sorting_col = [sn] + [x for x in meta_subset.columns.tolist() if x != sn]
+    meta_subset = meta_subset[sorting_col]
+    return meta_subset
+
+
+def get_train_perc_from_numeric(train, new_meta_pd):
+    if train.isdigit():
+        train_int = int(train)
+        if train_int < (0.1 * new_meta_pd.shape[0]):
+            train_perc = 0.1
+        else:
+            train_perc = train_int / new_meta_pd.shape[0]
+    else:
+        train_float = float(train)
+        if 0 < train_float < 1:
+            train_perc = train_float
+        else:
+            print(
+                '\t\t\t[SONGBIRD] Float passed as percent of samples for'
+                ' training not valid (must be in range 0-1)')
+            return None
+    return train_perc
+
+
+def get_cat_vars_and_vc(
+        vars: list,
+        vars_pd: pd.DataFrame) -> tuple:
+    """
+
+    Parameters
+    ----------
+    vars : list
+    vars_pd : pd.DataFrame
+
+    Returns
+    -------
+    cat_vars : list
+    cat_pd : pd.DataFrame
+    vc : pd.Series
+    rep_d : dict
+    """
+    cat_vars = [x for x in vars if str(vars_pd[x].dtype) == 'object']
+    rep_d = {}
+    cat_pd = None
+    vc = None
+    if cat_vars:
+        cat_pd = vars_pd[cat_vars].copy()
+        cat_pd['concat_cols'] = cat_pd.apply(
+            func=lambda x: '_'.join([str(y) for y in x]), axis=1)
+        rep_d = dict(('_'.join([str(i) for i in r]), list(r))
+                     for r in cat_pd[cat_vars].values)
+        vc = cat_pd['concat_cols'].value_counts()
+    return cat_vars, cat_pd, vc, rep_d
+
+
+def write_cross_tab(
+        meta_fp: str,
+        cat_pd: pd.DataFrame,
+        cat_vars: list,
+        train_samples: pd.Series,
+        train_col: str,
+        rep_d: dict):
+    """
+
+    Parameters
+    ----------
+    meta_fp : str
+    cat_pd : pd.DataFrame
+    cat_vars : list
+    train_samples : pd.Series
+    train_col : str
+    rep_d : dict
+    """
+    cat_pd[train_col] = ['Train' if x in train_samples
+                         else 'Test' for x in cat_pd.index]
+    new_meta_ct = '%s_cv.txt' % splitext(meta_fp)[0]
+    ct = pd.crosstab(
+        cat_pd[train_col],
+        cat_pd['concat_cols']
+    ).T.reset_index()
+    ct = pd.concat([pd.DataFrame(
+        [rep_d[x] for x in ct['concat_cols']],
+        columns=cat_vars, index=ct.index),
+        ct[['Train', 'Test']]], axis=1)
+    ct.to_csv(new_meta_ct, index=False, sep='\t')
+
+
+def make_train_test_from_cat(
+        cat_pd: pd.DataFrame,
+        vc: pd.Series,
+        train_perc: float,
+        meta_fp: str,
+        cat_vars: list,
+        train_col: str,
+        rep_d: dict):
+    """
+
+    Parameters
+    ----------
+    cat_pd : pd.DataFrame
+    vc : pd.Series
+    train_perc : float
+    meta_fp : str
+    cat_vars : list
+    train_col : str
+    rep_d : dict
+
+    Returns
+    -------
+    train_samples
+    """
+    if 1 in vc.values:
+        vc_in = vc[vc > 1].index.tolist()
+        cat_pd_in = cat_pd.loc[cat_pd['concat_cols'].isin(vc_in)]
+    else:
+        cat_pd_in = cat_pd.copy()
+    X = np.array(cat_pd_in.values)
+    y = cat_pd_in.index.tolist()
+    if cat_pd_in['concat_cols'].unique().size >= 2:
+        _, __, ___, train_samples = train_test_split(
+            X, y, test_size=train_perc,
+            stratify=cat_pd_in['concat_cols'].tolist()
+        )
+        write_cross_tab(meta_fp, cat_pd, cat_vars,
+                        train_samples, train_col, rep_d)
+        return train_samples
+    return None
+
+
+def get_train_column(meta_fp, new_meta_pd, meta_vars, train, new_meta):
     if train.isdigit() or train.replace('.', '').isdigit():
         train_column = 'TrainTest'
-        if train.isdigit():
-            train_int = int(train)
-            if train_int < (0.1 * new_meta_pd.shape[0]):
-                train_perc = 0.1
-            else:
-                train_perc = train_int / new_meta_pd.shape[0]
-        else:
-            train_float = float(train)
-            if 0 < train_float < 1:
-                train_perc = train_float
-            else:
-                train_column = ''
-                print('\t\t\t[SONGBIRD] Float passed as percent of samples for'
-                              ' training not valid (must be in range 0-1)')
-                return None, None
-
-        new_meta_vars_pd = new_meta_pd[meta_vars].copy()
-        cat_vars = [x for x in meta_vars if str(new_meta_vars_pd[x].dtype) == 'object']
-        # print("cat_vars")
-        # print(cat_vars)
-        if cat_vars:
-            new_meta_cat_pd = new_meta_vars_pd[cat_vars].copy()
-            new_meta_cat_pd['concat_cols'] = new_meta_cat_pd.apply(
-                func=lambda x: '_'.join([str(y) for y in x]), axis=1)
-            rep_d = dict(('_'.join([str(i) for i in r]), list(r)) for r in new_meta_cat_pd[cat_vars].values)
-            vc = new_meta_cat_pd['concat_cols'].value_counts()
-            # print("vc")
-            # print(vc)
-        if cat_vars and vc.size < new_meta_cat_pd.shape[0] * 0.5:
-            if 1 in vc.values:
-                vc_in = vc[vc > 1].index.tolist()
-                new_meta_cat_pd_in = new_meta_cat_pd.loc[new_meta_cat_pd['concat_cols'].isin(vc_in)]
-            else:
-                new_meta_cat_pd_in = new_meta_cat_pd.copy()
-            X = np.array(new_meta_cat_pd_in.values)
-            y = new_meta_cat_pd_in.index.tolist()
-            # print("new_meta_cat_pd_in['concat_cols'].unique()")
-            # print(new_meta_cat_pd_in['concat_cols'].unique())
-            # print("train_perc")
-            # print(train_perc)
-            if new_meta_cat_pd_in['concat_cols'].unique().size < 2:
-            # if train_perc < new_meta_cat_pd_in['concat_cols'].unique().size:
-                return None, None
-
-            _, __, ___, train_samples = train_test_split(
-                X, y, test_size=train_perc,
-                stratify=new_meta_cat_pd_in['concat_cols'].tolist()
+        train_perc = get_train_perc_from_numeric(train, new_meta_pd)
+        vars_pd = new_meta_pd[meta_vars].copy()
+        cat_vars, cat_pd, vc, rep_d = get_cat_vars_and_vc(meta_vars, vars_pd)
+        if cat_vars and vc.size < cat_pd.shape[0] * 0.5:
+            train_samples = make_train_test_from_cat(
+                cat_pd, vc, train_perc, meta_fp, cat_vars, train_column, rep_d
             )
-            new_meta_cat_pd[train_column] = [
-                'Train' if x in train_samples else
-                'Test' for x in new_meta_cat_pd.index
-            ]
-            if new_meta_ct:
-                ct = pd.crosstab(new_meta_cat_pd[train_column],
-                                 new_meta_cat_pd['concat_cols']).T.reset_index()
-                ct = pd.concat([
-                    pd.DataFrame(
-                        [rep_d[x] for x in ct['concat_cols']],
-                        columns=cat_vars, index=ct.index
-                    ),
-                    ct[['Train', 'Test']]
-                ], axis=1)
-                ct.to_csv(new_meta_ct, sep='\t')
         else:
             train_samples = random.sample(
                 new_meta_pd.index.tolist(),
                 k=int(train_perc * new_meta_pd.shape[0])
             )
-        new_meta_vars_pd[train_column] = [
-            'Train' if x in train_samples else
+        vars_pd[train_column] = [
+            'Train' if x in set(train_samples) else
             'Test' for x in new_meta_pd.index
         ]
     else:
@@ -95,26 +266,27 @@ def get_train_column(meta, new_meta_pd, meta_vars, train, new_meta, new_meta_ct)
         if train in new_meta_pd.columns:
             if {'Train', 'Test'}.issubset(new_meta_pd[train]):
                 train_column = train
-                new_meta_vars_pd = new_meta_pd.loc[
+                vars_pd = new_meta_pd.loc[
                     new_meta_pd[train].isin(['Train', 'Test'])
                 ]
             else:
                 train_column = ''
                 print('\t\t\t[SONGBIRD] Columns passed for training do '
                               'not have "Train" and "Test" factors')
-                print('\t\t\t\->', meta)
+                print('\t\t\t\->', meta_fp)
                 return None, None
         else:
             train_column = ''
             print('\t\t\t[SONGBIRD] Columns passed for training not exists')
-            print('\t\t\t\->', meta)
+            print('\t\t\t\->', meta_fp)
             return None, None
     if new_meta:
-        new_meta_vars_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
+        vars_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
     return train_column, train_samples
 
 
-def get_metadata_train_test(meta_fp, meta_pd, meta_vars, new_meta, train, drop, new_meta_ct):
+def get_metadata_train_test(
+        meta_fp, meta_pd, meta_vars, new_meta, train, drop):
 
     if train in meta_pd.columns:
         meta_vars.append(train)
@@ -125,13 +297,14 @@ def get_metadata_train_test(meta_fp, meta_pd, meta_vars, new_meta, train, drop, 
 
     if drop:
         to_remove = pd.concat([
-            new_meta_pd[meta_var.lower()].isin(var_drop) for meta_var, var_drop in drop.items()],
+            new_meta_pd[meta_var.lower()].isin(var_drop)
+            for meta_var, var_drop in drop.items()],
             axis=1
         ).any(axis=1)
         new_meta_pd = new_meta_pd.loc[~to_remove]
 
     train_column, train_samples = get_train_column(
-        meta_fp, new_meta_pd, meta_vars, str(train), new_meta, new_meta_ct)
+        meta_fp, new_meta_pd, meta_vars, str(train), new_meta)
     return train_column, train_samples
 
 
@@ -144,13 +317,18 @@ def make_train_test_column(meta_fp: str, train_test_dict: dict,
         if dat in train_test_dict['datasets']:
             for tt, tt_vars in train_test_dict['datasets'][dat].items():
                 train_column, train_samples = get_metadata_train_test(
-                    meta_fp, meta_pd.set_index('sample_name'), tt_vars, '', train_test_dict['train'], {}, '')
+                    meta_fp, meta_pd.set_index('sample_name'), tt_vars,
+                    '', train_test_dict['train'], {}, '')
                 train_cols.add(tt)
                 meta_tt_pd[tt] = [
                     'Train' if x in train_samples else
                     'Test' for x in meta_tt_pd.sample_name.tolist()
                 ]
             break
+    else:
+        print(dat1, dat2)
+        print(datds)
+
     return meta_tt_pd, train_cols
 
 
@@ -320,7 +498,9 @@ def rename_duplicate_columns(meta_subset):
     meta_subset_copy = meta_subset.copy()
     for col in meta_subset.columns:
         if col in meta_subset_cols:
-            meta_subset_cols.append('%s.%s' % (col, meta_subset_cols.count(col)))
+            meta_subset_cols.append(
+                '%s.%s' % (col, meta_subset_cols.count(col))
+            )
         else:
             meta_subset_cols.append(col)
     meta_subset_copy.columns = meta_subset_cols

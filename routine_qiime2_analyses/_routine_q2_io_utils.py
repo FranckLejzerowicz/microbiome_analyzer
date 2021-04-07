@@ -60,7 +60,7 @@ def check_input(i_datasets_folder: str) -> str:
     return i_datasets_folder
 
 
-def check_xpbs_install() ->  None:
+def check_xpbs_install() -> None:
     """Try to get the install path of third party tool
     Xpbs (https://github.com/FranckLejzerowicz/Xpbs).
     If it exists, nothing happens and the code proceeds.
@@ -372,19 +372,18 @@ def get_mmvec_dicts(p_mmvec_pairs: str) -> (dict, dict, dict, dict):
     :param datasets_filt:
     :return: datasets pairs, filtering thresholds, mmvec run parameters.
     """
-    if not isfile(p_mmvec_pairs):
-        print('yaml file for mmvec pairs does not exist:\n%s\nExiting...' % p_mmvec_pairs)
+    mmvec_dicts = read_yaml_file(p_mmvec_pairs)
+    if not mmvec_dicts:
+        print(
+            'yaml file for mmvec pairs does not exist:\n%s'
+            '\nExiting...' % p_mmvec_pairs)
         sys.exit(0)
-    with open(p_mmvec_pairs) as handle:
-        try:
-            mmvec_dict = yaml.load(handle, Loader=yaml.FullLoader)
-        except AttributeError:
-            mmvec_dict = yaml.load(handle)
 
-    mmvec_pairs = get_mmvec_pairs(p_mmvec_pairs, mmvec_dict)
-    mmvec_filtering = get_filtering(p_mmvec_pairs, mmvec_dict, mmvec_pairs, 'mmvec')
-    mmvec_params = get_mmvec_params(p_mmvec_pairs, mmvec_dict)
-    mmvec_subsets = get_mmvec_subsets(mmvec_pairs, mmvec_dict)
+    mmvec_pairs = get_mmvec_pairs(p_mmvec_pairs, mmvec_dicts)
+    mmvec_filtering = get_filtering(p_mmvec_pairs, mmvec_dicts,
+                                    mmvec_pairs, 'mmvec')
+    mmvec_params = get_mmvec_params(p_mmvec_pairs, mmvec_dicts)
+    mmvec_subsets = get_mmvec_subsets(mmvec_pairs, mmvec_dicts)
     return mmvec_pairs, mmvec_filtering, mmvec_params, mmvec_subsets
 
 
@@ -994,15 +993,15 @@ def check_if_not_dna(
     return dna
 
 
-def check_features(features: list) -> tuple:
+def check_features(data_pd: pd.DataFrame) -> tuple:
     """Parse the feature names anb check whether these are
     all DNA sequences, whether they contain genome IDs,
     or if they have been corrected for " " ot ";"
 
     Parameters
     ----------
-    features : list
-        Features names
+    data_pd : pd.DataFrame
+        Features table
 
     Returns
     -------
@@ -1013,6 +1012,7 @@ def check_features(features: list) -> tuple:
     correct : bool
         Whether the feature names have been corrected
     """
+    features = data_pd.index.tolist()
     # regex to find the first non-DNA character
     not_dna = re.compile('[^ACGTN].*?')
     # init genome IDs mapping to corrected ID (when also containing taxonomy)
@@ -1068,11 +1068,10 @@ def genome_id_or_dna(
         To be updated with ('tree_to_use', 'corrected_or_not')
     """
     if str(data_pd.index.dtype) == 'object':
-        features = data_pd.index.tolist()
         # check if that's genome IDs od DNA sequences
-        genome_ids, dna, correction_needed = check_features(features)
+        genome_ids, dna, correction_needed = check_features(data_pd)
         # if all the features are genome IDs
-        if len(genome_ids) == len(features):
+        if len(genome_ids) == data_pd.shape[0]:
             collect_genome_id(
                 dat, path, data_pd, genome_ids, datasets_features,
                 datasets_read, datasets_phylo, correction_needed)
@@ -1144,7 +1143,6 @@ def get_datasets(
     """
     print('# Fetching data and metadata for:\n - %s' % '\n - '.join(i_datasets))
     paths = get_data_paths(i_datasets, i_datasets_folder)
-
     datasets = {}
     datasets_read = {}
     datasets_phylo = {}
@@ -1177,6 +1175,35 @@ def get_datasets(
         datasets_rarefs
     )
     return datasets_objects
+
+
+def get_fps(
+        i_datasets_folder: str,
+        dat: str) -> tuple:
+    """
+    Parameters
+    ----------
+    i_datasets_folder : str
+        Path to the folder containing the data/metadata sub-folders
+    dat : str
+        Dataset name
+
+    Returns
+    -------
+    tsv_fp : str
+        Path to the .tsv feature table
+    qza_fp : str
+        Path to the .qza feature table
+    meta : str
+        Path to the metadata
+    """
+    tsv_fp = '%s/data/tab_%s.tsv' % (i_datasets_folder, dat)
+    qza_fp = tsv_fp.replace('.tsv', '.qza')
+    meta_fp = tsv_fp.replace(
+        '%s/data/' % i_datasets_folder,
+        '%s/metadata/' % i_datasets_folder
+    ).replace('tab_', 'meta_')
+    return tsv_fp, qza_fp, meta_fp
 
 
 def get_filt_raref_suffix(p_filt_threshs: str, raref: bool) -> str:
@@ -1632,27 +1659,96 @@ def get_raref_table(dat_rt: str, raref: str, i_datasets_folder: str,
 
 def write_filtered_tsv(tsv_out: str, tsv_pd: pd.DataFrame) -> None:
     tsv_sams_col = tsv_pd.reset_index().columns[0]
-    tsv_pd = tsv_pd.reset_index().rename(columns={tsv_sams_col: 'Feature ID'}).set_index('Feature ID')
+    tsv_pd = tsv_pd.reset_index().rename(
+        columns={tsv_sams_col: 'Feature ID'}).set_index('Feature ID')
     tsv_pd.reset_index().to_csv(tsv_out, index=False, sep='\t')
 
 
-def write_filtered_meta(dat: str, meta_out: str, meta_pd_: pd.DataFrame,
-                        tsv_pd: pd.DataFrame, train_test_dict: dict) -> pd.DataFrame:
-    meta_filt_pd = meta_pd_.loc[meta_pd_.sample_name.isin(tsv_pd.columns), :].copy()
-    # if not os.path.isdir(os.path.dirname(meta_out)):
-    #     os.makedirs(os.path.dirname(meta_out))
-    meta_filt_traintest, train_cols = make_train_test_column(meta_out, train_test_dict, meta_filt_pd, dat)
+def write_filtered_meta(
+        dat: str,
+        meta_out: str,
+        meta_pd_: pd.DataFrame,
+        tsv_pd: pd.DataFrame,
+        train_test_dict: dict) -> pd.DataFrame:
+
+    meta_filt_pd = meta_pd_.loc[
+        meta_pd_.sample_name.isin(tsv_pd.columns), :].copy()
+    meta_filt_traintest, train_cols = make_train_test_column(
+        meta_out, train_test_dict, meta_filt_pd, dat)
     meta_filt_traintest.to_csv(meta_out, index=False, sep='\t')
     return meta_filt_traintest
 
 
+def get_dat_from_filtered(dataset: str, datasets_filt: dict) -> str:
+    """Return the dataset corresponding to
+    the non-filtered version of the dataset.
+
+    Parameters
+    ----------
+    dataset : str
+        Filtered dataset name
+    datasets_filt : dict
+        Mapping Filtered dataset name -> Raw dataset name
+
+    Returns
+    -------
+    Raw dataset name
+    """
+    if dataset in datasets_filt:
+        return datasets_filt[dataset]
+    else:
+        return dataset
+
+
+def get_raref_version(
+        dat_: str,
+        dat: str,
+        i_datasets_folder: str,
+        analysis: str,
+        input_to_filtered: dict) -> str:
+    """
+
+    Parameters
+    ----------
+    dat_ : str
+        Passed dataset name
+    dat : str
+        Passed dataset name but not filtered is passed in filtered
+    i_datasets_folder : str
+        Folder where datasets are located
+    analysis : str
+        mmvec or songbird
+    input_to_filtered : dict
+        Mapping filtered dataset -> dataset used
+
+    Returns
+    -------
+    dat : str
+        Dataset name which could be the
+        dataset with a rarefaction depth
+    """
+    if '__raref' in dat:
+        split = dat.split('__raref')
+        dat = '__raref'.join(split[:-1])
+        raref = '_raref%s' % '__raref'.join(split[-1:])
+        tsv_pd_, meta_pd_, meta = get_raref_table(
+            dat, raref, i_datasets_folder, analysis)
+        if not tsv_pd_.shape[0]:
+            return ''
+        dat = '%s_%s' % (dat, raref)
+        input_to_filtered[dat_] = dat
+    else:
+        print('%s dataset "%s" not found...' % (analysis, dat))
+        return ''
+    return dat
+
+
 def get_datasets_filtered(
-        i_datasets_folder: str, datasets: dict,
-        datasets_read: dict, datasets_filt: dict,
-        unique_datasets: list, filtering: dict, force: bool,
-        analysis: str, filt_datasets_done: dict,
-        input_to_filtered: dict, train_test_dict: dict,
-        already_computed: dict, subsets: dict) -> (dict, dict, list):
+        i_datasets_folder: str, datasets: dict, datasets_read: dict,
+        datasets_filt: dict, unique_datasets: list, filtering: dict,
+        force: bool, analysis: str, filt_datasets_done: dict,
+        input_to_filtered: dict, train_test_dict: dict, already_computed: dict,
+        subsets: dict) -> (dict, dict, list):
     """
     Filter the datasets for use in mmvec.
 
@@ -1664,36 +1760,19 @@ def get_datasets_filtered(
     :param force: Force the re-writing of scripts for all commands.
     :return: list of datasets from filtered threshold.
     """
-
     drop_keys = {}
     filt_jobs = []
     filt_datasets = {}
     for (dat_, mb) in unique_datasets:
-
-        if dat_ in datasets_filt:
-            dat = datasets_filt[dat_]
-        else:
-            dat = dat_
+        dat = get_dat_from_filtered(dat_, datasets_filt)
         if dat not in datasets:
-            if '__raref' in dat:
-                split = dat.split('__raref')
-                dat = '__raref'.join(split[:-1])
-                raref = '_raref%s' % '__raref'.join(split[-1:])
-                if dat in datasets_filt:
-                    dat = datasets_filt[dat]
-                tsv_pd_, meta_pd_, meta = get_raref_table(dat, raref, i_datasets_folder, analysis)
-                if not tsv_pd_.shape[0]:
-                    continue
-                dat = '%s_%s' % (dat, raref)
-                input_to_filtered[dat_] = dat
-            else:
-                print('%s dataset "%s" not found...' % (analysis, dat))
-                continue
-
+            get_raref_version(dat_, dat, i_datasets_folder,
+                              analysis, input_to_filtered)
         elif not isinstance(datasets_read[dat][0], pd.DataFrame) and datasets_read[dat][0] == 'raref':
             tsv, meta = datasets[dat]
             if not isfile(tsv):
-                print(analysis, 'Must have run rarefaction to use it further...\nExiting')
+                print(analysis, 'Must have run rarefaction to use it '
+                                'further...\nExiting')
                 sys.exit(0)
             tsv_pd_, meta_pd_ = get_raref_tab_meta_pds(meta, tsv)
             datasets_read[dat] = [tsv_pd_, meta_pd_]

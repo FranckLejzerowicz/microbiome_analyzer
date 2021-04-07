@@ -18,8 +18,9 @@ import plotly.graph_objs as go
 
 from routine_qiime2_analyses._routine_q2_xpbs import run_xpbs, print_message
 from routine_qiime2_analyses._routine_q2_io_utils import (
-    get_job_folder, get_raref_tab_meta_pds, get_raref_table, simple_chunks,
-    get_analysis_folder, filter_mb_table, filter_non_mb_table)
+    read_yaml_file, get_job_folder, get_fps, get_raref_tab_meta_pds,
+    get_raref_table, simple_chunks, get_analysis_folder, filter_mb_table,
+    filter_non_mb_table)
 from routine_qiime2_analyses._routine_q2_cmds import run_import
 from routine_qiime2_analyses._routine_q2_mmvec import get_mmvec_dicts
 from routine_qiime2_analyses._routine_q2_songbird import get_songbird_dicts
@@ -88,9 +89,9 @@ def import_datasets(
                 main_written += 1
                 to_chunk.append(out_sh)
                 if not chunkit:
-                    job_nane = '%s.mprt.%s%s' % (prjct_nm, dat, filt_raref)
+                    job_name = '%s.mprt.%s%s' % (prjct_nm, dat, filt_raref)
                     run_xpbs(
-                        out_sh, out_pbs, job_nane, qiime_env,
+                        out_sh, out_pbs, job_name, qiime_env,
                         run_params["time"], run_params["n_nodes"],
                         run_params["n_procs"], run_params["mem_num"],
                         run_params["mem_dim"], chmod, written, 'single',
@@ -108,16 +109,16 @@ def import_datasets(
         print_message('# Import tables to qiime2', 'sh', run_pbs, jobs)
 
 
-def get_threshs(p_filt_threshs):
-    if not isfile(p_filt_threshs):
-        print('yaml file for filtering thresholds does not exist:\n%s\nExiting...' % p_filt_threshs)
-        sys.exit(0)
-    with open(p_filt_threshs) as handle:
-        try:
-            threshs_d = yaml.load(handle, Loader=yaml.FullLoader)
-        except AttributeError:
-            threshs_d = yaml.load(handle)
-        return threshs_d
+# def get_threshs(p_filt_threshs):
+#     if not isfile(p_filt_threshs):
+#         print('yaml file for filtering thresholds does not exist:\n%s\nExiting...' % p_filt_threshs)
+#         sys.exit(0)
+#     with open(p_filt_threshs) as handle:
+#         try:
+#             threshs_d = yaml.load(handle, Loader=yaml.FullLoader)
+#         except AttributeError:
+#             threshs_d = yaml.load(handle)
+#         return threshs_d
 
 
 def deleted_non_filt(datasets: dict, datasets_read: dict, datasets_features: dict,
@@ -134,11 +135,266 @@ def deleted_non_filt(datasets: dict, datasets_read: dict, datasets_features: dic
         break
 
 
-def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: dict,
-                        datasets_features: dict, datasets_rarefs: dict, datasets_filt: dict,
-                        datasets_filt_map: dict, datasets_phylo: dict, prjct_nm: str,
-                        qiime_env: str, p_filt_threshs: str, chmod: str, noloc: bool,
-                        run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+def get_thresholds(threshs_d: dict) -> tuple:
+    """
+
+    Parameters
+    ----------
+    threshs_d : dict
+        Thresholds configs
+
+    Returns
+    -------
+    names : list
+        Name for the threshold
+    thresh_sam : int
+        Samples threshold
+    thresh_feat : int
+        Features threshold
+    """
+    names = []
+    if 'names' in threshs_d:
+        names = threshs_d['names']
+    thresh_sam = 0
+    if 'samples' in threshs_d:
+        thresh_sam = threshs_d['samples']
+    thresh_feat = 0
+    if 'features' in threshs_d:
+        thresh_feat = threshs_d['features']
+    return names, thresh_sam, thresh_feat
+
+
+def no_filtering(
+        dat: str,
+        thresh_sam: int,
+        thresh_feat: int) -> bool:
+    """Checks whether to skip filtering or not.
+
+    Parameters
+    ----------
+    dat : str
+        Dataset name
+    thresh_sam : int
+        Samples threshold
+    thresh_feat : int
+        Features threshold
+
+    Returns
+    -------
+    skip : bool
+        Whether to skip filtering or not
+    """
+    skip = False
+    if not thresh_sam and not thresh_feat:
+        print('Filtering threshold(s) of 0 do nothing: skipping...')
+        skip = True
+    thresh_sam_is_numeric = isinstance(thresh_sam, (float, int))
+    thresh_feat_is_numeric = isinstance(thresh_feat, (float, int))
+    if not thresh_sam_is_numeric or not thresh_feat_is_numeric:
+        print('Filtering threshold for %s not a '
+              'integer/float: skipping...' % dat)
+        skip = True
+    if thresh_sam < 0 or thresh_feat < 0:
+        print('Filtering threshold must be positive: skipping...')
+        skip = True
+    return skip
+
+
+def get_dat_filt(
+        dat: str,
+        names: list,
+        thresh_sam: int,
+        thresh_feat: int) -> str:
+    """Get a build-up new name for
+    the filtered version of a dataset.
+
+    Parameters
+    ----------
+    dat : str
+        Dataset name
+    names : list
+        Name for the threshold
+    thresh_sam : int
+        Samples threshold
+    thresh_feat : int
+        Features threshold
+
+    Returns
+    -------
+    dat_filt : str
+        New dataset name for the filtered version
+    """
+    dat_filt = []
+    if names:
+        dat_filt.append('%srm' % len(names))
+    if thresh_sam:
+        if thresh_sam > 1:
+            dat_filt.append('minSam%s' % thresh_sam)
+        else:
+            dat_filt.append('minSam%s' % str(thresh_sam).replace('.', ''))
+
+    if thresh_feat:
+        if thresh_feat > 1:
+            dat_filt.append('minFeat%s' % thresh_feat)
+        else:
+            dat_filt.append('minFeat%s' % str(thresh_feat).replace('.', ''))
+    dat_filt = '%s_%s' % (dat, '-'.join(dat_filt))
+    return dat_filt
+
+
+def get_applied_thresholds_text(threshs_d: dict) -> tuple:
+    """
+
+    Parameters
+    ----------
+    threshs_d : dict
+        Thresholds configs
+
+    Returns
+    -------
+    names : list
+        Name for the threshold
+    thresh_sam : int
+        Samples threshold
+    thresh_feat : int
+        Features threshold
+    """
+    names = []
+    if 'names' in threshs_d:
+        names = threshs_d['names']
+    thresh_sam = 0
+    if 'samples' in threshs_d:
+        thresh_sam = threshs_d['samples']
+    thresh_feat = 0
+    if 'features' in threshs_d:
+        thresh_feat = threshs_d['features']
+    return names, thresh_sam, thresh_feat
+
+
+def filtering_names(
+        names: list,
+        tab_filt_pd: pd.DataFrame):
+    """
+    Parameters
+    ----------
+    names : list
+        Name for the threshold
+    tab_filt_pd : pd.DataFrame
+        Input raw feature table
+    """
+    if names:
+        names_in = list(set(tab_filt_pd.columns) & set(names))
+        tab_filt_pd.drop(columns=names_in, inplace=True)
+
+
+def filtering_samples(
+        thresh_sam: int,
+        tab_filt_pd: pd.DataFrame):
+    """
+
+    Parameters
+    ----------
+    thresh_sam : int
+        Samples threshold
+    tab_filt_pd : pd.DataFrame
+        Input feature table
+    """
+    if thresh_sam:
+        samples = tab_filt_pd.columns
+        if thresh_sam > 1:
+            to_drop = samples[tab_filt_pd.sum(0) < thresh_sam]
+        else:
+            tab_perc_min = tab_filt_pd.sum(0).mean() * thresh_sam
+            to_drop = samples[tab_filt_pd.sum(0) < tab_perc_min]
+        if to_drop.size:
+            tab_filt_pd.drop(columns=to_drop, inplace=True)
+
+
+def filtering_features(
+        thresh_feat: int,
+        tab_filt_pd: pd.DataFrame):
+    """
+
+    Parameters
+    ----------
+    thresh_feat : int
+        Features threshold
+    tab_filt_pd : pd.DataFrame
+        Input feature table
+    """
+    if thresh_feat:
+        if thresh_feat > 1:
+            tab_filt_rm = tab_filt_pd < thresh_feat
+        else:
+            tab_perc = tab_filt_pd / tab_filt_pd.sum(0)
+            tab_filt_rm = tab_perc < thresh_feat
+        tab_filt_pd[tab_filt_rm] = 0
+
+
+def filtering_thresholds(
+        names: list,
+        thresh_sam: int,
+        thresh_feat: int,
+        tab_pd: pd.DataFrame) -> tuple:
+    """
+
+    Parameters
+    ----------
+    names : list
+        Name for the threshold
+    thresh_sam : int
+        Samples threshold
+    thresh_feat : int
+        Features threshold
+    tab_pd : pd.DataFrame
+        Input raw feature table
+
+    Returns
+    -------
+    tab_filt_pd : pd.DataFrame
+        Output filtered feature table
+    """
+    tab_filt_pd = tab_pd.copy()
+    filtering_names(names, tab_filt_pd)
+    filtering_samples(thresh_sam, tab_filt_pd)
+    filtering_features(thresh_feat, tab_filt_pd)
+
+    tab_filt_pd = tab_filt_pd.loc[tab_filt_pd.sum(1) > 0, :]
+    tab_filt_pd = tab_filt_pd.loc[:, tab_filt_pd.sum(0) > 0]
+    return tab_filt_pd
+
+
+def harsh_filtering(
+        dat_filt: str,
+        tab_filt_pd: pd.DataFrame) -> bool:
+    """
+
+    Parameters
+    ----------
+    dat_filt : str
+        New dataset name for the filtered version
+    tab_filt_pd : pd.DataFrame
+        Filtered feature table
+
+    Returns
+    -------
+    skip : bool
+        Whether to skip a too harsh filtering
+    """
+    skip = False
+    if tab_filt_pd.shape[0] < 10 or tab_filt_pd.shape[1] < 2:
+        print('Filtering too harsh (no more data for %s): '
+              'skipping...' % dat_filt)
+        skip = True
+    return skip
+
+
+def filter_rare_samples(
+        i_datasets_folder: str, datasets: dict, datasets_read: dict,
+        datasets_features: dict, datasets_rarefs: dict, datasets_filt: dict,
+        datasets_filt_map: dict, datasets_phylo: dict, prjct_nm: str,
+        qiime_env: str, p_filt_threshs: str, chmod: str, noloc: bool,
+        run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Filter the rare features, keep samples with enough reads/features and import to Qiime2.
 
@@ -152,7 +408,7 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
     :param thresh: min number of reads per sample to keep it.
     :param chmod: whether to change permission of output files (defalt: 775).
     """
-    threshs_dats = get_threshs(p_filt_threshs)
+    threshs_dats = read_yaml_file(p_filt_threshs)
 
     written = 0
     datasets_update = {}
@@ -167,118 +423,56 @@ def filter_rare_samples(i_datasets_folder: str, datasets: dict, datasets_read: d
         for dat, tab_meta_pds_ in datasets_read.items():
             if dat not in threshs_dats:
                 continue
-            threshs_d = threshs_dats[dat]
-            names = []
-            if 'names' in threshs_d:
-                names = threshs_d['names']
-            thresh_sam = 0
-            if 'samples' in threshs_d:
-                thresh_sam = threshs_d['samples']
-            thresh_feat = 0
-            if 'features' in threshs_d:
-                thresh_feat = threshs_d['features']
-
-            if not thresh_sam and not thresh_feat:
-                print('Filtering threshold(s) of 0 do nothing: skipping...')
+            names, thresh_sam, thresh_feat = get_thresholds(threshs_dats[dat])
+            if no_filtering(dat, thresh_sam, thresh_feat):
                 continue
-            if not isinstance(thresh_sam, (float, int)) or not isinstance(thresh_feat, (float, int)):
-                print('Filtering threshold for %s not a integer/float: skipping...' % dat)
-                continue
-            if thresh_sam < 0 or thresh_feat < 0:
-                print('Filtering threshold must be positive: skipping...')
-                continue
+            dat_filt = get_dat_filt(dat, names, thresh_sam, thresh_feat)
 
-            dat_filt = []
-            if names:
-                dat_filt.append('%srm' % len(names))
-            if thresh_sam:
-                if thresh_sam > 1:
-                    dat_filt.append('minSam%s' % thresh_sam)
-                else:
-                    dat_filt.append('minSam%s' % str(thresh_sam).replace('.', ''))
-
-            if thresh_feat:
-                if thresh_feat > 1:
-                    dat_filt.append('minFeat%s' % thresh_feat)
-                else:
-                    dat_filt.append('minFeat%s' % str(thresh_feat).replace('.', ''))
-            dat_filt = '%s_%s' % (dat, '-'.join(dat_filt))
             datasets_filt[dat] = dat_filt
             datasets_filt_map[dat_filt] = dat
             datasets_rarefs[dat_filt] = ['']
-            tab_filt_fp = '%s/data/tab_%s.tsv' % (i_datasets_folder, dat_filt)
-            qza = tab_filt_fp.replace('.tsv', '.qza')
-            meta_filt_fp = tab_filt_fp.replace(
-                '%s/data/' % i_datasets_folder,
-                '%s/metadata/' % i_datasets_folder
-            ).replace('tab_', 'meta_')
-            if isfile(qza) and isfile(meta_filt_fp):
-                # datasets_update[dat_filt] = [tab_filt_fp, meta_filt_fp]
-                datasets_update[dat_filt] = [[tab_filt_fp, meta_filt_fp]]
-                tab_filt_pd = pd.read_csv(tab_filt_fp, index_col=0, header=0, sep='\t')
-                with open(meta_filt_fp) as f:
+
+            tsv_filt, qza_filt, meta_filt = get_fps(
+                i_datasets_folder, dat_filt)
+
+            if isfile(qza_filt) and isfile(meta_filt):
+                datasets_update[dat_filt] = [[tsv_filt, meta_filt]]
+                tab_filt_pd = pd.read_csv(
+                    tsv_filt, index_col=0, header=0, sep='\t')
+                with open(meta_filt) as f:
                     for line in f:
                         break
-                meta_filt_pd = pd.read_csv(meta_filt_fp, header=0, sep='\t',
-                                           dtype={line.split('\t')[0]: str},
-                                           low_memory=False)
+                meta_filt_pd = pd.read_csv(
+                    meta_filt, header=0, sep='\t',
+                    dtype={line.split('\t')[0]: str},
+                    low_memory=False)
                 # datasets_read_update[dat_filt] = [tab_filt_pd, meta_filt_pd]
                 datasets_read_update[dat_filt] = [[tab_filt_pd, meta_filt_pd]]
                 datasets_phylo_update[dat_filt] = datasets_phylo[dat]
                 datasets_features_update[dat_filt] = dict(
-                    gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_filt_pd.index
+                    gid_feat for gid_feat in datasets_features[dat].items()
+                    if gid_feat[1] in tab_filt_pd.index
                 )
                 continue
 
             for (tab_pd, meta_pd) in tab_meta_pds_:
-                meta_pd = meta_pd.set_index('sample_name')
-                dat_filt = []
-                if names:
-                    dat_filt.append('%srm' % len(names))
-                    tab_filt_pd = tab_pd[[x for x in tab_pd.columns if x not in names]].copy()
-                else:
-                    tab_filt_pd = tab_pd.copy()
-
-                if thresh_sam:
-                    if thresh_sam > 1:
-                        tab_filt_pd = tab_filt_pd.loc[:, tab_filt_pd.sum(0) >= thresh_sam]
-                        dat_filt.append('minSam%s' % thresh_sam)
-                    else:
-                        tab_perc_min = tab_filt_pd.sum(0).mean() * thresh_sam
-                        tab_filt_pd = tab_filt_pd.loc[:, tab_filt_pd.sum(0) >= tab_perc_min]
-                        dat_filt.append('minSam%s' % str(thresh_sam).replace('.', ''))
-
-                if thresh_feat:
-                    if thresh_feat > 1:
-                        tab_filt_rm = tab_filt_pd < thresh_feat
-                        dat_filt.append('minFeat%s' % thresh_feat)
-                    else:
-                        tab_perc = tab_filt_pd/tab_filt_pd.sum(0)
-                        tab_filt_rm = tab_perc < thresh_feat
-                        dat_filt.append('minFeat%s' % str(thresh_feat).replace('.', ''))
-                    tab_filt_pd[tab_filt_rm] = 0
-
-                tab_filt_pd = tab_filt_pd.loc[tab_filt_pd.sum(1) > 0, :]
-                tab_filt_pd = tab_filt_pd.loc[:, tab_filt_pd.sum(0) > 0]
-
-                dat_filt = '%s_%s' % (dat, '-'.join(dat_filt))
-                if tab_filt_pd.shape[0] < 2 or tab_filt_pd.shape[1] < 2:
-                    print('Filtering too harsh (no more data for %s): skipping...' % dat_filt)
+                tab_filt_pd = filtering_thresholds(
+                    names, thresh_sam, thresh_feat, tab_pd)
+                if harsh_filtering(dat_filt, tab_filt_pd):
                     continue
+                meta_filt_pd = meta_pd.loc[meta_pd.sample_name.isin(
+                    tab_filt_pd.columns.tolist())].copy()
+                tab_filt_pd.reset_index().to_csv(tsv_filt, index=False, sep='\t')
+                meta_filt_pd.to_csv(meta_filt, index=False, sep='\t')
 
-                meta_filt_pd = meta_pd.loc[tab_filt_pd.columns.tolist()].copy()
-                tab_filt_pd.reset_index().to_csv(tab_filt_fp, index=False, sep='\t')
-                meta_filt_pd.reset_index().to_csv(meta_filt_fp, index=False, sep='\t')
-
-                # datasets_update[dat_filt] = [tab_filt_fp, meta_filt_fp]
-                datasets_update[dat_filt] = [[tab_filt_fp, meta_filt_fp]]
-                # datasets_read_update[dat_filt] = [tab_filt_pd, meta_filt_pd.reset_index()]
-                datasets_read_update[dat_filt] = [[tab_filt_pd, meta_filt_pd.reset_index()]]
+                datasets_update[dat_filt] = [[tsv_filt, meta_filt]]
+                datasets_read_update[dat_filt] = [[tab_filt_pd, meta_filt_pd]]
                 datasets_phylo_update[dat_filt] = datasets_phylo[dat]
                 datasets_features_update[dat_filt] = dict(
-                    gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tab_filt_pd.index
+                    gid_feat for gid_feat in datasets_features[dat].items()
+                    if gid_feat[1] in tab_filt_pd.index
                 )
-                cmd = run_import(tab_filt_fp, qza, "FeatureTable[Frequency]")
+                cmd = run_import(tsv_filt, qza_filt, "FeatureTable[Frequency]")
                 sh.write('echo "%s"\n' % cmd)
                 sh.write('%s\n' % cmd)
                 written += 1
@@ -448,45 +642,3 @@ def explore_filtering(i_datasets_folder, datasets, datasets_read,
             html_fo = '%s/%s_%s.html' % (out_dir, dat, mb)
             print(' -> Written:', html_fo)
             plotly.offline.plot(fig, filename=html_fo, auto_open=False)
-
-
-# def clear_poor_datasets(
-#         datasets: dict,
-#         datasets_read: dict,
-#         datasets_features: dict,
-#         datasets_phylo: dict,
-#         datasets_rarefs: dict
-# ):
-#
-#     to_delete = {}
-#     for dat, tab_meta_pds in datasets_read.items():
-#         for idx, (tsv_pd, meta_pd) in enumerate(datasets_read[dat]):
-#             if tsv_pd.shape[0] < 30:
-#                 to_delete.setdefault(dat, []).append(idx)
-#     if to_delete:
-#         print('\n\n\tREMOVING THE FOLLOWING DATASET(S) INSTANCE(S) BECAUSE <30 FEATURES ONLY:')
-#             # if not idx:
-#             #     print('\t\t- %s (raw)' % dat)
-#             # else:
-#             #     print('\t\t- %s (%s)' % (dat, datasets_rarefs[dat][idx]))
-#
-#         datasets_out = {}
-#         datasets_read_out = {}
-#         datasets_features_out = {}
-#         datasets_phylo_out = {}
-#         datasets_rarefs_out = {}
-#         for dat, dat_list in datasets.items():
-#             for ldx, l in enumerate(dat_list):
-#                 if dat in to_delete and ldx in to_delete[dat]:
-#                     continue
-#                 datasets_out.setdefault(dat, []).append(l)
-#                 datasets_read_out.setdefault(dat, []).append(l)
-#                 datasets_features_out.setdefault(dat, []).append(l)
-#                 datasets_phylo_out.setdefault(dat, []).append(l)
-#                 datasets_rarefs_out.setdefault(dat, []).append(l)
-#
-#         return datasets_out, datasets_read_out, datasets_features_out, datasets_phylo_out, datasets_rarefs_out
-
-
-
-

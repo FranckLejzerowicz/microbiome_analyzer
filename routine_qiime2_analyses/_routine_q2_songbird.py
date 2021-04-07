@@ -311,10 +311,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                     odir = get_analysis_folder(i_datasets_folder, 'songbird/%s' % datdir)
                     new_qza = '%s/tab.qza' % odir
                     new_meta = '%s/metadata.tsv' % odir
-                    new_meta_ct = '%s/metadata_traintest.tsv' % odir
 
                     train_column, train_samples = get_metadata_train_test(
-                        meta, meta_pd, list(meta_vars), new_meta, train, drop, new_meta_ct)
+                        meta, meta_pd, list(meta_vars), new_meta, train, drop)
                     if not train_column:
                         new_meta_invalid = '%s/metadata_invalid' % odir
                         with open(new_meta_invalid, 'w') as invalid:

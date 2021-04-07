@@ -25,6 +25,14 @@ from routine_qiime2_analyses import __version__
          "'tab_dataset_number_1.tsv' and tab_dataset_number_2.tsv'."
 )
 @click.option(
+    "-n", "--p-project-name", required=True, show_default=True,
+    help="Nick name for your project."
+)
+@click.option(
+    "-e", "--p-qiime2-env", required=True, show_default=True,
+    help="name of your qiime2 conda environment (e.g. qiime2-2019.10) "
+)
+@click.option(
     "-w", "--i-wol-tree", required=False, show_default=True,
     default='resources/wol_tree.nwk',
     help="path to the tree containing the genome IDs (will check if exist in "
@@ -51,14 +59,6 @@ from routine_qiime2_analyses import __version__
          "reads assignment: https://docs.qiime2.org/2020.2/"
          "data-resources/#taxonomy-classifiers-for-use-with-q2-"
          "feature-classifier"
-)
-@click.option(
-    "-n", "--p-project-name", required=True, show_default=True,
-    help="Nick name for your project."
-)
-@click.option(
-    "-e", "--p-qiime2-env", required=True, show_default=True,
-    help="name of your qiime2 conda environment (e.g. qiime2-2019.10) "
 )
 @click.option(
     "-u", "--p-run-params", required=False, show_default=True,
@@ -304,6 +304,7 @@ def standalone_routine(
         i_datasets,
         i_datasets_folder,
         p_project_name,
+        p_qiime2_env,
         p_longi_column,
         p_filt_threshs,
         p_raref_depths,
@@ -334,7 +335,6 @@ def standalone_routine(
         p_mmvec_pairs,
         p_mmvec_highlights,
         p_xmmvec,
-        p_qiime2_env,
         p_run_params,
         p_chmod,
         p_skip,
@@ -358,54 +358,54 @@ def standalone_routine(
         i_datasets,
         i_datasets_folder,
         p_project_name,
-        p_longi_column,
-        p_filt_threshs,
-        p_raref_depths,
-        eval_rarefs,
-        p_alpha_subsets,
-        p_beta_subsets,
-        p_perm_tests,
-        p_perm_tests_min,
-        p_beta_groups,
-        p_nestedness_groups,
-        p_beta_type,
-        p_procrustes,
-        p_mantel,
-        p_distance_decay,
-        p_collapse_taxo,
-        p_train_test,
-        p_adonis_formulas,
-        p_doc_config,
-        p_sourcetracking_config,
-        p_phate_config,
-        do_biplots,
-        force,
-        i_classifier,
-        i_wol_tree,
-        i_sepp_tree,
-        i_qemistree,
-        p_diff_models,
-        p_mmvec_pairs,
-        p_mmvec_highlights,
-        p_xmmvec,
         p_qiime2_env,
-        p_run_params,
-        p_chmod,
-        p_skip,
-        gpu,
-        standalone,
-        raref,
-        loc,
-        p_alphas,
-        p_betas,
-        split,
-        dropout,
-        doc_phate,
-        filt3d,
-        p_filt3d_config,
-        filt_only,
-        jobs,
-        p_chunkit
+        p_longi_column=p_longi_column,
+        p_filt_threshs=p_filt_threshs,
+        p_raref_depths=p_raref_depths,
+        eval_rarefs=eval_rarefs,
+        p_alpha_subsets=p_alpha_subsets,
+        p_beta_subsets=p_beta_subsets,
+        p_perm_tests=p_perm_tests,
+        p_perm_tests_min=p_perm_tests_min,
+        p_beta_groups=p_beta_groups,
+        p_nestedness_groups=p_nestedness_groups,
+        p_beta_type=p_beta_type,
+        p_procrustes=p_procrustes,
+        p_mantel=p_mantel,
+        p_distance_decay=p_distance_decay,
+        p_collapse_taxo=p_collapse_taxo,
+        p_train_test=p_train_test,
+        p_adonis_formulas=p_adonis_formulas,
+        p_doc_config=p_doc_config,
+        p_sourcetracking_config=p_sourcetracking_config,
+        p_phate_config=p_phate_config,
+        do_biplots=do_biplots,
+        force=force,
+        i_classifier=i_classifier,
+        i_wol_tree=i_wol_tree,
+        i_sepp_tree=i_sepp_tree,
+        i_qemistree=i_qemistree,
+        p_diff_models=p_diff_models,
+        p_mmvec_pairs=p_mmvec_pairs,
+        p_mmvec_highlights=p_mmvec_highlights,
+        p_xmmvec=p_xmmvec,
+        p_run_params=p_run_params,
+        p_chmod=p_chmod,
+        p_skip=p_skip,
+        gpu=gpu,
+        standalone=standalone,
+        raref=raref,
+        noloc=loc,
+        As=p_alphas,
+        Bs=p_betas,
+        split=split,
+        dropout=dropout,
+        doc_phate=doc_phate,
+        filt3d=filt3d,
+        p_filt3d_config=p_filt3d_config,
+        filt_only=filt_only,
+        jobs=jobs,
+        chunkit=p_chunkit
     )
 
 

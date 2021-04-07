@@ -46,11 +46,10 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     # check whether there's dataset(s) that may use the reference tree (i.e. features are DNA sequences)
     sepp_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'amplicon']
     if len(sepp_datasets):
-
         ref_tree_qza = get_sepp_tree(i_sepp_tree)
+
         job_folder = get_job_folder(i_datasets_folder, 'phylo')
         job_folder2 = get_job_folder(i_datasets_folder, 'phylo/chunks')
-
         main_written = 0
         main_sh = '%s/1_run_sepp_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
         with open(main_sh, 'w') as main_o:
@@ -108,18 +107,21 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                         #     trees[dat] = [(qza_in, out_fp_sepp_tree)]
                         if not idx:
                             trees[dat] = (qza_in, out_fp_sepp_tree)
-                        out_fp_sepp_plac = '%s/plac_%s%s.qza' % (odir_sepp, dat, cur_raref)
 
                         written = 0
                         if force or not isfile(out_fp_seqs_qza):
-                            cmd = write_seqs_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, tsv_pd)
+                            cmd = write_seqs_fasta(out_fp_seqs_fasta,
+                                                   out_fp_seqs_qza, tsv_pd)
                             cur_sh.write('echo "%s"\n' % cmd)
                             cur_sh.write('%s\n\n' % cmd)
                             written += 1
                         if force or not isfile(out_fp_sepp_tree):
-                            write_fragment_insertion(out_fp_seqs_qza, ref_tree_qza,
-                                                     out_fp_sepp_tree, out_fp_sepp_plac,
-                                                     qza, qza_in, qza_out, cur_sh)
+                            cmd = write_fragment_insertion(
+                                out_fp_seqs_qza, ref_tree_qza,
+                                out_fp_sepp_tree, qza,
+                                qza_in)
+                            cur_sh.write('echo "%s"\n' % cmd)
+                            cur_sh.write('%s\n\n' % cmd)
                             written += 1
                             main_written += 1
                 run_xpbs(out_sh, out_pbs, '%s.spp.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
@@ -130,10 +132,12 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict,
             print_message("# Fragment insertion using SEPP (%s)" % ', '.join(sepp_datasets), 'sh', main_sh, jobs)
 
 
-def shear_tree(i_datasets_folder: str, datasets: dict, datasets_read: dict, datasets_phylo: dict,
-               datasets_features: dict, prjct_nm: str, i_wol_tree: str, trees: dict,
-               datasets_rarefs: dict, force: bool, qiime_env: str, chmod: str,
-               noloc: bool, run_params: dict, filt_raref: str, jobs: bool) -> None:
+def shear_tree(
+        i_datasets_folder: str, datasets: dict, datasets_read: dict,
+        datasets_phylo: dict, datasets_features: dict, prjct_nm: str,
+        i_wol_tree: str, trees: dict, datasets_rarefs: dict, force: bool,
+        qiime_env: str, chmod: str, noloc: bool, run_params: dict,
+        filt_raref: str, jobs: bool) -> None:
     """
     Get the sub-tree from the Web of Life tree that corresponds to the gOTUs-labeled features.
 
@@ -179,7 +183,7 @@ def shear_tree(i_datasets_folder: str, datasets: dict, datasets_read: dict, data
                             tsv_pd, meta_pd = datasets_read[dat][idx]
                         cur_raref = datasets_rarefs[dat][idx]
                         cur_datasets_features = dict(
-                            gid_feat for gid_feat in datasets_features[dat].items() if gid_feat[1] in tsv_pd.index)
+                            gid for gid in datasets_features[dat].items() if gid[1] in tsv_pd.index)
 
                         analysis_folder = get_analysis_folder(i_datasets_folder, 'phylo/%s' % dat)
                         wol_features_fpo = '%s/tree_%s%s.nwk' % (analysis_folder, dat, cur_raref)
@@ -211,8 +215,9 @@ def shear_tree(i_datasets_folder: str, datasets: dict, datasets_read: dict, data
             print_message("# Shear Web of Life tree to features' genome IDs (%s)" % ', '.join(wol_datasets), 'sh', main_sh, jobs)
 
 
-def get_precomputed_trees(i_datasets_folder: str, datasets: dict, datasets_filt_map: dict,
-                          datasets_phylo: dict, trees: dict) -> None:
+def get_precomputed_trees(
+        i_datasets_folder: str, datasets: dict, datasets_filt_map: dict,
+        datasets_phylo: dict, trees: dict) -> None:
     """
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets: dataset -> [tsv/biom path, meta path]

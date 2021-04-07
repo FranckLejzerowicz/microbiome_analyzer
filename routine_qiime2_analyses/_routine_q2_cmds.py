@@ -6,9 +6,10 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import re
 import pandas as pd
 from typing import TextIO
-from os.path import dirname, isdir, isfile, splitext
+from os.path import basename, dirname, isdir, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
 
@@ -133,7 +134,7 @@ def write_taxonomy_sklearn(out_qza: str, out_fp_seqs_qza: str,
     return cmd
 
 
-def write_rarefy(qza: str, qza_out: str, depth: str, cur_sh: TextIO) -> None:
+def write_rarefy(qza: str, qza_out: str, depth: int) -> str:
     """
     Subsample frequencies from all samples so that the sum of frequencies in
     each sample is equal to sampling-depth.
@@ -142,14 +143,12 @@ def write_rarefy(qza: str, qza_out: str, depth: str, cur_sh: TextIO) -> None:
     :param qza: The feature table from which samples should be rarefied.
     :param qza_out: The resulting rarefied feature table in qza format.
     :param depth: The rarefaction depth.
-    :param cur_sh: writing file handle.
     """
     cmd = 'qiime feature-table rarefy \\\n'
     cmd += '--i-table %s \\\n' % qza
-    cmd += '--p-sampling-depth %s \\\n' % depth
+    cmd += '--p-sampling-depth %s \\\n' % str(depth)
     cmd += '--o-rarefied-table %s\n' % qza_out
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n\n' % cmd)
+    return cmd
 
 
 def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str, model_odir: str,
@@ -586,8 +585,7 @@ def write_qza_subset(qza: str, qza_case_fp: str, new_meta: str, cur_sh: TextIO):
 def write_collapse_taxo(tab_qza: str, tax_qza: str,
                         collapsed_qza: str, collapsed_tsv: str,
                         meta_fp: str, collapsed_meta: str,
-                        level: int, remove_empty: list,
-                        cur_sh: TextIO) -> None:
+                        level: int, remove_empty: set) -> str:
     """
     :param tab_qza:
     :param tax_qza:
@@ -599,14 +597,15 @@ def write_collapse_taxo(tab_qza: str, tax_qza: str,
     :param cur_sh:
     :return:
     """
+    cmd = ''
     if not isfile(collapsed_qza):
-        cmd = 'qiime taxa collapse \\\n'
+        cmd += 'qiime taxa collapse \\\n'
         cmd += '--i-table %s \\\n' % tab_qza
         cmd += '--i-taxonomy %s \\\n' % tax_qza
         cmd += '--p-level %s \\\n' % level
         cmd += '--o-collapsed-table %s\n' % collapsed_qza
-        cur_sh.write('echo "%s"\n' % cmd)
-        cur_sh.write('%s\n\n' % cmd)
+        cmd += 'echo "%s"\n' % cmd
+        cmd += '%s\n\n' % cmd
 
     if remove_empty:
         tax_tmp = '%s_filtempty%s.tsv' % (splitext(tax_qza)[0], level)
@@ -619,16 +618,15 @@ def write_collapse_taxo(tab_qza: str, tax_qza: str,
         cmd += '--m-metadata-file %s \\\n' % tax_tmp
         cmd += '--o-filtered-table %s2.qza \\\n' % collapsed_qza
         cmd += '--p-exclude-ids \n'
-        cur_sh.write('echo "%s"\n' % cmd)
-        cur_sh.write('%s\n\n' % cmd)
-        cur_sh.write('mv %s2.qza %s\n' % (collapsed_qza, collapsed_qza))
+        cmd += 'echo "%s"\n' % cmd
+        cmd += '%s\n\n' % cmd
+        cmd += 'mv %s2.qza %s\n' % (collapsed_qza, collapsed_qza)
 
     if not isfile(collapsed_tsv):
-        cmd = run_export(collapsed_qza, collapsed_tsv, 'FeatureTable')
-        cur_sh.write('%s\n\n' % cmd)
+        cmd += run_export(collapsed_qza, collapsed_tsv, 'FeatureTable')
     if not isfile(collapsed_meta):
-        cmd = 'cp %s %s' % (meta_fp, collapsed_meta)
-        cur_sh.write('%s\n\n' % cmd)
+        cmd += 'cp %s %s' % (meta_fp, collapsed_meta)
+    return cmd
 
 
 def write_diversity_pcoa(DM: str, out_pcoa: str, out_tsv: str, cur_sh: TextIO) -> None:
@@ -847,14 +845,15 @@ def write_seqs_fasta(out_fp_seqs_fasta: str, out_fp_seqs_qza: str,
     with open(out_fp_seqs_fasta, 'w') as fas_o:
         for seq in tsv_pd.index:
             fas_o.write('>%s\n%s\n' % (seq.strip(), seq.strip()))
-    cmd = run_import(out_fp_seqs_fasta, out_fp_seqs_qza, 'FeatureData[Sequence]')
+    cmd = run_import(
+        out_fp_seqs_fasta, out_fp_seqs_qza, 'FeatureData[Sequence]')
     return cmd
 
 
 def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
-                             out_fp_sepp_tree: str, out_fp_sepp_plac: str,
-                             qza: str, qza_in: str, qza_out: str,
-                             cur_sh: TextIO) -> None:
+                             out_fp_sepp_tree: str, qza: str, qza_in: str,
+                             # qza_out: str
+                             ) -> str:
     """
     Perform fragment insertion of sequences using the SEPP algorithm.
     https://docs.qiime2.org/2019.10/plugins/available/fragment-insertion/sepp/
@@ -889,25 +888,23 @@ def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
                        You can ignore this table for downstream analyses.
     :param cur_sh: writing file handle.
     """
+    out_fp_sepp_plac = '%s/plac_%s' % (dirname(out_fp_sepp_tree),
+                                       basename(out_fp_sepp_tree)[4:])
     cmd = 'qiime fragment-insertion sepp \\\n'
     cmd += '--i-representative-sequences %s \\\n' % out_fp_seqs_qza
     cmd += '--i-reference-database %s \\\n' % ref_tree_qza
     cmd += '--o-tree %s \\\n' % out_fp_sepp_tree
     cmd += '--o-placements %s \\\n' % out_fp_sepp_plac
     cmd += '--p-threads 24\n'
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n\n' % cmd)
-    cmd = 'qiime fragment-insertion filter-features \\\n'
+    cmd += 'qiime fragment-insertion filter-features \\\n'
     cmd += '--i-table %s \\\n' % qza
     cmd += '--i-tree %s \\\n' % out_fp_sepp_tree
-    cmd += '--o-filtered-table %s \\\n' % qza_in
-    cmd += '--o-removed-table %s\n' % qza_out
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n\n' % cmd)
+    cmd += '--o-filtered-table %s\n' % qza_in
+    # cmd += '--o-filtered-table %s \\\n' % qza_in
+    # cmd += '--o-removed-table %s\n' % qza_out
     qza_in_tsv = '%s.tsv' % splitext(qza_in)[0]
-    cmd = run_export(qza_in, qza_in_tsv, 'FeatureTable')
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n\n' % cmd)
+    cmd += run_export(qza_in, qza_in_tsv, 'FeatureTable')
+    return cmd
 
 
 def write_doc(qza: str, fp: str, fa: str, new_meta: str, new_qza: str,
@@ -1434,7 +1431,10 @@ def write_procrustes_mantel(
 #     return ''
 
 
-def get_case(case_vals: list, case_var: str, form: str = None) -> str:
+def get_case(
+        case_vals: list,
+        case_var: str,
+        form: str = None) -> str:
     """
     Get the current case, which is the concatenation of:
      - diversity metric.
@@ -1453,7 +1453,7 @@ def get_case(case_vals: list, case_var: str, form: str = None) -> str:
         case = case_var
     if form:
         case = '%s_%s' % (case, form)
-    case = case.replace('__', '_').replace(' ', '-').replace('/', '').replace('(', '').replace(')', '')
+    case = re.sub('[ /()]', '', case.replace('__', '_'))
     return case
 
 
@@ -1622,9 +1622,13 @@ def get_new_meta_pd(meta_pd: pd.DataFrame, case: str,
         new_meta_pd = meta_pd.copy()
         for case_val in case_vals:
             if case_val[0] == '>':
-                new_meta_pd = new_meta_pd[new_meta_pd[case_var].astype(float) >= float(case_val[1:])].copy()
+                new_meta_pd = new_meta_pd[
+                    new_meta_pd[case_var].astype(float) >= float(case_val[1:])
+                ].copy()
             elif case_val[0] == '<':
-                new_meta_pd = new_meta_pd[new_meta_pd[case_var].astype(float) <= float(case_val[1:])].copy()
+                new_meta_pd = new_meta_pd[
+                    new_meta_pd[case_var].astype(float) <= float(case_val[1:])
+                ].copy()
     else:
         new_meta_pd = meta_pd[meta_pd[case_var].isin(case_vals)].copy()
     return new_meta_pd
