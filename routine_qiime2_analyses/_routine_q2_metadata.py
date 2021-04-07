@@ -246,6 +246,10 @@ def get_train_column(meta_fp, new_meta_pd, meta_vars, train, new_meta):
     if train.isdigit() or train.replace('.', '').isdigit():
         train_column = 'TrainTest'
         train_perc = get_train_perc_from_numeric(train, new_meta_pd)
+        print(train_perc)
+        print(train_perc)
+        print(train_perc)
+        print(train_perc)
         vars_pd = new_meta_pd[meta_vars].copy()
         cat_vars, cat_pd, vc, rep_d = get_cat_vars_and_vc(meta_vars, vars_pd)
         if cat_vars and vc.size < cat_pd.shape[0] * 0.5:
