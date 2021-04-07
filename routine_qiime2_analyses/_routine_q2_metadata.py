@@ -285,6 +285,7 @@ def get_train_column(meta_fp, new_meta_pd, meta_vars, train, new_meta):
             print('\t\t\t\->', meta_fp)
             return None, None
     if new_meta:
+        print('WRITE:', new_meta)
         vars_pd.reset_index().to_csv(new_meta, index=False, sep='\t')
     return train_column, train_samples
 
