@@ -245,6 +245,10 @@ def make_train_test_from_cat(
 def get_train_column(meta_fp, new_meta_pd, meta_vars, train, new_meta):
     if train.isdigit() or train.replace('.', '').isdigit():
         train_column = 'TrainTest'
+        print(train)
+        print(train)
+        print(train)
+        print(train)
         train_perc = get_train_perc_from_numeric(train, new_meta_pd)
         print(train_perc)
         print(train_perc)
