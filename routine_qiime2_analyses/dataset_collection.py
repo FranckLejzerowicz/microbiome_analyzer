@@ -214,9 +214,9 @@ class Datasets(object):
 
     def get_taxo_levels(self):
         for dataset, data in self.datasets.items():
-            if not data.tax or not isfile(data.tax[2]):
-                if not data.tax[2]:
-                    continue
+            if not data.tax:
+                continue
+            if not isfile(data.tax[2]):
                 print("Can't split taxonomy: %s is not present" % data.tax[2])
                 continue
             split_taxa_fp = '%s_splitaxa.txt' % splitext(data.tax[2])[0]
