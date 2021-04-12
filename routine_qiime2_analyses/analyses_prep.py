@@ -131,7 +131,7 @@ class AnalysisPrep(object):
             cmd = get_taxonomy_command(dat, config, data)
             if cmd:
                 self.cmds.setdefault(dat, []).append(cmd)
-            if data.tax[2]:
+            if isfile(data.tax[2]):
                 cmd = get_edit_taxonomy_command(data)
                 if cmd:
                     self.cmds.setdefault(dat, []).append(cmd)
