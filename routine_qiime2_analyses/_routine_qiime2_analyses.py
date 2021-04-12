@@ -303,11 +303,11 @@ def routine_qiime2_analyses(
 
     if 'taxonomy' not in p_skip:
         print('(run_taxonomy)')
-        # run_taxonomy(
-        #     method, i_datasets_folder, datasets, datasets_read,
-        #     datasets_phylo, datasets_features, datasets_filt_map,
-        #     i_classifier, taxonomies, force, prjct_nm, qiime_env, p_chmod,
-        #     noloc, run_params['taxonomy'], filt_raref, jobs, chunkit)
+        run_taxonomy(
+            method, i_datasets_folder, datasets, datasets_read,
+            datasets_phylo, datasets_features, datasets_filt_map,
+            i_classifier, taxonomies, force, prjct_nm, qiime_env, p_chmod,
+            noloc, run_params['taxonomy'], filt_raref, jobs, chunkit)
         AnalysisPrep('Taxonomy').taxonomy(config, project)
 
         print('(run_edit_taxonomies)')
@@ -331,19 +331,19 @@ def routine_qiime2_analyses(
 
     if 'wol' not in p_skip:
         print('(shear_tree)')
-        # shear_tree(
-        #     i_datasets_folder, datasets, datasets_read, datasets_phylo,
-        #     datasets_features, prjct_nm, i_wol_tree, trees, datasets_rarefs,
-        #     force, qiime_env, p_chmod, noloc, run_params['wol'], filt_raref,
-        #     jobs)
+        shear_tree(
+            i_datasets_folder, datasets, datasets_read, datasets_phylo,
+            datasets_features, prjct_nm, i_wol_tree, trees, datasets_rarefs,
+            force, qiime_env, p_chmod, noloc, run_params['wol'], filt_raref,
+            jobs)
         AnalysisPrep('Shear tree').shear_tree(config, project)
 
     if i_sepp_tree and 'sepp' not in p_skip:
         print('(run_sepp)')
-        # run_sepp(
-        #     i_datasets_folder, datasets, datasets_read, datasets_phylo,
-        #     datasets_rarefs, prjct_nm, i_sepp_tree, trees, force, qiime_env,
-        #     p_chmod, noloc, run_params['sepp'], filt_raref, jobs)
+        run_sepp(
+            i_datasets_folder, datasets, datasets_read, datasets_phylo,
+            datasets_rarefs, prjct_nm, i_sepp_tree, trees, force, qiime_env,
+            p_chmod, noloc, run_params['sepp'], filt_raref, jobs)
         AnalysisPrep('Reads placement').sepp(config, project)
 
     if filt_only and datasets_filt_map:
