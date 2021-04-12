@@ -294,9 +294,14 @@ class PairedData(object):
         return params
 
     def mmvec(self, config, project):
+        print()
         params = self.get_params_combinations()
         for r, row in self.mmvecs.iterrows():
+            print()
+            print(r)
+            print(row)
             break
+        print(gfds)
 
     def register_command(self, analysis):
         AnalysisPrep.analyses_commands[analysis] = self.cmds
