@@ -1785,6 +1785,10 @@ def get_datasets_filtered(
                 meta_pd_ = read_meta_pd(meta_alphas)
             input_to_filtered[dat_] = dat
 
+        print("tsv_pd_.shape")
+        print(tsv_pd_.shape)
+        print("'10317.000039644' in tsv_pd_.columns")
+        print('10317.000039644' in tsv_pd_.columns)
         tsv_pd_ = tsv_pd_.loc[tsv_pd_.sum(1) > 0, :]
         tsv_pd_ = tsv_pd_.loc[:, tsv_pd_.sum(0) > 0]
         dat_filts = {}
