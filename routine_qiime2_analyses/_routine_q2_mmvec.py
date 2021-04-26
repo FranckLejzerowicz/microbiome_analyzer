@@ -223,7 +223,8 @@ def check_common_datasets(i_datasets_folder: str, mmvec_pairs: dict,
 
 def run_single_mmvec(odir: str, meta_fp: str, qza1: str, qza2: str, res_dir: str,
                      cur_sh: str, batch: str, learn: str, epoch: str, prior: str,
-                     thresh_feat: str, latent_dim: str, train_column: str, n_example: str,
+                     thresh_feat: str, latent_dim: str,
+                     train_column: str, n_example: str,
                      gpu: bool, force: bool, standalone: bool, qiime_env: str) -> None:
     """
     Run mmvec: Neural networks for microbe-metabolite interaction analysis.
@@ -269,13 +270,15 @@ def run_single_mmvec(odir: str, meta_fp: str, qza1: str, qza2: str, res_dir: str
         summary = '%s/paired-summary.qzv' % odir
 
         if force or not isfile(summary):
-            write_mmvec_cmd(meta_fp, qza1, qza2, res_dir, model_odir, null_odir,
-                            ranks_tsv, ordination_tsv, stats,
-                            ranks_null_tsv, ordination_null_tsv, stats_null,
-                            summary, batch, learn, epoch, prior,
-                            thresh_feat, latent_dim, train_column,
-                            n_example, gpu, standalone, cur_sh_o, qiime_env)
-
+            cmd = write_mmvec_cmd(
+                meta_fp, qza1, qza2, res_dir, model_odir, null_odir,
+                ranks_tsv, ordination_tsv, stats, ranks_null_tsv,
+                ordination_null_tsv, stats_null, summary, batch, learn,
+                epoch, prior, thresh_feat, latent_dim,
+                train_column,
+                n_example, gpu, standalone, qiime_env)
+            cur_sh_o.write('echo "%s"\n' % cmd)
+            cur_sh_o.write('%s\n' % cmd)
             remove = False
     if remove:
         os.remove(cur_sh)
@@ -509,7 +512,8 @@ def run_mmvec(
                     train_columns, n_examples, batches, learns,
                     epochs, priors, thresh_feats, latent_dims)):
                 train_column, n_example, batch, learn, epoch, prior, thresh_feat, latent_dim = [str(x) for x in it]
-                res_dir = 'b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_gpu-%s' % (
+                res_dir = 'b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_gpu-%s'\
+                          % (
                     batch, learn, epoch, prior.replace('.', ''),
                     thresh_feat, latent_dim, train_column,
                     n_example, str(gpu)[0]

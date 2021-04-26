@@ -389,7 +389,8 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         pair, case, omic1, omic2, filt1, filt2, sams, mmvec = keys
         ranks_fp, ordi_fp, meta_fp, omic1_common_fp, omic2_common_fp = values
 
-        order_omics = get_order_omics(omic1, omic2, filt1, filt2, case, omics_pairs)
+        order_omics = get_order_omics(
+            omic1, omic2, filt1, filt2, case, omics_pairs)
         omic1 = order_omics[0]
         omic2 = order_omics[1]
         filt1 = order_omics[2]
@@ -400,8 +401,10 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
         omic_metabolite = order_omics[7]
 
         # get differentials
-        meta1, meta_pd1, diff_cols1 = omics_pairs_metas[(pair, case, omic1, filt1, omic2, filt2)]
-        meta2, meta_pd2, diff_cols2 = omics_pairs_metas[(pair, case, omic2, filt2, omic1, filt1)]
+        meta1, meta_pd1, diff_cols1 = omics_pairs_metas[
+            (pair, case, omic1, filt1, omic2, filt2)]
+        meta2, meta_pd2, diff_cols2 = omics_pairs_metas[
+            (pair, case, omic2, filt2, omic1, filt1)]
 
         # features are biplot, samples are dots
         ordi = OrdinationResults.read(ordi_fp)
@@ -446,15 +449,16 @@ def get_pair_cmds(mmvec_res: dict, omics_pairs_metas: dict,
 
         cmd += get_xmmvec_commands(
             ordi_edit_fp, omic1, omic2,
-            meta1, meta2, xmmvecs, pair
-        )
+            meta1, meta2, xmmvecs, pair)
 
         topn = 5
         features_names = []
         if features_names:
-            paired_heatmap_qzv = '%s_paired_heatmaps_custom.qzv' % splitext(ranks_fp)[0]
+            paired_heatmap_qzv = '%s_paired_heatmaps_custom.qzv' % \
+                                 splitext(ranks_fp)[0]
         else:
-            paired_heatmap_qzv = '%s_paired_heatmaps_top%s.qzv' % (splitext(ranks_fp)[0], topn)
+            paired_heatmap_qzv = '%s_paired_heatmaps_top%s.qzv' % \
+                                 (splitext(ranks_fp)[0], topn)
 
         cmd += get_paired_heatmaps_command(
             ranks_fp, omic1_common_fp, omic2_common_fp, meta1,
@@ -632,23 +636,27 @@ def get_pc_sb_correlations(pair, case, ordi, omic1, omic2, filt1, filt2,
             if len(diff_cols1):
                 for model in diff_cols1:
                     x = meta_pd1.loc[
-                        [x for x in meta_pd1.index if x in feats.index], model
+                        [x for x in meta_pd1.index if x in feats.index],
+                        model
                     ].astype(float)
                     x = x[x.notnull()]
                     y = feats[x.index]
                     r2, p2 = spearmanr(x, y)
-                    corrs.append([pair, case, omic1, filt1, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
+                    corrs.append([pair, case, omic1, filt1,
+                                  'PC%s' % (r + 1), model, r2, p2, 'spearman',
                                   meta_fp,  omic1_common_fp, ranks_fp])
             sams = ordi.samples[r]
             if len(diff_cols2):
                 for model in diff_cols2:
                     x = meta_pd2.loc[
-                        [x for x in meta_pd2.index if x in sams.index], model
+                        [x for x in meta_pd2.index if x in sams.index],
+                        model
                     ].astype(float)
                     x = x[x.notnull()]
                     y = sams[x.index]
                     r2, p2 = spearmanr(x, y)
-                    corrs.append([pair, case, omic2, filt2, 'PC%s' % (r + 1), model, r2, p2, 'spearman',
+                    corrs.append([pair, case, omic2, filt2,
+                                  'PC%s' % (r + 1), model, r2, p2, 'spearman',
                                   meta_fp, omic2_common_fp, ranks_fp])
     corrs_pd = pd.DataFrame(corrs, columns=[
         'pair',

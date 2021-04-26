@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 
 from routine_qiime2_analyses._routine_q2_io_utils import (
-    check_input, get_prjct_nm, get_conda_envs, get_run_params,
+    check_input, get_prjct_anlss_nm, get_conda_envs, get_run_params,
     get_filt_raref_suffix, read_yaml_file
 )
 
@@ -63,7 +63,7 @@ class AnalysesConfig(object):
     #     self.p_mmvec_highlights = kwargs['p_mmvec_highlights']
     #     self.p_xmmvec = kwargs['p_xmmvec']
     #     self.p_chmod = kwargs['p_chmod']
-    #     self.p_skip = kwargs['p_skip']
+    #     self.skip = kwargs['skip']
     #     self.gpu = kwargs['gpu']
     #     self.standalone = kwargs['standalone']
     #     self.loc = kwargs['loc']
@@ -86,72 +86,69 @@ class AnalysesConfig(object):
         self.qiime_env = args[3]
 
         self.raref = args[4]
-        self.p_filt_threshs = args[5]
-        self.p_longi_column = args[6]
-        self.p_raref_depths = args[7]
+        self.filt_threshs = args[5]
+        self.longi_column = args[6]
+        self.raref_depths = args[7]
         self.eval_rarefs = args[8]
-        self.p_alpha_subsets = args[9]
-        self.p_beta_subsets = args[10]
-        self.p_perm_tests = args[11]
-        self.p_perm_tests_min = args[12]
-        self.p_beta_groups = args[13]
-        self.p_nestedness_groups = args[14]
-        self.p_beta_type = args[15]
-        self.p_procrustes = args[16]
-        self.p_mantel = args[17]
-        self.p_distance_decay = args[18]
-        self.p_collapse_taxo = args[19]
-        self.p_train_test = args[20]
+        self.alpha_subsets = args[9]
+        self.beta_subsets = args[10]
+        self.perm_tests = args[11]
+        self.perm_tests_min = args[12]
+        self.beta_groups = args[13]
+        self.nestedness_groups = args[14]
+        self.beta_type = args[15]
+        self.procrustes = args[16]
+        self.mantel = args[17]
+        self.distance_decay = args[18]
+        self.collapse_taxo = args[19]
+        self.train_test = args[20]
         self.train_test_dict = {}
-        self.p_adonis_formulas = args[21]
-        self.p_doc_config = args[22]
-        self.p_sourcetracking_config = args[23]
-        self.p_phate_config = args[24]
+        self.adonis_formulas = args[21]
+        self.doc_config = args[22]
+        self.sourcetracking_config = args[23]
+        self.phate_config = args[24]
         self.do_biplots = args[25]
         self.force = args[26]
         self.i_classifier = args[27]
         self.i_wol_tree = args[28]
         self.i_sepp_tree = args[29]
         self.i_qemistree = args[30]
-        self.p_diff_models = args[31]
-        self.p_mmvec_pairs = args[32]
-        self.p_mmvec_highlights = args[33]
-        self.p_xmmvec = args[34]
-        self.p_run_params = args[35]
-        self.p_chmod = args[36]
-        self.p_skip = args[37]
+        self.diff_models = args[31]
+        self.mmvec_pairs = args[32]
+        self.mmvec_highlights = args[33]
+        self.xmmvec = args[34]
+        self.run_params = args[35]
+        self.chmod = args[36]
+        self.skip = args[37]
         self.gpu = args[38]
         self.standalone = args[39]
         self.loc = args[40]
-        self.p_alphas = args[41]
-        self.p_betas = args[42]
+        self.lphas = args[41]
+        self.betas = args[42]
         self.split = args[43]
         self.dropout = args[44]
         self.doc_phate = args[45]
         self.filt3d = args[46]
-        self.p_filt3d_config = args[47]
+        self.filt3d_config = args[47]
         self.filt_only = args[48]
         self.jobs = args[49]
-        self.p_chunkit = args[50]
+        self.chunkit = args[50]
 
-    def check_input(self):
-        check_input(self.i_datasets_folder)
-
-    def get_prjct_nm(self):
-        return get_prjct_nm(self.project_name)
+    def get_prjct_anlss_nm(self):
+        return get_prjct_anlss_nm(self.project_name)
 
     def get_conda_envs(self):
         return get_conda_envs(self.qiime_env)
 
     def get_run_params(self):
         conda_envs = get_conda_envs(self.qiime_env)
-        return get_run_params(self.p_run_params, conda_envs)
+        return get_run_params(self.run_params, conda_envs)
 
     def get_filt_raref_suffix(self):
-        return get_filt_raref_suffix(self.p_filt_threshs, self.raref)
+        return get_filt_raref_suffix(self.filt_threshs, self.raref)
 
     def get_train_test_dict(self):
-        self.train_test_dict = read_yaml_file(self.p_train_test)
+        self.train_test_dict = read_yaml_file(self.train_test)
         if 'train' not in self.train_test_dict:
             self.train_test_dict['train'] = 0.7
         elif float(self.train_test_dict['train']) < 0:
@@ -160,10 +157,8 @@ class AnalysesConfig(object):
             self.train_test_dict['train'] = 0.7
 
     def get_workflow(self):
-        workflow = [
-            ('Import',),
-        ]
-        if self.p_filt_threshs:
+        workflow = [('Import',),]
+        if self.filt_threshs:
             workflow.append(('Filter',))
         if self.raref:
             workflow.append(('Rarefy',))
@@ -171,78 +166,78 @@ class AnalysesConfig(object):
             workflow.append(('Filter 3D',))
             return workflow
 
-        if self.i_qemistree and 'qemistree' not in self.p_skip:
+        if self.i_qemistree and 'qemistree' not in self.skip:
             workflow.append(('Qemistree',))
-        if 'taxonomy' not in self.p_skip:
+        if 'taxonomy' not in self.skip:
             workflow.append(('Taxonomy',))
-            if 'barplot' not in self.p_skip:
+            if 'barplot' not in self.skip:
                 workflow.append(('edit taxonomy',))
             workflow.append(('Edit taxonomy',))
-        if 'wol' not in self.p_skip:
+        if 'wol' not in self.skip:
             workflow.append(('Shear WOL tree',))
-        if self.i_sepp_tree and 'sepp' not in self.p_skip:
+        if self.i_sepp_tree and 'sepp' not in self.skip:
             workflow.append(('SEPP reads placement',))
         if self.filt_only:
             workflow.append(('Delete non-filtered',))
-        if 'do_pies' in self.p_skip:
+        if 'do_pies' in self.skip:
             workflow.append(('Make taxonomy pie charts',))
-        if self.p_collapse_taxo and 'collapse' not in self.p_skip:
+        if self.collapse_taxo and 'collapse' not in self.skip:
             workflow.append(('Collapse taxonomy',))
-        if 'alpha' not in self.p_skip:
+        if 'alpha' not in self.skip:
             workflow.append(('Alpha diversity',))
-            if 'merge_alpha' not in self.p_skip:
+            if 'merge_alpha' not in self.skip:
                 workflow.append(('Merge alpha diversity',))
-                if 'export_alpha' not in self.p_skip:
+                if 'export_alpha' not in self.skip:
                     workflow.append(('Export alpha diversity to metadata',))
-            if 'alpha_rarefaction' not in self.p_skip:
+            if 'alpha_rarefaction' not in self.skip:
                 workflow.append(('Alpha diversity rarefaction',))
-            if 'alpha_correlations' not in self.p_skip:
+            if 'alpha_correlations' not in self.skip:
                 workflow.append(('Alpha diversity correlations',))
-            if self.p_longi_column and 'volatility' not in self.p_skip:
+            if self.longi_column and 'volatility' not in self.skip:
                 workflow.append(('Alpha diversity volatility',))
-            if 'alpha_group_significance' not in self.p_skip:
-                if 'alpha_kw' not in self.p_skip:
+            if 'alpha_group_significance' not in self.skip:
+                if 'alpha_kw' not in self.skip:
                     workflow.append(('Alpha-diversity Kruskal-Wallis tests',))
 
-        if 'beta' not in self.p_skip:
+        if 'beta' not in self.skip:
             workflow.append(('Beta diversity',))
-            if 'export_beta' not in self.p_skip:
+            if 'export_beta' not in self.skip:
                 workflow.append(('Export beta diversity',))
-            if 'pcoa' not in self.p_skip:
+            if 'pcoa' not in self.skip:
                 workflow.append(('Principal coordinate analysis',))
-                if 'emperor' not in self.p_skip:
+                if 'emperor' not in self.skip:
                     workflow.append(('EMPeror plot',))
-                if 'empress' not in self.p_skip:
+                if 'empress' not in self.skip:
                     workflow.append(('EMPress plot',))
-            if self.do_biplots and 'biplot' not in self.p_skip:
+            if self.do_biplots and 'biplot' not in self.skip:
                 workflow.append(('Principal coordinate analysis (biplot)',))
-                if 'emperor_biplot' not in self.p_skip:
+                if 'emperor_biplot' not in self.skip:
                     workflow.append(('EMPeror biplot',))
-                if 'empress_biplot' not in self.p_skip:
+                if 'empress_biplot' not in self.skip:
                     workflow.append(('EMPress biplot',))
-            if  'deicode' not in self.p_skip:
+            if 'deicode' not in self.skip:
                 workflow.append(('DEICODE',))
-            if self.p_perm_tests and 'permanova' not in self.p_skip:
+            if self.perm_tests and 'permanova' not in self.skip:
                 workflow.append(('PERMANOVA',))
-            if self.p_adonis_formulas and 'adonis' not in self.p_skip:
+            if self.adonis_formulas and 'adonis' not in self.skip:
                 workflow.append(('Adonis',))
-            if self.p_procrustes and 'procrustes' not in self.p_skip:
+            if self.procrustes and 'procrustes' not in self.skip:
                 workflow.append(('Procrustes analysis',))
-            if self.p_mantel and 'mantel' not in self.p_skip:
+            if self.mantel and 'mantel' not in self.skip:
                 workflow.append(('Mantel tests',))
-            if self.p_nestedness_groups and 'nestedness' not in self.p_skip:
+            if self.nestedness_groups and 'nestedness' not in self.skip:
                 workflow.append(('Nestedness analysis',))
-            if self.p_distance_decay and 'decay' not in self.p_skip:
+            if self.distance_decay and 'decay' not in self.skip:
                 workflow.append(('Beta-distance decay',))
 
-        if self.p_phate_config and 'phate' not in self.p_skip:
+        if self.phate_config and 'phate' not in self.skip:
             workflow.append(('phate',))
-        if 'doc' not in self.p_skip and self.p_doc_config:
+        if 'doc' not in self.skip and self.doc_config:
             workflow.append(('Dissimilarity-Overlap Curves',))
-        if self.p_mmvec_pairs and 'mmvec' not in self.p_skip:
+        if self.mmvec_pairs and 'mmvec' not in self.skip:
             workflow.append(('MMVEC',))
-            if 'mmbird' not in self.p_skip:
+            if 'mmbird' not in self.skip:
                 workflow.append(('MMBird',))
-        if self.p_diff_models and 'songbird' not in self.p_skip:
+        if self.diff_models and 'songbird' not in self.skip:
             workflow.append(('Songbird',))
         return workflow

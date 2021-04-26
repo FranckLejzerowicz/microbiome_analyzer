@@ -182,7 +182,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
     songbirds = {}
     for dat, filts_files in filt_datasets.items():
         for (case, filts), files in filts_files.items():
-            songbirds.setdefault(dat[0], []).append([case, filts, files[0], files[2], ''])
+            songbirds.setdefault(dat[0], []).append(
+                [case, filts, files[0], files[2], '']
+            )
 
     if mmvec_outputs:
         mmvec_outputs_pd = get_mmvec_outputs(mmvec_outputs)
@@ -242,7 +244,7 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             meta_pd.columns = [x.lower() for x in meta_pd.columns]
 
             if dat in songbird_models:
-                models = check_metadata_models(meta, meta_pd, songbird_models[dat])
+                    models = check_metadata_models(meta, meta_pd, songbird_models[dat])
             else:
                 continue
             # print("models")
@@ -328,7 +330,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
 
                     for mdx, model_baseline in enumerate(model_baselines.keys()):
                         baseline_formula = model_baselines[model_baseline]
-                        odir_base = get_analysis_folder(i_datasets_folder, 'songbird/%s/b-%s' % (datdir, model_baseline))
+                        odir_base = get_analysis_folder(
+                            i_datasets_folder,
+                            'songbird/%s/b-%s' % (datdir, model_baseline))
 
                         cur_sh = '%s/run_songbird_%s_%s_%s_%s_%s_%s.sh' % (
                             job_folder2, dat_pair, filt, case, modx, mdx, idx)

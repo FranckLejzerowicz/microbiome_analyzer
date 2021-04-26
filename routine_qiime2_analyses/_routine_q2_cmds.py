@@ -151,12 +151,14 @@ def write_rarefy(qza: str, qza_out: str, depth: int) -> str:
     return cmd
 
 
-def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str, model_odir: str,
-                    null_odir: str, ranks_tsv: str, ordination_tsv: str, stats: str,
-                    ranks_null_tsv: str, ordination_null_tsv: str, stats_null: str,
-                    summary: str, batch: str, learn: str, epoch: str, prior: str,
-                    thresh_feat: str, latent_dim: str, train_column: str, n_example: str,
-                    gpu: bool, standalone: bool, cur_sh: TextIO, qiime_env: str) -> None:
+def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
+                    model_odir: str, null_odir: str, ranks_tsv: str,
+                    ordination_tsv: str, stats: str, ranks_null_tsv: str,
+                    ordination_null_tsv: str, stats_null: str, summary: str,
+                    batch: str, learn: str, epoch: str, prior: str,
+                    thresh_feat: str, latent_dim: str,
+                    train_column: str, n_example: str, gpu: bool,
+                    standalone: bool, qiime_env: str) -> str:
     """
     Performs bi-loglinear multinomial regression and calculates the
     conditional probability ranks of metabolite co-occurence given the microbe
@@ -226,7 +228,7 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str, model_odir
             cmd_mmvec += '--p-input-prior %s \\\n' % prior
             cmd_mmvec += '--p-learning-rate %s \\\n' % learn
             cmd_mmvec += '--p-summary-interval 30 \\\n'
-            if qiime_env == 'qiime2-2020.2':
+            if 'qiime2-2020' in qiime_env:
                 cmd_mmvec += '--p-equalize-biplot \\\n'
             cmd_mmvec += '--o-conditionals %s \\\n' % ranks_qza
             cmd_mmvec += '--o-conditional-biplot %s \\\n' % ordination_qza
@@ -263,8 +265,7 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str, model_odir
             cmd += run_export(ranks_qza, ranks_tsv, '')
         if not isfile(ordination_tsv):
             cmd += run_export(ordination_qza, ordination_tsv, 'mmvec')
-    cur_sh.write('echo "%s"\n' % cmd)
-    cur_sh.write('%s\n' % cmd)
+    return cmd
 
 
 def filter_feature_table(qza: str, new_qza: str, meta: str) -> str:
@@ -371,6 +372,73 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
         cmd = run_export(tensor, tensor_html, 'songbird')
         # cur_sh.write('echo "%s"\n' % cmd)
         cur_sh.write('%s\n' % cmd)
+
+
+def songbird_cmd(
+        qza, new_qza, new_meta, params, formula, bformula, out_paths) -> str:
+
+    cmd = ''
+    if not isfile(new_qza):
+        cmd += filter_feature_table(qza, new_qza, new_meta)
+
+    diff, diff_qza, stat, plot, bdiff_qza, bstat, bplot, tens, html = out_paths
+    if not isfile(diff_qza):
+        cmd += '\nqiime songbird multinomial \\\n'
+        cmd += ' --i-table %s \\\n' % new_qza
+        cmd += ' --m-metadata-file %s \\\n' % new_meta
+        cmd += ' --p-formula "%s" \\\n' % formula
+        cmd += ' --p-epochs %s \\\n' % params['epochs']
+        cmd += ' --p-batch-size %s \\\n' % params['batches']
+        cmd += ' --p-differential-prior %s \\\n' % params['diff_priors']
+        cmd += ' --p-learning-rate %s \\\n' % params['learns']
+        cmd += ' --p-min-sample-count %s \\\n' % params['thresh_samples']
+        cmd += ' --p-min-feature-count %s \\\n' % params['thresh_feats']
+        if 'examples' in params:
+            cmd += ' --p-num-random-test-examples %s \\\n' % params['examples']
+        else:
+            cmd += ' --p-training-column %s \\\n' % params['train']
+        cmd += ' --p-summary-interval %s \\\n' % params['summary_interval']
+        cmd += ' --o-differentials %s \\\n' % diff_qza
+        cmd += ' --o-regression-stats %s \\\n' % stat
+        cmd += ' --o-regression-biplot %s\n' % plot
+
+    if not isfile(diff):
+        cmd += run_export(diff_qza, diff, '')
+
+    stat_tsv = '%s.txt' % splitext(stat)[0]
+    if not isfile(stat_tsv):
+        cmd += run_export(stat, stat_tsv, '')
+
+    if len(bdiff_qza) and not isfile(bdiff_qza):
+        cmd += '\nqiime songbird multinomial \\\n'
+        cmd += ' --i-table %s \\\n' % new_qza
+        cmd += ' --m-metadata-file %s \\\n' % new_meta
+        cmd += ' --p-formula "%s" \\\n' % bformula
+        cmd += ' --p-epochs %s \\\n' % params['epochs']
+        cmd += ' --p-batch-size %s \\\n' % params['batches']
+        cmd += ' --p-differential-prior %s \\\n' % params['diff_priors']
+        cmd += ' --p-learning-rate %s \\\n' % params['learns']
+        cmd += ' --p-min-sample-count %s \\\n' % params['thresh_samples']
+        cmd += ' --p-min-feature-count %s \\\n' % params['thresh_feats']
+        if 'examples' in params:
+            cmd += ' --p-num-random-test-examples %s \\\n' % params['examples']
+        else:
+            cmd += ' --p-training-column %s \\\n' % params['train']
+        cmd += ' --p-summary-interval %s \\\n' % params['summary_interval']
+        cmd += ' --o-differentials %s \\\n' % bdiff_qza
+        cmd += ' --o-regression-stats %s \\\n' % bstat
+        cmd += ' --o-regression-biplot %s\n' % bplot
+
+    if not isfile(tens):
+        cmd += '\n\nqiime songbird summarize-paired \\\n'
+        cmd += ' --i-regression-stats %s \\\n' % stat
+        cmd += ' --i-baseline-stats %s \\\n' % bstat
+        cmd += ' --o-visualization %s\n' % tens
+
+    if not isdir(html):
+        cmd += run_export(tens, html, 'songbird')
+
+    return cmd
 
 
 def write_phate_cmd(qza: str, new_qza: str, new_tsv: str,

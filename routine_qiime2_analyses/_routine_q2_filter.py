@@ -30,7 +30,7 @@ def import_datasets(
         i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
         force: bool, prjct_nm: str, qiime_env: str,  chmod: str,
         noloc: bool, run_params: dict, filt_raref: str, jobs: bool,
-        chunkit: int) -> tuple:
+        chunkit: int) -> None:
     """Initial imports of the .tsv datasets in to Qiime2 Artefacts
 
     Parameters

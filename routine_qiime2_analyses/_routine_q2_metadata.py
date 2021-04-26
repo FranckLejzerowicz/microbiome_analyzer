@@ -407,19 +407,22 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
         if formula.startswith('C('):
             formula_split = formula.split('C(')[-1].rsplit(')', 1)
             formula_split_c = formula_split[0].split(',')[0].strip().strip()
-            formula = 'C(%s)' % formula_split[0].replace(formula_split_c, formula_split_c.lower())
+            formula = 'C(%s)' % formula_split[0].replace(
+                formula_split_c, formula_split_c.lower())
             formula += formula_split[1].lower()
             if 'Diff' in formula:
                 levels = {formula_split_c.lower(): [
                     x.strip().strip('"').strip("'")
-                    for x in formula.split("levels=['")[-1].split("']")[0].split(",")
+                    for x in formula.split(
+                        "levels=['")[-1].split("']")[0].split(",")
                 ]}
             elif 'Treatment(' in formula:
                 levels = {formula_split_c.lower(): [
                     formula.split("Treatment('")[-1].split("')")[0]
                 ]}
             vars.add(formula_split_c.lower())
-            vars.update(set([x.lower() for x in re.split('[+/:*]', formula_split[1]) if x]))
+            vars.update(set([x.lower() for x in re.split(
+                '[+/:*]', formula_split[1]) if x]))
         else:
             formula_split = re.split('[+/:*]', formula)
             formula = formula.lower()
@@ -429,14 +432,16 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
         common_with_md = set(meta_pd.columns.str.lower().values) & vars
         if sorted(vars) != sorted(common_with_md):
             only_formula = sorted(vars ^ common_with_md)
-            print('\t\tSongbird formula term(s) missing in metadata:\n\t\t  %s\n\t\t  [not used]: %s=%s\n\t\t%s' % (
+            print('\t\tSongbird formula term(s) missing in metadata:\n\t\t'
+                  ' %s\n\t\t  [not used]: %s=%s\n\t\t%s' % (
                 ', '.join(only_formula), model, formula, meta))
             continue
 
         if levels:
             # print('levels', levels)
             # print(meta_pd['sex'].unique())
-            levels_set = sorted([x for x in meta_pd[formula_split_c.lower()].unique() if str(x) != 'nan'])
+            levels_set = sorted([x for x in meta_pd[
+                formula_split_c.lower()].unique() if str(x) != 'nan'])
             # print('levels_set', levels_set)
             if 'Diff' in formula:
                 cur_levels = levels[formula_split_c.lower()]
@@ -444,17 +449,22 @@ def check_metadata_models(meta: str, meta_pd: pd.DataFrame,
                 only_meta = set(levels_set) ^ common_levels
                 only_model = set(cur_levels) ^ common_levels
                 if len(only_model):
-                    print('\t\tSongbird formula "Diff" factors(s) missing in metadata "%s": %s\n\t\t%s' % (
+                    print('\t\tSongbird formula "Diff" factors(s) missing '
+                          'in metadata "%s": %s\n\t\t%s' % (
                         formula_split_c, list(only_model), meta))
                     continue
                 if len(only_meta):
                     drop[formula_split_c.lower()] = list(only_meta)
-                    print('\t\tSongbird formula "Diff" factors(s) incomplete for metadata "%s":\n\t\t'
-                          '  -> skipping samples with %s\n\t\t%s' % (formula_split_c, list(only_meta), meta))
+                    print('\t\tSongbird formula "Diff" factors(s) '
+                          'incomplete for metadata "%s":\n\t\t'
+                          '  -> skipping samples with %s\n\t\t%s' % (
+                        formula_split_c, list(only_meta), meta))
             elif 'Treatment(' in formula:
-                levels = {formula_split_c.lower(): formula.split("Treatment('")[-1].split("')")[0]}
+                levels = {formula_split_c.lower(): formula.split(
+                    "Treatment('")[-1].split("')")[0]}
                 if levels[formula_split_c.lower()] not in levels_set:
-                    print('\t\tSongbird formula "Treatment" factors(s) missing in metadata "%s":\n\t\t  %s\n\t\t%s' % (
+                    print('\t\tSongbird formula "Treatment" factors(s) missing '
+                          'in metadata "%s":\n\t\t  %s\n\t\t%s' % (
                         formula_split_c, levels, meta))
                     continue
         models[model] = [formula, vars, drop]
@@ -503,5 +513,3 @@ def rename_duplicate_columns(meta_subset):
             meta_subset_cols.append(col)
     meta_subset_copy.columns = meta_subset_cols
     return meta_subset_copy
-
-

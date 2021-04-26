@@ -16,7 +16,7 @@ from pathlib import Path
 from pandas.testing import assert_frame_equal
 from routine_qiime2_analyses._routine_q2_io_utils import (
     check_input,
-    get_prjct_nm,
+    get_prjct_anlss_nm,
     get_filt_raref_suffix,
     read_yaml_file,
     get_run_params,
@@ -69,12 +69,12 @@ class InitChecks(unittest.TestCase):
     def test_get_prjct_nm(self):
         project_name = 'abracadabra'
         expected = 'brcdbr'
-        observed = get_prjct_nm(project_name)
+        observed = get_prjct_anlss_nm(project_name)
         self.assertEqual(expected, observed)
 
         project_name = 'aeiouy'
         expected = 'aeiouy'
-        observed = get_prjct_nm(project_name)
+        observed = get_prjct_anlss_nm(project_name)
         self.assertEqual(expected, observed)
 
     def test_read_yaml_file(self):

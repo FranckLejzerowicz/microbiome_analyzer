@@ -6,26 +6,25 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import os
 import random
-import numpy as np
+import itertools
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from os.path import isfile, splitext
+from os.path import isdir, isfile, splitext
 from routine_qiime2_analyses.analyses_prep import AnalysisPrep
 from routine_qiime2_analyses._routine_q2_cmds import (
     get_case, get_new_meta_pd, run_import, run_export, filter_feature_table,
 )
 from routine_qiime2_analyses._routine_q2_metadata import (
     get_train_perc_from_numeric, get_meta_subset, get_cat_vars_and_vc,
-    make_train_test_from_cat
+    make_train_test_from_cat, rename_duplicate_columns
 )
 from routine_qiime2_analyses._routine_q2_io_utils import (
     read_meta_pd, get_analysis_folder, filter_mb_table, filter_non_mb_table,
     write_filtered_tsv
-
 )
 from routine_qiime2_analyses._routine_q2_mmvec import (
-    get_mmvec_dicts, rename_duplicate_columns,
+    get_mmvec_dicts, write_mmvec_cmd
 )
 
 
@@ -34,18 +33,21 @@ class PairedData(object):
     analyses_commands = {}
 
     def __init__(self, config, project) -> None:
-        self.cmds = {}
-        paired_config = get_mmvec_dicts(config.p_mmvec_pairs)
-        self.pairs = paired_config[0]
-        self.filtering = paired_config[1]
-        self.params = paired_config[2]
-        self.subsets = paired_config[3]
-        self.mmvecs = pd.DataFrame()
-
-        self.get_mmvec_matrix()
-        self.datasets_paths = self.make_datasets_paths(config, project)
-        self.unstack_mmvecs()
-        self.get_common_paths(config)
+        if config.mmvec_pairs:
+            paired_config = get_mmvec_dicts(config.mmvec_pairs)
+            self.pairs = paired_config[0]
+            self.filtering = paired_config[1]
+            self.params = paired_config[2]
+            self.subsets = paired_config[3]
+            self.mmvecs = pd.DataFrame()
+            self.params_list = [
+                'train_column', 'n_examples', 'batches', 'learns',
+                'epochs', 'priors', 'thresh_feats', 'latent_dims']
+            self.get_mmvec_matrix()
+            self.datasets_paths = self.make_datasets_paths(config, project)
+            self.unstack_mmvecs()
+            self.get_common_paths(config)
+        self.mmvec_pd = pd.DataFrame()
 
     def unstack_mmvecs(self):
         mmvecs_us = self.mmvecs.set_index(
@@ -64,7 +66,8 @@ class PairedData(object):
             ['qza', 'meta']].values[0]
         return qza, meta
 
-    def get_traintests(self, meta_fp, new_meta_pd, vars, train, train_col):
+    @staticmethod
+    def get_traintests(meta_fp, new_meta_pd, vars, train, train_col):
         if train.isdigit() or train.replace('.', '').isdigit():
             train_perc = get_train_perc_from_numeric(train, new_meta_pd)
             vars_pd = new_meta_pd[vars].copy()
@@ -98,7 +101,7 @@ class PairedData(object):
         return train_tests
 
     def get_new_fps(self, meta_dir, data_dir, qza1, qza2, dat1, prev1, abun1,
-                    dat2, prev2, abun2, pair, nsams, config):
+                    dat2, prev2, abun2, pair, nsams, config, cmds):
         meta_fp = '%s/meta_%s_%s_%s__%s_%s_%s__%s_%ss.tsv' % (
             meta_dir, dat1, prev1, abun1, dat2, prev2, abun2, pair, nsams)
         new_tsv1 = '%s/tab_%s_%s_%s__%s_%ss.tsv' % (
@@ -109,26 +112,28 @@ class PairedData(object):
         new_qza2 = '%s.qza' % splitext(new_tsv2)[0]
         if config.force or not isfile(new_qza1):
             cmd = filter_feature_table(qza1, new_qza1, meta_fp)
-            self.cmds.setdefault('import', []).append(cmd)
+            cmds.setdefault('import', []).append(cmd)
         if config.force or not isfile(new_tsv1):
             cmd = run_export(new_qza1, new_tsv1, 'FeatureTable')
-            self.cmds.setdefault('import', []).append(cmd)
+            cmds.setdefault('import', []).append(cmd)
         if config.force or not isfile(new_qza2):
             cmd = filter_feature_table(qza2, new_qza2, meta_fp)
-            self.cmds.setdefault('import', []).append(cmd)
+            cmds.setdefault('import', []).append(cmd)
         if config.force or not isfile(new_tsv2):
             cmd = run_export(new_qza2, new_tsv2, 'FeatureTable')
-            self.cmds.setdefault('import', []).append(cmd)
-        self.register_command('mmvec_paired_imports')
+            cmds.setdefault('import', []).append(cmd)
         return meta_fp, new_tsv1, new_qza1, new_tsv2, new_qza2
 
     def get_common_paths(self, config):
+        cmds = {}
         paths = []
         pfs = ['pair', 'filter', 'subset']
         for (pair, filter, subset), mmvec in self.mmvecs.groupby(pfs):
-            data_dir = get_analysis_folder(config.i_datasets_folder,
+            data_dir = get_analysis_folder(
+                config.i_datasets_folder,
                 'mmvec/common/data/%s/%s' % (pair, subset))
-            meta_dir = get_analysis_folder(config.i_datasets_folder,
+            meta_dir = get_analysis_folder(
+                config.i_datasets_folder,
                 'mmvec/common/metadata/%s/%s' % (pair, subset))
             mmvec_d = mmvec.iloc[0, :].to_dict()
             dat1, dat2 = mmvec_d['dataset1'], mmvec_d['dataset2']
@@ -147,7 +152,7 @@ class PairedData(object):
                 continue
             meta_fp, new_tsv1, new_qza1, new_tsv2, new_qza2 = self.get_new_fps(
                 meta_dir, data_dir, qza1, qza2, dat1, prev1, abun1,
-                dat2, prev2, abun2, pair, len(sams), config)
+                dat2, prev2, abun2, pair, len(sams), config, cmds)
             meta_subset = get_meta_subset(meta1_pd, meta2_pd, sams)
             meta_subset.to_csv(meta_fp, index=False, sep='\t')
             paths.append([pair, filter, subset, sams, meta_fp,
@@ -155,10 +160,12 @@ class PairedData(object):
             print('\t\t\t* [TODO]', pair, filter, subset, ':',
                   dat1, 'vs', dat2, '(%s samples)' % meta_subset.shape[0])
         if paths:
-            common_paths_pd = pd.DataFrame(paths, columns=(pfs + ['common_sams',
-                'meta_fp', 'new_tsv1', 'new_tsv2', 'new_qza1', 'new_qza2']))
-            self.mmvecs = self.mmvecs.merge(common_paths_pd,
-                                            on=['pair', 'filter', 'subset'])
+            common_paths_pd = pd.DataFrame(paths, columns=(
+                    pfs + ['common_sams', 'meta_fp', 'new_tsv1', 'new_tsv2',
+                           'new_qza1', 'new_qza2']))
+            self.mmvecs = self.mmvecs.merge(
+                common_paths_pd, on=['pair', 'filter', 'subset'])
+        self.register_command('mmvec_paired_imports', cmds)
 
     def make_train_test(self, config):
         for _, mmvec in self.mmvecs.groupby(['pair', 'filter', 'subset']):
@@ -181,6 +188,7 @@ class PairedData(object):
                 meta_subset.to_csv(meta_fp, index=False, sep='\t')
 
     def make_datasets_paths(self, config, project):
+        cmds = {}
         datasets_path = self.get_datasets_paths(config)
         for (dataset, filter, subset), row in datasets_path.groupby(
                 ['dataset', 'filter', 'subset']):
@@ -203,8 +211,8 @@ class PairedData(object):
                 write_filtered_tsv(tsv, tsv_pd)
             if config.force or not isfile(qza):
                 cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
-                self.cmds.setdefault(dataset, []).append(cmd)
-        self.register_command('mmvec_single_imports')
+                cmds.setdefault(dataset, []).append(cmd)
+        self.register_command('mmvec_single_imports', cmds)
         return datasets_path
 
     def get_datasets_paths(self, config):
@@ -226,7 +234,8 @@ class PairedData(object):
             meta = '%s/meta_%s.tsv' % (odir, rad)
             paths.append([tsv, qza, meta])
         datasets_paths = pd.concat([
-            datasets_paths, pd.DataFrame(paths, columns=['tsv', 'qza', 'meta'])
+            datasets_paths,
+            pd.DataFrame(paths, columns=['tsv', 'qza', 'meta'])
         ], axis=1)
         return datasets_paths
 
@@ -236,15 +245,16 @@ class PairedData(object):
         self.merge_subsets_apply()
 
     def make_mmvec_pairs_table(self):
-        # make the mmvec pairs table
         mmvec_dat_cols = ['pair', 'omic', 'dataset', 'is_mb']
-        self.mmvecs = pd.DataFrame([([pair, (omic+1)] + list(dataset))
-                                    for pair, paired in self.pairs.items()
-                                    for omic, dataset in enumerate(paired)],
-                                   columns=mmvec_dat_cols)
+        self.mmvecs = pd.DataFrame([
+            ([pair, (omic+1)] + list(dataset))
+            for pair, paired in self.pairs.items()
+            for omic, dataset in enumerate(paired)
+        ],
+            columns=mmvec_dat_cols
+        )
 
     def merge_filtering_per_pair(self):
-        # merge the filtering per pair
         filts_df = []
         for pair, filts_dats in self.filtering.items():
             for filt, prevs_abunds in filts_dats.items():
@@ -262,7 +272,6 @@ class PairedData(object):
             self.mmvecs['abundance'] = '0'
 
     def merge_subsets_apply(self):
-        # merge the subsets to apply
         subsets_fp = [
             [pair, var, subset, get_case(subset, var)]
             for var, subsets in self.subsets.items()
@@ -286,44 +295,189 @@ class PairedData(object):
         return list(unique_datasets)
 
     def get_params_combinations(self):
+        """Make a pandas data frame from the combinations
+        of mmvec run/hyper-parameters. It includes the
+        handling of user-specified 'train_column', which
+        always take precedence over the default 'n_examples'.
+
+        Returns
+        -------
+        params_pd : pd.DataFrame
+            Comobinations of parameters as rows, and
+            individual parameters as columns.
+        """
         params = []
-        params_list = ['train_column', 'n_examples', 'batches', 'learns',
-                       'epochs', 'priors', 'thresh_feats', 'latent_dims']
-        for param in params_list:
-            print(param, self.params[param])
-        return params
+        to_combine = [self.params[param] for param in self.params_list]
+        for params_combination in itertools.product(*to_combine):
+            params.append(params_combination)
+        params_pd = pd.DataFrame(params, columns=self.params_list).astype(str)
+        params_pd.loc[params_pd['train_column'] != 'None', 'n_examples'] = ''
+        params_pd = params_pd.drop_duplicates()
+        return params_pd
 
-    def mmvec(self, config, project):
-        print()
-        params = self.get_params_combinations()
+    @staticmethod
+    def process_params_combinations(
+            row: pd.Series,
+            params_pd: pd.DataFrame,
+            mess: set):
+        """Filter the combinations of parameters too remove
+        those involving unusable train/test splits, e.g. not
+        having the specified or too few samples therein.
+
+        Parameters
+        ----------
+        row : pd.Series
+            Info associated with onoe pair of datasets.
+        params_pd : pd.Series
+            Combinations of parameters (rows)
+        mess : set
+            Messages to print
+        """
+        valid_params = []
+        ncommon = len(row['common_sams'])
+        meta_cols = pd.read_table(row['meta_fp'], nrows=1, index_col=0).columns
+        for p, params in params_pd.iterrows():
+            n_test, train_column = params['n_examples'], params['train_column']
+            if train_column != 'None':
+                if train_column not in set(meta_cols):
+                    valid_params.append(p)
+                    m = 'Training column "%s" not in metadata' % train_column
+                    if m not in mess:
+                        mess.add(m)
+                        print(m)
+                    continue
+                meta_pd = pd.read_table(
+                    row['meta_fp'],
+                    usecols=['sample_name', train_column])
+                ntrain = meta_pd[train_column].value_counts()['Train']
+                if ncommon < (1.2 * ntrain):
+                    valid_params.append(p)
+                    print('\tskipping pair "%s" (%s samples for %s training'
+                          ' samples]):' % (row['pair'], ncommon, ntrain))
+                    continue
+            else:
+                if int(ncommon) < (1.2 * int(n_test)):
+                    valid_params.append(p)
+                    print('\tskipping pair "%s" (too few samples [%s samples '
+                          'for %s examples]):' % (row['pair'], ncommon, n_test))
+                    continue
+        if valid_params:
+            params_pd.drop(index=valid_params, inplace=True)
+
+    @staticmethod
+    def get_res_dir(params, config):
+        """
+
+        Parameters
+        ----------
+        params : pd.Seris
+        config : Class
+
+        Returns
+        -------
+
+        """
+        res_dir = 'b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_gpu-%s' % (
+            params['batches'],
+            params['learns'],
+            params['epochs'],
+            params['priors'],
+            params['thresh_feats'],
+            params['latent_dims'],
+            params['train_column'],
+            params['n_examples'],
+            str(config.gpu)[0]
+        )
+        return res_dir
+
+    @staticmethod
+    def get_out(
+            odir: str,
+            model_null: str) -> tuple:
+        """
+        Parameters
+        ----------
+        odir : str
+            Output dierctory for a mmvec model/null pair.
+        model_null : str
+            "model" or null""
+
+        Returns
+        -------
+        mod_nul_dir : str
+        mod_nul_rnk : str
+        mod_nul_ord : str
+        mod_nul_stt : str
+        """
+        mod_nul_dir = '%s/%s' % (odir, model_null)
+        if not isdir(mod_nul_dir):
+            os.makedirs(mod_nul_dir)
+        mod_nul_rnk = '%s/ranks.tsv' % mod_nul_dir
+        mod_nul_ord = '%s/ordination.txt' % mod_nul_dir
+        mod_nul_stt = '%s/stats.qza' % mod_nul_dir
+        return mod_nul_dir, mod_nul_rnk, mod_nul_ord, mod_nul_stt
+
+    def get_mmvec_pd(self, mmvec):
+        self.mmvec_pd = pd.DataFrame(
+            mmvec, columns=[
+                'pair', 'filter', 'subset',  # 'case',
+                'omic1', 'omic2', 'pr1', 'ab1', 'pr2', 'ab2', 'n_common',
+                'meta_common_fp', 'omic1_common_fp', 'omic2_common_fp',
+                'omic1_common_qza', 'omic2_common_qza', 'mmvec_parameters',
+                'mmvec_out'
+            ])
+
+    def mmvec(self, config) -> None:
+        """Main script for the creation of mmvec jobs.
+        It iterates over the rows of the table created
+        upfront and over each combination of parameters
+        and collect the output info for potential reuse
+        in figure generation and post-analysis.
+
+        Parameters
+        ----------
+        config : Class instance of AnalysesConfig
+            Contains all the routine analyses config info.
+        """
+        cmds = {}
+        mess = set()
+        mmvec = []
+        params_pd = self.get_params_combinations()
         for r, row in self.mmvecs.iterrows():
-            print()
-            print(r)
-            print(row)
-            break
-        print(gfds)
+            self.process_params_combinations(row, params_pd, mess)
+            pair, filter, subset = row['pair'], row['filter'], row['subset']
+            d1, p1, a1 = row['dataset1'], row['prevalence1'], row['abundance1']
+            d2, p2, a2 = row['dataset2'], row['prevalence2'], row['abundance2']
+            for p, params in params_pd.iterrows():
+                res_dir = self.get_res_dir(params, config)
+                odir = get_analysis_folder(
+                    config.i_datasets_folder,
+                    'mmvec/paired/%s/%s/%s_%s-%s__%s_%s-%s/%s' % (
+                        pair, subset, d1, p1, a1, d2, p2, a2, res_dir))
+                mod_dir, mod_rnk, mod_rdn, mod_stt = self.get_out(odir, 'model')
+                nul_dir, nul_rnk, nul_rdn, nul_stt = self.get_out(odir, 'null')
+                summary = '%s/paired-summary.qzv' % odir
+                mmvec.append([
+                    pair, filter, subset, d1, d2, p1, a1, p2, a2,
+                    len(row['common_sams']), row['meta_fp'], row['new_tsv1'],
+                    row['new_tsv2'], row['new_qza1'], row['new_qza2'],
+                    'mmvec_out__%s' % res_dir, odir
+                ])
+                if config.force or not isfile(summary):
+                    cmd = write_mmvec_cmd(
+                        row['meta_fp'], row['new_qza1'], row['new_qza2'],
+                        res_dir, mod_dir, nul_dir, mod_rnk, mod_rdn, mod_stt,
+                        nul_rnk, nul_rdn, nul_stt, summary, params['batches'],
+                        params['learns'], params['epochs'], params['priors'],
+                        params['thresh_feats'], params['latent_dims'],
+                        params['train_column'], params['n_examples'],
+                        config.gpu, config.standalone, config.qiime_env)
+                    cmds.setdefault(row['pair'], []).append(cmd)
+        if mmvec:
+            self.get_mmvec_pd(mmvec)
+        self.register_command('mmvec', cmds)
 
-    def register_command(self, analysis):
-        AnalysisPrep.analyses_commands[analysis] = self.cmds
-
-# class CreateScripts(object):
-#
-#     def __init__(self):
-#         pass
-#
-#     def get_job_folders(self, analysis):
-#         job_folder = get_job_folder(
-#             self.config.i_datasets_folder, analysis)
-#         job_folder2 = get_job_folder(
-#             self.config.i_datasets_folder, '%s/chunks' % analysis)
-#         return job_folder, job_folder2
-#
-#     def get_analysis_folder(self, dat):
-#         return get_analysis_folder(
-#             self.config.i_datasets_folder, '%s/%s' % (self.analysis, dat))
-#
-#     def print_message(self):
-#         if self.main_written:
-#             print_message(
-#                 '# %s' % self % self.analysis,
-#                 'sh', self.run_pbs, self.jobs)
+    @staticmethod
+    def register_command(analysis, cmds):
+        if cmds:
+            AnalysisPrep.analyses_commands[analysis] = cmds

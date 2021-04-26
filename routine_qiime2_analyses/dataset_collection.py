@@ -8,6 +8,7 @@
 
 from os.path import isfile, splitext
 from routine_qiime2_analyses._routine_q2_io_utils import (
+    check_input,
     read_yaml_file,
     read_meta_pd,
     check_features,
@@ -81,7 +82,7 @@ class Datasets(object):
     def __init__(self, i_datasets, i_datasets_folder) -> None:
         """Initialize the class instance with the dataset name"""
         self.passed_datasets = i_datasets
-        self.datasets_folder = i_datasets_folder
+        self.datasets_folder = check_input(i_datasets_folder)
         self.datasets = {}
         self.collect_datasets()
         self.read_datasets()
@@ -134,7 +135,8 @@ class Datasets(object):
         self.set_rarefaction_paths(config)
 
     def set_taxonomy_paths(self, config, method):
-        for dataset, data in self.datasets.items():
+        for dataset_, data in self.datasets.items():
+            dataset = self._get_filt_raw(dataset_)
             odir = get_analysis_folder(config.i_datasets_folder,
                                        'taxonomy/%s' % dataset)
             if data.phylo and data.phylo[0] == 'amplicon':
@@ -151,6 +153,8 @@ class Datasets(object):
 
     def set_tree_paths(self, config):
         for dataset, data in self.datasets.items():
+            if dataset in Datasets.filt_raw:
+                continue
             if data.phylo:
                 odir = get_analysis_folder(config.i_datasets_folder,
                                            'phylo/%s' % dataset)
@@ -172,7 +176,7 @@ class Datasets(object):
                 data.seqs = (seqs_qza, seqs_fas)
 
     @staticmethod
-    def _get_filt_raw(self, dataset_):
+    def _get_filt_raw(dataset_):
         if dataset_ in Datasets.filt_raw:
             dataset = Datasets.filt_raw[dataset_]
         else:
@@ -181,10 +185,9 @@ class Datasets(object):
 
     def get_precomputed_taxonomy(self, config, method='sklearn'):
         for dataset_, data in self.datasets.items():
-            dataset = self._get_filt_raw(self, dataset_)
+            dataset = self._get_filt_raw(dataset_)
             analysis_folder = get_analysis_folder(
                 config.i_datasets_folder, 'taxonomy/%s' % dataset)
-
             tax_qza = '%s/tax_%s_%s.qza' % (analysis_folder, dataset, method)
             tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
             if isfile(tax_tsv) and isfile(tax_qza):
@@ -197,7 +200,7 @@ class Datasets(object):
 
     def get_precomputed_trees(self, config):
         for dataset_, data in self.datasets.items():
-            dataset = self._get_filt_raw(self, dataset_)
+            dataset = self._get_filt_raw(dataset_)
             analysis_folder = get_analysis_folder(
                 config.i_datasets_folder, 'phylo/%s' % dataset)
             tree_qza = '%s/tree_%s.qza' % (analysis_folder, dataset)
@@ -213,11 +216,15 @@ class Datasets(object):
             self.datasets.pop(to_del)
 
     def get_taxo_levels(self):
-        for dataset, data in self.datasets.items():
+        for dat, data in self.datasets.items():
             if not data.tax:
                 continue
             if not isfile(data.tax[2]):
                 print("Can't split taxonomy: %s is not present" % data.tax[2])
+                continue
+            if dat in Datasets.filt_raw:
+                data.tax_split = tuple(self.datasets[
+                    Datasets.filt_raw[dat]].tax_split)
                 continue
             split_taxa_fp = '%s_splitaxa.txt' % splitext(data.tax[2])[0]
             tax_pd, split_taxa_pd = get_tax_tables(data.tax[2])

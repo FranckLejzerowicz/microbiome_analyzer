@@ -56,7 +56,7 @@ class AnalysisPrep(object):
         self.register_command()
 
     def filter_rare_samples(self, config, project):
-        thresholds = read_yaml_file(config.p_filt_threshs)
+        thresholds = read_yaml_file(config.filt_threshs)
         project_filt = {}
         for dat, data in project.datasets.items():
             if dat not in thresholds:
@@ -128,6 +128,8 @@ class AnalysisPrep(object):
         method = 'sklearn'
         project.set_taxonomy_paths(config, method)
         for dat, data in project.datasets.items():
+            if dat in Datasets.filt_raw:
+                continue
             cmd = get_taxonomy_command(dat, config, data)
             if cmd:
                 self.cmds.setdefault(dat, []).append(cmd)
@@ -143,6 +145,8 @@ class AnalysisPrep(object):
             i_wol_tree = get_wol_tree(config.i_wol_tree)
             wol = TreeNode.read(i_wol_tree)
             for dat, data in project.datasets.items():
+                if dat in Datasets.filt_raw:
+                    continue
                 if data.phylo and data.phylo[0] == 'wol':
                     if config.force or not isfile(data.tree[1]):
                         wol_features = wol.shear(list(data.features.keys()))
@@ -172,7 +176,7 @@ class AnalysisPrep(object):
         self.register_command()
 
     def collapse(self, config, project):
-        collapse_taxo = read_yaml_file(config.p_collapse_taxo)
+        collapse_taxo = read_yaml_file(config.collapse_taxo)
         collapse_taxo = dict(
             (Datasets.raw_filt[dat], x) for dat, x in collapse_taxo.items()
             if dat in Datasets.raw_filt and dat in project.datasets
@@ -211,7 +215,7 @@ class AnalysisPrep(object):
                         data_tax.rarefs.append(data.rarefs[idx])
                     else:
                         cmd = write_collapse_taxo(
-                            data.qza[idx], data.tax[idx][1], tax_qza, tax_tsv,
+                            data.qza[idx], data.tax[1], tax_qza, tax_tsv,
                             data.meta[idx], tax_meta, level, empties[tax])
                         if cmd:
                             self.cmds.setdefault(dat, []).append(cmd)
@@ -220,33 +224,6 @@ class AnalysisPrep(object):
                 project_coll[dat_tax] = data_tax
         project.datasets.update(project_coll)
         self.register_command()
-        if self.cmds:
-            print('Stopping here as this collapse must be run first for other '
-                  'analyses to work')
-            sys.exit(0)
 
     def register_command(self):
         AnalysisPrep.analyses_commands[self.analysis] = self.cmds
-
-
-# class CreateScripts(object):
-#
-#     def __init__(self):
-#         pass
-#
-#     def get_job_folders(self, analysis):
-#         job_folder = get_job_folder(
-#             self.config.i_datasets_folder, analysis)
-#         job_folder2 = get_job_folder(
-#             self.config.i_datasets_folder, '%s/chunks' % analysis)
-#         return job_folder, job_folder2
-#
-#     def get_analysis_folder(self, dat):
-#         return get_analysis_folder(
-#             self.config.i_datasets_folder, '%s/%s' % (self.analysis, dat))
-#
-#     def print_message(self):
-#         if self.main_written:
-#             print_message(
-#                 '# %s' % self % self.analysis,
-#                 'sh', self.run_pbs, self.jobs)

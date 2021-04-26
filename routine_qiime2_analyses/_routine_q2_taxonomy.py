@@ -450,6 +450,7 @@ def fix_collapsed_data(
                 coll_meta_pd.sample_name.isin(coll_pd.columns.tolist())]
             coll_meta_pd.to_csv(coll_meta, index=False, sep='\t')
 
+    if not isfile(coll_qza):
         cmd = run_import(coll_tsv, coll_qza, 'FeatureTable[Frequency]')
     return cmd
 
@@ -669,18 +670,17 @@ def get_edit_taxonomy_command(data):
 
 def get_taxonomy_command(dat, config, data):
     cmd = ''
-    if data.tax:
-        if data.tax[0] == 'wol':
-            cmd = run_taxonomy_wol(
-                config.force, data.data[0], data.tax[1],
-                data.tax[2], data.features)
-        elif data.tax[0] == 'amplicon':
-            if config.i_classifier:
-                cmd = run_taxonomy_amplicon(
-                    dat, config.i_datasets_folder, config.force, data.data[0],
-                    data.tax[1], data.tax[2], config.i_classifier)
-            else:
-                print('No classifier passed for 16S data\nExiting...')
+    if data.tax[0] == 'wol':
+        cmd = run_taxonomy_wol(
+            config.force, data.data[0], data.tax[1],
+            data.tax[2], data.features)
+    elif data.tax[0] in ['amplicon', 'sklearn']:
+        if config.i_classifier:
+            cmd = run_taxonomy_amplicon(
+                dat, config.i_datasets_folder, config.force, data.data[0],
+                data.tax[1], data.tax[2], config.i_classifier)
+        else:
+            print('No classifier passed for 16S data\nExiting...')
     # elif not data.data[0].index.is_numeric():
     # and also add classyfire
     else:

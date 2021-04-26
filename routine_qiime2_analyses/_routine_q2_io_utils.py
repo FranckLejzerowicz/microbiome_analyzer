@@ -91,20 +91,25 @@ def summarize_songbirds(i_datasets_folder) -> pd.DataFrame:
                 diff = '%s/differentials.tsv' % dirname(root)
                 root_split = root.split('%s/' % songbird_folder)[-1].split('/')
                 if len(root_split) == 8:
-                    dat, pair, dataset_filter, subset, songbird_filter, parameters, model, baseline = root_split
+                    dat, pair, dataset_filter, subset, songbird_filter,\
+                    parameters, model, baseline = root_split
                 else:
                     pair = 'no_pair'
-                    dat, dataset_filter, subset, songbird_filter, parameters, model, baseline = root_split
+                    dat, dataset_filter, subset, songbird_filter,\
+                    parameters, model, baseline = root_split
                 with open(path) as f:
                     for line in f:
                         if 'Pseudo Q-squared' in line:
+                            ls = line.split('Pseudo Q-squared:</a></strong> ')
                             q2s.append([
-                                pair, dat, dataset_filter, subset, model, songbird_filter, parameters, baseline, diff,
-                                float(line.split('Pseudo Q-squared:</a></strong> ')[-1].split('<')[0])
+                                pair, dat, dataset_filter, subset, model,
+                                songbird_filter, parameters, baseline, diff,
+                                float(ls[-1].split('<')[0])
                             ])
-    q2s_pd = pd.DataFrame(q2s, columns=['pair', 'dat', 'dataset_filter', 'subset', 'model',
-                                        'songbird_filter', 'parameters', 'baseline',
-                                        'differentials', 'Pseudo_Q_squared'])
+    q2s_pd = pd.DataFrame(q2s, columns=[
+        'pair', 'dat', 'dataset_filter', 'subset', 'model',
+        'songbird_filter', 'parameters', 'baseline', 'differentials',
+        'Pseudo_Q_squared'])
     return q2s_pd
 
 
@@ -1232,7 +1237,7 @@ def get_filt_raref_suffix(p_filt_threshs: str, raref: bool) -> str:
     return filt_raref
 
 
-def get_prjct_nm(project_name: str) -> str:
+def get_prjct_anlss_nm(project_name: str) -> str:
     """
     Get a smaller name for printing in qstat / squeue.
 
@@ -1345,8 +1350,10 @@ def get_sepp_tree(i_sepp_tree: str) -> str:
                                  'sepp-refs-gg-13-8.qza']:
         return i_sepp_tree
     else:
-        print('%s is not:\n- "sepp-refs-silva-128.qza"\n- "sepp-refs-gg-13-8.qza"\n'
-              'Download: https://docs.qiime2.org/2019.10/data-resources/#sepp-reference-databases)\n'
+        print('%s is not:\n'
+              '- "sepp-refs-silva-128.qza"\n'
+              '- "sepp-refs-gg-13-8.qza"\n'
+              'Download: https://docs.qiime2.org/2019.10/data-resources/\n'
               'Exiting...' % i_sepp_tree)
         sys.exit(0)
 
