@@ -306,7 +306,7 @@ def routine_qiime2_analyses(
             print('[Warning] The Qemistree path %s is not a folder.')
 
     if 'taxonomy' not in p_skip:
-        # print('(run_taxonomy)')
+        print('(run_taxonomy)')
         run_taxonomy(
             method, i_datasets_folder, datasets, datasets_read,
             datasets_phylo, datasets_features, datasets_filt_map,
@@ -314,7 +314,7 @@ def routine_qiime2_analyses(
             noloc, run_params['taxonomy'], filt_raref, jobs, chunkit)
         AnalysisPrep('taxonomy').taxonomy(config, project)
 
-        # print('(run_edit_taxonomies)')
+        print('(run_edit_taxonomies)')
         edit_taxonomies(
             i_datasets_folder, taxonomies, force, prjct_nm, qiime_env, p_chmod,
             noloc, run_params['taxonomy'], filt_raref, jobs, chunkit)
@@ -328,13 +328,13 @@ def routine_qiime2_analyses(
 
     # TREES ------------------------------------------------------------
     trees = {}
-    # print('(get_precomputed_trees)')
+    print('(get_precomputed_trees)')
     get_precomputed_trees(
         i_datasets_folder, datasets, datasets_filt_map, datasets_phylo, trees)
     project.get_precomputed_trees(config)
 
     if 'wol' not in p_skip:
-        # print('(shear_tree)')
+        print('(shear_tree)')
         shear_tree(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_features, prjct_nm, i_wol_tree, trees, datasets_rarefs,
@@ -343,7 +343,7 @@ def routine_qiime2_analyses(
         AnalysisPrep('wol').shear_tree(config, project)
 
     if i_sepp_tree and 'sepp' not in p_skip:
-        # print('(run_sepp)')
+        print('(run_sepp)')
         run_sepp(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_rarefs, prjct_nm, i_sepp_tree, trees, force, qiime_env,
@@ -369,7 +369,7 @@ def routine_qiime2_analyses(
     datasets_collapsed = {}
     datasets_collapsed_map = {}
     if p_collapse_taxo and 'collapse' not in p_skip:
-        # print('(run_collapse)')
+        print('(run_collapse)')
         collapsed = run_collapse(
             i_datasets_folder, datasets, datasets_filt, datasets_read,
             datasets_features, datasets_phylo, split_taxa_pds, taxonomies,
