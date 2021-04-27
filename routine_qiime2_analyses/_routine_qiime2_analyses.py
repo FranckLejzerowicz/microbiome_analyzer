@@ -260,7 +260,7 @@ def routine_qiime2_analyses(
     # workflow = config.get_workflow()
 
     # PREPROCESSING ------------------------------------------------------------
-    # print('(import_datasets)')
+    print('(import_datasets)')
     import_datasets(i_datasets_folder, datasets, datasets_phylo,
                     force, prjct_nm, qiime_env, p_chmod, noloc,
                     run_params['import'], filt_raref, jobs, chunkit)
