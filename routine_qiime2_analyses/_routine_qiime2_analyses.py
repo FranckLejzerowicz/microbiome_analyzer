@@ -13,6 +13,7 @@ from routine_qiime2_analyses.dataset_collection import Datasets
 from routine_qiime2_analyses.create_scripts import CreateScripts
 from routine_qiime2_analyses.analyses_config import AnalysesConfig
 from routine_qiime2_analyses.analyses_prep import AnalysisPrep
+from routine_qiime2_analyses.alpha_diversity import AlphaDiversity
 from routine_qiime2_analyses.paired_data import PairedData
 from routine_qiime2_analyses.differential_abundance import DiffModels
 from routine_qiime2_analyses.post_analyses import PostAnalysis
@@ -238,7 +239,7 @@ def routine_qiime2_analyses(
     run_params = config.get_run_params()
 
     # READ --------------------------------------------------------------------
-    # print('(Get datasets)')
+    print('(Get datasets)')
     datasets_objects = get_datasets(i_datasets, i_datasets_folder)
     datasets = datasets_objects[0]
     datasets_read = datasets_objects[1]
@@ -269,7 +270,7 @@ def routine_qiime2_analyses(
     datasets_filt = {}
     datasets_filt_map = {}
     if p_filt_threshs:
-        # print('(filter_rare_samples)')
+        print('(filter_rare_samples)')
         filter_rare_samples(
             i_datasets_folder, datasets, datasets_read, datasets_features,
             datasets_rarefs, datasets_filt, datasets_filt_map, datasets_phylo,
@@ -279,7 +280,7 @@ def routine_qiime2_analyses(
 
     eval_depths = {}
     if raref:
-        # print('(run_rarefy)')
+        print('(run_rarefy)')
         eval_depths = run_rarefy(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_filt_map, datasets_rarefs, p_raref_depths, eval_rarefs,
@@ -290,7 +291,7 @@ def routine_qiime2_analyses(
     # TAXONOMY ------------------------------------------------------------
     taxonomies = {}
     method = 'sklearn'
-    # print('(get_precomputed_taxonomies)')
+    print('(get_precomputed_taxonomies)')
     get_precomputed_taxonomies(
         i_datasets_folder, datasets, datasets_filt_map, taxonomies, method)
     project.get_precomputed_taxonomy(config)
@@ -379,6 +380,7 @@ def routine_qiime2_analyses(
         AnalysisPrep('collapse').collapse(config, project)
 
     # ALPHA ------------------------------------------------------------
+    alpha = AlphaDiversity(config, project)
     if 'alpha' not in p_skip:
         print('(alpha)')
         diversities = run_alpha(

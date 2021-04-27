@@ -6,7 +6,6 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import sys
 import pandas as pd
 from os.path import isfile, splitext
 from skbio.tree import TreeNode
@@ -28,13 +27,9 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
 from routine_qiime2_analyses._routine_q2_taxonomy import (
     get_taxonomy_command, get_edit_taxonomy_command, get_gid_features,
     get_split_levels, fix_collapsed_data, write_collapse_taxo
-
 )
 from routine_qiime2_analyses._routine_q2_phylo import (
     get_wol_tree, get_sepp_tree
-)
-from routine_qiime2_analyses._routine_q2_xpbs import (
-    print_message
 )
 
 
