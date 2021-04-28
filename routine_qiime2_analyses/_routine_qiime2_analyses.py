@@ -348,7 +348,6 @@ def routine_qiime2_analyses(
 
     if 'wol' not in p_skip:
         print('(shear_tree)')
-        print('fff')
         shear_tree(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_features, prjct_nm, i_wol_tree, trees, datasets_rarefs,

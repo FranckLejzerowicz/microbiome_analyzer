@@ -152,19 +152,14 @@ def shear_tree(
     :param qiime_env: name of your qiime2 conda environment (e.g. qiime2-2019.10).
     :param chmod: whether to change permission of output files (defalt: 775).
     """
-    # check whether there's dataset(s) that may use the Web of Life tree (i.e. features contain gID)
-    wol_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'wol']
-    print(wol_datasets)
-    print(wol_datasets)
-    print(wol_datasets)
-    print(wol_datasets)
-    print(wol_datasets)
+    # check whether there's dataset(s) that may use
+    # the Web of Life tree (i.e. features contain gID)
+    wol_datasets = [dat for dat, (tree, correction)
+                    in datasets_phylo.items() if tree == 'wol']
     if len(wol_datasets):
         job_folder = get_job_folder(i_datasets_folder, 'phylo')
         job_folder2 = get_job_folder(i_datasets_folder, 'phylo/chunks')
-        print(1)
         i_wol_tree = get_wol_tree(i_wol_tree)
-        print(2)
         wol = TreeNode.read(i_wol_tree)
 
         main_written = 0
