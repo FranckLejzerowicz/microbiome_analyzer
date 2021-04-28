@@ -237,6 +237,7 @@ def get_taxo_levels(taxonomies: dict) -> dict:
             split_taxa_fpo = '%s_taxSplit.tsv' % splitext(tax_fp[-1])[0]
             tax_extended_pd = tax_pd.merge(split_taxa_pd, on='Feature ID', how='left')
             tax_extended_pd.to_csv(split_taxa_fpo, index=False, sep='\t')
+    print(split_taxa_pds)
     return split_taxa_pds
 
 
