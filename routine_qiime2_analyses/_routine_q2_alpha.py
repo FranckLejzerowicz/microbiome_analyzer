@@ -55,9 +55,7 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     if len(eval_depths):
         evaluation = '_eval'
     alpha_metrics = get_metrics('alpha_metrics', As)
-    print('A')
     alpha_subsets = read_yaml_file(p_alpha_subsets)
-    print('B')
     job_folder = get_job_folder(i_datasets_folder, 'alpha%s' % evaluation)
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha%s/chunks' % evaluation)
     diversities = {}
