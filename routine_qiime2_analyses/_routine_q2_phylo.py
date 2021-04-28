@@ -154,6 +154,7 @@ def shear_tree(
     """
     # check whether there's dataset(s) that may use the Web of Life tree (i.e. features contain gID)
     wol_datasets = [dat for dat, (tree, correction) in datasets_phylo.items() if tree == 'wol']
+    print(wol_datasets)
     if len(wol_datasets):
         job_folder = get_job_folder(i_datasets_folder, 'phylo')
         job_folder2 = get_job_folder(i_datasets_folder, 'phylo/chunks')
