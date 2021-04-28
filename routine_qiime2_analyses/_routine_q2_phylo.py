@@ -157,8 +157,9 @@ def shear_tree(
     if len(wol_datasets):
         job_folder = get_job_folder(i_datasets_folder, 'phylo')
         job_folder2 = get_job_folder(i_datasets_folder, 'phylo/chunks')
-
+        print(1)
         i_wol_tree = get_wol_tree(i_wol_tree)
+        print(2)
         wol = TreeNode.read(i_wol_tree)
 
         main_written = 0
