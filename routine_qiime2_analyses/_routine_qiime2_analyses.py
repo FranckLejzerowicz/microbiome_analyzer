@@ -388,7 +388,7 @@ def routine_qiime2_analyses(
             datasets_rarefs, p_alpha_subsets, trees, force, prjct_nm,
             qiime_env, p_chmod, noloc, As, dropout, run_params['alpha'],
             filt_raref, eval_depths, jobs, chunkit)
-        diversity.alpha(project)
+        # diversity.alpha(project)
         # print(AnalysisPrep.analyses_commands)
         # print(AnalysisPrep.analyses_commands.keys())
         # print(AnalysisPrepdsa)
