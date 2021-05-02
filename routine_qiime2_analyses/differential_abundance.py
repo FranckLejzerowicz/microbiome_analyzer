@@ -68,6 +68,7 @@ class DiffModels(object):
 
     def get_songbirds_filts(self, project):
         filts_df = []
+        print(self.unique_filtering)
         for (dat, is_mb), filts_dats in self.unique_filtering.items():
             if dat not in project.datasets:
                 continue
@@ -75,6 +76,7 @@ class DiffModels(object):
                 continue
             for (filt, prev, abund) in filts_dats:
                 filts_df.append([dat, is_mb, filt, prev, abund])
+        print(filts_df)
         if filts_df:
             self.songbirds = pd.DataFrame(filts_df, columns=[
                 'dataset', 'is_mb', 'filter', 'prevalence', 'abundance'])
