@@ -46,6 +46,8 @@ class Data(object):
         self.tax_split = None
         self.tree = None
         self.seqs = None
+        self.alpha = []
+        self.beta = []
 
     def read_data_pd(self):
         data_pd = read_meta_pd(self.tsv[0], '#OTU ID').set_index('#OTU ID')

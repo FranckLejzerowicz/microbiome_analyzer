@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import os
+import re
 import random
 import itertools
 import pandas as pd
@@ -30,8 +31,6 @@ from routine_qiime2_analyses._routine_q2_songbird import (
 
 class DiffModels(object):
 
-    analyses_commands = {}
-
     def __init__(self, config, project) -> None:
         self.cmds = {}
         self.config = config
@@ -40,9 +39,11 @@ class DiffModels(object):
             songbird_dicts = get_songbird_dicts(config.diff_models)
             self.songbird_models = songbird_dicts[0]
             self.songbird_filtering = songbird_dicts[1]
-            self.unique_filtering = get_unique_filterings(self.songbird_filtering)
+            self.unique_filtering = get_unique_filterings(songbird_dicts[1])
             self.params = songbird_dicts[2]
             self.models_baselines = songbird_dicts[3]
+            self.models = {}
+            self.models_issues = {}
             self.songbird_datasets = songbird_dicts[4]
             self.songbird_subsets = songbird_dicts[5]
             self.songbirds = pd.DataFrame()
@@ -58,24 +59,28 @@ class DiffModels(object):
             for var, subsets in self.songbird_subsets.items()
             for subset in subsets
             for dataset in self.songbirds.dataset.unique()]
-        subsets = pd.DataFrame(
-            subsets_fp,
-            columns=['dataset', 'variable', 'factors', 'subset', 'pair'])
-        self.songbirds = self.songbirds.merge(
-            subsets, on=['dataset'], how='outer')
+        if subsets_fp:
+            subsets = pd.DataFrame(
+                subsets_fp,
+                columns=['dataset', 'variable', 'factors', 'subset', 'pair'])
+            self.songbirds = self.songbirds.merge(
+                subsets, on=['dataset'], how='outer')
 
-    def get_songbirds_filts(self):
+    def get_songbirds_filts(self, project):
         filts_df = []
         for (dat, is_mb), filts_dats in self.unique_filtering.items():
+            if dat not in project.datasets:
+                continue
             if dat not in self.models_baselines:
                 continue
             for (filt, prev, abund) in filts_dats:
                 filts_df.append([dat, is_mb, filt, prev, abund])
-        self.songbirds = pd.DataFrame(filts_df, columns=[
-            'dataset', 'is_mb', 'filter', 'prevalence', 'abundance'])
+        if filts_df:
+            self.songbirds = pd.DataFrame(filts_df, columns=[
+                'dataset', 'is_mb', 'filter', 'prevalence', 'abundance'])
 
-    def get_songbirds_matrix(self, mmvec_pd):
-        self.get_songbirds_filts()
+    def prep_songbirds(self, mmvec_pd, project):
+        self.get_songbirds_filts(project)
         self.merge_subsets_apply()
         self.make_datasets_paths()
         self.merge_mmvecs(mmvec_pd)
@@ -92,9 +97,10 @@ class DiffModels(object):
                            omic1_common_fp, omic2_common_fp, meta_common_fp])
             mmvecs.append([dat2, filt, prev2, abun2, subset, pair,
                            omic1_common_fp, omic2_common_fp, meta_common_fp])
-        self.songbirds = pd.concat([
-            self.songbirds,
-            pd.DataFrame(mmvecs, columns=self.songbirds.columns)])
+        if mmvecs:
+            self.songbirds = pd.concat([
+                self.songbirds,
+                pd.DataFrame(mmvecs, columns=self.songbirds.columns)])
 
     def make_datasets_paths(self):
         cmds = {}
@@ -178,23 +184,28 @@ class DiffModels(object):
                     train_tests[tt] = trains
         return train_tests
 
-    def make_train_test(self, config):
+    def make_train_test(self):
         for _, sb in self.songbirds.groupby(['dataset', 'filter', 'subset']):
             d = sb.iloc[0, :].to_dict()
             fps = ['dataset', 'tsv', 'qza', 'meta']
             dat, tsv, qza, meta_fp = [d[x] for x in fps]
             meta_subset = read_meta_pd(meta_fp)
             train_tests = self.make_train_test_column(
-                meta_fp, config.train_test_dict, meta_subset, dat)
+                meta_fp, self.config.train_test_dict, meta_subset, dat)
             rewrite = False
+            # print()
+            # print()
+            # print("['sb']", meta_fp)
+            # print("['sb']", [x for x in meta_subset.columns if 'train' in x])
             meta_subset_cols = set(meta_subset.columns)
             for train_col, train_samples in train_tests.items():
+                # print("['sb']", train_col, len(train_samples))
                 if train_col not in meta_subset_cols:
                     rewrite = True
                     meta_subset[train_col] = [
                         'Train' if x in set(train_samples) else
                         'Test' for x in meta_subset.sample_name.tolist()]
-            if config.force or rewrite:
+            if self.config.force or rewrite:
                 meta_subset.to_csv(meta_fp, index=False, sep='\t')
 
     def get_params_combinations(self):
@@ -380,21 +391,26 @@ class DiffModels(object):
 
     @staticmethod
     def write_new_meta(meta_pd, new_meta, meta_vars, drop, params):
-        if params['train'] in meta_pd.columns:
-            meta_vars.append(params['train'])
-        new_meta_pd = meta_pd[(['sample_name'] + list(meta_vars))].copy()
+        meta_cols = set(meta_pd.columns)
+        if params['train'] in meta_cols:
+            meta_vars.add(params['train'])
+        new_meta_pd = meta_pd[
+            (['sample_name'] + [x for x in meta_vars if x in meta_cols])
+        ].copy()
         new_meta_pd = new_meta_pd.loc[~new_meta_pd.isna().any(1)]
         new_meta_pd = rename_duplicate_columns(new_meta_pd)
         if drop:
-            to_remove = pd.concat([new_meta_pd[meta_var.lower()].isin(var_drop)
-                                   for meta_var, var_drop in drop.items()],
-                                  axis=1).any(axis=1)
+            to_remove = pd.concat([
+                new_meta_pd[meta_var.lower()].isin(var_drop)
+                for meta_var, var_drop in drop.items()
+            ], axis=1).any(axis=1)
             new_meta_pd = new_meta_pd.loc[~to_remove]
         new_meta_pd.to_csv(new_meta, index=False, sep='\t')
 
-    def summarize_songbirds(self, config):
+    def summarize_songbirds(self):
         q2s = []
-        songbird = get_analysis_folder(config.i_datasets_folder, 'songbird')
+        songbird = get_analysis_folder(
+            self.config.i_datasets_folder, 'songbird')
         for root, dirs, files in os.walk(songbird):
             for fil in files:
                 if fil == 'tensorboard.html':
@@ -419,7 +435,7 @@ class DiffModels(object):
         self.q2s_pd.to_csv(q2s_fp, index=False, sep='\t')
         print('\t\t==> Written:', q2s_fp)
 
-    def create_songbird_feature_metadata(self, config):
+    def create_songbird_feature_metadata(self):
         q2_pd = self.q2s_pd.loc[(self.q2s_pd.pair == 'no_pair') &
                                 (self.q2s_pd.Pseudo_Q_squared > 0)]
         for dat, dataset_pd in q2_pd.groupby('dataset'):
@@ -440,7 +456,7 @@ class DiffModels(object):
                 dataset_sbs.append(sb_pd)
             if len(dataset_sbs):
                 dataset_sbs_pd = pd.concat(dataset_sbs, axis=1, sort=False)
-                odir = get_analysis_folder(config.i_datasets_folder,
+                odir = get_analysis_folder(self.config.i_datasets_folder,
                                            'songbird/%s' % dat)
                 fpo_tsv = '%s/differentials_%s.tsv' % (odir, dat)
                 fpo_qza = '%s/differentials_%s.qza' % (odir, dat)
@@ -458,7 +474,95 @@ class DiffModels(object):
                 'differentials', 'baseline', 'html', 'pair'
             ])
 
-    def songbird(self, config, project) -> None:
+    def check_metadata_models(self, meta, meta_pd, songbird_models):
+        for model, formula_ in songbird_models.items():
+            vars = set()
+            drop = {}
+            formula = formula_.strip('"').strip("'")
+            if formula.startswith('C('):
+                formula_split = formula.split('C(')[-1].rsplit(')', 1)
+                formula_split_c = formula_split[0].split(',')[0].strip().strip()
+                formula = 'C(%s)' % formula_split[0].replace(
+                    formula_split_c, formula_split_c.lower())
+                formula += formula_split[1].lower()
+                if 'Diff' in formula:
+                    levels = {formula_split_c.lower(): [
+                        x.strip().strip('"').strip("'")
+                        for x in formula.split(
+                            "levels=['")[-1].split("']")[0].split(",")
+                    ]}
+                elif 'Treatment(' in formula:
+                    levels = {formula_split_c.lower(): [
+                        formula.split("Treatment('")[-1].split("')")[0]
+                    ]}
+                vars.add(formula_split_c.lower())
+                vars.update(set([x.lower() for x in re.split(
+                    '[+/:*]', formula_split[1]) if x]))
+            else:
+                formula_split = re.split('[+/:*]', formula)
+                formula = formula.lower()
+                vars.update(set([x.lower() for x in formula_split]))
+                levels = {}
+
+            common_with_md = set(meta_pd.columns.str.lower().values) & vars
+            if sorted(vars) != sorted(common_with_md):
+                only_formula = sorted(vars ^ common_with_md)
+                issue = 'Songbird formula term(s) missing in metadata:\n\t' \
+                        '%s\n\t  [not used]: %s=%s' % (
+                            ', '.join(only_formula), model, formula)
+                self.models_issues.setdefault(issue, set()).add(meta)
+                # print(issue)
+                continue
+
+            if levels:
+                # print('levels', levels)
+                # print(meta_pd['sex'].unique())
+                levels_set = sorted([x for x in meta_pd[
+                    formula_split_c.lower()].unique() if str(x) != 'nan'])
+                # print('levels_set', levels_set)
+                if 'Diff' in formula:
+                    cur_levels = levels[formula_split_c.lower()]
+                    common_levels = set(levels_set) & set(cur_levels)
+                    only_meta = set(levels_set) ^ common_levels
+                    only_model = set(cur_levels) ^ common_levels
+                    if len(only_model):
+                        issue = 'Songbird formula "Diff" factors(s) missing' \
+                                ' in metadata "%s": %s' % (
+                                    formula_split_c, list(only_model))
+                        self.models_issues.setdefault(issue, set()).add(meta)
+                        # print(issue)
+                        continue
+                    if len(only_meta):
+                        drop[formula_split_c.lower()] = list(only_meta)
+                        issue = 'Songbird formula "Diff" factors(s) ' \
+                                'incomplete for metadata "%s":\n' \
+                                '\t -> skipping samples with %s' % (
+                                    formula_split_c, list(only_meta))
+                        self.models_issues.setdefault(issue, set()).add(meta)
+                        # print(issue)
+                elif 'Treatment(' in formula:
+                    levels = {formula_split_c.lower(): formula.split(
+                        "Treatment('")[-1].split("')")[0]}
+                    if levels[formula_split_c.lower()] not in levels_set:
+                        issue = 'Songbird formula "Treatment" factors(s)' \
+                                ' missing in metadata "%s" [%s]' % (
+                                    formula_split_c, levels)
+                        self.models_issues.setdefault(issue, set()).add(meta)
+                        # print(issue)
+                        continue
+
+            self.models[model] = [formula, vars, drop]
+
+    def show_models_issues(self):
+        if self.models_issues:
+            print('\n%s Issues with model (will not run) %s' % ('#'*10, '#'*10))
+            for model_issue, metas in self.models_issues.items():
+                print('-', model_issue)
+                for meta in metas:
+                    print('\t', meta.replace(self.config.i_datasets_folder, ''))
+            print('#'*60)
+
+    def songbird(self) -> None:
         """Main script for the creation of songbird jobs.
         It iterates over the rows of the table created
         upfront and over each combination of parameters
@@ -477,27 +581,26 @@ class DiffModels(object):
         songbird = []
         params_pd = self.get_params_combinations()
         for r, row in self.songbirds.iterrows():
-            qza, pair = row['qza'], row['pair']
+            qza, pair, meta_fp = row['qza'], row['pair'], row['meta']
             dat, filt, subset = row['dataset'], row['filter'], row['subset']
             dat_pair, pair_dir = self.get_dat_pair_dir(dat, pair)
-            meta_fp = project.datasets[dat].meta[0]
-            meta_pd = project.datasets[dat].metadata[0]
-
+            # meta_fp = project.datasets[dat].meta[0]
+            # meta_pd = project.datasets[dat].metadata[0]
+            meta_pd = read_meta_pd(meta_fp)
             ### MAKE SURE TO SKIP "IMPOSSIBLE" RUN
             # e.g subset "sex == male"
             #     testing "C(Sex, Treatment('female'))"
-
-            models = check_metadata_models(
+            self.check_metadata_models(
                 meta_fp, meta_pd, self.songbird_models[dat])
             row_params_pd = params_pd.copy()
             self.process_params_combinations(dat, meta_pd, row_params_pd, mess)
             for p, params in row_params_pd.iterrows():
                 params_dir = self.get_params_dir(params)
                 baselines, model_baselines = {}, {'1': '1'}
-                for modx, model in enumerate(models.keys()):
-                    formula, meta_vars, drop = models[model]
+                for modx, model in enumerate(self.models.keys()):
+                    formula, meta_vars, drop = self.models[model]
                     datdir, odir, new_qza, new_meta = self.get_main_dirs(
-                        pair_dir, filt, subset, params_dir, model, config)
+                        pair_dir, filt, subset, params_dir, model, self.config)
                     self.write_new_meta(
                         meta_pd, new_meta, meta_vars, drop, params)
                     if dat in self.models_baselines and model in \
@@ -506,7 +609,7 @@ class DiffModels(object):
                     for mdx, model_baseline in enumerate(model_baselines):
                         bformula = model_baselines[model_baseline]
                         bodir = get_analysis_folder(
-                            config.i_datasets_folder,
+                            self.config.i_datasets_folder,
                             'songbird/%s/b-%s' % (datdir, model_baseline))
                         out_paths = self.get_out_paths(
                             odir, bodir, model_baseline, baselines)
@@ -520,9 +623,12 @@ class DiffModels(object):
                         cmds.setdefault(dat, []).append(cmd)
         if songbird:
             self.get_songbird_pd(songbird)
-        self.register_command('songbird', cmds)
-        self.summarize_songbirds(config)
-        self.create_songbird_feature_metadata(config)
 
-    def register_command(self, analysis, cmds):
+        self.show_models_issues()
+        self.register_command('songbird', cmds)
+        self.summarize_songbirds()
+        self.create_songbird_feature_metadata()
+
+    @staticmethod
+    def register_command(analysis, cmds):
         AnalysisPrep.analyses_commands[analysis] = cmds

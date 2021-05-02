@@ -123,7 +123,7 @@ class AnalysesConfig(object):
         self.gpu = args[38]
         self.standalone = args[39]
         self.loc = args[40]
-        self.lphas = args[41]
+        self.alphas = args[41]
         self.betas = args[42]
         self.split = args[43]
         self.dropout = args[44]

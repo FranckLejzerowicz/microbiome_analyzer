@@ -13,7 +13,7 @@ from routine_qiime2_analyses.dataset_collection import Datasets
 from routine_qiime2_analyses.create_scripts import CreateScripts
 from routine_qiime2_analyses.analyses_config import AnalysesConfig
 from routine_qiime2_analyses.analyses_prep import AnalysisPrep
-from routine_qiime2_analyses.alpha_diversity import AlphaDiversity
+from routine_qiime2_analyses.diversity_analyses import Diversity
 from routine_qiime2_analyses.paired_data import PairedData
 from routine_qiime2_analyses.differential_abundance import DiffModels
 from routine_qiime2_analyses.post_analyses import PostAnalysis
@@ -380,7 +380,7 @@ def routine_qiime2_analyses(
         AnalysisPrep('collapse').collapse(config, project)
 
     # ALPHA ------------------------------------------------------------
-    alpha = AlphaDiversity(config, project)
+    diversity = Diversity(config)
     if 'alpha' not in p_skip:
         print('(alpha)')
         diversities = run_alpha(
@@ -388,7 +388,7 @@ def routine_qiime2_analyses(
             datasets_rarefs, p_alpha_subsets, trees, force, prjct_nm,
             qiime_env, p_chmod, noloc, As, dropout, run_params['alpha'],
             filt_raref, eval_depths, jobs, chunkit)
-        # AnalysisPrep('Alpha diversity').alpha(config, project)
+        diversity.alpha(project)
         # print(AnalysisPrep.analyses_commands)
         # print(AnalysisPrep.analyses_commands.keys())
         # print(AnalysisPrepdsa)
@@ -706,14 +706,14 @@ def routine_qiime2_analyses(
         if filt3d:
             filts.update(get_filt3d_params(p_mmvec_pairs, 'mmvec'))
         elif 'mmvec' not in p_skip:
-            # print('(run_mmvec)')
+            print('(run_mmvec)')
             # mmvec_outputs = run_mmvec(
             #     p_mmvec_pairs, i_datasets_folder, datasets, datasets_filt,
             #     datasets_read, train_test_dict, force, gpu, standalone,
             #     prjct_nm, qiime_env, p_chmod, noloc, split, filt_raref,
             #     run_params['mmvec'], input_to_filtered, jobs, chunkit)
-            paired_datasets.make_train_test(config)
-            paired_datasets.mmvec(config)
+            paired_datasets.make_train_test()
+            paired_datasets.mmvec()
 
     songbird_outputs = []
     differentials = DiffModels(config, project)
@@ -721,15 +721,19 @@ def routine_qiime2_analyses(
         if filt3d:
             filts.update(get_filt3d_params(p_diff_models, 'songbird'))
         elif 'songbird' not in p_skip:
-            # print('(run_songbird)')
+            print('(run_songbird)')
             # songbird_outputs = run_songbird(
             #     p_diff_models, i_datasets_folder, datasets, datasets_read,
             #     datasets_filt, train_test_dict, input_to_filtered,
             #     mmvec_outputs, force, prjct_nm, qiime_env, p_chmod, noloc,
             #     split, run_params['songbird'], filt_raref, jobs, chunkit)
-            differentials.get_songbirds_matrix(paired_datasets.mmvec_pd)
-            differentials.make_train_test(config)
-            differentials.songbird(config, project)
+            differentials.prep_songbirds(paired_datasets.mmvec_pd, project)
+            # print("differentials.songbirds")
+            # print(differentials.songbirds)
+            # print("differentials.songbirds.values")
+            # print(differentials.songbirds.values)
+            differentials.make_train_test()
+            differentials.songbird()
             # q2s_pd = summarize_songbirds(config.i_datasets_folder)
             # out_folder = get_analysis_folder(i_datasets_folder, 'songbird')
             # q2s_fp = '%s/songbird_q2.tsv' % out_folder
@@ -753,4 +757,5 @@ def routine_qiime2_analyses(
         post_analyses = PostAnalysis(config, project)
         post_analyses.mmbird(paired_datasets, differentials)
 
+    print(AnalysisPrep.analyses_commands.keys())
     scripting.write_scripts(AnalysisPrep.analyses_commands)

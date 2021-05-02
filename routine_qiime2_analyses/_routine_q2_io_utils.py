@@ -1460,15 +1460,13 @@ def read_yaml_file(file_path: str) -> dict:
         (could be an empty dict)
     """
     yaml_dict = {}
-    if file_path and file_path != 'None' and isfile(file_path):
+    if file_path and isfile(file_path):
         with open(file_path) as yaml_handle:
             try:
                 yaml_dict = yaml.load(
                     yaml_handle, Loader=yaml.FullLoader)
             except AttributeError:
                 yaml_dict = yaml.load(yaml_handle)
-    else:
-        print('%s do not exist' % file_path)
     return yaml_dict
 
 

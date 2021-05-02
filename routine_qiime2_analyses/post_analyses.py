@@ -40,8 +40,6 @@ from routine_qiime2_analyses._routine_q2_mmbird import (
 
 class PostAnalysis(object):
 
-    analyses_commands = {}
-
     def __init__(self, config, project) -> None:
         self.config = config
         self.project = project
@@ -50,6 +48,7 @@ class PostAnalysis(object):
         self.taxo_pds = {}
         self.metas = {}
         self.mmvec_res = {}
+        self.mmvec_issues = set()
         self.xmmvecs = read_yaml_file(config.xmmvec)
         self.highlights = read_yaml_file(config.mmvec_highlights)
         print()
@@ -266,33 +265,24 @@ class PostAnalysis(object):
                 mmvec_out_ranks = mmvec_out + '/model/ranks.tsv'
                 mmvec_out_ordi = mmvec_out + '/model/ordination.txt'
                 if not isfile(mmvec_out_ranks) or not isfile(mmvec_out_ordi):
-                    print('\t\t[run mmvec first] %s (%s) %s (%s)' % (
-                    omic1, filt1, omic2, filt2))
+                    issue = '\t\t[run mmvec first] %s (%s) %s (%s)' % (
+                        omic1, filt1, omic2, filt2)
+                    self.mmvec_issues.add(issue)
                     continue
                 # collect the ranks + ordination
                 # + songbirds for each pair of omics and parameters
                 self.mmvec_res[
-                    (
-                        pair, subset, omic1, omic2,
-                        filt1, filt2, n_common,
-                        mmvec_out_col.replace('mmvec_out__', '')
-                    )
-                ] = [
-                    mmvec_out_ranks,
-                    mmvec_out_ordi,
-                    meta_fp,
-                    omic1_common_fp,
-                    omic2_common_fp
-                ]
+                    (pair, subset, omic1, omic2, filt1, filt2, n_common,
+                     mmvec_out_col.replace('mmvec_out__', ''))
+                ] = [mmvec_out_ranks, mmvec_out_ordi, meta_fp,
+                     omic1_common_fp, omic2_common_fp]
 
     def get_pair_cmds(self, omics_pairs):
         crowdeds = [0, 1]
         pc_sb_correlations = []
         for keys, values in self.mmvec_res.items():
-
             pair, case, omic1, omic2, filt1, filt2, sams, mmvec = keys
             ranks_fp, ordi_fp, meta_fp, omic1_common, omic2_common = values
-
             order_omics = get_order_omics(omic1, omic2, filt1, filt2, case,
                                           omics_pairs)
             omic1 = order_omics[0]
@@ -305,18 +295,16 @@ class PostAnalysis(object):
             omic_metabolite = order_omics[7]
 
             # get differentials
-            meta1, meta_pd1, diff_cols1 = self.metas[
-                (pair, case, omic1, filt1, omic2, filt2)]
-            meta2, meta_pd2, diff_cols2 = self.metas[
-                (pair, case, omic2, filt2, omic1, filt1)]
-
+            meta1, meta_pd1, diff_cols1 = self.metas[(pair, case, omic1,
+                                                      filt1, omic2, filt2)]
+            meta2, meta_pd2, diff_cols2 = self.metas[(pair, case, omic2,
+                                                      filt2, omic1, filt1)]
             # features are biplot, samples are dots
             ordi = OrdinationResults.read(ordi_fp)
-
             cur_pc_sb_correlations, max_r = get_pc_sb_correlations(
-                pair, case, ordi, omic1, omic2, filt1, filt2,
-                diff_cols1, meta_pd1, diff_cols2, meta_pd2,
-                meta_fp, omic1_common, omic2_common, ranks_fp)
+                pair, case, ordi, omic1, omic2, filt1, filt2, diff_cols1,
+                meta_pd1, diff_cols2, meta_pd2, meta_fp, omic1_common,
+                omic2_common, ranks_fp)
             pc_sb_correlations.append(cur_pc_sb_correlations)
 
             cmd = ''
@@ -328,8 +316,7 @@ class PostAnalysis(object):
                     if n_edit:
                         qza, qzv = get_qzs(ordi_edit_fp)
                         cmd += get_biplot_commands(
-                            ordi_edit_fp, qza, qzv,
-                            omic_feature, omic_sample,
+                            ordi_edit_fp, qza, qzv, omic_feature, omic_sample,
                             meta_edit, meta2, n_edit, max_r)
             ordi_edit_fp = ordi_fp
             qza, qzv = get_qzs(ordi_edit_fp)
@@ -344,35 +331,33 @@ class PostAnalysis(object):
                     #     ranks_fp, heat_qza, heat_qzv, meta1,
                     #     meta2, meta_pd1, meta_pd2)
                 cmd += get_biplot_commands(
-                    ordi_edit_fp, qza, qzv,
-                    omic_feature, omic_sample,
+                    ordi_edit_fp, qza, qzv, omic_feature, omic_sample,
                     meta1, meta2, n_ordi_feats, max_r)
-
             cmd += get_xmmvec_commands(
-                ordi_edit_fp, omic1, omic2,
-                meta1, meta2, self.xmmvecs, pair
-            )
+                ordi_edit_fp, omic1, omic2, meta1, meta2, self.xmmvecs, pair)
 
             topn = 5
             features_names = []
             if features_names:
-                paired_heatmap_qzv = '%s_paired_heatmaps_custom.qzv' % \
-                                     splitext(ranks_fp)[0]
+                heat = '%s_paired_heatmaps_custom.qzv' % splitext(ranks_fp)[0]
             else:
-                paired_heatmap_qzv = '%s_paired_heatmaps_top%s.qzv' % (
-                splitext(ranks_fp)[0], topn)
-
+                heat = '%s_paired_heatmaps_top%s.qzv' % (splitext(ranks_fp)[0],
+                                                         topn)
             cmd += get_paired_heatmaps_command(
-                ranks_fp, omic1_common, omic2_common, meta1,
-                features_names, topn, paired_heatmap_qzv
-            )
+                ranks_fp, omic1_common, omic2_common, meta1, features_names,
+                topn, heat)
             self.cmds.setdefault(pair, []).append(cmd)
         return pc_sb_correlations
+
+    def show_mmvec_issues(self):
+        if self.mmvec_issues:
+            for mmvec_issue in self.mmvec_issues:
+                print(mmvec_issue)
 
     def mmbird(self, paired_datasets, differentials):
         if not paired_datasets.mmvec_pd.shape[0]:
             print('No mmvec output detected...')
-            sys.exit(0)
+            return None
         self.prep_mmvec(paired_datasets.mmvec_pd)
         if differentials.songbird_pd.shape[0]:
             songbird_pd = self.prep_songbird(differentials.songbird_pd)
@@ -381,6 +366,7 @@ class PostAnalysis(object):
         self.get_taxo_pds()
         self.get_omics_songbirds_taxa()
         self.get_mmvec_res()
+        self.show_mmvec_issues()
 
         omics_pairs = [tuple(x) for x in self.mmvec_songbird_pd[
             ['omic_subset_filt1', 'omic_subset_filt2']].values.tolist()]
