@@ -43,8 +43,6 @@ class PairedData(object):
                 'train_column', 'n_examples', 'batches', 'learns',
                 'epochs', 'priors', 'thresh_feats', 'latent_dims']
             self.get_mmvec_matrix(project)
-            print("self.mmvecs")
-            print(self.mmvecs)
             if self.mmvecs.shape[0]:
                 self.datasets_paths = self.make_datasets_paths(project)
                 self.unstack_mmvecs()
@@ -201,6 +199,9 @@ class PairedData(object):
     def make_datasets_paths(self, project):
         cmds = {}
         datasets_path = self.get_datasets_paths()
+
+        print("datasets_path")
+        print(datasets_path)
         for (dataset, filter, subset), row in datasets_path.groupby(
                 ['dataset', 'filter', 'subset']):
             row_d = row.iloc[0, :].to_dict()
@@ -228,16 +229,19 @@ class PairedData(object):
 
     def get_datasets_paths(self):
         datasets_paths = self.mmvecs.copy()
-        print("datasets_paths")
-        print(datasets_paths)
         datasets_paths = datasets_paths.drop(columns=['pair', 'omic'])
         datasets_paths = datasets_paths.loc[
             ~datasets_paths.astype(str).duplicated()]
+        print("datasets_paths")
+        print(datasets_paths)
         paths = []
         for r, row in datasets_paths.iterrows():
             dataset = row['dataset']
             filter = row['filter']
             subset = row['subset']
+            print(' -', dataset)
+            print(' -', filter)
+            print(' -', subset)
             odir = get_analysis_folder(
                 self.config.i_datasets_folder,
                 'mmvec/datasets/%s/%s' % (
@@ -247,6 +251,8 @@ class PairedData(object):
             qza = '%s.qza' % splitext(tsv)[0]
             meta = '%s/meta_%s.tsv' % (odir, rad)
             paths.append([tsv, qza, meta])
+        print("paths")
+        print(paths)
         datasets_paths = pd.concat([
             datasets_paths,
             pd.DataFrame(paths, columns=['tsv', 'qza', 'meta'])
