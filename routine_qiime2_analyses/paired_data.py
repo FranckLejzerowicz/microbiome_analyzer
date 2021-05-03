@@ -243,25 +243,27 @@ class PairedData(object):
             dataset = row['dataset']
             filter = row['filter']
             subset = row['subset']
-            print(' -', dataset)
-            print(' -', filter)
-            print(' -', subset)
-            print(row.to_dict())
             odir = get_analysis_folder(
                 self.config.i_datasets_folder,
-                'mmvec/datasets/%s/%s' % (
-                    dataset, subset))
+                'mmvec/datasets/%s/%s' % (dataset, subset))
             rad = '%s_%s' % (dataset, filter)
             tsv = '%s/tab_%s.tsv' % (odir, rad)
             qza = '%s.qza' % splitext(tsv)[0]
             meta = '%s/meta_%s.tsv' % (odir, rad)
-            paths.append([tsv, qza, meta])
+            paths.append([dataset, filter, subset, tsv, qza, meta])
         print("paths")
         print(paths)
-        datasets_paths = pd.concat([
-            datasets_paths,
-            pd.DataFrame(paths, columns=['tsv', 'qza', 'meta'])
-        ], axis=1)
+        # datasets_paths = pd.concat([
+        #     datasets_paths,
+        #     pd.DataFrame(paths, columns=['tsv', 'qza', 'meta'])
+        # ], axis=1)
+        datasets_paths = datasets_paths.merge(
+            pd.DataFrame(paths, columns=[
+                'dataset', 'filter', 'subset', 'tsv', 'qza', 'meta']),
+            on=['dataset', 'filter', 'subset'], how='left'
+        )
+        print("datasets_paths")
+        print(datasets_paths.iloc[:, :5])
         return datasets_paths
 
     def get_mmvec_matrix(self, project):
