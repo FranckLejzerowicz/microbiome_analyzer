@@ -69,14 +69,8 @@ class DiffModels(object):
 
     def get_songbirds_filts(self, project):
         filts_df = []
-        print("self.models_baselines")
-        print(self.models_baselines)
         for (dat, is_mb), filts_dats in self.unique_filtering.items():
-            print((dat, is_mb), filts_dats)
             if dat not in project.datasets:
-                continue
-            if dat not in self.models_baselines:
-                print('......')
                 continue
             for (filt, prev, abund) in filts_dats:
                 filts_df.append([dat, is_mb, filt, prev, abund])
