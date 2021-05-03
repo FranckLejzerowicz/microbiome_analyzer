@@ -6,28 +6,18 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os
-import sys
 import glob
-import random
-import itertools
 import pandas as pd
-from os.path import dirname, isdir, isfile, splitext
+from os.path import dirname, isfile, splitext
 
-from scipy.stats import spearmanr
 from skbio.stats.ordination import OrdinationResults
 
 from routine_qiime2_analyses.analyses_prep import AnalysisPrep
 from routine_qiime2_analyses._routine_q2_cmds import (
     get_case, get_new_meta_pd, run_import, run_export, filter_feature_table,
 )
-from routine_qiime2_analyses._routine_q2_metadata import (
-    get_train_perc_from_numeric, get_meta_subset, get_cat_vars_and_vc,
-    make_train_test_from_cat, rename_duplicate_columns
-)
 from routine_qiime2_analyses._routine_q2_io_utils import (
-    read_yaml_file, get_analysis_folder, filter_mb_table, filter_non_mb_table,
-    write_filtered_tsv
+    read_yaml_file, get_analysis_folder
 )
 from routine_qiime2_analyses._routine_q2_taxonomy import (
     get_split_taxonomy
@@ -51,12 +41,6 @@ class PostAnalysis(object):
         self.mmvec_issues = set()
         self.xmmvecs = read_yaml_file(config.xmmvec)
         self.highlights = read_yaml_file(config.mmvec_highlights)
-        print()
-        print("self.xmmvecs")
-        print(self.xmmvecs)
-        print()
-        print("self.highlights")
-        print(self.highlights)
 
     def merge_mmvec_songbird(self, songbird_pd):
         rename_dic1 = dict(
