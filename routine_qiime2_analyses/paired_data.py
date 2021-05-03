@@ -236,6 +236,8 @@ class PairedData(object):
             ~datasets_paths.astype(str).duplicated()]
         print("datasets_paths")
         print(datasets_paths.iloc[:, :5])
+        print("datasets_paths[['dataset', 'filter', 'subset']].values")
+        print(datasets_paths[['dataset', 'filter', 'subset']].values)
         paths = []
         for r, row in datasets_paths.iterrows():
             dataset = row['dataset']
