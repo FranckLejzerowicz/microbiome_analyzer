@@ -203,6 +203,9 @@ class PairedData(object):
                 ['dataset', 'filter', 'subset']):
             row_d = row.iloc[0, :].to_dict()
             tsv, qza, meta = row_d['tsv'], row_d['qza'], row_d['meta']
+            print(tsv)
+            print(qza)
+            print(meta)
             if isfile(tsv) and isfile(qza) and isfile(meta):
                 continue
             data = project.datasets[dataset]
