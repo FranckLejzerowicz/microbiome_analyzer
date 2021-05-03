@@ -517,7 +517,7 @@ class DiffModels(object):
                 # vars.update(set([x.lower() for x in formula_split]))
                 levels = {}
 
-            common_with_md = set(meta_pd.columns.str.values) & vars
+            common_with_md = set(meta_pd.columns.values) & vars
             # common_with_md = set(meta_pd.columns.str.lower().values) & vars
             if sorted(vars) != sorted(common_with_md):
                 only_formula = sorted(vars ^ common_with_md)
