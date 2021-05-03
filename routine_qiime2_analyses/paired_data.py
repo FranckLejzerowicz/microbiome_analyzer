@@ -229,11 +229,13 @@ class PairedData(object):
 
     def get_datasets_paths(self):
         datasets_paths = self.mmvecs.copy()
+        print("datasets_paths")
+        print(datasets_paths.iloc[:, :5])
         datasets_paths = datasets_paths.drop(columns=['pair', 'omic'])
         datasets_paths = datasets_paths.loc[
             ~datasets_paths.astype(str).duplicated()]
         print("datasets_paths")
-        print(datasets_paths)
+        print(datasets_paths.iloc[:, :5])
         paths = []
         for r, row in datasets_paths.iterrows():
             dataset = row['dataset']
