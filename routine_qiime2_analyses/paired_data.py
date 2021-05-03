@@ -57,8 +57,6 @@ class PairedData(object):
         mmvecs_us.columns = ['%s%s' % (x, y) if x not in ['variable', 'factors']
                              else x for x, y in mmvecs_us.columns]
         self.mmvecs = mmvecs_us
-        print("self.mmvecs")
-        print(self.mmvecs)
 
     def get_dataset_path(self, dat, filter, subset):
         qza, meta = self.datasets_paths.loc[

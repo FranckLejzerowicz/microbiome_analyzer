@@ -585,6 +585,8 @@ class DiffModels(object):
         for r, row in self.songbirds.iterrows():
             qza, pair, meta_fp = row['qza'], row['pair'], row['meta']
             dat, filt, subset = row['dataset'], row['filter'], row['subset']
+            if dat not in self.songbird_models:
+                continue
             dat_pair, pair_dir = self.get_dat_pair_dir(dat, pair)
             # meta_fp = project.datasets[dat].meta[0]
             # meta_pd = project.datasets[dat].metadata[0]
