@@ -742,8 +742,6 @@ def routine_qiime2_analyses(
             # create_songbird_feature_metadata(
             #     i_datasets_folder, taxonomies, q2s_pd)
 
-    scripting.write_scripts(AnalysisPrep.analyses_commands)
-
     if filt3d:
         print('(run_filt3d)')
         explore_filtering(
@@ -759,3 +757,4 @@ def routine_qiime2_analyses(
         post_analyses = PostAnalysis(config, project)
         post_analyses.mmbird(paired_datasets, differentials)
 
+    scripting.write_scripts(AnalysisPrep.analyses_commands)
