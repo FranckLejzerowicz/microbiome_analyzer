@@ -54,7 +54,7 @@ class DiffModels(object):
         self.songbird_pd = pd.DataFrame()
 
     def merge_subsets_apply(self):
-        if self.songbird_subsets.shape[0]:
+        if self.songbirds.shape[0]:
             subsets_fp = [
                 [dataset, var, subset, get_case(subset, var), '']
                 for var, subsets in self.songbird_subsets.items()
