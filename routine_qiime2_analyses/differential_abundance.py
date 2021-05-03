@@ -88,11 +88,13 @@ class DiffModels(object):
         mmvecs = []
         for row in mmvec_pd.values:
             pair, filt, subset, dat1, dat2, prev1, abun1, prev2, abun2 = row[:9]
-            meta_common_fp, omic1_common_fp, omic2_common_fp = row[10:13]
+            meta_common_fp = row[10]
+            omic1_common_qza = row[13]
+            omic2_common_qza = row[14]
             mmvecs.append([dat1, filt, prev1, abun1, subset, pair,
-                           omic1_common_fp, omic2_common_fp, meta_common_fp])
+                           omic1_common_qza, omic2_common_qza, meta_common_fp])
             mmvecs.append([dat2, filt, prev2, abun2, subset, pair,
-                           omic1_common_fp, omic2_common_fp, meta_common_fp])
+                           omic1_common_qza, omic2_common_qza, meta_common_fp])
         if mmvecs and self.songbirds.shape[0]:
             self.songbirds.drop(
                 columns=['is_mb', 'variable', 'factors'],
