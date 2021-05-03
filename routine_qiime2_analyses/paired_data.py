@@ -43,6 +43,8 @@ class PairedData(object):
                 'train_column', 'n_examples', 'batches', 'learns',
                 'epochs', 'priors', 'thresh_feats', 'latent_dims']
             self.get_mmvec_matrix(project)
+            print("self.mmvecs")
+            print(self.mmvecs)
             if self.mmvecs.shape[0]:
                 self.datasets_paths = self.make_datasets_paths(project)
                 self.unstack_mmvecs()
@@ -203,9 +205,6 @@ class PairedData(object):
                 ['dataset', 'filter', 'subset']):
             row_d = row.iloc[0, :].to_dict()
             tsv, qza, meta = row_d['tsv'], row_d['qza'], row_d['meta']
-            print(tsv)
-            print(qza)
-            print(meta)
             if isfile(tsv) and isfile(qza) and isfile(meta):
                 continue
             data = project.datasets[dataset]
@@ -229,6 +228,8 @@ class PairedData(object):
 
     def get_datasets_paths(self):
         datasets_paths = self.mmvecs.copy()
+        print("datasets_paths")
+        print(datasets_paths)
         datasets_paths = datasets_paths.drop(columns=['pair', 'omic'])
         datasets_paths = datasets_paths.loc[
             ~datasets_paths.astype(str).duplicated()]
