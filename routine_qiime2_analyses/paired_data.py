@@ -246,6 +246,7 @@ class PairedData(object):
             print(' -', dataset)
             print(' -', filter)
             print(' -', subset)
+            print(row.to_dict())
             odir = get_analysis_folder(
                 self.config.i_datasets_folder,
                 'mmvec/datasets/%s/%s' % (
