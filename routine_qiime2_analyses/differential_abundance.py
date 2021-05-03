@@ -54,21 +54,21 @@ class DiffModels(object):
         self.songbird_pd = pd.DataFrame()
 
     def merge_subsets_apply(self):
-        subsets_fp = [
-            [dataset, var, subset, get_case(subset, var), '']
-            for var, subsets in self.songbird_subsets.items()
-            for subset in subsets
-            for dataset in self.songbirds.dataset.unique()]
-        if subsets_fp:
-            subsets = pd.DataFrame(
-                subsets_fp,
-                columns=['dataset', 'variable', 'factors', 'subset', 'pair'])
-            self.songbirds = self.songbirds.merge(
-                subsets, on=['dataset'], how='outer')
+        if self.songbird_subsets.shape[0]:
+            subsets_fp = [
+                [dataset, var, subset, get_case(subset, var), '']
+                for var, subsets in self.songbird_subsets.items()
+                for subset in subsets
+                for dataset in self.songbirds.dataset.unique()]
+            if subsets_fp:
+                subsets = pd.DataFrame(
+                    subsets_fp, columns=['dataset', 'variable', 'factors',
+                                         'subset', 'pair'])
+                self.songbirds = self.songbirds.merge(
+                    subsets, on=['dataset'], how='outer')
 
     def get_songbirds_filts(self, project):
         filts_df = []
-        print(self.unique_filtering)
         for (dat, is_mb), filts_dats in self.unique_filtering.items():
             if dat not in project.datasets:
                 continue
@@ -76,7 +76,6 @@ class DiffModels(object):
                 continue
             for (filt, prev, abund) in filts_dats:
                 filts_df.append([dat, is_mb, filt, prev, abund])
-        print(filts_df)
         if filts_df:
             self.songbirds = pd.DataFrame(filts_df, columns=[
                 'dataset', 'is_mb', 'filter', 'prevalence', 'abundance'])
