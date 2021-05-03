@@ -69,7 +69,6 @@ class CreateScripts(object):
             if os.getcwd().startswith('/panfs'):
                 pbs = pbs.replace(os.getcwd(), '')
             if not main_o:
-                print(single)
                 if self.config.jobs:
                     print('[TO RUN] qsub', pbs)
                 else:
