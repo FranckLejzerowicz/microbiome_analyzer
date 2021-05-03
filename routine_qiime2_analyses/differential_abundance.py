@@ -87,10 +87,6 @@ class DiffModels(object):
         self.merge_mmvecs(mmvec_pd)
 
     def merge_mmvecs(self, mmvec_pd):
-        if self.songbirds.shape[0]:
-            self.songbirds.drop(
-                columns=['is_mb', 'variable', 'factors'],
-                inplace=True)
         mmvecs = []
         for row in mmvec_pd.values:
             pair, filt, subset, dat1, dat2, prev1, abun1, prev2, abun2 = row[:9]
@@ -99,7 +95,10 @@ class DiffModels(object):
                            omic1_common_fp, omic2_common_fp, meta_common_fp])
             mmvecs.append([dat2, filt, prev2, abun2, subset, pair,
                            omic1_common_fp, omic2_common_fp, meta_common_fp])
-        if mmvecs:
+        if mmvecs and self.songbirds.shape[0]:
+            self.songbirds.drop(
+                columns=['is_mb', 'variable', 'factors'],
+                inplace=True)
             self.songbirds = pd.concat([
                 self.songbirds,
                 pd.DataFrame(mmvecs, columns=self.songbirds.columns)])
@@ -134,26 +133,28 @@ class DiffModels(object):
 
     def get_datasets_paths(self):
         paths = []
-        for r, row in self.songbirds.iterrows():
-            dataset = row['dataset']
-            filter = row['filter']
-            subset = row['subset']
-            for analysis in ['mmvec', 'songbird']:
-                odir = get_analysis_folder(
-                    self.config.i_datasets_folder, '%s/datasets/%s/%s' % (
-                        analysis, dataset, subset))
-                rad = '%s_%s' % (dataset, filter)
-                tsv = '%s/tab_%s.tsv' % (odir, rad)
-                qza = '%s.qza' % splitext(tsv)[0]
-                meta = '%s/meta_%s.tsv' % (odir, rad)
-                if isfile(tsv) and isfile(qza) and isfile(meta):
-                    paths.append([tsv, qza, meta])
-                    break
-                elif analysis == 'songbird':
-                    paths.append([tsv, qza, meta])
-        self.songbirds = pd.concat([
-            self.songbirds,
-            pd.DataFrame(paths, columns=['tsv', 'qza', 'meta'])], axis=1)
+        if self.songbirds.shape[0]:
+            for r, row in self.songbirds.iterrows():
+                dataset = row['dataset']
+                filter = row['filter']
+                subset = row['subset']
+                for analysis in ['mmvec', 'songbird']:
+                    odir = get_analysis_folder(
+                        self.config.i_datasets_folder, '%s/datasets/%s/%s' % (
+                            analysis, dataset, subset))
+                    rad = '%s_%s' % (dataset, filter)
+                    tsv = '%s/tab_%s.tsv' % (odir, rad)
+                    qza = '%s.qza' % splitext(tsv)[0]
+                    meta = '%s/meta_%s.tsv' % (odir, rad)
+                    if isfile(tsv) and isfile(qza) and isfile(meta):
+                        paths.append([tsv, qza, meta])
+                        break
+                    elif analysis == 'songbird':
+                        paths.append([tsv, qza, meta])
+        if paths:
+            self.songbirds = pd.concat([
+                self.songbirds,
+                pd.DataFrame(paths, columns=['tsv', 'qza', 'meta'])], axis=1)
 
     @staticmethod
     def get_traintests(meta_fp, new_meta_pd, vars, train, train_col):
@@ -188,28 +189,25 @@ class DiffModels(object):
         return train_tests
 
     def make_train_test(self):
-        for _, sb in self.songbirds.groupby(['dataset', 'filter', 'subset']):
-            d = sb.iloc[0, :].to_dict()
-            fps = ['dataset', 'tsv', 'qza', 'meta']
-            dat, tsv, qza, meta_fp = [d[x] for x in fps]
-            meta_subset = read_meta_pd(meta_fp)
-            train_tests = self.make_train_test_column(
-                meta_fp, self.config.train_test_dict, meta_subset, dat)
-            rewrite = False
-            # print()
-            # print()
-            # print("['sb']", meta_fp)
-            # print("['sb']", [x for x in meta_subset.columns if 'train' in x])
-            meta_subset_cols = set(meta_subset.columns)
-            for train_col, train_samples in train_tests.items():
-                # print("['sb']", train_col, len(train_samples))
-                if train_col not in meta_subset_cols:
-                    rewrite = True
-                    meta_subset[train_col] = [
-                        'Train' if x in set(train_samples) else
-                        'Test' for x in meta_subset.sample_name.tolist()]
-            if self.config.force or rewrite:
-                meta_subset.to_csv(meta_fp, index=False, sep='\t')
+        if self.songbirds.shape[0]:
+            for _, sb in self.songbirds.groupby(
+                    ['dataset', 'filter', 'subset']):
+                d = sb.iloc[0, :].to_dict()
+                fps = ['dataset', 'tsv', 'qza', 'meta']
+                dat, tsv, qza, meta_fp = [d[x] for x in fps]
+                meta_subset = read_meta_pd(meta_fp)
+                train_tests = self.make_train_test_column(
+                    meta_fp, self.config.train_test_dict, meta_subset, dat)
+                rewrite = False
+                meta_subset_cols = set(meta_subset.columns)
+                for train_col, train_samples in train_tests.items():
+                    if train_col not in meta_subset_cols:
+                        rewrite = True
+                        meta_subset[train_col] = [
+                            'Train' if x in set(train_samples) else
+                            'Test' for x in meta_subset.sample_name.tolist()]
+                if self.config.force or rewrite:
+                    meta_subset.to_csv(meta_fp, index=False, sep='\t')
 
     def get_params_combinations(self):
         """Make a pandas data frame from the combinations
@@ -430,45 +428,48 @@ class DiffModels(object):
                                     pr, d, fr, sb, ml, sr, ps, be, diff,
                                     float(ls[-1].split('<')[0])
                                 ])
-        self.q2s_pd = pd.DataFrame(q2s, columns=[
-            'pair', 'dataset', 'filter', 'subset', 'model',
-            'songbird_filter', 'parameters', 'baseline', 'differentials',
-            'Pseudo_Q_squared'])
-        q2s_fp = '%s/songbird_q2.tsv' % songbird
-        self.q2s_pd.to_csv(q2s_fp, index=False, sep='\t')
-        print('\t\t==> Written:', q2s_fp)
+        if q2s:
+            self.q2s_pd = pd.DataFrame(q2s, columns=[
+                'pair', 'dataset', 'filter', 'subset', 'model',
+                'songbird_filter', 'parameters', 'baseline', 'differentials',
+                'Pseudo_Q_squared'])
+            q2s_fp = '%s/songbird_q2.tsv' % songbird
+            self.q2s_pd.to_csv(q2s_fp, index=False, sep='\t')
+            print('\t\t==> Written:', q2s_fp)
 
     def create_songbird_feature_metadata(self):
-        q2_pd = self.q2s_pd.loc[(self.q2s_pd.pair == 'no_pair') &
-                                (self.q2s_pd.Pseudo_Q_squared > 0)]
-        for dat, dataset_pd in q2_pd.groupby('dataset'):
-            dataset_sbs = []
-            for r, row in dataset_pd.iterrows():
-                pr = 'pair=%s' % row['pair']
-                fr = 'filter=%s' % row['filter']
-                sb = 'subset=%s' % row['subset']
-                ml = 'model=%s' % row['model']
-                st = 'sb_filt=%s' % row['songbird_filter']
-                ps = 'params=%s' % row['parameters']
-                be = 'baseline=%s' % row['baseline']
-                q2 = '[Q2=%s]' % row['Pseudo_Q_squared']
-                sb_pd = pd.read_csv(row['differentials'], index_col=0, sep='\t')
-                sb_pd.columns = [
-                    '%s %s: %s' % ('__'.join([dat, pr, fr, sb, ml, st, ps, be]),
-                                   q2, x) for x in sb_pd.columns]
-                dataset_sbs.append(sb_pd)
-            if len(dataset_sbs):
-                dataset_sbs_pd = pd.concat(dataset_sbs, axis=1, sort=False)
-                odir = get_analysis_folder(self.config.i_datasets_folder,
-                                           'songbird/%s' % dat)
-                fpo_tsv = '%s/differentials_%s.tsv' % (odir, dat)
-                fpo_qza = '%s/differentials_%s.qza' % (odir, dat)
-                dataset_sbs_pd = dataset_sbs_pd.reset_index()
-                dataset_sbs_pd = dataset_sbs_pd.rename(
-                    columns={dataset_sbs_pd.columns.tolist()[0]: 'Feature ID'}
-                )
-                dataset_sbs_pd.to_csv(fpo_tsv, index=True, sep='\t')
-                run_import(fpo_tsv, fpo_qza, 'FeatureData[Differential]')
+        if self.q2s_pd.shape[0]:
+            q2_pd = self.q2s_pd.loc[(self.q2s_pd.pair == 'no_pair') &
+                                    (self.q2s_pd.Pseudo_Q_squared > 0)]
+            for dat, dataset_pd in q2_pd.groupby('dataset'):
+                dataset_sbs = []
+                for r, row in dataset_pd.iterrows():
+                    pr = 'pair=%s' % row['pair']
+                    fr = 'filter=%s' % row['filter']
+                    sb = 'subset=%s' % row['subset']
+                    ml = 'model=%s' % row['model']
+                    st = 'sb_filt=%s' % row['songbird_filter']
+                    ps = 'params=%s' % row['parameters']
+                    be = 'baseline=%s' % row['baseline']
+                    q2 = '[Q2=%s]' % row['Pseudo_Q_squared']
+                    diffs = row['differentials']
+                    sb_pd = pd.read_csv(diffs, index_col=0, sep='\t')
+                    sb_pd.columns = ['%s %s: %s' % (
+                        '__'.join([dat, pr, fr, sb, ml, st, ps, be])
+                        , q2, x) for x in sb_pd.columns]
+                    dataset_sbs.append(sb_pd)
+                if len(dataset_sbs):
+                    dataset_sbs_pd = pd.concat(dataset_sbs, axis=1, sort=False)
+                    odir = get_analysis_folder(self.config.i_datasets_folder,
+                                               'songbird/%s' % dat)
+                    fpo_tsv = '%s/differentials_%s.tsv' % (odir, dat)
+                    fpo_qza = '%s/differentials_%s.qza' % (odir, dat)
+                    dataset_sbs_pd = dataset_sbs_pd.reset_index()
+                    dataset_sbs_pd = dataset_sbs_pd.rename(
+                        columns={
+                            dataset_sbs_pd.columns.tolist()[0]: 'Feature ID'})
+                    dataset_sbs_pd.to_csv(fpo_tsv, index=True, sep='\t')
+                    run_import(fpo_tsv, fpo_qza, 'FeatureData[Differential]')
 
     def get_songbird_pd(self, songbird):
         self.songbird_pd = pd.DataFrame(
