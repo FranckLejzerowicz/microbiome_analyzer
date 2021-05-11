@@ -132,7 +132,7 @@ class Datasets(object):
             data.raref_depths = depths
 
     def set_rarefaction(self, config):
-        depths_yml = read_yaml_file(config.p_raref_depths)
+        depths_yml = read_yaml_file(config.raref_depths)
         self.set_rarefaction_depths(config, depths_yml)
         self.set_rarefaction_paths(config)
 
