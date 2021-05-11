@@ -381,8 +381,7 @@ def songbird_cmd(
     if not isfile(new_qza):
         cmd += filter_feature_table(qza, new_qza, new_meta)
 
-    diff, diff_qza, stat, plot, bdiff_qza, bstat, bplot, tens, html = out_paths
-    if not isfile(diff_qza):
+    if not isfile(out_paths['diff_qza']):
         cmd += '\nqiime songbird multinomial \\\n'
         cmd += ' --i-table %s \\\n' % new_qza
         cmd += ' --m-metadata-file %s \\\n' % new_meta
@@ -398,18 +397,18 @@ def songbird_cmd(
         else:
             cmd += ' --p-training-column %s \\\n' % params['train']
         cmd += ' --p-summary-interval %s \\\n' % params['summary_interval']
-        cmd += ' --o-differentials %s \\\n' % diff_qza
-        cmd += ' --o-regression-stats %s \\\n' % stat
-        cmd += ' --o-regression-biplot %s\n' % plot
+        cmd += ' --o-differentials %s \\\n' % out_paths['diff_qza']
+        cmd += ' --o-regression-stats %s \\\n' % out_paths['stat']
+        cmd += ' --o-regression-biplot %s\n' % out_paths['plot']
 
-    if not isfile(diff):
-        cmd += run_export(diff_qza, diff, '')
+    if not isfile(out_paths['diff']):
+        cmd += run_export(out_paths['diff_qza'], out_paths['diff'], '')
 
-    stat_tsv = '%s.txt' % splitext(stat)[0]
+    stat_tsv = '%s.txt' % splitext(out_paths['stat'])[0]
     if not isfile(stat_tsv):
-        cmd += run_export(stat, stat_tsv, '')
+        cmd += run_export(out_paths['stat'], stat_tsv, '')
 
-    if len(bdiff_qza) and not isfile(bdiff_qza):
+    if len(out_paths['bdiff_qza']) and not isfile(out_paths['bdiff_qza']):
         cmd += '\nqiime songbird multinomial \\\n'
         cmd += ' --i-table %s \\\n' % new_qza
         cmd += ' --m-metadata-file %s \\\n' % new_meta
@@ -425,18 +424,18 @@ def songbird_cmd(
         else:
             cmd += ' --p-training-column %s \\\n' % params['train']
         cmd += ' --p-summary-interval %s \\\n' % params['summary_interval']
-        cmd += ' --o-differentials %s \\\n' % bdiff_qza
-        cmd += ' --o-regression-stats %s \\\n' % bstat
-        cmd += ' --o-regression-biplot %s\n' % bplot
+        cmd += ' --o-differentials %s \\\n' % out_paths['bdiff_qza']
+        cmd += ' --o-regression-stats %s \\\n' % out_paths['bstat']
+        cmd += ' --o-regression-biplot %s\n' % out_paths['bplot']
 
-    if not isfile(tens):
+    if not isfile(out_paths['tens']):
         cmd += '\n\nqiime songbird summarize-paired \\\n'
-        cmd += ' --i-regression-stats %s \\\n' % stat
-        cmd += ' --i-baseline-stats %s \\\n' % bstat
-        cmd += ' --o-visualization %s\n' % tens
+        cmd += ' --i-regression-stats %s \\\n' % out_paths['stat']
+        cmd += ' --i-baseline-stats %s \\\n' % out_paths['bstat']
+        cmd += ' --o-visualization %s\n' % out_paths['tens']
 
-    if not isdir(html):
-        cmd += run_export(tens, html, 'songbird')
+    if not isdir(out_paths['html']):
+        cmd += run_export(out_paths['tens'], out_paths['html'], 'songbird')
 
     return cmd
 
