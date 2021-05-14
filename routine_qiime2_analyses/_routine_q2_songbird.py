@@ -62,6 +62,7 @@ def run_single_songbird(odir: str, odir_base: str, qza: str, new_qza: str,
     :param force: Force the re-writing of scripts for all commands.
     """
     remove = True
+
     diffs = '%s/differentials.tsv' % odir
     diffs_qza = '%s/differentials.qza' % odir
     stats = '%s/differentials-stats.qza' % odir
@@ -199,8 +200,10 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             omic1_common_fp = row['omic1_common_fp']
             omic2_common_fp = row['omic2_common_fp']
             meta_common_fp = row['meta_common_fp']
-            songbirds.setdefault(omic1, []).append([case, filt1, omic1_common_fp, meta_common_fp, pair])
-            songbirds.setdefault(omic2, []).append([case, filt2, omic2_common_fp, meta_common_fp, pair])
+            songbirds.setdefault(omic1, []).append(
+                [case, filt1, omic1_common_fp, meta_common_fp, pair])
+            songbirds.setdefault(omic2, []).append(
+                [case, filt2, omic2_common_fp, meta_common_fp, pair])
 
     uni = 0
     all_sh_pbs = {}
@@ -212,10 +215,11 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
         for (case, filt, tsv, meta_, pair) in case_filts_tsvs_metas_pair:
             if split:
                 if pair:
-                    out_sh = '%s/run_songbird_%s_%s_%s_%s_%s%s.sh' % (job_folder2,prjct_nm, dat, case,
-                                                                      filt, pair, filt_raref)
+                    out_sh = '%s/run_songbird_%s_%s_%s_%s_%s%s.sh' % (
+                        job_folder2,prjct_nm, dat, case, filt, pair, filt_raref)
                 else:
-                    out_sh = '%s/run_songbird_%s_%s_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, case, filt, filt_raref)
+                    out_sh = '%s/run_songbird_%s_%s_%s_%s%s.sh' % (
+                        job_folder2, prjct_nm, dat, case, filt, filt_raref)
 
             meta_alphas = '%s_alphas_full.tsv' % splitext(meta_)[0]
             if isfile(meta_alphas):
@@ -227,8 +231,10 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                 else:
                     meta = meta_
                     if not first_print:
-                        print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
-                              '\t(if you have alpha diversity as a factors in the models)!')
+                        print('\nWarning: Make sure you first run alpha -> '
+                              'alpha merge -> alpha export\n'
+                              '\t(if you have alpha diversity as a factors '
+                              'in the models)!')
                         first_print += 1
             if pair:
                 dat_pair = '%s_%s' % (dat, pair)
@@ -244,7 +250,8 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             meta_pd.columns = [x.lower() for x in meta_pd.columns]
 
             if dat in songbird_models:
-                    models = check_metadata_models(meta, meta_pd, songbird_models[dat])
+                    models = check_metadata_models(
+                        meta, meta_pd, songbird_models[dat])
             else:
                 continue
             # print("models")
@@ -252,9 +259,9 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
             #####################################################################
             # snakemake here: config to organise the inputs/depedencies (joblib)
             #####################################################################
-            for idx, it in enumerate(itertools.product(batches, learns, epochs, diff_priors,
-                                                       thresh_feats, thresh_samples, trains,
-                                                       summary_intervals)):
+            for idx, it in enumerate(itertools.product(
+                    batches, learns, epochs, diff_priors, thresh_feats,
+                    thresh_samples, trains, summary_intervals)):
                 batch, learn, epoch, diff_prior, thresh_feat, thresh_sample, train, summary_interval = [
                     str(x) for x in it
                 ]
@@ -341,12 +348,14 @@ def run_songbird(p_diff_models: str, i_datasets_folder: str, datasets: dict,
                         all_sh_pbs.setdefault((dat, out_sh), []).append(cur_sh)
                         diffs, tensor_html = run_single_songbird(
                             odir, odir_base, qza, new_qza, new_meta, cur_sh,
-                            force, batch, learn, epoch, diff_prior, thresh_feat, thresh_sample,
-                            formula, train_column, summary_interval, metadatas,
-                            baselines, model_baseline, baseline_formula
+                            force, batch, learn, epoch, diff_prior, thresh_feat,
+                            thresh_sample, formula, train_column,
+                            summary_interval, metadatas, baselines,
+                            model_baseline, baseline_formula
                         )
-                        songbird_outputs.append([dat, filt, '%s_%s' % (params.replace('/', '__'), model), case,
-                                                 diffs, model_baseline, tensor_html, pair])
+                        songbird_outputs.append([dat, filt, '%s_%s' % (
+                            params.replace('/', '__'), model), case,
+                            diffs, model_baseline, tensor_html, pair])
 
     job_folder = get_job_folder(i_datasets_folder, 'songbird')
     main_sh = write_main_sh(job_folder, '2_songbird_%s%s' % (prjct_nm, filt_raref), all_sh_pbs,

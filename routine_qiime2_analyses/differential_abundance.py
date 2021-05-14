@@ -46,7 +46,8 @@ class DiffModels(object):
             self.models_issues = {}
             self.songbird_datasets = songbird_dicts[4]
             self.songbird_subsets = songbird_dicts[5]
-            self.songbirds = pd.DataFrame()
+            self.songbirds = pd.DataFrame(columns=[
+                'dataset', 'is_mb', 'filter', 'prevalence', 'abundance'])
             self.params_list = [
                 'train', 'batches', 'learns', 'epochs', 'diff_priors',
                 'thresh_feats', 'thresh_samples', 'summary_interval']
@@ -54,18 +55,17 @@ class DiffModels(object):
         self.songbird_pd = pd.DataFrame()
 
     def merge_subsets_apply(self):
-        if self.songbirds.shape[0]:
-            subsets_fp = [
-                [dataset, var, subset, get_case(subset, var), '']
-                for var, subsets in self.songbird_subsets.items()
-                for subset in subsets
-                for dataset in self.songbirds.dataset.unique()]
-            if subsets_fp:
-                subsets = pd.DataFrame(
-                    subsets_fp, columns=['dataset', 'variable', 'factors',
-                                         'subset', 'pair'])
-                self.songbirds = self.songbirds.merge(
-                    subsets, on=['dataset'], how='outer')
+        subsets_fp = [
+            [dataset, var, subset, get_case(subset, var), '']
+            for var, subsets in self.songbird_subsets.items()
+            for subset in subsets
+            for dataset in self.songbirds.dataset.unique()]
+        if subsets_fp:
+            subsets = pd.DataFrame(
+                subsets_fp, columns=['dataset', 'variable', 'factors',
+                                     'subset', 'pair'])
+            self.songbirds = self.songbirds.merge(
+                subsets, on=['dataset'], how='outer')
 
     def get_songbirds_filts(self, project):
         filts_df = []
@@ -372,11 +372,7 @@ class DiffModels(object):
         return datdir, odir, new_qza, new_meta
 
     @staticmethod
-    def get_out_paths(odir, bodir, model_baseline, baselines) -> tuple:
-        diff = '%s/differentials.tsv' % odir
-        diff_qza = '%s/differentials.qza' % odir
-        stat = '%s/differentials-stats.qza' % odir
-        plot = '%s/differentials-biplot.qza' % odir
+    def get_out_paths(odir, bodir, model_baseline, baselines) -> dict:
         if model_baseline in baselines:
             bdiff_qza = ''
             bstat = baselines[model_baseline]
@@ -386,9 +382,18 @@ class DiffModels(object):
             bstat = '%s/differentials-stats-baseline.qza' % bodir
             bplot = '%s/differentials-biplot-baseline.qza' % bodir
             baselines[model_baseline] = bstat
-        tens = '%s/tensorboard.qzv' % bodir
-        html = '%s/tensorboard.html' % bodir
-        return diff, diff_qza, stat, plot, bdiff_qza, bstat, bplot, tens, html
+        out_paths = {
+            'diff': '%s/differentials.tsv' % odir,
+            'diff_qza': '%s/differentials.qza' % odir,
+            'stat': '%s/differentials-stats.qza' % odir,
+            'plot': '%s/differentials-biplot.qza' % odir,
+            'tens': '%s/tensorboard.qzv' % bodir,
+            'html': '%s/tensorboard.html' % bodir,
+            'bdiff_qza': bdiff_qza,
+            'bstat': bstat,
+            'bplot': bplot
+        }
+        return out_paths
 
     @staticmethod
     def write_new_meta(meta_pd, new_meta, meta_vars, drop, params):
@@ -599,6 +604,8 @@ class DiffModels(object):
         mess = set()
         songbird = []
         params_pd = self.get_params_combinations()
+        print(self.songbirds.columns)
+        print(songbirdsfdsa)
         for r, row in self.songbirds.iterrows():
             qza, pair, meta_fp = row['qza'], row['pair'], row['meta']
             dat, filt, subset = row['dataset'], row['filter'], row['subset']
@@ -634,13 +641,14 @@ class DiffModels(object):
                             'songbird/%s/b-%s' % (datdir, model_baseline))
                         out_paths = self.get_out_paths(
                             odir, bodir, model_baseline, baselines)
+                        print(out_paths)
                         cmd = songbird_cmd(qza, new_qza, new_meta, params,
                                            formula, bformula, out_paths)
                         songbird.append([
                             dat, filt, '%s_%s' % (
                                 params_dir.replace('/', '__'), model),
-                            subset, out_paths[0], model_baseline, out_paths[-1],
-                            pair])
+                            subset, out_paths['diff'], model_baseline,
+                            out_paths['html'], pair])
                         cmds.setdefault(dat, []).append(cmd)
         if songbird:
             self.get_songbird_pd(songbird)

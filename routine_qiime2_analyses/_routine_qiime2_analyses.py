@@ -717,6 +717,8 @@ def routine_qiime2_analyses(
 
     songbird_outputs = []
     differentials = DiffModels(config, project)
+    print(differentials.songbirds)
+    print(differentialsfd)
     if p_diff_models:
         if filt3d:
             filts.update(get_filt3d_params(p_diff_models, 'songbird'))
@@ -728,10 +730,6 @@ def routine_qiime2_analyses(
             #     mmvec_outputs, force, prjct_nm, qiime_env, p_chmod, noloc,
             #     split, run_params['songbird'], filt_raref, jobs, chunkit)
             differentials.prep_songbirds(paired_datasets.mmvec_pd, project)
-            # print("differentials.songbirds")
-            # print(differentials.songbirds)
-            # print("differentials.songbirds.values")
-            # print(differentials.songbirds.values)
             differentials.make_train_test()
             differentials.songbird()
             # q2s_pd = summarize_songbirds(config.i_datasets_folder)
