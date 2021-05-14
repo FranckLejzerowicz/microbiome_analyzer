@@ -604,8 +604,6 @@ class DiffModels(object):
         mess = set()
         songbird = []
         params_pd = self.get_params_combinations()
-        print(self.songbirds.columns)
-        print(songbirdsfdsa)
         for r, row in self.songbirds.iterrows():
             qza, pair, meta_fp = row['qza'], row['pair'], row['meta']
             dat, filt, subset = row['dataset'], row['filter'], row['subset']
