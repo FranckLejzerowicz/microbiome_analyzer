@@ -717,8 +717,6 @@ def routine_qiime2_analyses(
 
     songbird_outputs = []
     differentials = DiffModels(config, project)
-    print(differentials.songbirds)
-    print(differentialsfd)
     if p_diff_models:
         if filt3d:
             filts.update(get_filt3d_params(p_diff_models, 'songbird'))
