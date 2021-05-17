@@ -40,8 +40,8 @@ class PairedData(object):
             self.subsets = paired_config[3]
             self.mmvecs = pd.DataFrame()
             self.params_list = [
-                'train_column', 'n_examples', 'batches', 'learns',
-                'epochs', 'priors', 'thresh_feats', 'latent_dims']
+                'train_column', 'n_examples', 'batches', 'learns', 'epochs',
+                'priors', 'thresh_feats', 'latent_dims', 'summary_interval']
             self.get_mmvec_matrix(project)
             if self.mmvecs.shape[0]:
                 self.datasets_paths = self.make_datasets_paths(project)
@@ -403,7 +403,7 @@ class PairedData(object):
         -------
 
         """
-        res_dir = 'b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_gpu-%s' % (
+        res_dir = 'b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_s-%s_gpu-%s' % (
             params['batches'],
             params['learns'],
             params['epochs'],
@@ -412,6 +412,7 @@ class PairedData(object):
             params['latent_dims'],
             params['train_column'],
             params['n_examples'],
+            params['summary_interval'],
             str(self.config.gpu)[0]
         )
         return res_dir
@@ -497,8 +498,8 @@ class PairedData(object):
                         params['learns'], params['epochs'], params['priors'],
                         params['thresh_feats'], params['latent_dims'],
                         params['train_column'], params['n_examples'],
-                        self.config.gpu, self.config.standalone,
-                        self.config.qiime_env)
+                        params['summary_interval'], self.config.gpu,
+                        self.config.standalone, self.config.qiime_env)
                     cmds.setdefault(row['pair'], []).append(cmd)
         if mmvec:
             self.get_mmvec_pd(mmvec)

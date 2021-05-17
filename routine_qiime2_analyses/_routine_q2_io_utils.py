@@ -322,7 +322,8 @@ def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
         'epochs': ['5000'],
         'priors': ['0.1', '1'],
         'thresh_feats': ['0'],
-        'latent_dims': ['3']
+        'latent_dims': ['3'],
+        'summary_interval': ['10']
     }
     if 'params' not in mmvec_dict:
         print('No parameters set in %s:\nUsing defaults: %s' % (

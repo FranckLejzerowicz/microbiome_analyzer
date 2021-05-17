@@ -156,8 +156,8 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
                     ordination_tsv: str, stats: str, ranks_null_tsv: str,
                     ordination_null_tsv: str, stats_null: str, summary: str,
                     batch: str, learn: str, epoch: str, prior: str,
-                    thresh_feat: str, latent_dim: str,
-                    train_column: str, n_example: str, gpu: bool,
+                    thresh_feat: str, latent_dim: str, train_column: str,
+                    n_example: str, summary_interval: str, gpu: bool,
                     standalone: bool, qiime_env: str) -> str:
     """
     Performs bi-loglinear multinomial regression and calculates the
@@ -201,8 +201,8 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
         cmd += '--learning-rate %s \\\n' % learn
         cmd += '--beta1 0.85 \\\n'
         cmd += '--beta2 0.90 \\\n'
-        cmd += '--checkpoint-interval 30 \\\n'
-        cmd += '--summary-interval 30 \\\n'
+        cmd += '--checkpoint-interval %s \\\n' % summary_interval
+        cmd += '--summary-interval %s \\\n' % summary_interval
         cmd += '--summary-dir %s \\\n' % res_dir
         cmd += '--ranks-file %s\n' % ranks_tsv
     else:
@@ -227,7 +227,7 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
             cmd_mmvec += '--p-latent-dim %s \\\n' % latent_dim
             cmd_mmvec += '--p-input-prior %s \\\n' % prior
             cmd_mmvec += '--p-learning-rate %s \\\n' % learn
-            cmd_mmvec += '--p-summary-interval 30 \\\n'
+            cmd_mmvec += '--p-summary-interval %s \\\n' % summary_interval
             if 'qiime2-2020' in qiime_env:
                 cmd_mmvec += '--p-equalize-biplot \\\n'
             cmd_mmvec += '--o-conditionals %s \\\n' % ranks_qza
