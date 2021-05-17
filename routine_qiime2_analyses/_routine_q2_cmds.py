@@ -436,7 +436,7 @@ def songbird_cmd(
         cmd += ' --i-baseline-stats %s \\\n' % out_paths['bstat']
         cmd += ' --o-visualization %s\n' % out_paths['tens']
 
-    if not isdir(out_paths['html']):
+    if not isfile(out_paths['html']):
         cmd += run_export(out_paths['tens'], out_paths['html'], 'songbird')
 
     return cmd
