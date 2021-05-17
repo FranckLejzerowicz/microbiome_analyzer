@@ -320,7 +320,8 @@ def get_mmvec_params(p_mmvec_pairs: str, mmvec_dict: dict) -> dict:
         'batches': ['2'],
         'learns': ['1e-4'],
         'epochs': ['5000'],
-        'priors': ['0.1', '1'],
+        'input_prior': ['0.8'],
+        'output_prior': ['0.8'],
         'thresh_feats': ['0'],
         'latent_dims': ['3'],
         'summary_interval': ['10']

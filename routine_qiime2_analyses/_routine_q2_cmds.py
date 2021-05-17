@@ -155,10 +155,10 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
                     model_odir: str, null_odir: str, ranks_tsv: str,
                     ordination_tsv: str, stats: str, ranks_null_tsv: str,
                     ordination_null_tsv: str, stats_null: str, summary: str,
-                    batch: str, learn: str, epoch: str, prior: str,
-                    thresh_feat: str, latent_dim: str, train_column: str,
-                    n_example: str, summary_interval: str, gpu: bool,
-                    standalone: bool, qiime_env: str) -> str:
+                    batch: str, learn: str, epoch: str, input_prior: str,
+                    output_prior: str, thresh_feat: str, latent_dim: str,
+                    train_column: str, n_example: str, summary_interval: str,
+                    gpu: bool, standalone: bool, qiime_env: str) -> str:
     """
     Performs bi-loglinear multinomial regression and calculates the
     conditional probability ranks of metabolite co-occurence given the microbe
@@ -197,7 +197,8 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
         cmd += '--epochs %s \\\n' % epoch
         cmd += '--batch-size %s \\\n' % batch
         cmd += '--latent-dim %s \\\n' % latent_dim
-        cmd += '--input-prior %s \\\n' % prior
+        cmd += '--input-prior %s \\\n' % input_prior
+        cmd += '--output-prior %s \\\n' % output_prior
         cmd += '--learning-rate %s \\\n' % learn
         cmd += '--beta1 0.85 \\\n'
         cmd += '--beta2 0.90 \\\n'
@@ -225,7 +226,8 @@ def write_mmvec_cmd(meta_fp: str, qza1: str, qza2: str, res_dir: str,
             cmd_mmvec += '--p-epochs %s \\\n' % epoch
             cmd_mmvec += '--p-batch-size %s \\\n' % batch
             cmd_mmvec += '--p-latent-dim %s \\\n' % latent_dim
-            cmd_mmvec += '--p-input-prior %s \\\n' % prior
+            cmd_mmvec += '--p-input-prior %s \\\n' % input_prior
+            cmd_mmvec += '--p-output-prior %s \\\n' % output_prior
             cmd_mmvec += '--p-learning-rate %s \\\n' % learn
             cmd_mmvec += '--p-summary-interval %s \\\n' % summary_interval
             if 'qiime2-2020' in qiime_env:

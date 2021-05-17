@@ -41,7 +41,8 @@ class PairedData(object):
             self.mmvecs = pd.DataFrame()
             self.params_list = [
                 'train_column', 'n_examples', 'batches', 'learns', 'epochs',
-                'priors', 'thresh_feats', 'latent_dims', 'summary_interval']
+                'input_prior', 'output_prior', 'thresh_feats', 'latent_dims',
+                'summary_interval']
             self.get_mmvec_matrix(project)
             if self.mmvecs.shape[0]:
                 self.datasets_paths = self.make_datasets_paths(project)
@@ -403,11 +404,12 @@ class PairedData(object):
         -------
 
         """
-        res_dir = 'b-%s_l-%s_e-%s_p-%s_f-%s_d-%s_t-%s_n-%s_s-%s_gpu-%s' % (
+        res_dir = 'b%s_l%s_e%s_ip%s_op%s_f%s_d%s_t%s_n%s_s%s_gpu-%s' % (
             params['batches'],
             params['learns'],
             params['epochs'],
-            params['priors'],
+            params['input_prior'],
+            params['output_prior'],
             params['thresh_feats'],
             params['latent_dims'],
             params['train_column'],
@@ -495,7 +497,8 @@ class PairedData(object):
                         row['meta_fp'], row['new_qza1'], row['new_qza2'],
                         res_dir, mod_dir, nul_dir, mod_rnk, mod_rdn, mod_stt,
                         nul_rnk, nul_rdn, nul_stt, summary, params['batches'],
-                        params['learns'], params['epochs'], params['priors'],
+                        params['learns'], params['epochs'],
+                        params['input_prior'], params['output_prior'],
                         params['thresh_feats'], params['latent_dims'],
                         params['train_column'], params['n_examples'],
                         params['summary_interval'], self.config.gpu,
