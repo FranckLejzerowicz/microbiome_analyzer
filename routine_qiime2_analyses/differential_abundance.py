@@ -639,7 +639,6 @@ class DiffModels(object):
                             'songbird/%s/b-%s' % (datdir, model_baseline))
                         out_paths = self.get_out_paths(
                             odir, bodir, model_baseline, baselines)
-                        print(out_paths)
                         cmd = songbird_cmd(qza, new_qza, new_meta, params,
                                            formula, bformula, out_paths)
                         songbird.append([
