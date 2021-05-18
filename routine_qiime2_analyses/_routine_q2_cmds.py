@@ -377,7 +377,7 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
 
 
 def songbird_cmd(
-        qza, new_qza, new_meta, params, formula, bformula, out_paths) -> str:
+        qza, new_qza, new_meta, params, formula, bformula, out_paths) -> tuple:
 
     cmd = ''
     if not isfile(new_qza):
@@ -410,28 +410,30 @@ def songbird_cmd(
     if not isfile(stat_tsv):
         cmd += run_export(out_paths['stat'], stat_tsv, '')
 
+    bcmd = ''
     if len(out_paths['bdiff_qza']) and not isfile(out_paths['bstat']):
-        cmd += '\nqiime songbird multinomial \\\n'
-        cmd += ' --i-table %s \\\n' % new_qza
-        cmd += ' --m-metadata-file %s \\\n' % new_meta
-        cmd += ' --p-formula "%s" \\\n' % bformula
-        cmd += ' --p-epochs %s \\\n' % params['epochs']
-        cmd += ' --p-batch-size %s \\\n' % params['batches']
-        cmd += ' --p-differential-prior %s \\\n' % params['diff_priors']
-        cmd += ' --p-learning-rate %s \\\n' % params['learns']
-        cmd += ' --p-min-sample-count %s \\\n' % params['thresh_samples']
-        cmd += ' --p-min-feature-count %s \\\n' % params['thresh_feats']
+        bcmd += '\nqiime songbird multinomial \\\n'
+        bcmd += ' --i-table %s \\\n' % new_qza
+        bcmd += ' --m-metadata-file %s \\\n' % new_meta
+        bcmd += ' --p-formula "%s" \\\n' % bformula
+        bcmd += ' --p-epochs %s \\\n' % params['epochs']
+        bcmd += ' --p-batch-size %s \\\n' % params['batches']
+        bcmd += ' --p-differential-prior %s \\\n' % params['diff_priors']
+        bcmd += ' --p-learning-rate %s \\\n' % params['learns']
+        bcmd += ' --p-min-sample-count %s \\\n' % params['thresh_samples']
+        bcmd += ' --p-min-feature-count %s \\\n' % params['thresh_feats']
         if 'examples' in params:
-            cmd += ' --p-num-random-test-examples %s \\\n' % params['examples']
+            bcmd += ' --p-num-random-test-examples %s \\\n' % params['examples']
         else:
-            cmd += ' --p-training-column %s \\\n' % params['train']
-        cmd += ' --p-summary-interval %s \\\n' % params['summary_interval']
-        cmd += ' --o-differentials %s \\\n' % out_paths['bdiff_qza']
-        cmd += ' --o-regression-stats %s \\\n' % out_paths['bstat']
-        cmd += ' --o-regression-biplot %s\n' % out_paths['bplot']
+            bcmd += ' --p-training-column %s \\\n' % params['train']
+        bcmd += ' --p-summary-interval %s \\\n' % params['summary_interval']
+        bcmd += ' --o-differentials %s \\\n' % out_paths['bdiff_qza']
+        bcmd += ' --o-regression-stats %s \\\n' % out_paths['bstat']
+        bcmd += ' --o-regression-biplot %s\n' % out_paths['bplot']
 
     if not isfile(out_paths['tens']):
-        cmd += '\n\nqiime songbird summarize-paired \\\n'
+        cmd += '\n"while [ ! -f %s]; do sleep 10; done"\n' % out_paths['bstat']
+        cmd += '\nqiime songbird summarize-paired \\\n'
         cmd += ' --i-regression-stats %s \\\n' % out_paths['stat']
         cmd += ' --i-baseline-stats %s \\\n' % out_paths['bstat']
         cmd += ' --o-visualization %s\n' % out_paths['tens']
@@ -439,7 +441,7 @@ def songbird_cmd(
     if not isfile(out_paths['html']):
         cmd += run_export(out_paths['tens'], out_paths['html'], 'songbird')
 
-    return cmd
+    return cmd, bcmd
 
 
 def write_phate_cmd(qza: str, new_qza: str, new_tsv: str,

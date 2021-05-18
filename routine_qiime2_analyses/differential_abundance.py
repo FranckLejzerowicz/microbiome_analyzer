@@ -603,6 +603,7 @@ class DiffModels(object):
         cmds = {}
         mess = set()
         songbird = []
+        dat_cmds, dat_bcmds = {}, {}
         params_pd = self.get_params_combinations()
         for r, row in self.songbirds.iterrows():
             qza, pair, meta_fp = row['qza'], row['pair'], row['meta']
@@ -639,14 +640,23 @@ class DiffModels(object):
                             'songbird/%s/b-%s' % (datdir, model_baseline))
                         out_paths = self.get_out_paths(
                             odir, bodir, model_baseline, baselines)
-                        cmd = songbird_cmd(qza, new_qza, new_meta, params,
-                                           formula, bformula, out_paths)
+                        cmd, bcmd = songbird_cmd(
+                            qza, new_qza, new_meta, params, formula,
+                            bformula, out_paths)
                         songbird.append([
                             dat, filt, '%s_%s' % (
                                 params_dir.replace('/', '__'), model),
                             subset, out_paths['diff'], model_baseline,
                             out_paths['html'], pair])
-                        cmds.setdefault(dat, []).append(cmd)
+                        dat_cmds.setdefault(dat, []).append(cmd)
+                        dat_bcmds.setdefault(dat, []).append(bcmd)
+
+        for dat in dat_cmds:
+            if dat_cmds[dat]:
+                cmds.setdefault(dat, []).extend(dat_cmds[dat])
+            if dat_bcmds[dat]:
+                cmds.setdefault(dat, []).extend(dat_bcmds[dat])
+
         if songbird:
             self.get_songbird_pd(songbird)
 
