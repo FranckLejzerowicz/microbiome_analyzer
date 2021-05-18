@@ -410,7 +410,7 @@ def songbird_cmd(
     if not isfile(stat_tsv):
         cmd += run_export(out_paths['stat'], stat_tsv, '')
 
-    if not isfile(out_paths['bstat']):
+    if len(out_paths['bdiff_qza']) and not isfile(out_paths['bstat']):
         cmd += '\nqiime songbird multinomial \\\n'
         cmd += ' --i-table %s \\\n' % new_qza
         cmd += ' --m-metadata-file %s \\\n' % new_meta
