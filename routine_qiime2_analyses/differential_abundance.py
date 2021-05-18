@@ -611,10 +611,8 @@ class DiffModels(object):
             if dat not in self.songbird_models:
                 continue
             dat_pair, pair_dir = self.get_dat_pair_dir(dat, pair)
-            # meta_fp = project.datasets[dat].meta[0]
-            # meta_pd = project.datasets[dat].metadata[0]
             meta_pd = read_meta_pd(meta_fp)
-            ### MAKE SURE TO SKIP "IMPOSSIBLE" RUN
+            # MAKE SURE TO SKIP "IMPOSSIBLE" RUN
             # e.g subset "sex == male"
             #     testing "C(Sex, Treatment('female'))"
             self.check_metadata_models(
@@ -650,10 +648,11 @@ class DiffModels(object):
                             out_paths['html'], pair])
                         dat_cmds.setdefault(dat, []).append(cmd)
                         dat_bcmds.setdefault(dat, []).append(bcmd)
-
         for dat in dat_cmds:
+            # first come the scripts generating (reused) baselines  models
             if dat_cmds[dat]:
                 cmds.setdefault(dat, []).extend(dat_cmds[dat])
+            # and then the scripts generating the actual models
             if dat_bcmds[dat]:
                 cmds.setdefault(dat, []).extend(dat_bcmds[dat])
 

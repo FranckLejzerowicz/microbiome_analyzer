@@ -432,7 +432,7 @@ def songbird_cmd(
         bcmd += ' --o-regression-biplot %s\n' % out_paths['bplot']
 
     if not isfile(out_paths['tens']):
-        cmd += '\n"while [ ! -f %s]; do sleep 10; done"\n' % out_paths['bstat']
+        cmd += '\nwhile [ ! -f %s ]; do sleep 10; done"\n' % out_paths['bstat']
         cmd += '\nqiime songbird summarize-paired \\\n'
         cmd += ' --i-regression-stats %s \\\n' % out_paths['stat']
         cmd += ' --i-baseline-stats %s \\\n' % out_paths['bstat']
