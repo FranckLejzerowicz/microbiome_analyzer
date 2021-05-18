@@ -52,7 +52,8 @@ class CreateScripts(object):
                 for pbs_line in pbs_lines:
                     pbs.write(pbs_line.replace(os.getcwd(), ''))
 
-    def run_xpbs(self, sh, pbs, nlss, params, dat, single=False, main_o=None):
+    def run_xpbs(self, sh, pbs, nlss, params, dat,
+                 idx='None', single=False, main_o=None):
         if os.getcwd().startswith('/panfs'):
             sh_lines = open(sh).readlines()
             with open(sh, 'w') as o:
@@ -62,6 +63,8 @@ class CreateScripts(object):
                     o.write(sh_line.replace(os.getcwd(), ''))
 
         job = '%s.%s.%s%s' % (self.prjct_nm, nlss, dat, self.filt_raref)
+        if idx != 'None':
+            job = '%s_%s' % (job, idx)
         if self.config.jobs:
             self.xpbs_call(sh, pbs, job, params)
 
@@ -85,19 +88,19 @@ class CreateScripts(object):
             array_split = np.array_split(to_chunk, self.config.chunkit)
             for idx, keys in enumerate(array_split):
                 head_sh = '%s_chunk%s.sh' % (job_folder, idx)
-                chunks[head_sh] = sorted(keys)
+                chunks[(head_sh, idx)] = sorted(keys)
         else:
-            chunks = dict(('%s_chunk%s.sh' % (job_folder, idx), [x])
+            chunks = dict((('%s_chunk%s.sh' % (job_folder, idx), idx), [x])
                           for idx, x in enumerate(to_chunk))
 
-        for sh, commands in chunks.items():
+        for (sh, idx), commands in chunks.items():
             with open(sh, 'w') as o:
                 for command in commands:
                     o.write(command)
 
             pbs = '%s.pbs' % splitext(sh)[0]
             if self.config.jobs:
-                self.run_xpbs(sh, pbs, nlss, params, 'chnk')
+                self.run_xpbs(sh, pbs, nlss, params, 'chnk', str(idx))
                 if os.getcwd().startswith('/panfs'):
                     pbs = pbs.replace(os.getcwd(), '')
                 main_o.write('qsub %s\n' % pbs)
@@ -128,11 +131,12 @@ class CreateScripts(object):
                 if not self.config.chunkit:
                     for sh, dats_commands in shs.items():
                         with open(sh, 'w') as o:
-                            for dat, command in dats_commands:
-                                o.write('echo "%s"\n' % command.replace('"', ''))
-                                o.write('%s\n' % command)
+                            for dat, cmd in dats_commands:
+                                o.write('echo "%s"\n' % cmd.replace('"', ''))
+                                o.write('%s\n' % cmd)
                         pbs = '%s.pbs' % splitext(sh)[0]
-                        self.run_xpbs(sh, pbs, nlss, params, dat, True, main_o)
+                        self.run_xpbs(sh, pbs, nlss, params,
+                                      dat, 'None', True, main_o)
                 else:
                     job_folder = self.jobs_folders[analysis][1]
                     to_chunk = self.to_chunk[analysis]
