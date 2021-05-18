@@ -84,28 +84,42 @@ class CreateScripts(object):
 
     def do_chunks(self, job_folder, to_chunk, nlss, params, main_o):
         chunks = {}
+
+        print()
+        print()
+        print()
+        print()
+        print()
+        print(len(to_chunk))
+        print(self.config.chunkit)
+        print()
+        print("to_chunk")
+        print(to_chunk)
+
         if len(to_chunk) > self.config.chunkit:
+            print("A")
             array_split = np.array_split(to_chunk, self.config.chunkit)
             for idx, keys in enumerate(array_split):
                 head_sh = '%s_chunk%s.sh' % (job_folder, idx)
                 chunks[(head_sh, idx)] = sorted(keys)
         else:
+            print("B")
             chunks = dict((('%s_chunk%s.sh' % (job_folder, idx), idx), [x])
                           for idx, x in enumerate(to_chunk))
 
         for (sh, idx), commands in chunks.items():
-            with open(sh, 'w') as o:
-                for command in commands:
-                    o.write(command)
-
-            pbs = '%s.pbs' % splitext(sh)[0]
-            if self.config.jobs:
-                self.run_xpbs(sh, pbs, nlss, params, 'chnk', str(idx))
-                if os.getcwd().startswith('/panfs'):
-                    pbs = pbs.replace(os.getcwd(), '')
-                main_o.write('qsub %s\n' % pbs)
-            else:
-                main_o.write('sh %s\n' % sh)
+            if commands:
+                with open(sh, 'w') as o:
+                    for command in commands:
+                        o.write(command)
+                pbs = '%s.pbs' % splitext(sh)[0]
+                if self.config.jobs:
+                    self.run_xpbs(sh, pbs, nlss, params, 'chnk', str(idx))
+                    if os.getcwd().startswith('/panfs'):
+                        pbs = pbs.replace(os.getcwd(), '')
+                    main_o.write('qsub %s\n' % pbs)
+                else:
+                    main_o.write('sh %s\n' % sh)
 
     def print_message(self, message, sh_pbs, to_run):
         if message:
