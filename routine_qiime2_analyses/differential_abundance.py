@@ -650,11 +650,11 @@ class DiffModels(object):
                         dat_bcmds.setdefault(dat, []).append(bcmd)
         for dat in dat_cmds:
             # first come the scripts generating (reused) baselines  models
-            if dat_cmds[dat]:
-                cmds.setdefault(dat, []).extend(dat_cmds[dat])
-            # and then the scripts generating the actual models
             if dat_bcmds[dat]:
                 cmds.setdefault(dat, []).extend(dat_bcmds[dat])
+            # and then the scripts generating the actual models
+            if dat_cmds[dat]:
+                cmds.setdefault(dat, []).extend(dat_cmds[dat])
 
         if songbird:
             self.get_songbird_pd(songbird)
