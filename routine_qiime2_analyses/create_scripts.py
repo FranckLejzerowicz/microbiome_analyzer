@@ -84,26 +84,12 @@ class CreateScripts(object):
 
     def do_chunks(self, job_folder, to_chunk, nlss, params, main_o):
         chunks = {}
-
-        print()
-        print()
-        print()
-        print()
-        print()
-        print(len(to_chunk))
-        print(self.config.chunkit)
-        print()
-        print("to_chunk")
-        print(to_chunk)
-
         if len(to_chunk) > self.config.chunkit:
-            print("A")
             array_split = np.array_split(to_chunk, self.config.chunkit)
             for idx, keys in enumerate(array_split):
                 head_sh = '%s_chunk%s.sh' % (job_folder, idx)
                 chunks[(head_sh, idx)] = sorted(keys)
         else:
-            print("B")
             chunks = dict((('%s_chunk%s.sh' % (job_folder, idx), idx), [x])
                           for idx, x in enumerate(to_chunk))
 
