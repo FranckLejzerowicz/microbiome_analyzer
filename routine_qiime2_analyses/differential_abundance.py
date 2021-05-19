@@ -646,8 +646,11 @@ class DiffModels(object):
                                 params_dir.replace('/', '__'), model),
                             subset, out_paths['diff'], model_baseline,
                             out_paths['html'], pair])
-                        dat_cmds.setdefault(dat, []).append(cmd)
-                        dat_bcmds.setdefault(dat, []).append(bcmd)
+                        if cmd:
+                            dat_cmds.setdefault(dat, []).append(cmd)
+                        if bcmd:
+                            dat_bcmds.setdefault(dat, []).append(bcmd)
+
         for dat in dat_cmds:
             # first come the scripts generating (reused) baselines  models
             if dat_bcmds[dat]:
