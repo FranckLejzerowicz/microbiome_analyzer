@@ -651,10 +651,11 @@ class DiffModels(object):
                         if bcmd:
                             dat_bcmds.setdefault(dat, []).append(bcmd)
 
-        for dat in dat_cmds:
+        for dat in dat_bcmds:
             # first come the scripts generating (reused) baselines  models
             if dat_bcmds[dat]:
                 cmds.setdefault(dat, []).extend(dat_bcmds[dat])
+        for dat in dat_cmds:
             # and then the scripts generating the actual models
             if dat_cmds[dat]:
                 cmds.setdefault(dat, []).extend(dat_cmds[dat])
