@@ -250,8 +250,6 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
     if dms_tab_pd.shape[0]:
         fp_num = 0
         if len(out_Rs):
-            print("out_Rs")
-            print(out_Rs)
             last = sorted(out_Rs, key=lambda fp: int(fp.split('.tsv')[0].split('_')[-1]))
             fp_num = int(last[-1].split('.tsv')[0].split('_')[-1]) + 1
 
