@@ -135,7 +135,7 @@ def run_phate(p_phate_config: str, i_datasets_folder: str, datasets: dict,
                             '%s.pht%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            'xphate', chmod, noloc, jobs)
+                            'xphate', chmod, noloc, jobs, chunkit)
     if main_sh:
         if p_phate_config:
             if p_phate_config.startswith('/panfs'):
