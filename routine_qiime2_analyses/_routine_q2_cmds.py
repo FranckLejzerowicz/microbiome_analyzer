@@ -473,6 +473,7 @@ def write_phate_cmd(qza: str, new_qza: str, new_tsv: str,
     cmd += '-fp %s \\\n' % fp
     cmd += '-fa %s \\\n' % fa
     cmd += '--p-cpus %s \\\n' % (int(n_nodes) * int(n_procs))
+    print(phate_params)
     for k, vs in phate_params.items():
         for v in vs:
             if v:
@@ -923,7 +924,7 @@ def write_seqs_fasta(out_fp_seqs_fasta: str, out_fp_seqs_qza: str,
 
 def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
                              out_fp_sepp_tree: str, qza: str, qza_in: str,
-                             # qza_out: str
+                             qza_in_tsv: str, qza_out: str
                              ) -> str:
     """
     Perform fragment insertion of sequences using the SEPP algorithm.
@@ -961,20 +962,21 @@ def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
     """
     out_fp_sepp_plac = '%s/plac_%s' % (dirname(out_fp_sepp_tree),
                                        basename(out_fp_sepp_tree)[4:])
-    cmd = 'qiime fragment-insertion sepp \\\n'
-    cmd += '--i-representative-sequences %s \\\n' % out_fp_seqs_qza
-    cmd += '--i-reference-database %s \\\n' % ref_tree_qza
-    cmd += '--o-tree %s \\\n' % out_fp_sepp_tree
-    cmd += '--o-placements %s \\\n' % out_fp_sepp_plac
-    cmd += '--p-threads 24\n'
-    cmd += 'qiime fragment-insertion filter-features \\\n'
-    cmd += '--i-table %s \\\n' % qza
-    cmd += '--i-tree %s \\\n' % out_fp_sepp_tree
-    cmd += '--o-filtered-table %s\n' % qza_in
-    # cmd += '--o-filtered-table %s \\\n' % qza_in
-    # cmd += '--o-removed-table %s\n' % qza_out
-    qza_in_tsv = '%s.tsv' % splitext(qza_in)[0]
-    cmd += run_export(qza_in, qza_in_tsv, 'FeatureTable')
+    cmd = ''
+    if not isfile(out_fp_sepp_tree):
+        cmd += 'qiime fragment-insertion sepp \\\n'
+        cmd += '--i-representative-sequences %s \\\n' % out_fp_seqs_qza
+        cmd += '--i-reference-database %s \\\n' % ref_tree_qza
+        cmd += '--o-tree %s \\\n' % out_fp_sepp_tree
+        cmd += '--o-placements %s \\\n' % out_fp_sepp_plac
+        cmd += '--p-threads 24\n'
+    if not isfile(qza_in_tsv):
+        cmd += 'qiime fragment-insertion filter-features \\\n'
+        cmd += '--i-table %s \\\n' % qza
+        cmd += '--i-tree %s \\\n' % out_fp_sepp_tree
+        cmd += '--o-filtered-table %s \\\n' % qza_in
+        cmd += '--o-removed-table %s\n' % qza_out
+        cmd += run_export(qza_in, qza_in_tsv, 'FeatureTable')
     return cmd
 
 
