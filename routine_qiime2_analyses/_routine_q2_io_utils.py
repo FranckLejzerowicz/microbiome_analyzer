@@ -542,8 +542,8 @@ def get_phate_dicts(p_phate_config: str) -> (dict, list, dict, dict):
         phate_filtering = diff_dict['filtering']
 
     phate_params = {'t': (None,), 'decay': (15,), 'knn': (5,)}
-    if 'parameters' in diff_dict:
-        phate_params.update(diff_dict['parameters'])
+    if 'params' in diff_dict:
+        phate_params.update(diff_dict['params'])
 
     phate_labels = []
     if 'labels' in diff_dict:
