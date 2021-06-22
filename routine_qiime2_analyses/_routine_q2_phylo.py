@@ -91,6 +91,7 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
                         cur_raref = datasets_rarefs[dat][idx]
                         qza_in = '%s_inTree%s.qza' % (splitext(tsv)[0], cur_raref)
+                        qza_in_tsv = '%s.tsv' % splitext(qza_in)[0]
                         qza_out = '%s_notInTree%s.qza' % (splitext(tsv)[0], cur_raref)
 
                         odir_seqs = get_analysis_folder(i_datasets_folder, 'seqs/%s' % dat)
@@ -115,11 +116,12 @@ def run_sepp(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                             cur_sh.write('echo "%s"\n' % cmd)
                             cur_sh.write('%s\n\n' % cmd)
                             written += 1
-                        if force or not isfile(out_fp_sepp_tree):
+                            main_written += 1
+                        if force or not isfile(out_fp_sepp_tree) or not isfile(qza_in_tsv):
                             cmd = write_fragment_insertion(
                                 out_fp_seqs_qza, ref_tree_qza,
                                 out_fp_sepp_tree, qza,
-                                qza_in)
+                                qza_in, qza_in_tsv, qza_out)
                             cur_sh.write('echo "%s"\n' % cmd)
                             cur_sh.write('%s\n\n' % cmd)
                             written += 1
