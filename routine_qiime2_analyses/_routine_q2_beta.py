@@ -560,15 +560,22 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, datasets_rarefs: dict,
                     cur_depth = datasets_rarefs[dat][idx]
                     get_analysis_folder(i_datasets_folder, 'emperor/%s%s' % (dat, cur_depth))
                     for meta_, pcoa, _, __ in metas_pcoas:
-                        meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
-                        if isfile(meta_alphas):
-                            meta = meta_alphas
+                        meta_alphas_full = \
+                            '%s/metadata/meta_%s_alphas_full.tsv' % (
+                            i_datasets_folder, dat)
+                        if isfile(meta_alphas_full):
+                            print(meta_alphas_full)
+                            meta = meta_alphas_full
                         else:
-                            meta = meta_
-                            if not first_print:
-                                print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
-                                      '\t(if you want alpha diversity as a variable in the PCoA)!')
-                                first_print += 1
+                            meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
+                            if isfile(meta_alphas):
+                                meta = meta_alphas
+                            else:
+                                meta = meta_
+                                if not first_print:
+                                    print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
+                                          '\t(if you want alpha diversity as a variable in the PCoA)!')
+                                    first_print += 1
                         out_plot = '%s_emperor.qzv' % splitext(pcoa)[0].replace('/pcoa/', '/emperor/')
                         out_dir = os.path.dirname(out_plot)
                         if not os.path.isdir(out_dir):
@@ -714,15 +721,21 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                     get_analysis_folder(i_datasets_folder, 'emperor_biplot/%s%s' % (dat, cur_raref))
                     for meta_, biplots_taxs_qzas_trees in meta_biplots_taxs_qzas_trees.items():
                         biplots_taxs_qzas_trees2 = meta_biplots_taxs_qzas_trees2[meta_]
-                        meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
-                        if isfile(meta_alphas):
-                            meta = meta_alphas
+                        meta_alphas_full = \
+                            '%s/metadata/meta_%s_alphas_full.tsv' % (
+                            i_datasets_folder, dat)
+                        if isfile(meta_alphas_full):
+                            meta = meta_alphas_full
                         else:
-                            meta = meta_
-                            if not first_print:
-                                print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
-                                      '\t(if you want alpha diversity as a variable in the PCoA biplot)!')
-                                first_print += 1
+                            meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
+                            if isfile(meta_alphas):
+                                meta = meta_alphas
+                            else:
+                                meta = meta_
+                                if not first_print:
+                                    print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
+                                          '\t(if you want alpha diversity as a variable in the PCoA biplot)!')
+                                    first_print += 1
                         for bdx, (biplot, tsv_tax, _, __) in enumerate(biplots_taxs_qzas_trees):
                             biplot2, tsv_tax2 = biplots_taxs_qzas_trees2[bdx][:2]
                             out_plot = '%s_emperor_biplot.qzv' % splitext(biplot)[0].replace('/biplot/', '/emperor_biplot/')
@@ -800,15 +813,21 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
                     get_analysis_folder(i_datasets_folder, 'empress/%s%s' % (dat, cur_depth))
                     for meta_, pcoa, qza, tree in metas_pcoas_qzas_trees:
                         if tree:
-                            meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
-                            if isfile(meta_alphas):
-                                sam_meta = meta_alphas
+                            meta_alphas_full = \
+                                '%s/metadata/meta_%s_alphas_full.tsv' % (
+                                    i_datasets_folder, dat)
+                            if isfile(meta_alphas_full):
+                                meta = meta_alphas_full
                             else:
-                                sam_meta = meta_
-                                if not first_print:
-                                    print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
-                                          '\t(if you want alpha diversity as a variable in the PCoA)!')
-                                    first_print += 1
+                                meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
+                                if isfile(meta_alphas):
+                                    sam_meta = meta_alphas
+                                else:
+                                    sam_meta = meta_
+                                    if not first_print:
+                                        print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
+                                              '\t(if you want alpha diversity as a variable in the PCoA)!')
+                                        first_print += 1
                             out_plot = '%s_empress.qzv' % splitext(pcoa)[0].replace('/pcoa/', '/empress/')
                             out_dir = os.path.dirname(out_plot)
                             if not os.path.isdir(out_dir):
@@ -879,15 +898,21 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
 
                     for meta_, biplots_taxs_qzas_trees in meta_biplots_taxs_qzas_trees.items():
                         biplots_taxs_qzas_trees2 = meta_biplots_taxs_qzas_trees2[meta_]
-                        meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
-                        if isfile(meta_alphas):
-                            meta = meta_alphas
+                        meta_alphas_full = \
+                            '%s/metadata/meta_%s_alphas_full.tsv' % (
+                            i_datasets_folder, dat)
+                        if isfile(meta_alphas_full):
+                            meta = meta_alphas_full
                         else:
-                            meta = meta_
-                            if not first_print:
-                                print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
-                                      '\t(if you want alpha diversity as a variable in the PCoA biplot)!')
-                                first_print += 1
+                            meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
+                            if isfile(meta_alphas):
+                                meta = meta_alphas
+                            else:
+                                meta = meta_
+                                if not first_print:
+                                    print('\nWarning: Make sure you first run alpha -> alpha merge -> alpha export\n'
+                                          '\t(if you want alpha diversity as a variable in the PCoA biplot)!')
+                                    first_print += 1
                         for bdx, (biplot, tsv_tax, qza, tree) in enumerate(biplots_taxs_qzas_trees):
                             biplot2, tsv_tax2, qza2, tree2 = biplots_taxs_qzas_trees2[bdx]
 
