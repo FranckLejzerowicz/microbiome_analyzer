@@ -564,7 +564,6 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, datasets_rarefs: dict,
                             '%s/metadata/meta_%s_alphas_full.tsv' % (
                             i_datasets_folder, dat)
                         if isfile(meta_alphas_full):
-                            print(meta_alphas_full)
                             meta = meta_alphas_full
                         else:
                             meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
