@@ -816,7 +816,7 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
                                 '%s/metadata/meta_%s_alphas_full.tsv' % (
                                     i_datasets_folder, dat)
                             if isfile(meta_alphas_full):
-                                meta = meta_alphas_full
+                                sam_meta = meta_alphas_full
                             else:
                                 meta_alphas = '%s_alphas.tsv' % splitext(meta_)[0]
                                 if isfile(meta_alphas):
