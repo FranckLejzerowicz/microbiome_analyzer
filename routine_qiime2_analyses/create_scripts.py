@@ -17,20 +17,21 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
 
 class CreateScripts(object):
 
-    def __init__(self, config, prjct_nm, run_params, filt_raref):
+    def __init__(self, config, prjct_nm, run_params, filt_raref, slurm):
         self.config = config
         self.prjct_nm = prjct_nm
         self.run_params = run_params
         self.filt_raref = filt_raref
+        self.slurm = slurm
         self.jobs_folders = {}
         self.shs = {}
         self.to_chunk = {}
 
-    def xpbs_call(self, sh, pbs, job, params):
+    def xpbs_call(self, sh, pbs_slm, job, params):
         cmd = [
             'Xpbs',
             '-i', sh,
-            '-o', pbs,
+            '-o', pbs_slm,
             '-j', job,
             '-e', self.config.qiime_env,
             '-t', params['time'],
@@ -40,6 +41,8 @@ class CreateScripts(object):
             '-c', self.config.chmod,
             '--noq'
         ]
+        if self.slurm:
+            cmd.append('--slurm')
         # if tmp:
         #     cmd.extend(['-T', tmp])
         if not self.config.loc:
@@ -47,12 +50,12 @@ class CreateScripts(object):
         subprocess.call(cmd)
 
         if os.getcwd().startswith('/panfs'):
-            pbs_lines = open(pbs).readlines()
-            with open(pbs, 'w') as pbs:
+            pbs_lines = open(pbs_slm).readlines()
+            with open(pbs_slm, 'w') as pbs:
                 for pbs_line in pbs_lines:
                     pbs.write(pbs_line.replace(os.getcwd(), ''))
 
-    def run_xpbs(self, sh, pbs, nlss, params, dat,
+    def run_xpbs(self, sh, pbs_slm, nlss, params, dat,
                  idx='None', single=False, main_o=None):
         if os.getcwd().startswith('/panfs'):
             sh_lines = open(sh).readlines()
@@ -66,19 +69,23 @@ class CreateScripts(object):
         if idx != 'None':
             job = '%s_%s' % (job, idx)
         if self.config.jobs:
-            self.xpbs_call(sh, pbs, job, params)
+            self.xpbs_call(sh, pbs_slm, job, params)
 
         if single:
+            if self.slurm:
+                launcher = 'sbatch'
+            else:
+                launcher = 'qsub'
             if os.getcwd().startswith('/panfs'):
-                pbs = pbs.replace(os.getcwd(), '')
+                pbs_slm = pbs_slm.replace(os.getcwd(), '')
             if not main_o:
                 if self.config.jobs:
-                    print('[TO RUN] qsub', pbs)
+                    print('[TO RUN] %s' % launcher, pbs_slm)
                 else:
                     print('[TO RUN] sh', sh)
             else:
                 if self.config.jobs:
-                    main_o.write('qsub %s\n' % pbs)
+                    main_o.write('%s %s\n' % (launcher, pbs_slm))
                 else:
                     main_o.write('sh %s\n' % sh)
 
@@ -98,12 +105,17 @@ class CreateScripts(object):
                 with open(sh, 'w') as o:
                     for command in commands:
                         o.write(command)
-                pbs = '%s.pbs' % splitext(sh)[0]
+                if self.slurm:
+                    pbs_slm = '%s.slm' % splitext(sh)[0]
+                    launcher = 'sbatch'
+                else:
+                    pbs_slm = '%s.pbs' % splitext(sh)[0]
+                    launcher = 'qsub'
                 if self.config.jobs:
-                    self.run_xpbs(sh, pbs, nlss, params, 'chnk', str(idx))
+                    self.run_xpbs(sh, pbs_slm, nlss, params, 'chnk', str(idx))
                     if os.getcwd().startswith('/panfs'):
-                        pbs = pbs.replace(os.getcwd(), '')
-                    main_o.write('qsub %s\n' % pbs)
+                        pbs_slm = pbs_slm.replace(os.getcwd(), '')
+                    main_o.write('%s %s\n' % (launcher, pbs_slm))
                 else:
                     main_o.write('sh %s\n' % sh)
 
@@ -134,8 +146,11 @@ class CreateScripts(object):
                             for dat, cmd in dats_commands:
                                 o.write('echo "%s"\n' % cmd.replace('"', ''))
                                 o.write('%s\n' % cmd)
-                        pbs = '%s.pbs' % splitext(sh)[0]
-                        self.run_xpbs(sh, pbs, nlss, params,
+                        if self.slurm:
+                            pbs_slm = '%s.slm' % splitext(sh)[0]
+                        else:
+                            pbs_slm = '%s.pbs' % splitext(sh)[0]
+                        self.run_xpbs(sh, pbs_slm, nlss, params,
                                       dat, 'None', True, main_o)
                 else:
                     job_folder = self.jobs_folders[analysis][1]
