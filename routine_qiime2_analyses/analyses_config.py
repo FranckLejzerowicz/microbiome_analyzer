@@ -132,7 +132,8 @@ class AnalysesConfig(object):
         self.filt3d_config = args[47]
         self.filt_only = args[48]
         self.jobs = args[49]
-        self.chunkit = args[50]
+        self.slurm = args[50]
+        self.chunkit = args[51]
 
     def get_prjct_anlss_nm(self):
         return get_prjct_anlss_nm(self.project_name)
