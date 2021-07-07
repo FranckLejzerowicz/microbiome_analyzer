@@ -49,7 +49,8 @@ def run_rarefy(
         datasets_phylo: dict, datasets_filt_map: dict, datasets_rarefs: dict,
         p_raref_depths: str, eval_rarefs: bool, force: bool, prjct_nm: str,
         qiime_env: str, chmod: str, noloc: bool, run_params: dict,
-        filt_raref: str, filt_only: bool, jobs: bool, chunkit: int) -> dict:
+        filt_raref: str, filt_only: bool, jobs: bool, slurm: bool,
+        chunkit: int) -> dict:
     """
     Run rarefy: Rarefy table.
     https://docs.qiime2.org/2019.10/plugins/available/feature-table/rarefy/
@@ -101,7 +102,10 @@ def run_rarefy(
                 i_datasets_folder, 'rarefy%s/%s' % (evaluation, dat))
             out_sh = '%s/run_rarefy_%s%s_%s.sh' % (
                 job_folder2, prjct_nm, evaluation, dat)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
 
                 depths = datasets_raref_depths[dat][1]
@@ -174,14 +178,14 @@ def run_rarefy(
                     qiime_env, run_params["time"], run_params["n_nodes"],
                     run_params["n_procs"], run_params["mem_num"],
                     run_params["mem_dim"], chmod, written, 'single', o,
-                    noloc, jobs)
+                    noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(
             run_pbs, job_folder2, to_chunk, 'rarefy%s' % evaluation,
             prjct_nm, run_params["time"], run_params["n_nodes"],
             run_params["n_procs"], run_params["mem_num"], run_params["mem_dim"],
-            qiime_env, chmod, noloc, jobs, chunkit, None)
+            qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if main_written:
         print_message('# Get rarefied datasets', 'sh', run_pbs, jobs)

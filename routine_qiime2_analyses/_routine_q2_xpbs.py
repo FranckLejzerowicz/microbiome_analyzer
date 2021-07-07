@@ -16,7 +16,8 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
              qiime_env: str, time: str, n_nodes: str,
              n_procs: str, mem_num: str, mem_dim: str, chmod: str,
              written: int, single: str, o: TextIO = None,
-             noloc: bool = True, jobs: bool = True, tmp: str = None) -> None:
+             noloc: bool = True, slurm: bool = False, jobs: bool = True,
+             tmp: str = None) -> None:
     """
     Run the Xpbs script assorted with print or writing in higher-level command.
 
@@ -46,19 +47,23 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
         if jobs:
             xpbs_call(out_sh, out_pbs, job_name, qiime_env,
                       time, n_nodes, n_procs, mem_num,
-                      mem_dim, chmod, noloc, tmp)
+                      mem_dim, chmod, slurm, noloc, tmp)
         if single:
+            if slurm:
+                launcher = 'sbatch'
+            else:
+                launcher = 'qsub'
             if os.getcwd().startswith('/panfs'):
                 out_pbs = out_pbs.replace(os.getcwd(), '')
             if not o:
                 print(single)
                 if jobs:
-                    print('[TO RUN] qsub', out_pbs)
+                    print('[TO RUN]', launcher, out_pbs)
                 else:
                     print('[TO RUN] sh', out_sh)
             else:
                 if jobs:
-                    o.write('qsub %s\n' % out_pbs)
+                    o.write('%s %s\n' % (launcher, out_pbs))
                 else:
                     o.write('sh %s\n' % out_sh)
     else:
@@ -70,7 +75,8 @@ def run_xpbs(out_sh: str, out_pbs: str, job_name: str,
 def xpbs_call(out_sh: str, out_pbs: str, prjct_nm: str,
               qiime_env: str, time: str, n_nodes: str,
               n_procs: str, mem_num: str, mem_dim: str,
-              chmod: str, noloc: bool, tmp: str = None) -> None:
+              chmod: str, slurm: bool, noloc: bool,
+              tmp: str = None) -> None:
     """
     Call the subprocess to run Xpbs on the current bash script.
 
@@ -103,6 +109,8 @@ def xpbs_call(out_sh: str, out_pbs: str, prjct_nm: str,
         cmd.extend(['-T', tmp])
     if not noloc:
         cmd.append('--no-loc')
+    if slurm:
+        cmd.append('--slurm')
     subprocess.call(cmd)
 
     if os.getcwd().startswith('/panfs'):

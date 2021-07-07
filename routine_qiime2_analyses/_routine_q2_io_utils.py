@@ -743,7 +743,8 @@ def read_meta_pd(
 def simple_chunks(run_pbs, job_folder2, to_chunk, analysis: str,
                   prjct_nm: str, time: str, n_nodes: str, n_procs: str,
                   mem_num: str, mem_dim: str, qiime_env: str, chmod: str,
-                  noloc: bool, jobs: bool, chunkit: int, tmp: str = None) -> None:
+                  noloc: bool, slurm: bool, jobs: bool, chunkit: int,
+                  tmp: str = None) -> None:
 
     warning = 0
     with open(run_pbs, 'w') as main_o:
@@ -755,7 +756,8 @@ def simple_chunks(run_pbs, job_folder2, to_chunk, analysis: str,
                 chunks[(idx, head_sh)] = sorted(keys)
         else:
             chunks = dict(
-                ((idx, '%s/%s_chunk%s.sh' % (job_folder2, analysis, idx)), [x]) for idx, x in enumerate(to_chunk))
+                ((idx, '%s/%s_chunk%s.sh' % (job_folder2, analysis, idx)), [x])
+                for idx, x in enumerate(to_chunk))
 
         for (dat, out_sh), cur_shs in chunks.items():
             cur_written = False
@@ -769,13 +771,18 @@ def simple_chunks(run_pbs, job_folder2, to_chunk, analysis: str,
                         os.remove(cur_sh)
             if jobs:
                 if cur_written:
-                    out_pbs = '%s.pbs' % splitext(out_sh)[0]
+                    if slurm:
+                        out_pbs = '%s.slm' % splitext(out_sh)[0]
+                        launcher = 'sbatch'
+                    else:
+                        out_pbs = '%s.pbs' % splitext(out_sh)[0]
+                        launcher = 'qsub'
                     run_xpbs(out_sh, out_pbs, '%s.%s.%s' % (prjct_nm, dat, analysis),
                              qiime_env, time, n_nodes, n_procs, mem_num, mem_dim,
-                             chmod, 1, '', None, noloc, jobs, tmp)
+                             chmod, 1, '', None, noloc, slurm, jobs, tmp)
                     if os.getcwd().startswith('/panfs'):
                         out_pbs = out_pbs.replace(os.getcwd(), '')
-                    main_o.write('qsub %s\n' % out_pbs)
+                    main_o.write('%s %s\n' % (launcher, out_pbs))
                     warning += 1
                 else:
                     os.remove(out_sh)
@@ -788,7 +795,8 @@ def simple_chunks(run_pbs, job_folder2, to_chunk, analysis: str,
 def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
                   prjct_nm: str, time: str, n_nodes: str, n_procs: str,
                   mem_num: str, mem_dim: str, qiime_env: str, chmod: str,
-                  noloc: bool, jobs: bool, chunkit: int, tmp: str = None) -> str:
+                  noloc: bool, slurm: bool, jobs: bool, chunkit: int,
+                  tmp: str = None) -> str:
     """
     Write the main launcher of pbs scripts, written during using multiprocessing.
 
@@ -829,13 +837,20 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
                         os.remove(cur_sh)
             if jobs:
                 if cur_written:
-                    out_pbs = '%s.pbs' % splitext(out_sh)[0]
-                    run_xpbs(out_sh, out_pbs, '%s.%s' % (prjct_nm, dat), qiime_env,
-                             time, n_nodes, n_procs, mem_num, mem_dim, chmod, 1,
-                             '', None, noloc, jobs, tmp)
+                    if slurm:
+                        out_pbs = '%s.slm' % splitext(out_sh)[0]
+                    else:
+                        out_pbs = '%s.pbs' % splitext(out_sh)[0]
+                    run_xpbs(
+                        out_sh, out_pbs, '%s.%s' % (prjct_nm, dat), qiime_env,
+                        time, n_nodes, n_procs, mem_num, mem_dim, chmod, 1,
+                        '', None, noloc, slurm, jobs, tmp)
                     if os.getcwd().startswith('/panfs'):
                         out_pbs = out_pbs.replace(os.getcwd(), '')
-                    main_o.write('qsub %s\n' % out_pbs)
+                    if slurm:
+                        main_o.write('sbatch %s\n' % out_pbs)
+                    else:
+                        main_o.write('qsub %s\n' % out_pbs)
                     out_main_sh = main_sh
                     warning += 1
                 else:

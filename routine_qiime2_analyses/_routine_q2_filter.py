@@ -30,7 +30,7 @@ def import_datasets(
         i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
         force: bool, prjct_nm: str, qiime_env: str,  chmod: str,
         noloc: bool, run_params: dict, filt_raref: str, jobs: bool,
-        chunkit: int) -> None:
+        slurm: bool, chunkit: int) -> None:
     """Initial imports of the .tsv datasets in to Qiime2 Artefacts
 
     Parameters
@@ -70,7 +70,10 @@ def import_datasets(
             written = 0
             out_sh = '%s/0_run_import_%s_%s%s.sh' % (
                 job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for tsv_meta_pds in tsv_meta_pds_:  # REMOVE IF FIXED NOT KEPT
                     tsv, meta = tsv_meta_pds
@@ -95,14 +98,14 @@ def import_datasets(
                         run_params["time"], run_params["n_nodes"],
                         run_params["n_procs"], run_params["mem_num"],
                         run_params["mem_dim"], chmod, written, 'single',
-                        o, noloc, jobs
+                        o, noloc, slurm, jobs
                     )
     if to_chunk and chunkit:
         simple_chunks(
             run_pbs, job_folder2, to_chunk, 'imports', prjct_nm,
             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
             run_params["mem_num"], run_params["mem_dim"], qiime_env, chmod,
-            noloc, jobs, chunkit, None
+            noloc, slurm, jobs, chunkit, None
         )
 
     if main_written:
@@ -394,7 +397,8 @@ def filter_rare_samples(
         datasets_features: dict, datasets_rarefs: dict, datasets_filt: dict,
         datasets_filt_map: dict, datasets_phylo: dict, prjct_nm: str,
         qiime_env: str, p_filt_threshs: str, chmod: str, noloc: bool,
-        run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+        run_params: dict, filt_raref: str, jobs: bool, slurm: bool,
+        chunkit: int) -> None:
     """
     Filter the rare features, keep samples with enough reads/features and import to Qiime2.
 
@@ -417,7 +421,10 @@ def filter_rare_samples(
     datasets_phylo_update = {}
     job_folder = get_job_folder(i_datasets_folder, 'import_filtered')
     out_sh = '%s/1_run_import_filtered_%s%s.sh' % (job_folder, prjct_nm, filt_raref)
-    out_pbs = '%s.pbs' % splitext(out_sh)[0]
+    if slurm:
+        out_pbs = '%s.slm' % splitext(out_sh)[0]
+    else:
+        out_pbs = '%s.pbs' % splitext(out_sh)[0]
     to_chunk = []
     with open(out_sh, 'w') as sh:
         for dat, tab_meta_pds_ in datasets_read.items():
@@ -481,7 +488,7 @@ def filter_rare_samples(
                  run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                  run_params["mem_num"], run_params["mem_dim"], chmod, written,
                  '# Filter samples for a min number of %s reads' % p_filt_threshs,
-                 None, noloc, jobs)
+                 None, noloc, slurm, jobs)
 
     # after this update, the raw dataset remain included
     datasets.update(datasets_update)

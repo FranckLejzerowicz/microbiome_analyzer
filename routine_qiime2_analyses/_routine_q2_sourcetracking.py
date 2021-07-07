@@ -122,7 +122,7 @@ def run_single_sourcetracking(
 
 def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_config: str,
                        datasets_rarefs: dict, force: bool, prjct_nm: str, qiime_env: str,
-                       chmod: str, noloc: bool, run_params: dict,
+                       chmod: str, noloc: bool, slurm: bool, run_params: dict,
                        filt_raref: str, split: bool, jobs: bool, chunkit: int) -> None:
 
     job_folder2 = get_job_folder(i_datasets_folder, 'sourcetracking/chunks')
@@ -172,7 +172,8 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
                             all_import_sh_pbs, '%s.mpt.srctrk%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs, chunkit, '~/.')
+                            qiime_env, chmod, noloc, slurm, jobs, chunkit,
+                            '~/.')
     if main_sh:
         if p_sourcetracking_config:
             if p_sourcetracking_config.startswith('/panfs'):
@@ -185,7 +186,8 @@ def run_sourcetracking(i_datasets_folder: str, datasets: dict, p_sourcetracking_
     main_sh = write_main_sh(job_folder, '3_run_sourcetracking_%s%s' % (prjct_nm, filt_raref), all_sh_pbs,
                             '%s.srctrk%s' % (prjct_nm, filt_raref), run_params["time"],
                             run_params["n_nodes"], run_params["n_procs"], run_params["mem_num"],
-                            run_params["mem_dim"], qiime_env, chmod, noloc, jobs, chunkit, '~/.')
+                            run_params["mem_dim"], qiime_env, chmod, noloc,
+                            slurm, jobs, chunkit, '~/.')
     if main_sh:
         if p_sourcetracking_config:
             if p_sourcetracking_config.startswith('/panfs'):

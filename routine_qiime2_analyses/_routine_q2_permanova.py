@@ -81,7 +81,7 @@ def run_single_perm(odir: str, subset: str, meta_pd: pd.DataFrame,
 def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tuple,
                   p_perm_tests_min: int, p_beta_type: tuple, datasets_rarefs: dict,
                   p_perm_groups: str, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-                  noloc: bool, split: bool, run_params: dict,
+                  noloc: bool, slurm: bool, split: bool, run_params: dict,
                   filt_raref: str,  jobs: bool, chunkit: int) -> dict:
     """
     Run beta-group-significance: Beta diversity group significance.
@@ -155,7 +155,7 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
                             '%s.prm%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs, chunkit)
+                            qiime_env, chmod, noloc, slurm, jobs, chunkit)
     if main_sh:
         if p_perm_groups:
             print("# PERMANOVA (groups config in %s)" % p_perm_groups)
@@ -168,7 +168,7 @@ def run_permanova(i_datasets_folder: str, betas: dict, main_testing_groups: tupl
 
 def summarize_permanova(i_datasets_folder: str, permanovas: dict,
                         prjct_nm: str, qiime_env: str, chmod: str,
-                        noloc: bool, split: bool, run_params: dict,
+                        noloc: bool, slurm: bool, split: bool, run_params: dict,
                         filt_raref: str,  jobs: bool, chunkit: int) -> dict:
 
     RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
@@ -207,7 +207,7 @@ def summarize_permanova(i_datasets_folder: str, permanovas: dict,
                             '%s.prm%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs, chunkit)
+                            qiime_env, chmod, noloc, slurm, jobs, chunkit)
     if main_sh:
         print("# SUMMARIZE PERMANOVAS")
         print_message('', 'sh', main_sh, jobs)

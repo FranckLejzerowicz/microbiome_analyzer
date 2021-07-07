@@ -110,6 +110,7 @@ def routine_qiime2_analyses(
         p_filt3d_config: str,
         filt_only: bool,
         jobs: bool,
+        slurm: bool,
         chunkit: int) -> None:
 # def routine_qiime2_analyses(*args, **kwargs):
     """Main qiime2 functions writer.
@@ -221,7 +222,7 @@ def routine_qiime2_analyses(
         i_sepp_tree, i_qemistree, p_diff_models, p_mmvec_pairs,
         p_mmvec_highlights, p_xmmvec, p_run_params, p_chmod, p_skip, gpu,
         standalone, noloc, As, Bs, split, dropout, doc_phate, filt3d,
-        p_filt3d_config, filt_only, jobs, chunkit)
+        p_filt3d_config, filt_only, jobs, slurm, chunkit)
 
     i_datasets_folder = check_input(i_datasets_folder)
     # Initialization checks
@@ -252,20 +253,22 @@ def routine_qiime2_analyses(
     # get the "", "_flt", "_rrf" or "_flt_rrf" suffix for the sh/pbs scripts
     # filt_raref = get_filt_raref_suffix(p_filt_threshs, raref)
     filt_raref = config.get_filt_raref_suffix()
-    scripting = CreateScripts(config, prjct_nm, run_params, filt_raref)
+    scripting = CreateScripts(config, prjct_nm, run_params, filt_raref, slurm)
 
     # this creates the "need" to do procrustes in "eval_rarefs" mode
     if eval_rarefs and not p_procrustes:
         p_procrustes = 1
 
     # workflow = config.get_workflow()
+    analysis = AnalysisPrep(config, project)
 
     # PREPROCESSING ------------------------------------------------------------
     print('(import_datasets)')
     import_datasets(i_datasets_folder, datasets, datasets_phylo,
                     force, prjct_nm, qiime_env, p_chmod, noloc,
-                    run_params['import'], filt_raref, jobs, chunkit)
-    AnalysisPrep('import').import_datasets(config, project)
+                    run_params['import'], filt_raref, jobs, slurm, chunkit)
+    # AnalysisPrep('import').import_datasets(config, project)
+    analysis.import_datasets()
 
     datasets_filt = {}
     datasets_filt_map = {}
@@ -275,8 +278,9 @@ def routine_qiime2_analyses(
             i_datasets_folder, datasets, datasets_read, datasets_features,
             datasets_rarefs, datasets_filt, datasets_filt_map, datasets_phylo,
             prjct_nm, qiime_env, p_filt_threshs, p_chmod, noloc,
-            run_params['filter'], filt_raref, jobs, chunkit)
-        AnalysisPrep('filter').filter_rare_samples(config, project)
+            run_params['filter'], filt_raref, jobs, slurm, chunkit)
+        # AnalysisPrep('filter').filter_rare_samples(config, project)
+        analysis.filter_rare_samples()
 
     eval_depths = {}
     if raref:
@@ -285,8 +289,9 @@ def routine_qiime2_analyses(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_filt_map, datasets_rarefs, p_raref_depths, eval_rarefs,
             force, prjct_nm, qiime_env, p_chmod, noloc, run_params['rarefy'],
-            filt_raref, filt_only, jobs, chunkit)
-        AnalysisPrep('rarefy').rarefy(config, project)
+            filt_raref, filt_only, jobs, slurm, chunkit)
+        # AnalysisPrep('rarefy').rarefy(config, project)
+        analysis.rarefy()
 
     # TAXONOMY ------------------------------------------------------------
     taxonomies = {}
@@ -295,13 +300,14 @@ def routine_qiime2_analyses(
     get_precomputed_taxonomies(
         i_datasets_folder, datasets, datasets_filt_map, taxonomies, method)
     project.get_precomputed_taxonomy(config)
+    # analysis.project.get_precomputed_taxonomy(config)
 
     if i_qemistree and 'qemistree' not in p_skip:
         if isdir(i_qemistree):
             print('(run_qemistree)')
             run_qemistree(
                 i_datasets_folder, datasets, prjct_nm, i_qemistree,
-                taxonomies, force, qiime_env, p_chmod, noloc,
+                taxonomies, force, qiime_env, p_chmod, noloc, slurm,
                 run_params['qemistree'], filt_raref, jobs, chunkit)
         else:
             print('[Warning] The Qemistree path %s is not a folder.')
@@ -312,20 +318,21 @@ def routine_qiime2_analyses(
             method, i_datasets_folder, datasets, datasets_read,
             datasets_phylo, datasets_features, datasets_filt_map,
             i_classifier, taxonomies, force, prjct_nm, qiime_env, p_chmod,
-            noloc, run_params['taxonomy'], filt_raref, jobs, chunkit)
-        AnalysisPrep('taxonomy').taxonomy(config, project)
+            noloc, slurm, run_params['taxonomy'], filt_raref, jobs, chunkit)
+        # AnalysisPrep('taxonomy').taxonomy(config, project)
+        analysis.taxonomy()
 
         print('(run_edit_taxonomies)')
         edit_taxonomies(
             i_datasets_folder, taxonomies, force, prjct_nm, qiime_env, p_chmod,
-            noloc, run_params['taxonomy'], filt_raref, jobs, chunkit)
+            noloc, slurm, run_params['taxonomy'], filt_raref, jobs, chunkit)
 
         if 'barplot' not in p_skip:
             print('(run_barplot)')
             run_barplot(
                 i_datasets_folder, datasets, taxonomies, force, prjct_nm,
-                qiime_env, p_chmod, noloc, run_params['barplot'], filt_raref,
-                jobs, chunkit)
+                qiime_env, p_chmod, noloc, slurm, run_params['barplot'],
+                filt_raref, jobs, chunkit)
 
     # TREES ------------------------------------------------------------
     trees = {}
@@ -339,17 +346,19 @@ def routine_qiime2_analyses(
         shear_tree(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_features, prjct_nm, i_wol_tree, trees, datasets_rarefs,
-            force, qiime_env, p_chmod, noloc, run_params['wol'], filt_raref,
-            jobs)
-        AnalysisPrep('wol').shear_tree(config, project)
+            force, qiime_env, p_chmod, noloc, slurm, run_params['wol'],
+            filt_raref, jobs)
+        # AnalysisPrep('wol').shear_tree(config, project)
+        analysis.shear_tree()
 
     if i_sepp_tree and 'sepp' not in p_skip:
         print('(run_sepp)')
         run_sepp(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_rarefs, prjct_nm, i_sepp_tree, trees, force, qiime_env,
-            p_chmod, noloc, run_params['sepp'], filt_raref, jobs)
-        AnalysisPrep('sepp').sepp(config, project)
+            p_chmod, noloc, slurm, run_params['sepp'], filt_raref, jobs)
+        # AnalysisPrep('sepp').sepp(config, project)
+        analysis.sepp()
 
     if filt_only and datasets_filt_map:
         deleted_non_filt(
@@ -376,28 +385,29 @@ def routine_qiime2_analyses(
             datasets_features, datasets_phylo, split_taxa_pds, taxonomies,
             p_collapse_taxo, datasets_rarefs, datasets_collapsed,
             datasets_collapsed_map, force, prjct_nm, qiime_env, p_chmod, noloc,
-            run_params["collapse"], filt_raref, jobs)
-        AnalysisPrep('collapse').collapse(config, project)
+            slurm, run_params["collapse"], filt_raref, jobs)
+        # AnalysisPrep('collapse').collapse(config, project)
+        analysis.collapse()
 
     # ALPHA ------------------------------------------------------------
-    diversity = Diversity(config)
+    diversity = Diversity(config, project)
     if 'alpha' not in p_skip:
         print('(alpha)')
         diversities = run_alpha(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_rarefs, p_alpha_subsets, trees, force, prjct_nm,
-            qiime_env, p_chmod, noloc, As, dropout, run_params['alpha'],
+            qiime_env, p_chmod, noloc, slurm, As, dropout, run_params['alpha'],
             filt_raref, eval_depths, jobs, chunkit)
+        # analysis.alpha()
         # diversity.alpha(project)
-        # print(AnalysisPrep.analyses_commands)
-        # print(AnalysisPrep.analyses_commands.keys())
-        # print(AnalysisPrepdsa)
+
+        # print(ksdcd)
 
         if 'merge_alpha' not in p_skip:
             print('(to_export)')
             to_export = merge_meta_alpha(
                 i_datasets_folder, datasets, datasets_rarefs, diversities,
-                force, prjct_nm, qiime_env, p_chmod, noloc,  dropout,
+                force, prjct_nm, qiime_env, p_chmod, noloc, slurm, dropout,
                 run_params['merge_alpha'], filt_raref, eval_depths, jobs,
                 chunkit)
             # AnalysisPrep('Alpha diversity').alpha(config, project)
@@ -416,7 +426,7 @@ def routine_qiime2_analyses(
             print('(run_correlations)')
             run_correlations(
                 i_datasets_folder, datasets, diversities, datasets_rarefs,
-                force, prjct_nm, qiime_env, p_chmod, noloc,
+                force, prjct_nm, qiime_env, p_chmod, noloc, slurm,
                 run_params['alpha_correlations'], filt_raref, jobs, chunkit)
             # AnalysisPrep('Alpha diversity').alpha(config, project)
             # print(AnalysisPrep.analyses_commands)
@@ -426,7 +436,7 @@ def routine_qiime2_analyses(
             print('(run_alpha_rarefaction)')
             run_alpha_rarefaction(
                 i_datasets_folder, datasets, datasets_rarefs, datasets_phylo,
-                trees, force, prjct_nm, qiime_env, p_chmod, noloc, As,
+                trees, force, prjct_nm, qiime_env, p_chmod, noloc, slurm, As,
                 run_params['alpha_rarefaction'], filt_raref, jobs, chunkit)
             # AnalysisPrep('Alpha diversity').alpha(config, project)
             # print(AnalysisPrep.analyses_commands)
@@ -436,8 +446,8 @@ def routine_qiime2_analyses(
             print('(run_volatility)')
             run_volatility(
                 i_datasets_folder, datasets, p_longi_column,
-                datasets_rarefs, force, prjct_nm, qiime_env, p_chmod,
-                noloc, run_params['volatility'], filt_raref, jobs, chunkit)
+                datasets_rarefs, force, prjct_nm, qiime_env, p_chmod, noloc,
+                slurm, run_params['volatility'], filt_raref, jobs, chunkit)
             # AnalysisPrep('Alpha diversity').alpha(config, project)
             # print(AnalysisPrep.analyses_commands)
             # print(AnalysisPrep.analyses_commands.keys())
@@ -449,8 +459,8 @@ def routine_qiime2_analyses(
         betas = run_beta(
             i_datasets_folder, datasets, datasets_phylo, datasets_read,
             datasets_rarefs, p_beta_subsets, p_beta_groups, trees, force,
-            prjct_nm, qiime_env, p_chmod, noloc, Bs, dropout, run_params['beta'],
-            filt_raref, eval_depths, jobs, chunkit)
+            prjct_nm, qiime_env, p_chmod, noloc, slurm, Bs, dropout,
+            run_params['beta'], filt_raref, eval_depths, jobs, chunkit)
         # AnalysisPrep('Alpha diversity').alpha(config, project)
         # print(AnalysisPrep.analyses_commands)
         # print(AnalysisPrep.analyses_commands.keys())
@@ -459,7 +469,7 @@ def routine_qiime2_analyses(
             print('(export_beta)')
             export_beta(
                 i_datasets_folder, betas, datasets_rarefs, force, prjct_nm,
-                qiime_env, p_chmod, noloc, run_params['export_beta'],
+                qiime_env, p_chmod, noloc, slurm, run_params['export_beta'],
                 filt_raref, jobs, chunkit)
             # AnalysisPrep('Alpha diversity').alpha(config, project)
             # print(AnalysisPrep.analyses_commands)
@@ -469,7 +479,7 @@ def routine_qiime2_analyses(
             print('(run_pcoas)')
             pcoas = run_pcoas(
                 i_datasets_folder, betas, datasets_rarefs, force, prjct_nm,
-                qiime_env, p_chmod, noloc, run_params['pcoa'], filt_raref,
+                qiime_env, p_chmod, noloc, slurm, run_params['pcoa'], filt_raref,
                 jobs, chunkit)
             # AnalysisPrep('Alpha diversity').alpha(config, project)
             # print(AnalysisPrep.analyses_commands)
@@ -479,7 +489,7 @@ def routine_qiime2_analyses(
                 print('(run_emperor)')
                 run_emperor(
                     i_datasets_folder, pcoas, datasets_rarefs, prjct_nm,
-                    qiime_env, p_chmod, noloc, run_params['emperor'],
+                    qiime_env, p_chmod, noloc, slurm, run_params['emperor'],
                     filt_raref, jobs, chunkit)
                 # AnalysisPrep('Alpha diversity').alpha(config, project)
                 # print(AnalysisPrep.analyses_commands)
@@ -490,7 +500,8 @@ def routine_qiime2_analyses(
                 run_empress(
                     i_datasets_folder, pcoas, trees, datasets_phylo,
                     datasets_rarefs, taxonomies, prjct_nm, qiime_env, p_chmod,
-                    noloc, run_params['empress'], filt_raref, jobs, chunkit)
+                    noloc, slurm, run_params['empress'], filt_raref, jobs,
+                    chunkit)
                 # AnalysisPrep('Alpha diversity').alpha(config, project)
                 # print(AnalysisPrep.analyses_commands)
                 # print(AnalysisPrep.analyses_commands.keys())
@@ -499,7 +510,7 @@ def routine_qiime2_analyses(
             print('(run_biplots)')
             biplots, biplots_raw = run_biplots(
                 i_datasets_folder, betas, datasets_rarefs,  taxonomies,
-                force, prjct_nm, qiime_env, p_chmod, noloc,
+                force, prjct_nm, qiime_env, p_chmod, noloc, slurm,
                 run_params['biplot'], filt_raref, jobs, chunkit)
             # AnalysisPrep('Alpha diversity').alpha(config, project)
             # print(AnalysisPrep.analyses_commands)
@@ -510,8 +521,8 @@ def routine_qiime2_analyses(
                 run_emperor_biplot(
                     i_datasets_folder, biplots, biplots_raw, taxonomies,
                     split_taxa_pds, datasets_rarefs, prjct_nm, qiime_env,
-                    p_chmod, noloc, run_params['emperor_biplot'], filt_raref,
-                    jobs, chunkit)
+                    p_chmod, noloc, slurm, run_params['emperor_biplot'],
+                    filt_raref, jobs, chunkit)
                 # AnalysisPrep('Alpha diversity').alpha(config, project)
                 # print(AnalysisPrep.analyses_commands)
                 # print(AnalysisPrep.analyses_commands.keys())
@@ -521,8 +532,8 @@ def routine_qiime2_analyses(
                 run_empress_biplot(
                     i_datasets_folder, biplots, biplots_raw, trees,
                     datasets_phylo, taxonomies, datasets_rarefs, prjct_nm,
-                    qiime_env, p_chmod, noloc, run_params['empress_biplot'],
-                    filt_raref, jobs, chunkit)
+                    qiime_env, p_chmod, noloc, slurm,
+                    run_params['empress_biplot'], filt_raref, jobs, chunkit)
                 # AnalysisPrep('Alpha diversity').alpha(config, project)
                 # print(AnalysisPrep.analyses_commands)
                 # print(AnalysisPrep.analyses_commands.keys())
@@ -533,8 +544,8 @@ def routine_qiime2_analyses(
         print('(run_alpha_group_significance)')
         run_alpha_group_significance(
             i_datasets_folder, datasets, diversities, datasets_rarefs,
-            p_beta_groups, force, prjct_nm, qiime_env, p_chmod, noloc, As,
-            split, run_params['alpha_kw'], filt_raref, jobs, chunkit)
+            p_beta_groups, force, prjct_nm, qiime_env, p_chmod, noloc, slurm,
+            As, split, run_params['alpha_kw'], filt_raref, jobs, chunkit)
         # AnalysisPrep('Alpha diversity').alpha(config, project)
         # print(AnalysisPrep.analyses_commands)
         # print(AnalysisPrep.analyses_commands.keys())
@@ -544,8 +555,8 @@ def routine_qiime2_analyses(
         print('(run_deicode)')
         run_deicode(
             i_datasets_folder, datasets, datasets_rarefs, p_beta_groups,
-            force, prjct_nm, qiime_env, p_chmod, noloc, run_params['deicode'],
-            filt_raref, jobs, chunkit)
+            force, prjct_nm, qiime_env, p_chmod, noloc, slurm,
+            run_params['deicode'], filt_raref, jobs, chunkit)
         # AnalysisPrep('Alpha diversity').alpha(config, project)
         # print(AnalysisPrep.analyses_commands)
         # print(AnalysisPrep.analyses_commands.keys())
@@ -556,7 +567,7 @@ def routine_qiime2_analyses(
         permanovas = run_permanova(
             i_datasets_folder, betas, p_perm_tests, p_perm_tests_min,
             p_beta_type, datasets_rarefs, p_beta_groups, force, prjct_nm,
-            qiime_env, p_chmod, noloc, split, run_params['permanova'],
+            qiime_env, p_chmod, noloc, slurm, split, run_params['permanova'],
             filt_raref, jobs, chunkit)
         # AnalysisPrep('Alpha diversity').alpha(config, project)
         # print(AnalysisPrep.analyses_commands)
@@ -565,7 +576,7 @@ def routine_qiime2_analyses(
 
         summarize_permanova(
             i_datasets_folder, permanovas, prjct_nm, qiime_env, p_chmod, noloc,
-            split, run_params['permanova'], filt_raref, jobs, chunkit)
+            slurm, split, run_params['permanova'], filt_raref, jobs, chunkit)
         # AnalysisPrep('Alpha diversity').alpha(config, project)
         # print(AnalysisPrep.analyses_commands)
         # print(AnalysisPrep.analyses_commands.keys())
@@ -575,8 +586,8 @@ def routine_qiime2_analyses(
         print('(run_adonis)')
         run_adonis(
             p_adonis_formulas, i_datasets_folder, betas, datasets_rarefs,
-            p_beta_groups, force, prjct_nm, qiime_env, p_chmod, noloc, split,
-            run_params['adonis'], filt_raref, jobs, chunkit)
+            p_beta_groups, force, prjct_nm, qiime_env, p_chmod, noloc,
+            slurm, split, run_params['adonis'], filt_raref, jobs, chunkit)
         # AnalysisPrep('Alpha diversity').alpha(config, project)
         # print(AnalysisPrep.analyses_commands)
         # print(AnalysisPrep.analyses_commands.keys())
@@ -586,7 +597,7 @@ def routine_qiime2_analyses(
         print('(run_procrustes)')
         run_procrustes(
             i_datasets_folder, datasets_filt, p_procrustes, betas, force,
-            prjct_nm, qiime_env, p_chmod, noloc, split,
+            prjct_nm, qiime_env, p_chmod, noloc, slurm, split,
             run_params['procrustes'], filt_raref, filt_only, eval_depths,
             jobs, chunkit)
         # AnalysisPrep('Alpha diversity').alpha(config, project)
@@ -598,8 +609,9 @@ def routine_qiime2_analyses(
         print('(run_mantel)')
         run_mantel(
             i_datasets_folder, datasets_filt, p_mantel, betas, force,
-            prjct_nm, qiime_env, p_chmod, noloc, split, run_params['mantel'],
-            filt_raref, filt_only, eval_depths, jobs, chunkit)
+            prjct_nm, qiime_env, p_chmod, noloc, slurm, split,
+            run_params['mantel'], filt_raref, filt_only, eval_depths, jobs,
+            chunkit)
         # AnalysisPrep('Alpha diversity').alpha(config, project)
         # print(AnalysisPrep.analyses_commands)
         # print(AnalysisPrep.analyses_commands.keys())
@@ -610,8 +622,8 @@ def routine_qiime2_analyses(
         nestedness_res, colors, nodfs_fps = run_nestedness(
             i_datasets_folder, betas, datasets_collapsed_map,
             p_nestedness_groups, datasets_rarefs, force, prjct_nm, qiime_env,
-            p_chmod, noloc, split, run_params['nestedness'], filt_raref, jobs,
-            chunkit)
+            p_chmod, noloc, slurm, split, run_params['nestedness'], filt_raref,
+            jobs, chunkit)
         # AnalysisPrep('Alpha diversity').alpha(config, project)
         # print(AnalysisPrep.analyses_commands)
         # print(AnalysisPrep.analyses_commands.keys())
@@ -621,7 +633,7 @@ def routine_qiime2_analyses(
             nestedness_graphs(
                 i_datasets_folder, nestedness_res, datasets, split_taxa_pds,
                 datasets_rarefs, colors, datasets_collapsed_map, collapsed,
-                filt_raref, prjct_nm, qiime_env, p_chmod, noloc, split,
+                filt_raref, prjct_nm, qiime_env, p_chmod, noloc, slurm, split,
                 run_params['nestedness'], jobs, chunkit)
             # AnalysisPrep('Alpha diversity').alpha(config, project)
             # print(AnalysisPrep.analyses_commands)
@@ -631,7 +643,7 @@ def routine_qiime2_analyses(
             print('(making_nestedness_figures (nodfs))')
             nestedness_nodfs(
                 i_datasets_folder, nodfs_fps, collapsed, filt_raref,
-                prjct_nm, qiime_env, p_chmod, noloc, split,
+                prjct_nm, qiime_env, p_chmod, noloc, slurm, split,
                 run_params['nestedness'], jobs, chunkit)
             # AnalysisPrep('Alpha diversity').alpha(config, project)
             # print(AnalysisPrep.analyses_commands)
@@ -642,7 +654,7 @@ def routine_qiime2_analyses(
         print('(run_distance_decay)')
         distance_decay_res = run_distance_decay(
             i_datasets_folder, betas, p_distance_decay, datasets_rarefs,
-            force, prjct_nm, qiime_env, p_chmod, noloc, split,
+            force, prjct_nm, qiime_env, p_chmod, noloc, slurm, split,
             run_params['decay'], filt_raref, jobs, chunkit)
         # if distance_decay_res:
         #     print('(making_distance_decay_figures)')
@@ -658,7 +670,7 @@ def routine_qiime2_analyses(
             print('(run_phate)')
             phates = run_phate(
                 p_phate_config, i_datasets_folder, datasets, datasets_rarefs,
-                force, prjct_nm, qiime_env, p_chmod, noloc, split,
+                force, prjct_nm, qiime_env, p_chmod, noloc, slurm, split,
                 run_params['phate'], filt_raref, jobs, chunkit)
             # AnalysisPrep('Alpha diversity').alpha(config, project)
             # print(AnalysisPrep.analyses_commands)
@@ -672,8 +684,9 @@ def routine_qiime2_analyses(
         print('(run_doc)')
         run_doc(
             i_datasets_folder, datasets, p_doc_config, datasets_rarefs,
-            force, prjct_nm, qiime_env, p_chmod, noloc, run_params['doc'],
-            filt_raref, phates, doc_phate, split, jobs, chunkit)
+            force, prjct_nm, qiime_env, p_chmod, noloc, slurm,
+            run_params['doc'], filt_raref, phates, doc_phate, split, jobs,
+            chunkit)
         # AnalysisPrep('Alpha diversity').alpha(config, project)
         # print(AnalysisPrep.analyses_commands)
         # print(AnalysisPrep.analyses_commands.keys())
@@ -684,7 +697,7 @@ def routine_qiime2_analyses(
         print('(run_sourcetracking)')
         run_sourcetracking(
             i_datasets_folder, datasets, p_sourcetracking_config,
-            datasets_rarefs, force, prjct_nm, qiime_env, p_chmod, noloc,
+            datasets_rarefs, force, prjct_nm, qiime_env, p_chmod, noloc, slurm,
             run_params['sourcetracking'], filt_raref, split, jobs, chunkit)
         # AnalysisPrep('Alpha diversity').alpha(config, project)
         # print(AnalysisPrep.analyses_commands)

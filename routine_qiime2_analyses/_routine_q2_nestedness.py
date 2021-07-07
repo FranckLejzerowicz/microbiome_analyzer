@@ -75,7 +75,8 @@ def get_nestedness_config(nestedness_config: dict) -> (dict, list, dict,
 
 def run_nestedness(i_datasets_folder: str, betas: dict, datasets_collapsed_map: dict,
                    p_nestedness_groups: str, datasets_rarefs: dict, force: bool,
-                   prjct_nm: str, qiime_env: str, chmod: str, noloc: bool, split: bool,
+                   prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
+                   slurm: bool, split: bool,
                    run_params: dict, filt_raref: str, jobs: bool,
                    chunkit: int) -> (dict, list, dict):
 
@@ -139,7 +140,7 @@ def run_nestedness(i_datasets_folder: str, betas: dict, datasets_collapsed_map: 
                             '%s.prm%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs, chunkit)
+                            qiime_env, chmod, noloc, slurm, jobs, chunkit)
     if main_sh:
         if p_nestedness_groups:
             print("# nestedness (config in %s)" % p_nestedness_groups)
@@ -336,8 +337,8 @@ def nestedness_graphs(i_datasets_folder: str, nestedness_res: dict,
                       datasets_rarefs: dict, colors: dict,
                       datasets_collapsed_map: dict, collapsed: dict,
                       filt_raref: str, prjct_nm: str, qiime_env: str,
-                      chmod: str, noloc: bool, split: bool, run_params: dict,
-                      jobs: bool, chunkit: int):
+                      chmod: str, noloc: bool, slurm: bool, split: bool,
+                      run_params: dict, jobs: bool, chunkit: int):
 
     RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
     nestedness_graphs_fp = '%s/nestedness_graphs.py' % RESOURCES
@@ -405,7 +406,7 @@ def nestedness_graphs(i_datasets_folder: str, nestedness_res: dict,
                             '%s.nstd.grph%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs, chunkit)
+                            qiime_env, chmod, noloc, slurm, jobs, chunkit)
     if main_sh:
         print("# NESTEDNESS GRAPHS")
         print_message('', 'sh', main_sh, jobs)
@@ -413,8 +414,9 @@ def nestedness_graphs(i_datasets_folder: str, nestedness_res: dict,
 
 def nestedness_nodfs(i_datasets_folder: str, nodfs_fps: dict,
                      collapsed: dict, filt_raref: str, prjct_nm: str,
-                     qiime_env: str, chmod: str, noloc: bool, split: bool,
-                     run_params: dict, jobs: bool, chunkit: int) -> None:
+                     qiime_env: str, chmod: str, noloc: bool, slurm: bool,
+                     split: bool, run_params: dict, jobs: bool,
+                     chunkit: int) -> None:
 
     RESOURCES = pkg_resources.resource_filename("routine_qiime2_analyses", "resources")
     nestedness_nodfs_fp = '%s/nestedness_nodfs.py' % RESOURCES
@@ -452,7 +454,7 @@ def nestedness_nodfs(i_datasets_folder: str, nodfs_fps: dict,
                             '%s.nstd.ndf%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs, chunkit)
+                            qiime_env, chmod, noloc, slurm, jobs, chunkit)
     if main_sh:
         print("# NESTEDNESS NODFS")
         print_message('', 'sh', main_sh, jobs)

@@ -106,8 +106,9 @@ def get_meta_qza_dm_trees_d(meta_qza_dm_trees):
 
 def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: str,
                    betas: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-                   noloc: bool, split: bool, run_params: dict, filt_raref: str,
-                   filt_only: bool, eval_depths: dict, jobs: bool, chunkit: int) -> None:
+                   noloc: bool, slurm: bool, split: bool, run_params: dict,
+                   filt_raref: str, filt_only: bool, eval_depths: dict,
+                   jobs: bool, chunkit: int) -> None:
     """
     """
     evaluation = ''
@@ -221,7 +222,7 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
                             '%s.prcst%s%s' % (prjct_nm, evaluation, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs, chunkit)
+                            qiime_env, chmod, noloc, slurm, jobs, chunkit)
     if main_sh:
         if p_procrustes and p_procrustes != 1:
             if p_procrustes.startswith('/panfs'):
@@ -304,7 +305,8 @@ def run_procrustes(i_datasets_folder: str, datasets_filt: dict, p_procrustes: st
 
 def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,
                betas: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-               noloc: bool, split: bool, run_params: dict, filt_raref: str, filt_only: bool,
+               noloc: bool, slurm: bool, split: bool, run_params: dict,
+               filt_raref: str, filt_only: bool,
                eval_depths: dict, jobs: bool, chunkit: int) -> None:
     """
     """
@@ -414,7 +416,7 @@ def run_mantel(i_datasets_folder: str, datasets_filt: dict, p_mantel: str,
                             '%s.mntl%s%s' % (prjct_nm, evaluation, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs, chunkit)
+                            qiime_env, chmod, noloc, slurm, jobs, chunkit)
     if main_sh:
         if p_mantel and p_mantel != 1:
             if p_mantel.startswith('/panfs'):

@@ -43,9 +43,10 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 
 def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
              datasets_read: dict, datasets_rarefs: dict, p_beta_subsets: str,
-             p_perm_groups: str, trees: dict, force: bool, prjct_nm: str, qiime_env: str,
-             chmod: str, noloc: bool, Bs: tuple, dropout: bool, run_params: dict,
-             filt_raref: str, eval_depths: dict, jobs: bool, chunkit: int) -> dict:
+             p_perm_groups: str, trees: dict, force: bool, prjct_nm: str,
+             qiime_env: str, chmod: str, noloc: bool, slurm: bool, Bs: tuple,
+             dropout: bool, run_params: dict, filt_raref: str,
+             eval_depths: dict, jobs: bool, chunkit: int) -> dict:
     """
     Run beta: Beta diversity.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/beta/
@@ -81,7 +82,10 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
             written = 0
             betas[dat] = []
             out_sh = '%s/run_beta_%s%s_%s%s.sh' % (job_folder2, prjct_nm, evaluation, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
                     tsv, meta = tsv_meta_pds
@@ -231,13 +235,13 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
                 run_xpbs(out_sh, out_pbs, '%s.bt%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref), qiime_env,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                         chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'beta',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if main_written:
         print_message('# Calculate beta diversity indices', 'sh', run_pbs, jobs)
@@ -391,7 +395,8 @@ def run_beta(i_datasets_folder: str, datasets: dict, datasets_phylo: dict,
 
 def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                 force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-                noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+                noloc: bool, slurm: bool, run_params: dict, filt_raref: str,
+                jobs: bool, chunkit: int) -> None:
     """
     Export beta diverity matrices.
 
@@ -413,7 +418,10 @@ def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
         for dat, metric_group_meta_dms_ in betas.items():
             written = 0
             out_sh = '%s/2x_run_beta_export_%s%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, metric_group_meta_dms in enumerate(metric_group_meta_dms_):
                     for metric, group_meta_dms in metric_group_meta_dms.items():
@@ -432,12 +440,12 @@ def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                     run_xpbs(out_sh, out_pbs, '%s.bt.xpt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                              run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                              run_params["mem_num"], run_params["mem_dim"],
-                             chmod, written, 'single', o, noloc, jobs)
+                             chmod, written, 'single', o, noloc, slurm, jobs)
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'beta_export',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
     if main_written:
         print_message('# Export beta diversity matrices', 'sh', run_pbs, jobs)
 
@@ -465,7 +473,8 @@ def export_beta(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
 
 def run_pcoas(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
               force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-              noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> dict:
+              noloc: bool, slurm: bool, run_params: dict, filt_raref: str,
+              jobs: bool, chunkit: int) -> dict:
     """
     Run pcoa: Principal Coordinate Analysis.
     Run pcoa: Principal Coordinate Analysis Biplot¶
@@ -492,7 +501,10 @@ def run_pcoas(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
             written = 0
             pcoas_d[dat] = []
             out_sh = '%s/run_PCoA_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, metric_groups_metas_dms in enumerate(metric_groups_metas_dms_):
                     dat_pcoas = []
@@ -517,13 +529,13 @@ def run_pcoas(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                 run_xpbs(out_sh, out_pbs, '%s.pc.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                         chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'pcoa',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if main_written:
         print_message('# Calculate principal coordinates', 'sh', run_pbs, jobs)
@@ -532,7 +544,8 @@ def run_pcoas(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
 
 def run_emperor(i_datasets_folder: str, pcoas_d: dict, datasets_rarefs: dict,
                 prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-                run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+                slurm: bool, run_params: dict, filt_raref: str, jobs: bool,
+                chunkit: int) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -554,7 +567,10 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, datasets_rarefs: dict,
         for dat, metas_pcoas_ in pcoas_d.items():
             written = 0
             out_sh = '%s/run_emperor_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, metas_pcoas in enumerate(metas_pcoas_):
                     cur_depth = datasets_rarefs[dat][idx]
@@ -587,13 +603,13 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, datasets_rarefs: dict,
                 run_xpbs(out_sh, out_pbs, '%s.mprr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                         chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'emperor',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if main_written:
         print_message('# Make EMPeror plots', 'sh', run_pbs, jobs)
@@ -601,7 +617,7 @@ def run_emperor(i_datasets_folder: str, pcoas_d: dict, datasets_rarefs: dict,
 
 def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                 taxonomies: dict, force: bool, prjct_nm: str, qiime_env: str,
-                chmod: str, noloc: bool, run_params: dict,
+                chmod: str, noloc: bool, slurm: bool, run_params: dict,
                 filt_raref: str, jobs: bool, chunkit: int) -> (dict, dict):
     """
     Run pcoa-biplot: Principal Coordinate Analysis Biplot¶
@@ -634,7 +650,10 @@ def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
             biplots_d[dat] = []
             biplots_d2[dat] = []
             out_sh = '%s/run_biplot_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, metric_groups_metas_dms in enumerate(metric_groups_metas_dms_):
                     dat_biplots = {}
@@ -668,13 +687,13 @@ def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
                 run_xpbs(out_sh, out_pbs, '%s.bplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                         chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'biplot',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if main_written:
         print_message('# Calculate principal coordinates (biplot)', 'sh', run_pbs, jobs)
@@ -684,7 +703,8 @@ def run_biplots(i_datasets_folder: str, betas: dict, datasets_rarefs: dict,
 def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict,
                        taxonomies: dict, split_taxa_pds: dict,  datasets_rarefs: dict,
                        prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-                       run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+                       slurm: bool, run_params: dict, filt_raref: str,
+                       jobs: bool, chunkit: int) -> None:
     """
     Run emperor.
     https://docs.qiime2.org/2019.10/plugins/available/emperor/
@@ -712,7 +732,10 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
             else:
                 tax_tsv = 'missing'
             out_sh = '%s/run_emperor_biplot_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, meta_biplots_taxs_qzas_trees in enumerate(raref_meta_biplots_taxs_qzas_trees):
                     meta_biplots_taxs_qzas_trees2 = raref_meta_biplots_taxs_qzas_trees2[idx]
@@ -756,13 +779,13 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                 run_xpbs(out_sh, out_pbs, '%s.mprr.bplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                         chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'emperor_biplot',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if main_written:
         print_message('# Make EMPeror biplots', 'sh', run_pbs, jobs)
@@ -771,7 +794,8 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
 def run_empress(i_datasets_folder: str, pcoas_d: dict,
                 trees: dict, datasets_phylo: dict, datasets_rarefs: dict,
                 taxonomies: dict, prjct_nm: str, qiime_env: str, chmod: str,
-                noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+                noloc: bool, slurm: bool, run_params: dict, filt_raref: str,
+                jobs: bool, chunkit: int) -> None:
     """
     Run empress.
     https://docs.qiime2.org/2019.10/plugins/available/empress/
@@ -793,7 +817,10 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
         for dat, metas_pcoas_qzas_trees_ in pcoas_d.items():
             written = 0
             out_sh = '%s/run_empress_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             if not datasets_phylo[dat][0] or dat not in trees:
                 continue
             tax_qza = ''
@@ -839,13 +866,13 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
                 run_xpbs(out_sh, out_pbs, '%s.mprss.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                         chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'empress',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if main_written:
         print_message('# Make empress plots', 'sh', run_pbs, jobs)
@@ -854,7 +881,8 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
 def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict,
                        trees: dict, datasets_phylo: dict, taxonomies: dict,
                        datasets_rarefs: dict, prjct_nm: str, qiime_env: str,
-                       chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+                       chmod: str, noloc: bool, slurm: bool, run_params: dict,
+                       filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Run empress.
     https://docs.qiime2.org/2019.10/plugins/available/empress/
@@ -883,7 +911,10 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                 method, tax_qza, tax_tsv = taxonomies[dat]
 
             out_sh = '%s/run_empress_biplot_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, meta_biplots_taxs_qzas_trees in enumerate(raref_meta_biplots_taxs_qzas_trees):
                     meta_biplots_taxs_qzas_trees2 = raref_meta_biplots_taxs_qzas_trees2[idx]
@@ -936,11 +967,13 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                                 if not os.path.isdir(out_dir2):
                                     os.makedirs(out_dir2)
                                 if isfile(tsv_tax2):
-                                    write_empress_biplot(meta, qza2, tax_qza, sb_qza, biplot2,
-                                                         tree2, out_plot2, cur_sh)
+                                    write_empress_biplot(
+                                        meta, qza2, tax_qza, sb_qza, biplot2,
+                                        tree2, out_plot2, cur_sh)
                                 else:
-                                    write_empress_biplot(meta, qza2, tax_qza, sb_qza, biplot2,
-                                                         tree2, out_plot2, cur_sh)
+                                    write_empress_biplot(
+                                        meta, qza2, tax_qza, sb_qza, biplot2,
+                                        tree2, out_plot2, cur_sh)
                                 written += 1
                                 main_written += 1
 
@@ -949,13 +982,14 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                 run_xpbs(out_sh, out_pbs, '%s.mprss.bplt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                         chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'empress_biplot',
-                      prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
-                      run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      prjct_nm, run_params["time"], run_params["n_nodes"],
+                      run_params["n_procs"], run_params["mem_num"],
+                      run_params["mem_dim"], qiime_env, chmod, noloc, slurm,
+                      jobs, chunkit, None)
 
     if main_written:
         print_message('# Make empress biplots', 'sh', run_pbs, jobs)

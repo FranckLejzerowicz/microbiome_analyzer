@@ -49,7 +49,8 @@ def get_decay_config(decay_config: dict) -> (dict, dict):
 
 def run_distance_decay(i_datasets_folder: str, betas: dict, p_distance_decay: str, 
                        datasets_rarefs: dict, force: bool, prjct_nm: str, qiime_env: str,
-                       chmod: str, noloc: bool, split: bool, run_params: dict,
+                       chmod: str, noloc: bool, slurm: bool, split: bool,
+                       run_params: dict,
                        filt_raref: str, jobs: bool, chunkit: int) -> (dict, list):
 
     job_folder2 = get_job_folder(i_datasets_folder, 'decay/chunks')
@@ -93,7 +94,7 @@ def run_distance_decay(i_datasets_folder: str, betas: dict, p_distance_decay: st
                             '%s.prm%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs, chunkit)
+                            qiime_env, chmod, noloc, slurm, jobs, chunkit)
     if main_sh:
         if p_distance_decay:
             print("# decay (config in %s)" % p_distance_decay)

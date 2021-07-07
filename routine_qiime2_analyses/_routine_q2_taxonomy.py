@@ -461,7 +461,7 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                  taxonomies: dict, p_collapse_taxo: str, datasets_rarefs: dict,
                  datasets_collapsed: dict, datasets_collapsed_map: dict,
                  force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-                 noloc: bool, run_params: dict, filt_raref: str,
+                 noloc: bool, slurm: bool, run_params: dict, filt_raref: str,
                  jobs: bool) -> dict:
 
     collapse_taxo = get_collapse_taxo(p_collapse_taxo, datasets_filt)
@@ -493,7 +493,10 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
             written = 0
             out_sh = '%s/run_collapsed_taxo_%s_%s%s.sh' % (
                 job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, tab_meta_fp in enumerate(tab_meta_fps):
                     tab_fp, meta_fp = tab_meta_fp
@@ -541,7 +544,7 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                     qiime_env, run_params["time"], run_params["n_nodes"],
                     run_params["n_procs"], run_params["mem_num"],
                     run_params["mem_dim"], chmod, written, 'single', o,
-                    noloc, jobs)
+                    noloc, slurm, jobs)
 
     if main_written:
         print_message('# Collapse features for taxo levels defined in %s' %
@@ -635,7 +638,7 @@ def run_taxonomy_amplicon(
     return cmd
 
 
-def get_gid_features(features: dict, data_pd: pd.DataFrame):
+def get_gids(features: dict, data_pd: pd.DataFrame):
     """
 
     Parameters
@@ -694,7 +697,8 @@ def run_taxonomy(
         datasets_read: dict, datasets_phylo: dict, datasets_features: dict,
         datasets_filt_map: dict, i_classifier: str, taxonomies: dict,
         force: bool, prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
-        run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+        slurm: bool, run_params: dict, filt_raref: str, jobs: bool,
+        chunkit: int) -> None:
     """
 
     Parameters
@@ -748,7 +752,10 @@ def run_taxonomy(
         for dat, tsv_meta_pds_ in datasets_read.items():
             out_sh = '%s/run_taxonomy_%s_%s%s.sh' % (
                 job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             if dat in datasets_filt_map:
                 taxonomies[dat] = taxonomies[datasets_filt_map[dat]]
                 continue
@@ -814,14 +821,14 @@ def run_taxonomy(
                         qiime_env, run_params["time"], run_params["n_nodes"],
                         run_params["n_procs"], run_params["mem_num"],
                         run_params["mem_dim"], chmod, written, 'single', o,
-                        noloc, jobs)
+                        noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'taxonomy',
                       prjct_nm, run_params["time"], run_params["n_nodes"],
                       run_params["n_procs"], run_params["mem_num"],
-                      run_params["mem_dim"], qiime_env, chmod, noloc, jobs,
-                      chunkit, None)
+                      run_params["mem_dim"], qiime_env, chmod, noloc, slurm,
+                      jobs, chunkit, None)
 
     if main_written:
         print_message('# Classify features using classify-sklearn', 'sh',
@@ -830,7 +837,7 @@ def run_taxonomy(
 
 def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
                 force: bool, prjct_nm: str, qiime_env: str,
-                chmod: str, noloc: bool, run_params: dict,
+                chmod: str, noloc: bool, slurm: bool, run_params: dict,
                 filt_raref: str, jobs: bool, chunkit: int) -> None:
     """Visualize taxonomy with an interactive bar plot.
 
@@ -870,7 +877,10 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
         for dat, tsv_meta_pds_ in datasets.items():
             out_sh = '%s/run_barplot_%s_%s%s.sh' % (job_folder2, prjct_nm,
                                                     dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for tsv_meta_pds in tsv_meta_pds_:
                     tsv, meta = tsv_meta_pds
@@ -894,14 +904,14 @@ def run_barplot(i_datasets_folder: str, datasets: dict, taxonomies: dict,
                     qiime_env, run_params["time"], run_params["n_nodes"],
                     run_params["n_procs"], run_params["mem_num"],
                     run_params["mem_dim"], chmod, written, 'single', o,
-                    noloc, jobs)
+                    noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'barplot',
                       prjct_nm, run_params["time"], run_params["n_nodes"],
                       run_params["n_procs"], run_params["mem_num"],
-                      run_params["mem_dim"], qiime_env, chmod, noloc, jobs,
-                      chunkit, None)
+                      run_params["mem_dim"], qiime_env, chmod, noloc, slurm,
+                      jobs, chunkit, None)
 
     if written:
         print_message('# Make sample compositions barplots',
@@ -1007,7 +1017,7 @@ def get_taxa_edit(taxo):
 
 def edit_taxonomies(
         i_datasets_folder: str, taxonomies: dict, force: bool, prjct_nm: str,
-        qiime_env: str, chmod: str, noloc: bool, run_params: dict,
+        qiime_env: str, chmod: str, noloc: bool, slurm: bool, run_params: dict,
         filt_raref: str, jobs: bool, chunkit: int):
 
     job_folder = get_job_folder(i_datasets_folder, 'taxonomy')
@@ -1030,7 +1040,10 @@ def edit_taxonomies(
                 cmd = run_import(tsv, qza, 'FeatureData[Taxonomy]')
 
                 out_sh = '%s/run_taxonomy_edit_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
-                out_pbs = '%s.pbs' % splitext(out_sh)[0]
+                if slurm:
+                    out_pbs = '%s.slm' % splitext(out_sh)[0]
+                else:
+                    out_pbs = '%s.pbs' % splitext(out_sh)[0]
                 with open(out_sh, 'w') as cur_sh:
                     cur_sh.write('echo "%s"\n' % cmd)
                     cur_sh.write('%s\n\n' % cmd)
@@ -1042,13 +1055,13 @@ def edit_taxonomies(
                     run_xpbs(out_sh, out_pbs, '%s.tx.dt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                              run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                              run_params["mem_num"], run_params["mem_dim"],
-                             chmod, written, 'single', o, noloc, jobs)
+                             chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'taxonomy_edit',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if main_written:
         print_message('# Edit features taxonomy to not contain "," characters', 'sh', run_pbs, jobs)

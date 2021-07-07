@@ -293,6 +293,10 @@ from routine_qiime2_analyses import __version__
     help="Whether to prepare Torque jobs from scripts."
 )
 @click.option(
+    "--slurm/--no-slurm", default=False, show_default=True,
+    help="Whether to prepare Slurm and not Torque jobs."
+)
+@click.option(
     "-chunkit", "--p-chunkit", required=False, show_default=False,
     type=int, default=None,
     help="Maximum number of jobs at which extra jobs will be added in chunks"
@@ -351,6 +355,7 @@ def standalone_routine(
         p_filt3d_config,
         filt_only,
         jobs,
+        slurm,
         p_chunkit
 ):
 
@@ -405,6 +410,7 @@ def standalone_routine(
         p_filt3d_config=p_filt3d_config,
         filt_only=filt_only,
         jobs=jobs,
+        slurm=slurm,
         chunkit=p_chunkit
     )
 

@@ -31,9 +31,10 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 
 def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
               datasets_phylo: dict, datasets_rarefs: dict, p_alpha_subsets: str,
-              trees: dict, force: bool, prjct_nm: str, qiime_env: str, chmod: str,
-              noloc: bool, As: tuple, dropout: bool, run_params: dict,
-              filt_raref: str, eval_depths: dict, jobs: bool, chunkit: int) -> dict:
+              trees: dict, force: bool, prjct_nm: str, qiime_env: str,
+              chmod: str, noloc: bool, slurm: bool, As: tuple, dropout: bool,
+              run_params: dict, filt_raref: str, eval_depths: dict,
+              jobs: bool, chunkit: int) -> dict:
 
     """
     Computes the alpha diversity vectors for each dataset.
@@ -59,15 +60,20 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
     job_folder = get_job_folder(i_datasets_folder, 'alpha%s' % evaluation)
     job_folder2 = get_job_folder(i_datasets_folder, 'alpha%s/chunks' % evaluation)
     diversities = {}
-    run_pbs = '%s/1_run_alpha_%s%s%s.sh' % (job_folder, prjct_nm, evaluation, filt_raref)
+    run_pbs = '%s/1_run_alpha_%s%s%s.sh' % (job_folder, prjct_nm,
+                                            evaluation, filt_raref)
     main_written = 0
     to_chunk = []
     with open(run_pbs, 'w') as o:
         for dat, tsv_meta_pds_ in datasets.items():
             written = 0
             diversities[dat] = []
-            out_sh = '%s/run_alpha_%s%s_%s%s.sh' % (job_folder2, prjct_nm, evaluation, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            out_sh = '%s/run_alpha_%s%s_%s%s.sh' % (job_folder2, prjct_nm,
+                                                    evaluation, dat, filt_raref)
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
                     tsv, meta = tsv_meta_pds
@@ -148,13 +154,13 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                 run_xpbs(out_sh, out_pbs, '%s.mg.lph%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
                          qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                         chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'alpha',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if main_written:
         print_message('# Calculate alpha diversity indices', 'sh', run_pbs, jobs)
@@ -163,8 +169,9 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
 
 def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: dict,
                      diversities: dict, force: bool, prjct_nm: str, qiime_env: str,
-                     chmod: str, noloc: bool, dropout: bool, run_params: dict,
-                     filt_raref: str, eval_depths: dict, jobs: bool, chunkit: int) -> dict:
+                     chmod: str, noloc: bool, slurm: bool, dropout: bool,
+                     run_params: dict, filt_raref: str, eval_depths: dict,
+                     jobs: bool, chunkit: int) -> dict:
     """
     Computes the alpha diversity vectors for each dataset.
 
@@ -194,7 +201,10 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: di
             written = 0
             to_export[dat] = []
             out_sh = '%s/run_merge_alpha_%s%s_%s%s.sh' % (job_folder2, prjct_nm, evaluation, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, group_divs in enumerate(group_divs_list):
                     tsv, meta = datasets[dat][idx]
@@ -235,13 +245,13 @@ def merge_meta_alpha(i_datasets_folder: str, datasets: dict, datasets_rarefs: di
                 run_xpbs(out_sh, out_pbs, '%s.mrg.lph%s.%s%s' % (prjct_nm, evaluation, dat, filt_raref),
                          qiime_env, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                         chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'tabulate',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if main_written:
         print_message('# Merge and export alpha diversity indices', 'sh', run_pbs, jobs)
@@ -341,8 +351,10 @@ def export_meta_alpha(datasets: dict, filt_raref: str,
 
 
 def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
-                     datasets_rarefs: dict, force: bool, prjct_nm: str, qiime_env: str,
-                     chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+                     datasets_rarefs: dict, force: bool, prjct_nm: str,
+                     qiime_env: str, chmod: str, noloc: bool, slurm: bool,
+                     run_params:  dict, filt_raref: str, jobs: bool,
+                     chunkit: int) -> None:
     """
     Run alpha-correlation: Alpha diversity correlation
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-correlation/
@@ -366,7 +378,10 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                 continue
             written = 0
             out_sh = '%s/run_alpha_correlation_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
                     tsv, meta = tsv_meta_pds
@@ -388,13 +403,13 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
                 run_xpbs(out_sh, out_pbs, '%s.lphcrr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                         chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'alpha_correlations',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if main_written:
         print_message('# Correlate numeric metadata variables with alpha diversity indices', 'sh', run_pbs, jobs)
@@ -402,8 +417,9 @@ def run_correlations(i_datasets_folder: str, datasets: dict, diversities: dict,
 
 def run_alpha_rarefaction(i_datasets_folder: str, datasets: dict, datasets_rarefs: dict,
                               datasets_phylo: dict, trees: dict, force: bool, prjct_nm: str,
-                              qiime_env: str, chmod: str, noloc: bool, As: tuple,
-                              run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+                              qiime_env: str, chmod: str, noloc: bool,
+                              slurm: bool, As: tuple, run_params: dict,
+                          filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Run alpha-rarefaction: Alpha rarefaction
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-rarefaction/
@@ -418,7 +434,10 @@ def run_alpha_rarefaction(i_datasets_folder: str, datasets: dict, datasets_raref
         for dat, tsv_meta_pds_ in datasets.items():
             written = 0
             out_sh = '%s/run_alpha_rarefaction_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
                     tsv, meta = tsv_meta_pds
@@ -438,13 +457,13 @@ def run_alpha_rarefaction(i_datasets_folder: str, datasets: dict, datasets_raref
                 run_xpbs(out_sh, out_pbs, '%s.lphrrf.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                         chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'alpha_rarefaction',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if main_written:
         print_message('# Compute rarefaction curve on alpha diversity indices', 'sh', run_pbs, jobs)
@@ -452,7 +471,8 @@ def run_alpha_rarefaction(i_datasets_folder: str, datasets: dict, datasets_raref
 
 def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
                    datasets_rarefs: dict, force: bool, prjct_nm: str, qiime_env: str,
-                   chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+                   chmod: str, noloc: bool, slurm: bool, run_params: dict,
+                   filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Run volatility: Generate interactive volatility plot.
     https://docs.qiime2.org/2019.10/plugins/available/longitudinal/volatility/
@@ -476,7 +496,10 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
         for dat, tsv_meta_pds_ in datasets.items():
             written = 0
             out_sh = '%s/run_volatility_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             with open(out_sh, 'w') as cur_sh:
                 for idx, tsv_meta_pds in enumerate(tsv_meta_pds_):
                     tsv, meta = tsv_meta_pds
@@ -508,13 +531,13 @@ def run_volatility(i_datasets_folder: str, datasets: dict, p_longi_column: str,
                 run_xpbs(out_sh, out_pbs, '%s.vltlt.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                          run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                          run_params["mem_num"], run_params["mem_dim"],
-                         chmod, written, 'single', o, noloc, jobs)
+                         chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'volatility',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if main_written:
         print_message('# Longitudinal change in alpha diversity indices', 'sh', run_pbs, jobs)
@@ -555,7 +578,8 @@ def run_multi_kw(odir: str, meta_pd: pd.DataFrame, div_qza: str, case_vals_list:
 
 def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversities: dict,
                                  datasets_rarefs: dict, p_perm_groups: str, force: bool, prjct_nm: str,
-                                 qiime_env: str, chmod: str, noloc: bool, As: tuple, split: bool,
+                                 qiime_env: str, chmod: str, noloc: bool,
+                                 slurm: bool, As: tuple, split: bool,
                                  run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
     """
     Run alpha-group-significance: Alpha diversity comparisons.
@@ -625,7 +649,7 @@ def run_alpha_group_significance(i_datasets_folder: str, datasets: dict, diversi
                             '%s.kv%s' % (prjct_nm, filt_raref),
                             run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                             run_params["mem_num"], run_params["mem_dim"],
-                            qiime_env, chmod, noloc, jobs, chunkit)
+                            qiime_env, chmod, noloc, slurm, jobs, chunkit)
     if main_sh:
         if p_perm_groups:
             print("# Kruskal-Wallis on alpha diversity (groups config in %s)" % p_perm_groups)

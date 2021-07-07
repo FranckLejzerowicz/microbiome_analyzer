@@ -19,8 +19,10 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
 
 
 def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str,
-                  i_qemistree: str, taxonomies: dict, force: bool,  qiime_env: str,
-                  chmod: str, noloc: bool, run_params: dict, filt_raref: str, jobs: bool, chunkit: int) -> None:
+                  i_qemistree: str, taxonomies: dict, force: bool,
+                  qiime_env: str, chmod: str, noloc: bool, slurm: bool,
+                  run_params: dict, filt_raref: str, jobs: bool,
+                  chunkit: int) -> None:
     """
     :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
     :param datasets_read: dataset -> [tsv table, meta table]
@@ -45,7 +47,10 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str,
             if not isfile(feature_data) or not isfile(qemistree):
                 continue
             out_sh = '%s/run_qemistree_%s_%s%s.sh' % (job_folder2, prjct_nm, dat, filt_raref)
-            out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            if slurm:
+                out_pbs = '%s.slm' % splitext(out_sh)[0]
+            else:
+                out_pbs = '%s.pbs' % splitext(out_sh)[0]
             odir = get_analysis_folder(i_datasets_folder, 'qemistree/%s' % dat)
             classyfire_qza = '%s/%s-classyfire.qza' % (odir, dat)
             classyfire_tsv = '%s.tsv' % splitext(classyfire_qza)[0]
@@ -79,13 +84,13 @@ def run_qemistree(i_datasets_folder: str, datasets: dict, prjct_nm: str,
                 run_xpbs(out_sh, out_pbs, '%s.qmstr.%s%s' % (prjct_nm, dat, filt_raref), qiime_env,
                      run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                      run_params["mem_num"], run_params["mem_dim"],
-                     chmod, written, 'single', o, noloc, jobs)
+                     chmod, written, 'single', o, noloc, slurm, jobs)
 
     if to_chunk and chunkit:
         simple_chunks(run_pbs, job_folder2, to_chunk, 'qemistree',
                       prjct_nm, run_params["time"], run_params["n_nodes"], run_params["n_procs"],
                       run_params["mem_num"], run_params["mem_dim"],
-                      qiime_env, chmod, noloc, jobs, chunkit, None)
+                      qiime_env, chmod, noloc, slurm, jobs, chunkit, None)
 
     if written:
         print_message('# Make qemistree classyfire classifications', 'sh', run_pbs, jobs)
