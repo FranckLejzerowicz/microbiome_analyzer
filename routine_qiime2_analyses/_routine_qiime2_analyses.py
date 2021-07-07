@@ -390,7 +390,7 @@ def routine_qiime2_analyses(
         analysis.collapse()
 
     # ALPHA ------------------------------------------------------------
-    diversity = Diversity(config, project)
+    # diversity = Diversity(config, project)
     if 'alpha' not in p_skip:
         print('(alpha)')
         diversities = run_alpha(
