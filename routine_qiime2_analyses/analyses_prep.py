@@ -25,7 +25,7 @@ from routine_qiime2_analyses._routine_q2_io_utils import (
     read_yaml_file
 )
 from routine_qiime2_analyses._routine_q2_taxonomy import (
-    get_taxonomy_command, get_edit_taxonomy_command, get_gid_features,
+    get_taxonomy_command, get_edit_taxonomy_command, get_gids,
     get_split_levels, fix_collapsed_data, write_collapse_taxo
 )
 from routine_qiime2_analyses._routine_q2_phylo import (
@@ -38,22 +38,26 @@ class AnalysisPrep(object):
     """
     analyses_commands = {}
 
-    def __init__(self, analysis) -> None:
-        self.analysis = analysis
+    # def __init__(self, config, analysis) -> None:
+    def __init__(self, config, project) -> None:
+        self.config = config
+        self.project = project
         self.cmds = {}
 
-    def import_datasets(self, config, project):
-        for dataset, data in project.datasets.items():
-            if config.force or not isfile(data.qza[0]):
+    # def import_datasets(self, config, project):
+    def import_datasets(self):
+        for dataset, data in self.project.datasets.items():
+            if self.config.force or not isfile(data.qza[0]):
                 cmd = run_import(
                     data.tsv[0], data.qza[0], 'FeatureTable[Frequency]')
                 self.cmds.setdefault(dataset, []).append(cmd)
-        self.register_command()
+        self.register_command('import')
 
-    def filter_rare_samples(self, config, project):
-        thresholds = read_yaml_file(config.filt_threshs)
+    # def filter_rare_samples(self, config, project):
+    def filter_rare_samples(self):
+        thresholds = read_yaml_file(self.config.filt_threshs)
         project_filt = {}
-        for dat, data in project.datasets.items():
+        for dat, data in self.project.datasets.items():
             if dat not in thresholds:
                 continue
             names, thresh_sam, thresh_feat = get_thresholds(thresholds[dat])
@@ -63,8 +67,10 @@ class AnalysisPrep(object):
             Datasets.filt_raw[dat_filt] = dat
             Datasets.raw_filt[dat] = dat_filt
             # register the filtered dataset as an additional dataset
-            data_filt = Data(dat_filt, config.i_datasets_folder)
-            if isfile(data_filt.qza[0]) and isfile(data_filt.meta[0]):
+            data_filt = Data(dat_filt, self.config.i_datasets_folder)
+            qza_exists = isfile(data_filt.qza[0])
+            meta_exists = isfile(data_filt.meta[0])
+            if not self.config.force and qza_exists and meta_exists:
                 data_filt.read_data_pd()
                 data_filt.read_meta_pd()
             else:
@@ -86,17 +92,17 @@ class AnalysisPrep(object):
                 meta_filt_pd.to_csv(data_filt.meta[0], index=False, sep='\t')
                 data_filt.metadata.append(meta_filt_pd)
             data_filt.phylo = data.phylo
-            data_filt.features = get_gid_features(data.features,
-                                                  data_filt.data[0])
+            data_filt.features = get_gids(data.features, data_filt.data[0])
             project_filt[dat_filt] = data_filt
-        project.datasets.update(project_filt)
-        self.register_command()
+        self.project.datasets.update(project_filt)
+        self.register_command('filter')
 
-    def rarefy(self, config, project):
-        project.set_rarefaction(config)
-        for dat, data in project.datasets.items():
-            if config.filt_only and dat not in project.filt_raw:
-                continue
+    def rarefy(self):
+        self.project.set_rarefaction(self.config)
+        for dat, data in self.project.datasets.items():
+            if not self.config.force:
+                if self.config.filt_only and dat not in self.project.filt_raw:
+                    continue
             sams_sums = data.data[0].sum()
             for dx, depth_ in enumerate(data.raref_depths[1]):
                 depth = get_digit_depth(depth_, sams_sums)
@@ -105,7 +111,7 @@ class AnalysisPrep(object):
                     data.metadata[0].sample_name.isin(remaining_samples), :]
                 meta_raref_pd.to_csv(data.meta[dx+1], index=False, sep='\t')
                 data.metadata.append(meta_raref_pd)
-                if config.force or not isfile(data.tsv[dx+1]):
+                if self.config.force or not isfile(data.tsv[dx+1]):
                     cmd = write_rarefy(data.qza[0], data.qza[dx+1], depth)
                     cmd += run_export(data.qza[dx+1], data.tsv[dx+1],
                                       'FeatureTable[Frequency]')
@@ -117,33 +123,33 @@ class AnalysisPrep(object):
                 else:
                     data.data.append('raref')
                     data.metadata.append(str(depth))
-        self.register_command()
+        self.register_command('rarefy')
 
-    def taxonomy(self, config, project):
+    def taxonomy(self):
         method = 'sklearn'
-        project.set_taxonomy_paths(config, method)
-        for dat, data in project.datasets.items():
+        self.project.set_taxonomy_paths(self.config, method)
+        for dat, data in self.project.datasets.items():
             if dat in Datasets.filt_raw:
                 continue
-            cmd = get_taxonomy_command(dat, config, data)
+            cmd = get_taxonomy_command(dat, self.config, data)
             if cmd:
                 self.cmds.setdefault(dat, []).append(cmd)
             if isfile(data.tax[2]):
                 cmd = get_edit_taxonomy_command(data)
                 if cmd:
                     self.cmds.setdefault(dat, []).append(cmd)
-        self.register_command()
+        self.register_command('taxonomy')
 
-    def shear_tree(self, config, project):
-        project.set_tree_paths(config)
+    def shear_tree(self):
+        self.project.set_tree_paths(self.config)
         if len(Data.wols):
-            i_wol_tree = get_wol_tree(config.i_wol_tree)
+            i_wol_tree = get_wol_tree(self.config.i_wol_tree)
             wol = TreeNode.read(i_wol_tree)
-            for dat, data in project.datasets.items():
+            for dat, data in self.project.datasets.items():
                 if dat in Datasets.filt_raw:
                     continue
                 if data.phylo and data.phylo[0] == 'wol':
-                    if config.force or not isfile(data.tree[1]):
+                    if self.config.force or not isfile(data.tree[1]):
                         wol_features = wol.shear(list(data.features.keys()))
                         for tip in wol_features.tips():
                             tip.name = data.features[tip.name]
@@ -151,39 +157,38 @@ class AnalysisPrep(object):
                         cmd = run_import(
                             data.tree[2], data.tree[1], "Phylogeny[Rooted]")
                         self.cmds.setdefault(dat, []).append(cmd)
-        self.register_command()
+        self.register_command('wol')
 
-    def sepp(self, config, project):
+    def sepp(self):
         if len(Data.dnas):
-            project.set_seqs_paths(config)
-            ref_tree_qza = get_sepp_tree(config.i_sepp_tree)
-            for dat, data in project.datasets.items():
+            self.project.set_seqs_paths(self.config)
+            ref_tree_qza = get_sepp_tree(self.config.i_sepp_tree)
+            for dat, data in self.project.datasets.items():
                 if data.phylo and data.phylo[0] == 'amplicon':
-                    if config.force or not isfile(data.seqs[0]):
+                    if self.config.force or not isfile(data.seqs[0]):
                         cmd = write_seqs_fasta(
                             data.seqs[1], data.seqs[0], data.data[0])
                         self.cmds.setdefault(dat, []).append(cmd)
-                    if config.force or not isfile(data.tree[1]):
+                    if self.config.force or not isfile(data.tree[1]):
                         cmd = write_fragment_insertion(
                             data.seqs[0], ref_tree_qza, data.tree[1],
                             data.qza[0], data.tree[0])
                         self.cmds.setdefault(dat, []).append(cmd)
-        self.register_command()
+        self.register_command('sepp')
 
-    def collapse(self, config, project):
-        collapse_taxo = read_yaml_file(config.collapse_taxo)
+    def collapse(self):
+        collapse_taxo = read_yaml_file(self.config.collapse_taxo)
         collapse_taxo = dict(
             (Datasets.raw_filt[dat], x) for dat, x in collapse_taxo.items()
-            if dat in Datasets.raw_filt and dat in project.datasets
-        )
+            if dat in Datasets.raw_filt and dat in self.project.datasets)
         project_coll = {}
         for dat, levels in collapse_taxo.items():
-            data = project.datasets[dat]
+            data = self.project.datasets[dat]
             split_levels, empties = get_split_levels(levels, data.tax_split[0])
             data.collapsed = split_levels
             for tax, level in split_levels.items():
                 dat_tax = '%s_tx-%s' % (dat, tax)
-                data_tax = Data(dat_tax, config.i_datasets_folder)
+                data_tax = Data(dat_tax, self.config.i_datasets_folder)
                 for idx, tsv in enumerate(data.tsv):
                     tax_tsv = '%s_tx-%s.tsv' % (splitext(tsv)[0], tax)
                     tax_qza = '%s.qza' % splitext(tax_tsv)[0]
@@ -214,11 +219,12 @@ class AnalysisPrep(object):
                             data.meta[idx], tax_meta, level, empties[tax])
                         if cmd:
                             self.cmds.setdefault(dat, []).append(cmd)
-
                 data_tax.phylo = ('', 0)
                 project_coll[dat_tax] = data_tax
-        project.datasets.update(project_coll)
-        self.register_command()
+        self.project.datasets.update(project_coll)
+        self.register_command('collapse')
 
-    def register_command(self):
-        AnalysisPrep.analyses_commands[self.analysis] = self.cmds
+    def register_command(self, analysis):
+        AnalysisPrep.analyses_commands[analysis] = self.cmds
+        self.cmds = {}
+
