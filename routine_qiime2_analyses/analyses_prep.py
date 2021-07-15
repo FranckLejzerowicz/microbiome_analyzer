@@ -170,9 +170,12 @@ class AnalysisPrep(object):
                             data.seqs[1], data.seqs[0], data.data[0])
                         self.cmds.setdefault(dat, []).append(cmd)
                     if self.config.force or not isfile(data.tree[1]):
+                        in_qza = data.tree[0]
+                        in_tsv = '%s.tsv' % splitext(in_qza)[0]
+                        qza_out = in_qza.replace('inTree.qza', 'notInTree.qza')
                         cmd = write_fragment_insertion(
                             data.seqs[0], ref_tree_qza, data.tree[1],
-                            data.qza[0], data.tree[0])
+                            data.qza[0], in_qza, in_tsv, qza_out)
                         self.cmds.setdefault(dat, []).append(cmd)
         self.register_command('sepp')
 

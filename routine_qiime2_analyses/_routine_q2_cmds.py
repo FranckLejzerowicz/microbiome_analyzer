@@ -924,8 +924,7 @@ def write_seqs_fasta(out_fp_seqs_fasta: str, out_fp_seqs_qza: str,
 
 def write_fragment_insertion(out_fp_seqs_qza: str, ref_tree_qza: str,
                              out_fp_sepp_tree: str, qza: str, qza_in: str,
-                             qza_in_tsv: str, qza_out: str
-                             ) -> str:
+                             qza_in_tsv: str, qza_out: str) -> str:
     """
     Perform fragment insertion of sequences using the SEPP algorithm.
     https://docs.qiime2.org/2019.10/plugins/available/fragment-insertion/sepp/

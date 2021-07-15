@@ -33,20 +33,17 @@ class Diversity(object):
     """
     """
 
-    def __init__(self, config) -> None:
+    def __init__(self, config, project) -> None:
         self.config = config
-        self.analysis = ''
+        self.project = project
         self.cmds = {}
-        self.alpha_metrics = self.get_metrics()
-        self.alpha_subsets = self.get_alpha_subsets()
+        self.alpha_metrics = get_metrics('alpha_metrics', config.alphas)
+        self.beta_metrics = get_metrics('beta_metrics', config.betas)
+        self.alpha_subsets = read_yaml_file(self.config.alpha_subsets)
+        self.alphas = {}
+        self.betas = {}
 
-    def get_metrics(self):
-        return get_metrics('alpha_metrics', self.config.alphas)
-
-    def get_alpha_subsets(self):
-        return read_yaml_file(self.config.alpha_subsets)
-
-    def alpha(self, project):
+    def alpha(self):
         for d, dat in project.datasets.items():
             for idx, tsv in enumerate(dat.tsv):
                 qza = dat.qza[idx]
