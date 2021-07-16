@@ -381,12 +381,15 @@ def get_dat_depths(
         (boolean, Rarefaction depths)
     """
     skip = False
-    if dat in depths_yml:
+    if not depths_yml:
+        depths = get_default_raref_depth(i_datasets_folder, dat, sam_sum)
+        depths_tuple = (0, depths)
+    elif dat in depths_yml:
         skip, depths = get_depths(depths_yml[dat], dat, sam_sum)
         depths_tuple = (1, depths)
     else:
-        depths = get_default_raref_depth(i_datasets_folder, dat, sam_sum)
-        depths_tuple = (0, depths)
+        skip = True
+        depths_tuple = []
     return skip, depths_tuple
 
 
