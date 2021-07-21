@@ -1412,8 +1412,6 @@ def write_diversity_adonis(new_meta: str, mat_qza: str, new_mat_qza: str,
     cur_sh.write('%s\n' % cmd)
 
 
-
-
 def write_procrustes_mantel(
         procrustes_mantel: str, common_meta_fp: str, dm1: str, dm2: str,
         dm_out1: str, dm_out2: str, output: str, cur_sh: TextIO) -> None:
@@ -1604,8 +1602,9 @@ def write_diversity_alpha_correlation(out_fp: str, qza: str, method: str,
     cur_sh.write('%s\n\n' % cmd)
 
 
-def write_diversity_alpha(out_fp: str, datasets_phylo: dict, trees: dict, dat: str,
-                          qza: str, metric: str, cur_sh: TextIO) -> bool:
+def write_diversity_alpha(out_fp: str, datasets_phylo: dict, trees: dict,
+                          dat: str, qza: str, metric: str, cur_sh: TextIO,
+                          qiime_env: str) -> bool:
     """
     Computes a user-specified alpha diversity metric for all samples in a feature table.
     https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha/
@@ -1634,6 +1633,9 @@ def write_diversity_alpha(out_fp: str, datasets_phylo: dict, trees: dict, dat: s
     else:
         cmd = 'qiime diversity alpha \\\n'
         cmd += '--i-table %s \\\n' % qza
+        year_version = float(qiime_env.split('-')[-1])
+        if year_version > 2020.6 and metric == 'observed_otus':
+            metric = 'observed_features'
         cmd += '--p-metric %s \\\n' % metric
         cmd += '--o-alpha-diversity %s\n' % out_fp
     cur_sh.write('echo "%s"\n' % cmd)

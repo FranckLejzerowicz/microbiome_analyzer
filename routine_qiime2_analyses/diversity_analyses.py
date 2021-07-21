@@ -63,7 +63,7 @@ class Diversity(object):
             #         ret_continue = write_diversity_alpha(out_fp, datasets_phylo,
             #                                              trees,
             #                                              dat, qza, metric,
-            #                                              cur_sh)
+            #                                              cur_sh, qiime_env)
             #         if ret_continue:
             #             continue
             #         cmd = run_export(out_fp, out_tsv, '')
@@ -125,7 +125,9 @@ class Diversity(object):
             #                                                      trees,
             #                                                      dat,
             #                                                      qza_subset,
-            #                                                      metric, cur_sh)
+            #                                                      metric,
+            #                                                      cur_sh,
+            #                                                      qiime_env)
             #                 if ret_continue:
             #                     continue
             #                 cmd = run_export(out_fp, out_tsv, '')

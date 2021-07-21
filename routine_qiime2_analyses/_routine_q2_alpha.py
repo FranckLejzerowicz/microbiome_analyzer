@@ -93,8 +93,9 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                         out_fp = '%s/%s_%s.qza' % (odir, basename(splitext(qza)[0]), metric)
                         out_tsv = '%s.tsv' % splitext(out_fp)[0]
                         if force or not isfile(out_fp):
-                            ret_continue = write_diversity_alpha(out_fp, datasets_phylo, trees,
-                                                                 dat, qza, metric, cur_sh)
+                            ret_continue = write_diversity_alpha(
+                                out_fp, datasets_phylo, trees, dat, qza,
+                                metric, cur_sh, qiime_env)
                             if ret_continue:
                                 continue
                             cmd = run_export(out_fp, out_tsv, '')
@@ -138,8 +139,9 @@ def run_alpha(i_datasets_folder: str, datasets: dict, datasets_read: dict,
                                 out_tsv = '%s.tsv' % splitext(out_fp)[0]
 
                                 if force or not isfile(out_fp):
-                                    ret_continue = write_diversity_alpha(out_fp, {dat: [1, 0]}, trees,
-                                                                         dat, qza_subset, metric, cur_sh)
+                                    ret_continue = write_diversity_alpha(
+                                        out_fp, {dat: [1, 0]}, trees, dat,
+                                        qza_subset, metric, cur_sh, qiime_env)
                                     if ret_continue:
                                         continue
                                     cmd = run_export(out_fp, out_tsv, '')
