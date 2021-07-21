@@ -124,8 +124,10 @@ class DiffModels(object):
                 else:
                     tsv_pd, res = filter_non_mb_table(preval, abund, tsv_pd)
                 meta_pd.to_csv(meta, index=False, sep='\t')
+                print(tsv)
                 if self.config.force or not isfile(tsv):
                     write_filtered_tsv(tsv, tsv_pd)
+                    print('---')
                 if self.config.force or not isfile(qza):
                     cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
                     cmds.setdefault(dataset, []).append(cmd)
