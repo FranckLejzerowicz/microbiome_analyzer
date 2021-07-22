@@ -106,15 +106,21 @@ class DiffModels(object):
     def make_datasets_paths(self):
         cmds = {}
         self.get_datasets_paths()
+        print(self.songbirds.shape)
         if self.songbirds.shape[0]:
             for (dataset, filter, subset), row in self.songbirds.groupby(
                     ['dataset', 'filter', 'subset']):
+                print(dataset)
+                print(filter)
+                print(subset)
                 row_d = row.iloc[0, :].to_dict()
                 tsv, qza, meta = row_d['tsv'], row_d['qza'], row_d['meta']
                 if isfile(tsv) and isfile(qza) and isfile(meta):
                     continue
                 data = self.project.datasets[dataset]
                 variable, factors = row_d['variable'], row_d['factors']
+                print(variable)
+                print(factors)
                 meta_pd = get_new_meta_pd(data.metadata[0], subset,
                                           variable, factors)
                 tsv_pd = data.data[0][meta_pd.sample_name.tolist()]
