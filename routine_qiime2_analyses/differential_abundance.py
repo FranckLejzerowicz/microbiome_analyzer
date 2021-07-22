@@ -490,19 +490,19 @@ class DiffModels(object):
             vars = set()
             drop = {}
             formula = formula_.strip('"').strip("'")
-            print()
-            print()
-            print('formula:', formula)
+            # print()
+            # print()
+            # print('formula:', formula)
             if formula.startswith('C('):
                 formula_split = formula.split('C(')[-1].rsplit(')', 1)
-                print('formula_split:', formula_split)
+                # print('formula_split:', formula_split)
                 formula_split_c = formula_split[0].split(',')[0].strip().strip()
-                print('formula_split_c:', formula_split_c)
+                # print('formula_split_c:', formula_split_c)
                 formula = 'C(%s)' % formula_split[0].replace(
                     formula_split_c, formula_split_c)
-                print('formula:', formula)
+                # print('formula:', formula)
                 formula += formula_split[1]
-                print('formula:', formula)
+                # print('formula:', formula)
                 if 'Diff' in formula:
                     levels = {formula_split_c: [
                         x.strip().strip('"').strip("'")
@@ -513,16 +513,16 @@ class DiffModels(object):
                     levels = {formula_split_c: [
                         formula.split("Treatment('")[-1].split("')")[0]
                     ]}
-                    print('levels:', levels)
+                    # print('levels:', levels)
                 elif 'Treatment("' in formula:
                     levels = {formula_split_c: [
                         formula.split('Treatment("')[-1].split('")')[0]
                     ]}
-                    print('levels:', levels)
+                    # print('levels:', levels)
                 vars.add(formula_split_c)
                 vars.update(set([x for x in re.split(
                     '[+/:*]', formula_split[1]) if x]))
-                print("vars:", vars)
+                # print("vars:", vars)
             else:
                 formula_split = re.split('[+/:*]', formula)
                 formula = formula
@@ -542,7 +542,7 @@ class DiffModels(object):
             if levels:
                 levels_set = sorted([x for x in meta_pd[
                     formula_split_c].unique() if str(x) != 'nan'])
-                print('levels_set:', levels_set)
+                # print('levels_set:', levels_set)
                 if 'Diff' in formula:
                     cur_levels = levels[formula_split_c]
                     common_levels = set(levels_set) & set(cur_levels)
@@ -564,19 +564,14 @@ class DiffModels(object):
                 elif 'Treatment(' in formula:
                     levels = {formula_split_c: formula.split(
                         "Treatment('")[-1].split("')")[0]}
-                    print("levels (2):", levels)
-                    print('if levels[formula_split_c] not in levels_set:')
+                    # print("levels (2):", levels)
                     if levels[formula_split_c] not in levels_set:
-                        print('    YES')
                         issue = 'Songbird formula "Treatment" factors(s)' \
                                 ' missing in metadata "%s" [%s]' % (
                                     formula_split_c, levels)
                         self.models_issues.setdefault(issue, set()).add(meta)
                         continue
-                    else:
-                        print('    NO...')
 
-            # self.models[model] = [formula, vars, drop]
             models[model] = [formula, vars, drop]
         return models
 
@@ -615,38 +610,13 @@ class DiffModels(object):
                 continue
             dat_pair, pair_dir = self.get_dat_pair_dir(dat, pair)
             meta_pd = read_meta_pd(meta_fp)
-            # MAKE SURE TO SKIP "IMPOSSIBLE" RUN
-            # e.g subset "sex == male"
-            #     testing "C(Sex, Treatment('female'))"
-            print('---------')
-            print('qza:', qza)
-            print('pair:', pair)
-            print('meta_fp:', meta_fp)
-            print('dat_pair:', dat_pair)
-            print('pair_dir:', pair_dir)
-            print('dat:', dat)
-            print('filt:', filt)
-            print('subset:', subset)
-            print('---------')
-            print('##############')
-            print('##############')
-            print('##############')
-            print('##############')
-            print(meta_pd)
-            print('##############')
-            print('##############')
-            print('##############')
-            print('##############')
             models = self.check_metadata_models(
-            # self.check_metadata_models(
-                    meta_fp, meta_pd, self.songbird_models[dat])
+                meta_fp, meta_pd, self.songbird_models[dat])
             row_params_pd = params_pd.copy()
             self.process_params_combinations(dat, meta_pd, row_params_pd, mess)
             for p, params in row_params_pd.iterrows():
                 params_dir = self.get_params_dir(params)
                 baselines, model_baselines = {}, {'1': '1'}
-                # for modx, model in enumerate(self.models.keys()):
-                #     formula, meta_vars, drop = self.models[model]
                 for modx, model in enumerate(models.keys()):
                     formula, meta_vars, drop = models[model]
                     datdir, odir, new_qza, new_meta = self.get_main_dirs(
