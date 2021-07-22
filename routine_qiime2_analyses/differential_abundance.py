@@ -489,41 +489,39 @@ class DiffModels(object):
             vars = set()
             drop = {}
             formula = formula_.strip('"').strip("'")
+            print()
+            print()
+            print('formula:', formula)
             if formula.startswith('C('):
                 formula_split = formula.split('C(')[-1].rsplit(')', 1)
+                print('formula_split:', formula_split)
                 formula_split_c = formula_split[0].split(',')[0].strip().strip()
+                print('formula_split_c:', formula_split_c)
                 formula = 'C(%s)' % formula_split[0].replace(
                     formula_split_c, formula_split_c)
-                    # formula_split_c, formula_split_c.lower())
+                print('formula:', formula)
                 formula += formula_split[1]
-                # formula += formula_split[1].lower()
+                print('formula:', formula)
                 if 'Diff' in formula:
                     levels = {formula_split_c: [
-                    # levels = {formula_split_c.lower(): [
                         x.strip().strip('"').strip("'")
                         for x in formula.split(
                             "levels=['")[-1].split("']")[0].split(",")
                     ]}
                 elif 'Treatment(' in formula:
                     levels = {formula_split_c: [
-                    # levels = {formula_split_c.lower(): [
                         formula.split("Treatment('")[-1].split("')")[0]
                     ]}
                 vars.add(formula_split_c)
-                # vars.add(formula_split_c.lower())
                 vars.update(set([x for x in re.split(
-                # vars.update(set([x.lower() for x in re.split(
                     '[+/:*]', formula_split[1]) if x]))
             else:
                 formula_split = re.split('[+/:*]', formula)
                 formula = formula
-                # formula = formula.lower()
                 vars.update(set([x for x in formula_split]))
-                # vars.update(set([x.lower() for x in formula_split]))
                 levels = {}
 
             common_with_md = set(meta_pd.columns.values) & vars
-            # common_with_md = set(meta_pd.columns.str.lower().values) & vars
             if sorted(vars) != sorted(common_with_md):
                 only_formula = sorted(vars ^ common_with_md)
                 issue = 'Songbird formula term(s) missing in metadata:\n\t' \
@@ -534,15 +532,10 @@ class DiffModels(object):
                 continue
 
             if levels:
-                # print('levels', levels)
-                # print(meta_pd['sex'].unique())
                 levels_set = sorted([x for x in meta_pd[
-                    # formula_split_c.lower()].unique() if str(x) != 'nan'])
                     formula_split_c].unique() if str(x) != 'nan'])
-                # print('levels_set', levels_set)
                 if 'Diff' in formula:
                     cur_levels = levels[formula_split_c]
-                    # cur_levels = levels[formula_split_c.lower()]
                     common_levels = set(levels_set) & set(cur_levels)
                     only_meta = set(levels_set) ^ common_levels
                     only_model = set(cur_levels) ^ common_levels
@@ -551,28 +544,22 @@ class DiffModels(object):
                                 ' in metadata "%s": %s' % (
                                     formula_split_c, list(only_model))
                         self.models_issues.setdefault(issue, set()).add(meta)
-                        # print(issue)
                         continue
                     if len(only_meta):
                         drop[formula_split_c] = list(only_meta)
-                        # drop[formula_split_c.lower()] = list(only_meta)
                         issue = 'Songbird formula "Diff" factors(s) ' \
                                 'incomplete for metadata "%s":\n' \
                                 '\t -> skipping samples with %s' % (
                                     formula_split_c, list(only_meta))
                         self.models_issues.setdefault(issue, set()).add(meta)
-                        # print(issue)
                 elif 'Treatment(' in formula:
                     levels = {formula_split_c: formula.split(
-                    # levels={formula_split_c.lower(): formula.split(
                         "Treatment('")[-1].split("')")[0]}
                     if levels[formula_split_c] not in levels_set:
-                    # if levels[formula_split_c.lower()] not in levels_set:
                         issue = 'Songbird formula "Treatment" factors(s)' \
                                 ' missing in metadata "%s" [%s]' % (
                                     formula_split_c, levels)
                         self.models_issues.setdefault(issue, set()).add(meta)
-                        # print(issue)
                         continue
 
             self.models[model] = [formula, vars, drop]
@@ -638,6 +625,7 @@ class DiffModels(object):
                             'songbird/%s/b-%s' % (datdir, model_baseline))
                         out_paths = self.get_out_paths(
                             odir, bodir, model_baseline, baselines)
+                        # convergence = self.check_stats_convergence(out_paths)
                         cmd, bcmd = songbird_cmd(
                             qza, new_qza, new_meta, params, formula,
                             bformula, out_paths)
