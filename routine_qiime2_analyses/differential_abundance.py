@@ -610,6 +610,11 @@ class DiffModels(object):
             # e.g subset "sex == male"
             #     testing "C(Sex, Treatment('female'))"
             print('---------')
+            print('qza:', qza)
+            print('pair:', pair)
+            print('meta_fp:', meta_fp)
+            print('dat_pair:', dat_pair)
+            print('pair_dir:', pair_dir)
             print('dat:', dat)
             print('filt:', filt)
             print('subset:', subset)
