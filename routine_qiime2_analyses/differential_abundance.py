@@ -626,12 +626,6 @@ class DiffModels(object):
                     formula, meta_vars, drop = self.models[model]
                     datdir, odir, new_qza, new_meta = self.get_main_dirs(
                         pair_dir, filt, subset, params_dir, model, self.config)
-                    print()
-                    print(dat, filt, subset)
-                    print(params)
-                    print(model)
-                    print(new_meta)
-                    print(new_qza)
                     self.write_new_meta(
                         meta_pd, new_meta, meta_vars, drop, params)
                     if dat in self.models_baselines and model in \
@@ -658,14 +652,13 @@ class DiffModels(object):
                             dat_bcmds.setdefault(dat, []).append(bcmd)
 
         for dat in dat_bcmds:
-            # first come the scripts generating (reused) baselines  models
+            # first come the scripts generating (reused) baselines models
             if dat_bcmds[dat]:
                 cmds.setdefault(dat, []).extend(dat_bcmds[dat])
         for dat in dat_cmds:
             # and then the scripts generating the actual models
             if dat_cmds[dat]:
                 cmds.setdefault(dat, []).extend(dat_cmds[dat])
-
         if songbird:
             self.get_songbird_pd(songbird)
 

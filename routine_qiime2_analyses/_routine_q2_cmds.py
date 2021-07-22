@@ -380,9 +380,6 @@ def songbird_cmd(
         qza, new_qza, new_meta, params, formula, bformula, out_paths) -> tuple:
 
     cmd = ''
-    if not isfile(new_qza):
-        cmd += filter_feature_table(qza, new_qza, new_meta)
-
     if not isfile(out_paths['diff_qza']):
         cmd += '\nqiime songbird multinomial \\\n'
         cmd += ' --i-table %s \\\n' % new_qza
@@ -411,6 +408,9 @@ def songbird_cmd(
         cmd += run_export(out_paths['stat'], stat_tsv, '')
 
     bcmd = ''
+    if not isfile(new_qza):
+        bcmd += filter_feature_table(qza, new_qza, new_meta)
+
     if len(out_paths['bdiff_qza']) and not isfile(out_paths['bstat']):
         bcmd += '\nqiime songbird multinomial \\\n'
         bcmd += ' --i-table %s \\\n' % new_qza
