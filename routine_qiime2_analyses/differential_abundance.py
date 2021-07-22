@@ -485,6 +485,7 @@ class DiffModels(object):
             ])
 
     def check_metadata_models(self, meta, meta_pd, songbird_models):
+        models = {}
         for model, formula_ in songbird_models.items():
             vars = set()
             drop = {}
@@ -575,8 +576,9 @@ class DiffModels(object):
                     else:
                         print('    NO...')
 
-
-            self.models[model] = [formula, vars, drop]
+            # self.models[model] = [formula, vars, drop]
+            models[model] = [formula, vars, drop]
+        return models
 
     def show_models_issues(self):
         if self.models_issues:
@@ -635,15 +637,18 @@ class DiffModels(object):
             print('##############')
             print('##############')
             print('##############')
-            self.check_metadata_models(
-                meta_fp, meta_pd, self.songbird_models[dat])
+            models = self.check_metadata_models(
+            # self.check_metadata_models(
+                    meta_fp, meta_pd, self.songbird_models[dat])
             row_params_pd = params_pd.copy()
             self.process_params_combinations(dat, meta_pd, row_params_pd, mess)
             for p, params in row_params_pd.iterrows():
                 params_dir = self.get_params_dir(params)
                 baselines, model_baselines = {}, {'1': '1'}
-                for modx, model in enumerate(self.models.keys()):
-                    formula, meta_vars, drop = self.models[model]
+                # for modx, model in enumerate(self.models.keys()):
+                #     formula, meta_vars, drop = self.models[model]
+                for modx, model in enumerate(models.keys()):
+                    formula, meta_vars, drop = models[model]
                     datdir, odir, new_qza, new_meta = self.get_main_dirs(
                         pair_dir, filt, subset, params_dir, model, self.config)
                     self.write_new_meta(
