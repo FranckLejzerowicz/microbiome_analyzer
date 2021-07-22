@@ -432,7 +432,7 @@ def songbird_cmd(
         bcmd += ' --o-regression-biplot %s\n' % out_paths['bplot']
 
     if not isfile(out_paths['tens']):
-        cmd += '\nwhile [ ! -f %s ]; do sleep 10; done"\n' % out_paths['bstat']
+        # cmd += '\nwhile [ ! -f %s ]; do sleep 10; done\n' % out_paths['bstat']
         cmd += '\nqiime songbird summarize-paired \\\n'
         cmd += ' --i-regression-stats %s \\\n' % out_paths['stat']
         cmd += ' --i-baseline-stats %s \\\n' % out_paths['bstat']
@@ -479,6 +479,7 @@ def write_phate_cmd(qza: str, new_qza: str, new_tsv: str,
             if v:
                 cmd += '--p-%ss %s \\\n' % (k, v)
     cmd += '--no-clusters \\\n'
+    cmd += '--separate \\\n'
     cmd += '--verbose\n\n'
     cur_sh_o.write('echo "%s"\n' % cmd)
     cur_sh_o.write('%s\n' % cmd)
