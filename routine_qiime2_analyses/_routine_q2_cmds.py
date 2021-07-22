@@ -678,8 +678,6 @@ def write_collapse_taxo(tab_qza: str, tax_qza: str,
         cmd += '--i-taxonomy %s \\\n' % tax_qza
         cmd += '--p-level %s \\\n' % level
         cmd += '--o-collapsed-table %s\n' % collapsed_qza
-        cmd += 'echo "%s"\n' % cmd
-        cmd += '%s\n\n' % cmd
 
     if remove_empty:
         tax_tmp = '%s_filtempty%s.tsv' % (splitext(tax_qza)[0], level)
@@ -692,10 +690,9 @@ def write_collapse_taxo(tab_qza: str, tax_qza: str,
         cmd += '--m-metadata-file %s \\\n' % tax_tmp
         cmd += '--o-filtered-table %s2.qza \\\n' % collapsed_qza
         cmd += '--p-exclude-ids \n'
-        cmd += 'echo "%s"\n' % cmd
-        cmd += '%s\n\n' % cmd
         cmd += 'mv %s2.qza %s\n' % (collapsed_qza, collapsed_qza)
 
+    cmd += '%s\necho "%s"\n' % (cmd, cmd)
     if not isfile(collapsed_tsv):
         cmd += run_export(collapsed_qza, collapsed_tsv, 'FeatureTable')
     if not isfile(collapsed_meta):
