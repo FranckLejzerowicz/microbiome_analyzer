@@ -110,8 +110,8 @@ class Datasets(object):
         for dataset, data in self.datasets.items():
             print("dataset, data")
             print(dataset, data)
-            print("Datasets.filt_raw.tolist()")
-            print(Datasets.filt_raw.tolist())
+            print("Datasets.filt_raw")
+            print(Datasets.filt_raw)
             if dataset in Datasets.filt_raw:
                 data.raref_depths = self.datasets[
                     Datasets.filt_raw[dataset]
