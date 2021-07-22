@@ -508,13 +508,20 @@ class DiffModels(object):
                         for x in formula.split(
                             "levels=['")[-1].split("']")[0].split(",")
                     ]}
-                elif 'Treatment(' in formula:
+                elif "Treatment('" in formula:
                     levels = {formula_split_c: [
                         formula.split("Treatment('")[-1].split("')")[0]
                     ]}
+                    print('levels:', levels)
+                elif 'Treatment("' in formula:
+                    levels = {formula_split_c: [
+                        formula.split('Treatment("')[-1].split('")')[0]
+                    ]}
+                    print('levels:', levels)
                 vars.add(formula_split_c)
                 vars.update(set([x for x in re.split(
                     '[+/:*]', formula_split[1]) if x]))
+                print("vars:", vars)
             else:
                 formula_split = re.split('[+/:*]', formula)
                 formula = formula
@@ -602,6 +609,11 @@ class DiffModels(object):
             # MAKE SURE TO SKIP "IMPOSSIBLE" RUN
             # e.g subset "sex == male"
             #     testing "C(Sex, Treatment('female'))"
+            print('---------')
+            print('dat:', dat)
+            print('filt:', filt)
+            print('subset:', subset)
+            print('---------')
             self.check_metadata_models(
                 meta_fp, meta_pd, self.songbird_models[dat])
             row_params_pd = params_pd.copy()
