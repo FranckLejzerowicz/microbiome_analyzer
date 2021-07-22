@@ -100,6 +100,8 @@ class AnalysisPrep(object):
     def rarefy(self):
         self.project.set_rarefaction(self.config)
         for dat, data in self.project.datasets.items():
+            if not data.raref_depths:
+                continue
             if not self.config.force:
                 if self.config.filt_only and dat not in self.project.filt_raw:
                     continue
