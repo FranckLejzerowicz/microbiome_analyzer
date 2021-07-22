@@ -108,11 +108,16 @@ class Datasets(object):
 
     def set_rarefaction_paths(self, config):
         for dataset, data in self.datasets.items():
+            print("dataset, data")
+            print(dataset, data)
+            print("Datasets.filt_raw.tolist()")
+            print(Datasets.filt_raw.tolist())
             if dataset in Datasets.filt_raw:
                 data.raref_depths = self.datasets[
                     Datasets.filt_raw[dataset]
                 ].raref_depths
-
+            print("data.raref_depths")
+            print(data.raref_depths)
             odir = get_analysis_folder(
                 config.i_datasets_folder, 'rarefy/%s' % dataset)
             for depth_ in data.raref_depths[1]:
