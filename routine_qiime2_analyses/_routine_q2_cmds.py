@@ -692,7 +692,6 @@ def write_collapse_taxo(tab_qza: str, tax_qza: str,
         cmd += '--p-exclude-ids \n'
         cmd += 'mv %s2.qza %s\n' % (collapsed_qza, collapsed_qza)
 
-    cmd = '%s\necho "%s"\n' % (cmd, cmd)
     if not isfile(collapsed_tsv):
         cmd += run_export(collapsed_qza, collapsed_tsv, 'FeatureTable')
     if not isfile(collapsed_meta):
