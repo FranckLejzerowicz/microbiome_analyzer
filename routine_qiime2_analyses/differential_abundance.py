@@ -541,6 +541,7 @@ class DiffModels(object):
             if levels:
                 levels_set = sorted([x for x in meta_pd[
                     formula_split_c].unique() if str(x) != 'nan'])
+                print('levels_set:', levels_set)
                 if 'Diff' in formula:
                     cur_levels = levels[formula_split_c]
                     common_levels = set(levels_set) & set(cur_levels)
@@ -562,12 +563,18 @@ class DiffModels(object):
                 elif 'Treatment(' in formula:
                     levels = {formula_split_c: formula.split(
                         "Treatment('")[-1].split("')")[0]}
+                    print("levels (2):", levels)
+                    print('if levels[formula_split_c] not in levels_set:')
                     if levels[formula_split_c] not in levels_set:
+                        print('    YES')
                         issue = 'Songbird formula "Treatment" factors(s)' \
                                 ' missing in metadata "%s" [%s]' % (
                                     formula_split_c, levels)
                         self.models_issues.setdefault(issue, set()).add(meta)
                         continue
+                    else:
+                        print('    NO...')
+
 
             self.models[model] = [formula, vars, drop]
 
