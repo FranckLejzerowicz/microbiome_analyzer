@@ -478,6 +478,7 @@ def write_phate_cmd(qza: str, new_qza: str, new_tsv: str,
         for v in vs:
             if v:
                 cmd += '--p-%ss %s \\\n' % (k, v)
+    cmd += '--no-clusters \\\n'
     cmd += '--verbose\n\n'
     cur_sh_o.write('echo "%s"\n' % cmd)
     cur_sh_o.write('%s\n' % cmd)
