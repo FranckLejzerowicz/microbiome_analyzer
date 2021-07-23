@@ -480,8 +480,6 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
         for dat, tab_meta_fps in datasets.items():
             if dat not in collapse_taxo:
                 continue
-            print(datasets_read[dat][0])
-            print(datasets_read[dat][1])
             # get the taxonomic levels
             collapse_levels = collapse_taxo[dat]
             split_taxa_pd, split_taxa_fp = split_taxa_pds[dat]
@@ -514,7 +512,8 @@ def run_collapse(i_datasets_folder: str, datasets: dict, datasets_filt: dict,
                             coll_pd = pd.read_csv(
                                 coll_tsv, index_col=0, header=0, sep='\t')
                             coll_meta_pd = pd.read_csv(
-                                coll_meta, index_col=0, header=0, sep='\t')
+                                coll_meta, header=0, sep='\t',
+                                dtype={'sample_name': str})
                             if coll_pd.shape[0] < 5:
                                 continue
                             cmd = fix_collapsed_data(
