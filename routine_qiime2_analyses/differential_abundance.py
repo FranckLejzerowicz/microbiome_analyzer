@@ -226,6 +226,8 @@ class DiffModels(object):
         for params_combination in itertools.product(*to_combine):
             params.append(params_combination)
         params_pd = pd.DataFrame(params, columns=self.params_list).astype(str)
+        print(params_pd)
+        print(params_pdfdsa)
         return params_pd
 
     @staticmethod
