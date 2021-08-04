@@ -94,10 +94,11 @@ class CreateScripts(object):
         if len(to_chunk) > self.config.chunkit:
             array_split = np.array_split(to_chunk, self.config.chunkit)
             for idx, keys in enumerate(array_split):
-                head_sh = '%s_chunk%s.sh' % (job_folder, idx)
+                head_sh = '%s_%s_chunk%s.sh' % (job_folder, self.prjct_nm, idx)
                 chunks[(head_sh, idx)] = sorted(keys)
         else:
-            chunks = dict((('%s_chunk%s.sh' % (job_folder, idx), idx), [x])
+            chunks = dict((('%s_%s_chunk%s.sh' % (
+                job_folder, self.prjct_nm, idx), idx), [x])
                           for idx, x in enumerate(to_chunk))
 
         for (sh, idx), commands in chunks.items():
