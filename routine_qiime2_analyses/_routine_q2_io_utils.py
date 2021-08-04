@@ -752,11 +752,13 @@ def simple_chunks(run_pbs, job_folder2, to_chunk, analysis: str,
         chunks = {}
         if chunkit and len(to_chunk) > chunkit:
             for idx, keys in enumerate(np.array_split(to_chunk, chunkit)):
-                head_sh = '%s/%s_chunk%s.sh' % (job_folder2, analysis, idx)
+                head_sh = '%s/%s_%s_chunk%s.sh' % (
+                    job_folder2, analysis, prjct_nm, idx)
                 chunks[(idx, head_sh)] = sorted(keys)
         else:
             chunks = dict(
-                ((idx, '%s/%s_chunk%s.sh' % (job_folder2, analysis, idx)), [x])
+                ((idx, '%s/%s_%s_chunk%s.sh' % (
+                    job_folder2, analysis, prjct_nm, idx)), [x])
                 for idx, x in enumerate(to_chunk))
 
         for (dat, out_sh), cur_shs in chunks.items():
@@ -777,9 +779,12 @@ def simple_chunks(run_pbs, job_folder2, to_chunk, analysis: str,
                     else:
                         out_pbs = '%s.pbs' % splitext(out_sh)[0]
                         launcher = 'qsub'
-                    run_xpbs(out_sh, out_pbs, '%s.%s.%s' % (prjct_nm, dat, analysis),
-                             qiime_env, time, n_nodes, n_procs, mem_num, mem_dim,
-                             chmod, 1, '', None, noloc, slurm, jobs, tmp)
+                    run_xpbs(
+                        out_sh, out_pbs, '%s.%s.%s' % (
+                            prjct_nm, dat, analysis), qiime_env, time,
+                        n_nodes, n_procs, mem_num, mem_dim, chmod, 1, '', None,
+                        noloc, slurm, jobs, tmp
+                    )
                     if os.getcwd().startswith('/panfs'):
                         out_pbs = out_pbs.replace(os.getcwd(), '')
                     main_o.write('%s %s\n' % (launcher, out_pbs))
