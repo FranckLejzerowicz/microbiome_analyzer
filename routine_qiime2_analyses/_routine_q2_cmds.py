@@ -740,11 +740,13 @@ def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str,
             o_tax.write('Feature ID\tTaxon\tPrevious ID\n')
             n = 0
             for ldx, line in enumerate(f):
+                line_split = line.strip().split('\t')
+                if len(line_split) == 1:
+                    line_split = [line_split[0], line_split[0]]
                 if ldx and not line.startswith('#q2:types'):
-                    print(line)
-                    new = 'x__%s;%s' % (n, line.strip().split('\t')[1])
-                    tax_dict[line.split('\t')[0]] = new
-                    o_tax.write('%s\t%s\t%s\n' % (new, new, line.split('\t')[0]))
+                    new = 'x__%s;%s' % (n, line_split[1])
+                    tax_dict[line_split[0]] = new
+                    o_tax.write('%s\t%s\t%s\n' % (new, new, line_split[0]))
                     n += 1
         with open(tsv) as f, open(biplot_tab_tsv, 'w') as o_tab:
             for ldx, line in enumerate(f):
