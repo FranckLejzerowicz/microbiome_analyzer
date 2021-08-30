@@ -741,6 +741,7 @@ def write_diversity_biplot(tsv: str, qza: str, out_pcoa: str,
             n = 0
             for ldx, line in enumerate(f):
                 if ldx and not line.startswith('#q2:types'):
+                    print(line)
                     new = 'x__%s;%s' % (n, line.strip().split('\t')[1])
                     tax_dict[line.split('\t')[0]] = new
                     o_tax.write('%s\t%s\t%s\n' % (new, new, line.split('\t')[0]))
