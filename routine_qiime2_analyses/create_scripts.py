@@ -162,6 +162,7 @@ class CreateScripts(object):
     def get_shs(self, analyses_commands):
         for analysis, dats_commands in analyses_commands.items():
             job_folder = self.jobs_folders[analysis][1]
+            print('analysis:', analysis)
             for dat, commands in dats_commands.items():
                 sh = '%s_%s.sh' % (job_folder, dat)
                 for idx, command in enumerate(commands):
