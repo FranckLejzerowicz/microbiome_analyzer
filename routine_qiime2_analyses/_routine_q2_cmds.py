@@ -886,8 +886,9 @@ def write_empress_biplot(sam_meta: str, feat_table: str, feat_meta: str, sb_qza:
     cur_sh.write('%s\n\n' % cmd)
 
 
-def write_empress(sam_meta: str, feat_table: str, tax_qza: str, sb_qza: str,
-                  pcoa: str, tree: str, out_plot: str, cur_sh: TextIO) -> None:
+def write_empress(sam_meta: str, feat_meta: list, feat_table: str,
+                  tax_qza: str, sb_qza: str, pcoa: str, tree: str,
+                  out_plot: str, cur_sh: TextIO) -> None:
     """
     """
     cmd = 'qiime empress community-plot \\\n'
@@ -899,6 +900,8 @@ def write_empress(sam_meta: str, feat_table: str, tax_qza: str, sb_qza: str,
         cmd += '--m-feature-metadata-file %s \\\n' % tax_qza
     if sb_qza:
         cmd += '--m-feature-metadata-file %s \\\n' % sb_qza
+    for feat in feat_meta:
+        cmd += '--m-feature-metadata-file %s \\\n' % feat
     cmd += '--p-number-of-features 15 \\\n'
     cmd += '--o-visualization %s\n' % out_plot
     cur_sh.write('echo "%s"\n' % cmd)

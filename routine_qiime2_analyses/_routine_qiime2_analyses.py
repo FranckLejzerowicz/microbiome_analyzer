@@ -246,8 +246,9 @@ def routine_qiime2_analyses(
     datasets = datasets_objects[0]
     datasets_read = datasets_objects[1]
     datasets_features = datasets_objects[2]
-    datasets_phylo = datasets_objects[3]
-    datasets_rarefs = datasets_objects[4]
+    datasets_feat_meta = datasets_objects[3]
+    datasets_phylo = datasets_objects[4]
+    datasets_rarefs = datasets_objects[5]
 
     project = Datasets(i_datasets, i_datasets_folder)
 
@@ -500,9 +501,9 @@ def routine_qiime2_analyses(
                 print('[%s] (run_empress)' % datetime.datetime.now())
                 run_empress(
                     i_datasets_folder, pcoas, trees, datasets_phylo,
-                    datasets_rarefs, taxonomies, prjct_nm, qiime_env, p_chmod,
-                    noloc, slurm, run_params['empress'], filt_raref, jobs,
-                    chunkit)
+                    datasets_rarefs, datasets_feat_meta, taxonomies, prjct_nm,
+                    qiime_env, p_chmod, noloc, slurm, run_params['empress'],
+                    filt_raref, jobs, chunkit)
                 # AnalysisPrep('Alpha diversity').alpha(config, project)
                 # print(AnalysisPrep.analyses_commands)
                 # print(AnalysisPrep.analyses_commands.keys())

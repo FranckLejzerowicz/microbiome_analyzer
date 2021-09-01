@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import glob
 from os.path import isfile, splitext
 from routine_qiime2_analyses._routine_q2_io_utils import (
     check_input,
@@ -37,6 +38,7 @@ class Data(object):
         self.meta = ['%s/metadata/meta_%s.tsv' % (datasets_folder, dataset)]
         self.data = []
         self.metadata = []
+        self.feat_meta = []
         self.phylo = None
         self.features = {}
         self.rarefs = ['']
@@ -72,6 +74,16 @@ class Data(object):
             Data.dnas.append(self.dataset)
             self.phylo = ('amplicon', 0)
 
+    def get_feature_metadata(self):
+        feat = self.meta[0].split('metadata/meta_')[0]
+        feat_fps = glob.glob('%s/qiime/feature_metadata/feat_*' % feat)
+        if feat_fps:
+            for feat_fp in feat_fps:
+                # feature metadata can be large: no formatting check, yet!
+                # idx = 'Feature ID'
+                # feat_pd = read_meta_pd(feat_fp, idx).set_index(idx)
+                self.feat_meta.append(feat_fp)
+
 
 class Datasets(object):
     """Collect the data associated with each dataset passed but the user
@@ -105,6 +117,7 @@ class Datasets(object):
             data.read_data_pd()
             data.read_meta_pd()
             data.check_gid_or_dna()
+            data.get_feature_metadata()
 
     def set_rarefaction_paths(self, config):
         for dataset, data in self.datasets.items():

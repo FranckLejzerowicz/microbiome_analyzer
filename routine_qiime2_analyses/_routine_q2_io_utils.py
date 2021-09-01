@@ -870,6 +870,34 @@ def write_main_sh(job_folder: str, analysis: str, all_sh_pbs: dict,
     return out_main_sh
 
 
+def get_corresponding_feat_metas(path: str) -> str:
+    """Discover the feature metadata file corresponding
+    to the already discovered data file for the
+    current dataset.
+
+    Parameters
+    ----------
+    path : str
+        Absolute path to the tsv (or biom)
+        file for the current dataset
+
+    Returns
+    -------
+    feat_meta_tsvs : str
+        Absolute path to the metadata
+        file for the current dataset
+
+    """
+    path_split = abspath(path).split('/')
+    dat = '_'.join(splitext(basename(path))[0].split('_')[1:])
+    feat_meta_rad = '%s/qiime/feature_metadata/%s/feat_%s' % (
+        '/'.join(path_split[:-2]), dat, dat)
+    feat_meta_tsvs = glob.glob('%s*' % feat_meta_rad)
+    if feat_meta_tsvs:
+        print('# Feature metadata found for: %s' % dat)
+    return feat_meta_tsvs
+
+
 def get_corresponding_meta(path: str) -> str:
     """Discover the metadata file corresponding
     to the already discovered data file for the
@@ -1174,11 +1202,13 @@ def get_datasets(
     datasets_read = {}
     datasets_phylo = {}
     datasets_features = {}
+    datasets_feat_meta = {}
     datasets_rarefs = {}
 
     for dat, path in paths.items():
 
         meta = get_corresponding_meta(path)
+        feat_metas = get_corresponding_feat_metas(path)
         if not isfile(meta):
             print(meta, 'does not exist\n Skipping', dat)
             continue
@@ -1188,6 +1218,7 @@ def get_datasets(
         datasets[dat] = [[path, meta]]
         datasets_read[dat] = [[data_pd, meta_pd]]
         datasets_features[dat] = {}
+        datasets_feat_meta[dat] = feat_metas
         datasets_phylo[dat] = ('', 0)
         datasets_rarefs[dat] = ['']
         # detect whether features are DNA, genome ID or neither of these
@@ -1198,6 +1229,7 @@ def get_datasets(
         datasets,
         datasets_read,
         datasets_features,
+        datasets_feat_meta,
         datasets_phylo,
         datasets_rarefs
     )

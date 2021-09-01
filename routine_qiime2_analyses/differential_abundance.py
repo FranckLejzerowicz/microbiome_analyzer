@@ -233,7 +233,6 @@ class DiffModels(object):
     def print_message_or_not(mess, m):
         if m not in mess:
             mess.add(m)
-            print(m)
 
     def process_params_combinations(
             self,
@@ -265,21 +264,21 @@ class DiffModels(object):
             if train.replace('.', '').isdigit():
                 if float(train) < 0.1:
                     valid_params.append(p)
-                    m = '[%s]\t[skip] "%s": train %s too low (%s)' % (
-                        datetime.datetime.now(), dataset, '%', train)
+                    m = '\t[skip] "%s": train %s too low (%s)' % (
+                        dataset, '%', train)
                     self.print_message_or_not(mess, m)
                 elif float(train) > 0.95:
                     valid_params.append(p)
-                    m = '[%s]\t[skip] "%s": train %s too high (%s)' % (
-                        datetime.datetime.now(), dataset, '%', train)
+                    m = '\t[skip] "%s": train %s too high (%s)' % (
+                        dataset, '%', train)
                     self.print_message_or_not(mess, m)
                 else:
                     examples.append(int(nsams * (1 - float(train))))
             else:
                 if train not in set(meta_cols):
                     valid_params.append(p)
-                    m = '[%s]\t[skip] Training column "%s" not in metadata' % (
-                        datetime.datetime.now(), train)
+                    m = '\t[skip] Training column "%s" not in metadata' % (
+                        train)
                     self.print_message_or_not(mess, m)
                 else:
                     train_vc = meta_pd[train].value_counts()
@@ -287,14 +286,13 @@ class DiffModels(object):
                         ntrain = train_vc['Train']
                         if nsams < (1.2 * ntrain):
                             valid_params.append(p)
-                            m = '[%s]\t[skip] "%s": %s samples for %s ' \
-                                'training samples:' % (datetime.datetime.now(),
-                                               dataset, nsams, ntrain)
+                            m = '\t[skip] "%s": %s samples for %s training ' \
+                                'samples:' % (dataset, nsams, ntrain)
                             self.print_message_or_not(mess, m)
                     else:
                         valid_params.append(p)
-                        m = '[%s]\t[skip] "%s": no TrainTest in column "%s"' % (
-                            datetime.datetime.now(), dataset, train)
+                        m = '\t[skip] "%s": no TrainTest in column "%s"' % (
+                            dataset, train)
                         self.print_message_or_not(mess, m)
         if valid_params:
             params_pd.drop(index=valid_params, inplace=True)
@@ -577,7 +575,10 @@ class DiffModels(object):
             models[model] = [formula, vars, drop]
         return models
 
-    def show_models_issues(self):
+    def show_models_issues(self, mess):
+        if mess:
+            for m in sorted(mess):
+                print('[%s]' % datetime.datetime.now(), m)
         if self.models_issues:
             print('\n[%s] %s Issues with model (will not run) %s' % (
                 datetime.datetime.now(), '#'*10, '#'*10))
@@ -617,6 +618,7 @@ class DiffModels(object):
                 meta_fp, meta_pd, self.songbird_models[dat])
             row_params_pd = params_pd.copy()
             self.process_params_combinations(dat, meta_pd, row_params_pd, mess)
+            print(dat, filt, subset)
             for p, params in row_params_pd.iterrows():
                 params_dir = self.get_params_dir(params)
                 baselines, model_baselines = {}, {'1': '1'}
@@ -629,7 +631,7 @@ class DiffModels(object):
                     if dat in self.models_baselines and model in \
                             self.models_baselines[dat]:
                         model_baselines = self.models_baselines[dat][model]
-                    for mdx, model_baseline in enumerate(model_baselines):
+                    for model_baseline in model_baselines:
                         bformula = model_baselines[model_baseline]
                         bodir = get_analysis_folder(
                             self.config.i_datasets_folder,
@@ -646,8 +648,10 @@ class DiffModels(object):
                             subset, out_paths['diff'], model_baseline,
                             out_paths['html'], pair])
                         if cmd:
+                            print(dat, '+cmd')
                             dat_cmds.setdefault(dat, []).append(cmd)
                         if bcmd:
+                            print(dat, '+bcmd')
                             dat_bcmds.setdefault(dat, []).append(bcmd)
 
         for dat in dat_bcmds:
@@ -658,10 +662,10 @@ class DiffModels(object):
             # and then the scripts generating the actual models
             if dat_cmds[dat]:
                 cmds.setdefault(dat, []).extend(dat_cmds[dat])
+        print(cmds.keys())
         if songbird:
             self.get_songbird_pd(songbird)
-
-        self.show_models_issues()
+        self.show_models_issues(mess)
         self.register_command('songbird', cmds)
         self.summarize_songbirds()
         self.create_songbird_feature_metadata()

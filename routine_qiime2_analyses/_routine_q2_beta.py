@@ -793,9 +793,10 @@ def run_emperor_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
 
 def run_empress(i_datasets_folder: str, pcoas_d: dict,
                 trees: dict, datasets_phylo: dict, datasets_rarefs: dict,
-                taxonomies: dict, prjct_nm: str, qiime_env: str, chmod: str,
-                noloc: bool, slurm: bool, run_params: dict, filt_raref: str,
-                jobs: bool, chunkit: int) -> None:
+                datasets_feat_meta: dict, taxonomies: dict, prjct_nm: str,
+                qiime_env: str, chmod: str, noloc: bool, slurm: bool,
+                run_params: dict, filt_raref: str, jobs: bool, chunkit: int
+                ) -> None:
     """
     Run empress.
     https://docs.qiime2.org/2019.10/plugins/available/empress/
@@ -826,7 +827,7 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
             tax_qza = ''
             if dat in taxonomies:
                 method, tax_qza, tax_tsv = taxonomies[dat]
-
+            feat_meta = datasets_feat_meta[dat]
             with open(out_sh, 'w') as cur_sh:
                 for idx, metas_pcoas_qzas_trees in enumerate(metas_pcoas_qzas_trees_):
                     cur_depth = datasets_rarefs[dat][idx]
@@ -858,7 +859,8 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
                             out_dir = os.path.dirname(out_plot)
                             if not os.path.isdir(out_dir):
                                 os.makedirs(out_dir)
-                            write_empress(sam_meta, qza, tax_qza, sb_qza, pcoa, tree, out_plot, cur_sh)
+                            write_empress(sam_meta, feat_meta, qza, tax_qza,
+                                          sb_qza, pcoa, tree, out_plot, cur_sh)
                             written += 1
                             main_written += 1
             to_chunk.append(out_sh)
