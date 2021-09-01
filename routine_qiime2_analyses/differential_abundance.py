@@ -9,6 +9,7 @@
 import os
 import re
 import random
+import datetime
 import itertools
 import pandas as pd
 from os.path import dirname, isdir, isfile, splitext
@@ -264,20 +265,21 @@ class DiffModels(object):
             if train.replace('.', '').isdigit():
                 if float(train) < 0.1:
                     valid_params.append(p)
-                    m = '\t[skip] "%s": train %s too low (%s)' % (
-                        dataset, '%', train)
+                    m = '[%s]\t[skip] "%s": train %s too low (%s)' % (
+                        datetime.datetime.now(), dataset, '%', train)
                     self.print_message_or_not(mess, m)
                 elif float(train) > 0.95:
                     valid_params.append(p)
-                    m = '\t[skip] "%s": train %s too high (%s)' % (
-                        dataset, '%', train)
+                    m = '[%s]\t[skip] "%s": train %s too high (%s)' % (
+                        datetime.datetime.now(), dataset, '%', train)
                     self.print_message_or_not(mess, m)
                 else:
                     examples.append(int(nsams * (1 - float(train))))
             else:
                 if train not in set(meta_cols):
                     valid_params.append(p)
-                    m = '\t[skip] Training column "%s" not in metadata' % train
+                    m = '[%s]\t[skip] Training column "%s" not in metadata' % (
+                        datetime.datetime.now(), train)
                     self.print_message_or_not(mess, m)
                 else:
                     train_vc = meta_pd[train].value_counts()
@@ -285,13 +287,14 @@ class DiffModels(object):
                         ntrain = train_vc['Train']
                         if nsams < (1.2 * ntrain):
                             valid_params.append(p)
-                            m = '\t[skip] "%s": %s samples for %s training' \
-                                ' samples:' % (dataset, nsams, ntrain)
+                            m = '[%s]\t[skip] "%s": %s samples for %s ' \
+                                'training samples:' % (datetime.datetime.now(),
+                                               dataset, nsams, ntrain)
                             self.print_message_or_not(mess, m)
                     else:
                         valid_params.append(p)
-                        m = '\t[skip] "%s": no Train/Test in column "%s"' % (
-                            dataset, train)
+                        m = '[%s]\t[skip] "%s": no TrainTest in column "%s"' % (
+                            datetime.datetime.now(), dataset, train)
                         self.print_message_or_not(mess, m)
         if valid_params:
             params_pd.drop(index=valid_params, inplace=True)
@@ -440,7 +443,7 @@ class DiffModels(object):
                 'Pseudo_Q_squared'])
             q2s_fp = '%s/songbird_q2.tsv' % songbird
             self.q2s_pd.to_csv(q2s_fp, index=False, sep='\t')
-            print('\t\t==> Written:', q2s_fp)
+            print('[%s]\t\t==> Written:', (datetime.datetime.now(), q2s_fp))
 
     def create_songbird_feature_metadata(self):
         if self.q2s_pd.shape[0]:
@@ -576,7 +579,8 @@ class DiffModels(object):
 
     def show_models_issues(self):
         if self.models_issues:
-            print('\n%s Issues with model (will not run) %s' % ('#'*10, '#'*10))
+            print('\n[%s] %s Issues with model (will not run) %s' % (
+                datetime.datetime.now(), '#'*10, '#'*10))
             for model_issue, metas in self.models_issues.items():
                 print('-', model_issue)
                 for meta in metas:

@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import pandas as pd
+import datetime
 from os.path import isdir
 
 from routine_qiime2_analyses.dataset_collection import Datasets
@@ -263,7 +264,7 @@ def routine_qiime2_analyses(
     analysis = AnalysisPrep(config, project)
 
     # PREPROCESSING ------------------------------------------------------------
-    print('(import_datasets)')
+    print('[%s] (import_datasets)' % datetime.datetime.now())
     import_datasets(i_datasets_folder, datasets, datasets_phylo,
                     force, prjct_nm, qiime_env, p_chmod, noloc,
                     run_params['import'], filt_raref, jobs, slurm, chunkit)
@@ -273,7 +274,7 @@ def routine_qiime2_analyses(
     datasets_filt = {}
     datasets_filt_map = {}
     if p_filt_threshs:
-        print('(filter_rare_samples)')
+        print('[%s] (filter_rare_samples)' % datetime.datetime.now())
         filter_rare_samples(
             i_datasets_folder, datasets, datasets_read, datasets_features,
             datasets_rarefs, datasets_filt, datasets_filt_map, datasets_phylo,
@@ -284,7 +285,7 @@ def routine_qiime2_analyses(
 
     eval_depths = {}
     if raref:
-        print('(run_rarefy)')
+        print('[%s] (run_rarefy)' % datetime.datetime.now())
         eval_depths = run_rarefy(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_filt_map, datasets_rarefs, p_raref_depths, eval_rarefs,
@@ -296,7 +297,7 @@ def routine_qiime2_analyses(
     # TAXONOMY ------------------------------------------------------------
     taxonomies = {}
     method = 'sklearn'
-    print('(get_precomputed_taxonomies)')
+    print('[%s] (get_precomputed_taxonomies)' % datetime.datetime.now())
     get_precomputed_taxonomies(
         i_datasets_folder, datasets, datasets_filt_map, taxonomies, method)
     project.get_precomputed_taxonomy(config)
@@ -304,7 +305,7 @@ def routine_qiime2_analyses(
 
     if i_qemistree and 'qemistree' not in p_skip:
         if isdir(i_qemistree):
-            print('(run_qemistree)')
+            print('[%s] (run_qemistree)' % datetime.datetime.now())
             run_qemistree(
                 i_datasets_folder, datasets, prjct_nm, i_qemistree,
                 taxonomies, force, qiime_env, p_chmod, noloc, slurm,
@@ -313,7 +314,7 @@ def routine_qiime2_analyses(
             print('[Warning] The Qemistree path %s is not a folder.')
 
     if 'taxonomy' not in p_skip:
-        print('(run_taxonomy)')
+        print('[%s] (run_taxonomy)' % datetime.datetime.now())
         run_taxonomy(
             method, i_datasets_folder, datasets, datasets_read,
             datasets_phylo, datasets_features, datasets_filt_map,
@@ -322,13 +323,13 @@ def routine_qiime2_analyses(
         # AnalysisPrep('taxonomy').taxonomy(config, project)
         analysis.taxonomy()
 
-        print('(run_edit_taxonomies)')
+        print('[%s] (run_edit_taxonomies)' % datetime.datetime.now())
         edit_taxonomies(
             i_datasets_folder, taxonomies, force, prjct_nm, qiime_env, p_chmod,
             noloc, slurm, run_params['taxonomy'], filt_raref, jobs, chunkit)
 
         if 'barplot' not in p_skip:
-            print('(run_barplot)')
+            print('[%s] (run_barplot)' % datetime.datetime.now())
             run_barplot(
                 i_datasets_folder, datasets, taxonomies, force, prjct_nm,
                 qiime_env, p_chmod, noloc, slurm, run_params['barplot'],
@@ -336,13 +337,13 @@ def routine_qiime2_analyses(
 
     # TREES ------------------------------------------------------------
     trees = {}
-    print('(get_precomputed_trees)')
+    print('[%s] (get_precomputed_trees)' % datetime.datetime.now())
     get_precomputed_trees(
         i_datasets_folder, datasets, datasets_filt_map, datasets_phylo, trees)
     project.get_precomputed_trees(config)
 
     if 'wol' not in p_skip:
-        print('(shear_tree)')
+        print('[%s] (shear_tree)' % datetime.datetime.now())
         shear_tree(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_features, prjct_nm, i_wol_tree, trees, datasets_rarefs,
@@ -352,7 +353,7 @@ def routine_qiime2_analyses(
         analysis.shear_tree()
 
     if i_sepp_tree and 'sepp' not in p_skip:
-        print('(run_sepp)')
+        print('[%s] (run_sepp)' % datetime.datetime.now())
         run_sepp(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_rarefs, prjct_nm, i_sepp_tree, trees, force, qiime_env,
@@ -371,7 +372,7 @@ def routine_qiime2_analyses(
     project.get_taxo_levels()
 
     if 'do_pies' in p_skip:
-        print('(run_do_pies)')
+        print('[%s] (run_do_pies)' % datetime.datetime.now())
         pies_data = make_pies(
             i_datasets_folder, split_taxa_pds, datasets_rarefs, datasets_read)
 
@@ -379,7 +380,7 @@ def routine_qiime2_analyses(
     datasets_collapsed = {}
     datasets_collapsed_map = {}
     if p_collapse_taxo and 'collapse' not in p_skip:
-        print('(run_collapse)')
+        print('[%s] (run_collapse)' % datetime.datetime.now())
         collapsed = run_collapse(
             i_datasets_folder, datasets, datasets_filt, datasets_read,
             datasets_features, datasets_phylo, split_taxa_pds, taxonomies,
@@ -392,7 +393,7 @@ def routine_qiime2_analyses(
     # ALPHA ------------------------------------------------------------
     # diversity = Diversity(config, project)
     if 'alpha' not in p_skip:
-        print('(alpha)')
+        print('[%s] (alpha)' % datetime.datetime.now())
         diversities = run_alpha(
             i_datasets_folder, datasets, datasets_read, datasets_phylo,
             datasets_rarefs, p_alpha_subsets, trees, force, prjct_nm,
@@ -404,7 +405,7 @@ def routine_qiime2_analyses(
         # print(ksdcd)
 
         if 'merge_alpha' not in p_skip:
-            print('(to_export)')
+            print('[%s] (to_export)' % datetime.datetime.now())
             to_export = merge_meta_alpha(
                 i_datasets_folder, datasets, datasets_rarefs, diversities,
                 force, prjct_nm, qiime_env, p_chmod, noloc, slurm, dropout,
@@ -415,7 +416,7 @@ def routine_qiime2_analyses(
             # print(AnalysisPrep.analyses_commands.keys())
             # print(AnalysisPrepdsa)
             if 'export_alpha' not in p_skip:
-                print('(export_meta_alpha)')
+                print('[%s] (export_meta_alpha)' % datetime.datetime.now())
                 export_meta_alpha(
                     datasets, filt_raref, datasets_rarefs, to_export, dropout)
                 # AnalysisPrep('Alpha diversity').alpha(config, project)
@@ -423,7 +424,7 @@ def routine_qiime2_analyses(
                 # print(AnalysisPrep.analyses_commands.keys())
                 # print(AnalysisPrepdsa)
         if 'alpha_correlations' not in p_skip:
-            print('(run_correlations)')
+            print('[%s] (run_correlations)' % datetime.datetime.now())
             run_correlations(
                 i_datasets_folder, datasets, diversities, datasets_rarefs,
                 force, prjct_nm, qiime_env, p_chmod, noloc, slurm,
@@ -433,7 +434,7 @@ def routine_qiime2_analyses(
             # print(AnalysisPrep.analyses_commands.keys())
             # print(AnalysisPrepdsa)
         if 'alpha_rarefaction' not in p_skip:
-            print('(run_alpha_rarefaction)')
+            print('[%s] (run_alpha_rarefaction)' % datetime.datetime.now())
             run_alpha_rarefaction(
                 i_datasets_folder, datasets, datasets_rarefs, datasets_phylo,
                 trees, force, prjct_nm, qiime_env, p_chmod, noloc, slurm, As,
@@ -443,7 +444,7 @@ def routine_qiime2_analyses(
             # print(AnalysisPrep.analyses_commands.keys())
             # print(AnalysisPrepdsa)
         if p_longi_column and 'volatility' not in p_skip:
-            print('(run_volatility)')
+            print('[%s] (run_volatility)' % datetime.datetime.now())
             run_volatility(
                 i_datasets_folder, datasets, p_longi_column,
                 datasets_rarefs, force, prjct_nm, qiime_env, p_chmod, noloc,
@@ -455,7 +456,7 @@ def routine_qiime2_analyses(
 
     # BETA ----------------------------------------------------------------------
     if 'beta' not in p_skip:
-        print('(betas)')
+        print('[%s] (betas)' % datetime.datetime.now())
         betas = run_beta(
             i_datasets_folder, datasets, datasets_phylo, datasets_read,
             datasets_rarefs, p_beta_subsets, p_beta_groups, trees, force,
@@ -466,7 +467,7 @@ def routine_qiime2_analyses(
         # print(AnalysisPrep.analyses_commands.keys())
         # print(AnalysisPrepdsa)
         if 'export_beta' not in p_skip:
-            print('(export_beta)')
+            print('[%s] (export_beta)' % datetime.datetime.now())
             export_beta(
                 i_datasets_folder, betas, datasets_rarefs, force, prjct_nm,
                 qiime_env, p_chmod, noloc, slurm, run_params['export_beta'],
@@ -476,7 +477,7 @@ def routine_qiime2_analyses(
             # print(AnalysisPrep.analyses_commands.keys())
             # print(AnalysisPrepdsa)
         if 'pcoa' not in p_skip:
-            print('(run_pcoas)')
+            print('[%s] (run_pcoas)' % datetime.datetime.now())
             pcoas = run_pcoas(
                 i_datasets_folder, betas, datasets_rarefs, force, prjct_nm,
                 qiime_env, p_chmod, noloc, slurm, run_params['pcoa'], filt_raref,
@@ -486,7 +487,7 @@ def routine_qiime2_analyses(
             # print(AnalysisPrep.analyses_commands.keys())
             # print(AnalysisPrepdsa)
             if 'emperor' not in p_skip:
-                print('(run_emperor)')
+                print('[%s] (run_emperor)' % datetime.datetime.now())
                 run_emperor(
                     i_datasets_folder, pcoas, datasets_rarefs, prjct_nm,
                     qiime_env, p_chmod, noloc, slurm, run_params['emperor'],
@@ -496,7 +497,7 @@ def routine_qiime2_analyses(
                 # print(AnalysisPrep.analyses_commands.keys())
                 # print(AnalysisPrepdsa)
             if 'empress' not in p_skip:
-                print('(run_empress)')
+                print('[%s] (run_empress)' % datetime.datetime.now())
                 run_empress(
                     i_datasets_folder, pcoas, trees, datasets_phylo,
                     datasets_rarefs, taxonomies, prjct_nm, qiime_env, p_chmod,
@@ -507,7 +508,7 @@ def routine_qiime2_analyses(
                 # print(AnalysisPrep.analyses_commands.keys())
                 # print(AnalysisPrepdsa)
         if do_biplots and 'biplot' not in p_skip:
-            print('(run_biplots)')
+            print('[%s] (run_biplots)' % datetime.datetime.now())
             biplots, biplots_raw = run_biplots(
                 i_datasets_folder, betas, datasets_rarefs,  taxonomies,
                 force, prjct_nm, qiime_env, p_chmod, noloc, slurm,
@@ -517,7 +518,7 @@ def routine_qiime2_analyses(
             # print(AnalysisPrep.analyses_commands.keys())
             # print(AnalysisPrepdsa)
             if 'emperor_biplot' not in p_skip:
-                print('(run_emperor_biplot)')
+                print('[%s] (run_emperor_biplot)' % datetime.datetime.now())
                 run_emperor_biplot(
                     i_datasets_folder, biplots, biplots_raw, taxonomies,
                     split_taxa_pds, datasets_rarefs, prjct_nm, qiime_env,
@@ -528,7 +529,7 @@ def routine_qiime2_analyses(
                 # print(AnalysisPrep.analyses_commands.keys())
                 # print(AnalysisPrepdsa)
             if 'empress_biplot' not in p_skip:
-                print('(run_empress_biplot)')
+                print('[%s] (run_empress_biplot)' % datetime.datetime.now())
                 run_empress_biplot(
                     i_datasets_folder, biplots, biplots_raw, trees,
                     datasets_phylo, taxonomies, datasets_rarefs, prjct_nm,
@@ -541,7 +542,7 @@ def routine_qiime2_analyses(
 
     # STATS ------------------------------------------------------------------
     if 'alpha' not in p_skip and 'alpha_group_significance' not in p_skip and 'alpha_kw' not in p_skip:
-        print('(run_alpha_group_significance)')
+        print('[%s] (run_alpha_group_significance)' % datetime.datetime.now())
         run_alpha_group_significance(
             i_datasets_folder, datasets, diversities, datasets_rarefs,
             p_beta_groups, force, prjct_nm, qiime_env, p_chmod, noloc, slurm,
@@ -552,7 +553,7 @@ def routine_qiime2_analyses(
         # print(AnalysisPrepdsa)
 
     if 'beta' not in p_skip and 'deicode' not in p_skip:
-        print('(run_deicode)')
+        print('[%s] (run_deicode)' % datetime.datetime.now())
         run_deicode(
             i_datasets_folder, datasets, datasets_rarefs, p_beta_groups,
             force, prjct_nm, qiime_env, p_chmod, noloc, slurm,
@@ -563,7 +564,7 @@ def routine_qiime2_analyses(
         # print(AnalysisPrepdsa)
 
     if 'beta' not in p_skip and p_perm_tests and 'permanova' not in p_skip:
-        print('(run_permanova)')
+        print('[%s] (run_permanova)' % datetime.datetime.now())
         permanovas = run_permanova(
             i_datasets_folder, betas, p_perm_tests, p_perm_tests_min,
             p_beta_type, datasets_rarefs, p_beta_groups, force, prjct_nm,
@@ -583,7 +584,7 @@ def routine_qiime2_analyses(
         # print(AnalysisPrepdsa)
 
     if 'beta' not in p_skip and p_adonis_formulas and 'adonis' not in p_skip:
-        print('(run_adonis)')
+        print('[%s] (run_adonis)' % datetime.datetime.now())
         run_adonis(
             p_adonis_formulas, i_datasets_folder, betas, datasets_rarefs,
             p_beta_groups, force, prjct_nm, qiime_env, p_chmod, noloc,
@@ -594,7 +595,7 @@ def routine_qiime2_analyses(
         # print(AnalysisPrepdsa)
 
     if 'beta' not in p_skip and p_procrustes and 'procrustes' not in p_skip:
-        print('(run_procrustes)')
+        print('[%s] (run_procrustes)' % datetime.datetime.now())
         run_procrustes(
             i_datasets_folder, datasets_filt, p_procrustes, betas, force,
             prjct_nm, qiime_env, p_chmod, noloc, slurm, split,
@@ -606,7 +607,7 @@ def routine_qiime2_analyses(
         # print(AnalysisPrepdsa)
 
     if 'beta' not in p_skip and p_mantel and 'mantel' not in p_skip:
-        print('(run_mantel)')
+        print('[%s] (run_mantel)' % datetime.datetime.now())
         run_mantel(
             i_datasets_folder, datasets_filt, p_mantel, betas, force,
             prjct_nm, qiime_env, p_chmod, noloc, slurm, split,
@@ -618,7 +619,7 @@ def routine_qiime2_analyses(
         # print(AnalysisPrepdsa)
 
     if 'beta' not in p_skip and p_nestedness_groups and 'nestedness' not in p_skip:
-        print('(run_nestedness)')
+        print('[%s] (run_nestedness)' % datetime.datetime.now())
         nestedness_res, colors, nodfs_fps = run_nestedness(
             i_datasets_folder, betas, datasets_collapsed_map,
             p_nestedness_groups, datasets_rarefs, force, prjct_nm, qiime_env,
@@ -629,7 +630,7 @@ def routine_qiime2_analyses(
         # print(AnalysisPrep.analyses_commands.keys())
         # print(AnalysisPrepdsa)
         if nestedness_res:
-            print('(making_nestedness_figures (graphs))')
+            print('[%s] (making_nestedness_figures (graphs))' % datetime.datetime.now())
             nestedness_graphs(
                 i_datasets_folder, nestedness_res, datasets, split_taxa_pds,
                 datasets_rarefs, colors, datasets_collapsed_map, collapsed,
@@ -640,7 +641,7 @@ def routine_qiime2_analyses(
             # print(AnalysisPrep.analyses_commands.keys())
             # print(AnalysisPrepdsa)
         if nodfs_fps:
-            print('(making_nestedness_figures (nodfs))')
+            print('[%s] (making_nestedness_figures (nodfs))' % datetime.datetime.now())
             nestedness_nodfs(
                 i_datasets_folder, nodfs_fps, collapsed, filt_raref,
                 prjct_nm, qiime_env, p_chmod, noloc, slurm, split,
@@ -651,7 +652,7 @@ def routine_qiime2_analyses(
             # print(AnalysisPrepdsa)
 
     if 'beta' not in p_skip and p_distance_decay and 'decay' not in p_skip:
-        print('(run_distance_decay)')
+        print('[%s] (run_distance_decay)' % datetime.datetime.now())
         distance_decay_res = run_distance_decay(
             i_datasets_folder, betas, p_distance_decay, datasets_rarefs,
             force, prjct_nm, qiime_env, p_chmod, noloc, slurm, split,
@@ -667,7 +668,7 @@ def routine_qiime2_analyses(
 
     # PHATE ---------------------------------------------------------------------
     if p_phate_config and 'phate' not in p_skip:
-            print('(run_phate)')
+            print('[%s] (run_phate)' % datetime.datetime.now())
             phates = run_phate(
                 p_phate_config, i_datasets_folder, datasets, datasets_rarefs,
                 force, prjct_nm, qiime_env, p_chmod, noloc, slurm, split,
@@ -681,7 +682,7 @@ def routine_qiime2_analyses(
 
     # DISSIMILARITY OVERLAP --------------------------------------------
     if 'doc' not in p_skip and p_doc_config:
-        print('(run_doc)')
+        print('[%s] (run_doc)' % datetime.datetime.now())
         run_doc(
             i_datasets_folder, datasets, p_doc_config, datasets_rarefs,
             force, prjct_nm, qiime_env, p_chmod, noloc, slurm,
@@ -694,7 +695,7 @@ def routine_qiime2_analyses(
 
     # SOURCETRACKING --------------------------------------------
     if p_sourcetracking_config and 'sourcetracking' not in p_skip:
-        print('(run_sourcetracking)')
+        print('[%s] (run_sourcetracking)' % datetime.datetime.now())
         run_sourcetracking(
             i_datasets_folder, datasets, p_sourcetracking_config,
             datasets_rarefs, force, prjct_nm, qiime_env, p_chmod, noloc, slurm,
@@ -719,7 +720,7 @@ def routine_qiime2_analyses(
         if filt3d:
             filts.update(get_filt3d_params(p_mmvec_pairs, 'mmvec'))
         elif 'mmvec' not in p_skip:
-            print('(run_mmvec)')
+            print('[%s] (run_mmvec)' % datetime.datetime.now())
             # mmvec_outputs = run_mmvec(
             #     p_mmvec_pairs, i_datasets_folder, datasets, datasets_filt,
             #     datasets_read, train_test_dict, force, gpu, standalone,
@@ -734,7 +735,7 @@ def routine_qiime2_analyses(
         if filt3d:
             filts.update(get_filt3d_params(p_diff_models, 'songbird'))
         elif 'songbird' not in p_skip:
-            print('(run_songbird)')
+            print('[%s] (run_songbird)' % datetime.datetime.now())
             # songbird_outputs = run_songbird(
             #     p_diff_models, i_datasets_folder, datasets, datasets_read,
             #     datasets_filt, train_test_dict, input_to_filtered,
@@ -752,12 +753,12 @@ def routine_qiime2_analyses(
             #     i_datasets_folder, taxonomies, q2s_pd)
 
     if filt3d:
-        print('(run_filt3d)')
+        print('[%s] (run_filt3d)' % datetime.datetime.now())
         explore_filtering(
             i_datasets_folder, datasets, datasets_read, datasets_filt,
             datasets_filt_map, filts, p_filt3d_config)
     elif p_mmvec_pairs and 'mmbird' not in p_skip:
-        # print('(run_mmbird)')
+        # print('[%s] (run_mmbird)' % datetime.datetime.now())
         # run_mmbird(
         #     i_datasets_folder, songbird_outputs, p_mmvec_highlights,
         #     p_xmmvec, mmvec_outputs, force, prjct_nm, qiime_env, p_chmod,
