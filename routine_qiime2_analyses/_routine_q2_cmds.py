@@ -1469,22 +1469,24 @@ def write_procrustes_mantel(
         if isfile(oth_pcoa):
             cmd += 'rm %s\n' % oth_pcoa
     else:
-        if not isfile(output):
+        output_html = output.replace('.qzv', '.html')
+        if not isfile(output_html):
             cmd += '\nqiime diversity mantel \\\n'
             cmd += '--i-dm1 %s \\\n' % dm_out1
             cmd += '--i-dm2 %s \\\n' % dm_out2
             cmd += '--p-label1 %s \\\n' % dat1
             cmd += '--p-label2 %s \\\n' % dat2
             cmd += '--o-visualization %s\n' % output
-            output_html = output.replace('.qzv', '.html')
             cmd += run_export(output, output_html, 'mantel')
+            cmd += 'rm %s\n' % output
+        elif isfile(output):
+            cmd += 'rm %s\n' % output
 
     if isfile(common_meta_fp):
         cmd += 'rm %s\n' % common_meta_fp
     if isfile(dm_out1):
-        cmd += 'rm %s\n' % dm_out1
-    if isfile(dm_out2):
-        cmd += 'rm %s\n' % dm_out2
+        cmd += 'rm %s %s\n' % (dm_out1, dm_out_tsv1)
+        cmd += 'rm %s %s\n' % (dm_out2, dm_out_tsv2)
     cur_sh.write('echo "%s"\n' % cmd)
     cur_sh.write('%s\n' % cmd)
 
