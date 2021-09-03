@@ -19,7 +19,7 @@ from routine_qiime2_analyses._routine_q2_cmds import (
 )
 from routine_qiime2_analyses._routine_q2_metadata import (
     rename_duplicate_columns,  get_train_perc_from_numeric,
-    get_cat_vars_and_vc, make_train_test_from_cat, check_metadata_models
+    get_cat_vars_and_vc, make_train_test_from_cat
 )
 from routine_qiime2_analyses._routine_q2_io_utils import (
     read_meta_pd, get_analysis_folder, filter_mb_table, filter_non_mb_table,
@@ -116,8 +116,8 @@ class DiffModels(object):
                     continue
                 data = self.project.datasets[dataset]
                 variable, factors = row_d['variable'], row_d['factors']
-                meta_pd = get_new_meta_pd(data.metadata[0], subset,
-                                          variable, factors)
+                meta_pd = get_new_meta_pd(
+                    data.metadata[0], subset, variable, factors)
                 tsv_pd = data.data[0][meta_pd.sample_name.tolist()]
                 preval, abund = row_d['prevalence'], row_d['abundance']
                 if row_d['is_mb']:

@@ -533,9 +533,10 @@ def routine_qiime2_analyses(
                 print('[%s] (run_empress_biplot)' % datetime.datetime.now())
                 run_empress_biplot(
                     i_datasets_folder, biplots, biplots_raw, trees,
-                    datasets_phylo, taxonomies, datasets_rarefs, prjct_nm,
-                    qiime_env, p_chmod, noloc, slurm,
-                    run_params['empress_biplot'], filt_raref, jobs, chunkit)
+                    datasets_phylo, taxonomies, datasets_rarefs,
+                    datasets_feat_meta, prjct_nm, qiime_env, p_chmod, noloc,
+                    slurm, run_params['empress_biplot'], filt_raref, jobs,
+                    chunkit)
                 # AnalysisPrep('Alpha diversity').alpha(config, project)
                 # print(AnalysisPrep.analyses_commands)
                 # print(AnalysisPrep.analyses_commands.keys())

@@ -882,9 +882,10 @@ def run_empress(i_datasets_folder: str, pcoas_d: dict,
 
 def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict,
                        trees: dict, datasets_phylo: dict, taxonomies: dict,
-                       datasets_rarefs: dict, prjct_nm: str, qiime_env: str,
-                       chmod: str, noloc: bool, slurm: bool, run_params: dict,
-                       filt_raref: str, jobs: bool, chunkit: int) -> None:
+                       datasets_rarefs: dict, datasets_feat_meta: dict,
+                       prjct_nm: str, qiime_env: str, chmod: str, noloc: bool,
+                       slurm: bool, run_params: dict, filt_raref: str,
+                       jobs: bool, chunkit: int) -> None:
     """
     Run empress.
     https://docs.qiime2.org/2019.10/plugins/available/empress/
@@ -917,6 +918,7 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                 out_pbs = '%s.slm' % splitext(out_sh)[0]
             else:
                 out_pbs = '%s.pbs' % splitext(out_sh)[0]
+            feat_meta = datasets_feat_meta[dat]
             with open(out_sh, 'w') as cur_sh:
                 for idx, meta_biplots_taxs_qzas_trees in enumerate(raref_meta_biplots_taxs_qzas_trees):
                     meta_biplots_taxs_qzas_trees2 = raref_meta_biplots_taxs_qzas_trees2[idx]
@@ -955,11 +957,13 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                                 if not os.path.isdir(out_dir):
                                     os.makedirs(out_dir)
                                 if isfile(tsv_tax):
-                                    write_empress_biplot(meta, qza, tax_qza, sb_qza, biplot,
-                                                         tree, out_plot, cur_sh)
+                                    write_empress_biplot(
+                                        meta, qza, tax_qza, sb_qza, biplot,
+                                        feat_meta, tree, out_plot, cur_sh)
                                 else:
-                                    write_empress_biplot(meta, qza, tax_qza, sb_qza, biplot,
-                                                         tree, out_plot, cur_sh)
+                                    write_empress_biplot(
+                                        meta, qza, tax_qza, sb_qza, biplot,
+                                        feat_meta, tree, out_plot, cur_sh)
                                 written += 1
                                 main_written += 1
                             if tree2:
@@ -971,11 +975,11 @@ def run_empress_biplot(i_datasets_folder: str, biplots_d: dict, biplots_d2: dict
                                 if isfile(tsv_tax2):
                                     write_empress_biplot(
                                         meta, qza2, tax_qza, sb_qza, biplot2,
-                                        tree2, out_plot2, cur_sh)
+                                        feat_meta, tree2, out_plot2, cur_sh)
                                 else:
                                     write_empress_biplot(
                                         meta, qza2, tax_qza, sb_qza, biplot2,
-                                        tree2, out_plot2, cur_sh)
+                                        feat_meta, tree2, out_plot2, cur_sh)
                                 written += 1
                                 main_written += 1
 
