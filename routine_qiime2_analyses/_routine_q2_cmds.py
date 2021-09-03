@@ -377,11 +377,14 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
 
 
 def songbird_cmd(
-        qza, new_qza, new_meta, params, formula, bformula, out_paths) -> tuple:
+        qza, new_qza, new_meta, nsams, params,
+        formula, bformula, out_paths) -> tuple:
 
     fcmd = ''
     if not isfile(new_qza):
         fcmd += filter_feature_table(qza, new_qza, new_meta)
+
+    batches = int(params['batches'])
 
     cmd = ''
     if not isfile(out_paths['diff_qza']):
@@ -391,7 +394,10 @@ def songbird_cmd(
         cmd += ' --m-metadata-file %s \\\n' % new_meta
         cmd += ' --p-formula "%s" \\\n' % formula
         cmd += ' --p-epochs %s \\\n' % params['epochs']
-        cmd += ' --p-batch-size %s \\\n' % params['batches']
+        if batches > 0.8 * nsams:
+            cmd += ' --p-batch-size %s \\\n' % str(int(batches * 0.8))
+        else:
+            cmd += ' --p-batch-size %s \\\n' % params['batches']
         cmd += ' --p-differential-prior %s \\\n' % params['diff_priors']
         cmd += ' --p-learning-rate %s \\\n' % params['learns']
         cmd += ' --p-min-sample-count %s \\\n' % params['thresh_samples']
@@ -419,7 +425,10 @@ def songbird_cmd(
         bcmd += ' --m-metadata-file %s \\\n' % new_meta
         bcmd += ' --p-formula "%s" \\\n' % bformula
         bcmd += ' --p-epochs %s \\\n' % params['epochs']
-        bcmd += ' --p-batch-size %s \\\n' % params['batches']
+        if batches > 0.8 * nsams:
+            cmd += ' --p-batch-size %s \\\n' % str(int(batches * 0.8))
+        else:
+            cmd += ' --p-batch-size %s \\\n' % params['batches']
         bcmd += ' --p-differential-prior %s \\\n' % params['diff_priors']
         bcmd += ' --p-learning-rate %s \\\n' % params['learns']
         bcmd += ' --p-min-sample-count %s \\\n' % params['thresh_samples']

@@ -413,6 +413,7 @@ class DiffModels(object):
             ], axis=1).any(axis=1)
             new_meta_pd = new_meta_pd.loc[~to_remove]
         new_meta_pd.to_csv(new_meta, index=False, sep='\t')
+        return new_meta_pd.shape[0]
 
     def summarize_songbirds(self):
         q2s = []
@@ -602,7 +603,6 @@ class DiffModels(object):
         project
             Darasets.
         """
-        cmds = {}
         mess = set()
         songbird = []
         dat_cmds, dat_fcmds, dat_bcmds = {}, {}, {}
@@ -625,7 +625,7 @@ class DiffModels(object):
                     formula, meta_vars, drop = models[model]
                     datdir, odir, new_qza, new_meta = self.get_main_dirs(
                         pair_dir, filt, subset, params_dir, model, self.config)
-                    self.write_new_meta(
+                    nsams = self.write_new_meta(
                         meta_pd, new_meta, meta_vars, drop, params)
                     if dat in self.models_baselines and model in \
                             self.models_baselines[dat]:
@@ -639,7 +639,7 @@ class DiffModels(object):
                             odir, bodir, model_baseline, baselines)
                         # convergence = self.check_stats_convergence(out_paths)
                         cmd, fcmd, bcmd = songbird_cmd(
-                            qza, new_qza, new_meta, params, formula,
+                            qza, new_qza, new_meta, nsams, params, formula,
                             bformula, out_paths)
                         songbird.append([
                             dat, filt, '%s_%s' % (
@@ -652,15 +652,6 @@ class DiffModels(object):
                             dat_fcmds.setdefault(dat, []).append(fcmd)
                         if bcmd:
                             dat_bcmds.setdefault(dat, []).append(bcmd)
-
-        # for dat in dat_bcmds:
-        #     # first come the scripts generating (reused) baselines models
-        #     if dat_bcmds[dat]:
-        #         cmds.setdefault(dat, []).extend(dat_bcmds[dat])
-        # for dat in dat_cmds:
-        #     # and then the scripts generating the actual models
-        #     if dat_cmds[dat]:
-        #         cmds.setdefault(dat, []).extend(dat_cmds[dat])
         if songbird:
             self.get_songbird_pd(songbird)
         self.show_models_issues(mess)
