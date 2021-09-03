@@ -137,6 +137,8 @@ class CreateScripts(object):
             nlss = get_prjct_anlss_nm(analysis)
             if 'import' in analysis:
                 params = self.run_params['import']
+            elif 'songbird' in analysis:
+                params = self.run_params['songbird']
             else:
                 params = self.run_params[analysis]
             main_sh = self.jobs_folders[analysis][0]
