@@ -379,8 +379,13 @@ def write_songbird_cmd(qza: str, new_qza: str, new_meta: str, formula: str,
 def songbird_cmd(
         qza, new_qza, new_meta, params, formula, bformula, out_paths) -> tuple:
 
-    cmd = '# model\n'
+    fcmd = ''
+    if not isfile(new_qza):
+        fcmd += filter_feature_table(qza, new_qza, new_meta)
+
+    cmd = ''
     if not isfile(out_paths['diff_qza']):
+        cmd = '# model\n'
         cmd += '\nqiime songbird multinomial \\\n'
         cmd += ' --i-table %s \\\n' % new_qza
         cmd += ' --m-metadata-file %s \\\n' % new_meta
@@ -407,10 +412,7 @@ def songbird_cmd(
     if not isfile(stat_tsv):
         cmd += run_export(out_paths['stat'], stat_tsv, '')
 
-    bcmd = '# null\n'
-    if not isfile(new_qza):
-        bcmd += filter_feature_table(qza, new_qza, new_meta)
-
+    bcmd = ''
     if len(out_paths['bdiff_qza']) and not isfile(out_paths['bstat']):
         bcmd += '\nqiime songbird multinomial \\\n'
         bcmd += ' --i-table %s \\\n' % new_qza
@@ -441,7 +443,7 @@ def songbird_cmd(
     if not isfile(out_paths['html']):
         cmd += run_export(out_paths['tens'], out_paths['html'], 'songbird')
 
-    return cmd, bcmd
+    return cmd, fcmd, bcmd
 
 
 def write_phate_cmd(qza: str, new_qza: str, new_tsv: str,

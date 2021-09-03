@@ -441,7 +441,7 @@ class DiffModels(object):
                 'Pseudo_Q_squared'])
             q2s_fp = '%s/songbird_q2.tsv' % songbird
             self.q2s_pd.to_csv(q2s_fp, index=False, sep='\t')
-            print('[%s]\t\t==> Written:', (datetime.datetime.now(), q2s_fp))
+            print('[%s]\t\t==> Written: %s' % (datetime.datetime.now(), q2s_fp))
 
     def create_songbird_feature_metadata(self):
         if self.q2s_pd.shape[0]:
@@ -605,7 +605,7 @@ class DiffModels(object):
         cmds = {}
         mess = set()
         songbird = []
-        dat_cmds, dat_bcmds = {}, {}
+        dat_cmds, dat_fcmds, dat_bcmds = {}, {}, {}
         params_pd = self.get_params_combinations()
         for r, row in self.songbirds.iterrows():
             qza, pair, meta_fp = row['qza'], row['pair'], row['meta']
@@ -618,7 +618,6 @@ class DiffModels(object):
                 meta_fp, meta_pd, self.songbird_models[dat])
             row_params_pd = params_pd.copy()
             self.process_params_combinations(dat, meta_pd, row_params_pd, mess)
-            print(dat, filt, subset)
             for p, params in row_params_pd.iterrows():
                 params_dir = self.get_params_dir(params)
                 baselines, model_baselines = {}, {'1': '1'}
@@ -639,7 +638,7 @@ class DiffModels(object):
                         out_paths = self.get_out_paths(
                             odir, bodir, model_baseline, baselines)
                         # convergence = self.check_stats_convergence(out_paths)
-                        cmd, bcmd = songbird_cmd(
+                        cmd, fcmd, bcmd = songbird_cmd(
                             qza, new_qza, new_meta, params, formula,
                             bformula, out_paths)
                         songbird.append([
@@ -648,25 +647,26 @@ class DiffModels(object):
                             subset, out_paths['diff'], model_baseline,
                             out_paths['html'], pair])
                         if cmd:
-                            print(dat, '+cmd')
                             dat_cmds.setdefault(dat, []).append(cmd)
+                        if fcmd:
+                            dat_fcmds.setdefault(dat, []).append(fcmd)
                         if bcmd:
-                            print(dat, '+bcmd')
                             dat_bcmds.setdefault(dat, []).append(bcmd)
 
-        for dat in dat_bcmds:
-            # first come the scripts generating (reused) baselines models
-            if dat_bcmds[dat]:
-                cmds.setdefault(dat, []).extend(dat_bcmds[dat])
-        for dat in dat_cmds:
-            # and then the scripts generating the actual models
-            if dat_cmds[dat]:
-                cmds.setdefault(dat, []).extend(dat_cmds[dat])
-        print(cmds.keys())
+        # for dat in dat_bcmds:
+        #     # first come the scripts generating (reused) baselines models
+        #     if dat_bcmds[dat]:
+        #         cmds.setdefault(dat, []).extend(dat_bcmds[dat])
+        # for dat in dat_cmds:
+        #     # and then the scripts generating the actual models
+        #     if dat_cmds[dat]:
+        #         cmds.setdefault(dat, []).extend(dat_cmds[dat])
         if songbird:
             self.get_songbird_pd(songbird)
         self.show_models_issues(mess)
-        self.register_command('songbird', cmds)
+        self.register_command('songbird', dat_cmds)
+        self.register_command('songbird_filter', dat_fcmds)
+        self.register_command('songbird_baselines', dat_bcmds)
         self.summarize_songbirds()
         self.create_songbird_feature_metadata()
 
