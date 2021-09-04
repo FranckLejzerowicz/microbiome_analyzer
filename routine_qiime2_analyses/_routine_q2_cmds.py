@@ -395,7 +395,7 @@ def songbird_cmd(
         cmd += ' --p-formula "%s" \\\n' % formula
         cmd += ' --p-epochs %s \\\n' % params['epochs']
         if batches > 0.8 * nsams:
-            cmd += ' --p-batch-size %s \\\n' % str(int(batches * 0.8))
+            cmd += ' --p-batch-size %s \\\n' % str(int(nsams * 0.8))
         else:
             cmd += ' --p-batch-size %s \\\n' % params['batches']
         cmd += ' --p-differential-prior %s \\\n' % params['diff_priors']
@@ -426,7 +426,7 @@ def songbird_cmd(
         bcmd += ' --p-formula "%s" \\\n' % bformula
         bcmd += ' --p-epochs %s \\\n' % params['epochs']
         if batches > 0.8 * nsams:
-            cmd += ' --p-batch-size %s \\\n' % str(int(batches * 0.8))
+            cmd += ' --p-batch-size %s \\\n' % str(int(nsams * 0.8))
         else:
             cmd += ' --p-batch-size %s \\\n' % params['batches']
         bcmd += ' --p-differential-prior %s \\\n' % params['diff_priors']
