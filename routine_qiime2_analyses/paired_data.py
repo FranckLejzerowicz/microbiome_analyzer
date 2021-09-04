@@ -111,18 +111,17 @@ class PairedData(object):
         new_tsv2 = '%s/tab_%s_%s_%s__%s_%ss.tsv' % (
             data_dir, dat2, prev2, abun2, pair, nsams)
         new_qza2 = '%s.qza' % splitext(new_tsv2)[0]
+        cmd = ''
         if self.config.force or not isfile(new_qza1):
-            cmd = filter_feature_table(qza1, new_qza1, meta_fp)
-            cmds.setdefault('import', []).append(cmd)
+            cmd += filter_feature_table(qza1, new_qza1, meta_fp)
         if self.config.force or not isfile(new_tsv1):
-            cmd = run_export(new_qza1, new_tsv1, 'FeatureTable')
-            cmds.setdefault('import', []).append(cmd)
+            cmd += run_export(new_qza1, new_tsv1, 'FeatureTable')
         if self.config.force or not isfile(new_qza2):
-            cmd = filter_feature_table(qza2, new_qza2, meta_fp)
-            cmds.setdefault('import', []).append(cmd)
+            cmd += filter_feature_table(qza2, new_qza2, meta_fp)
         if self.config.force or not isfile(new_tsv2):
-            cmd = run_export(new_qza2, new_tsv2, 'FeatureTable')
-            cmds.setdefault('import', []).append(cmd)
+            cmd += run_export(new_qza2, new_tsv2, 'FeatureTable')
+        if cmd:
+           cmds.setdefault('import', []).append(cmd)
         return meta_fp, new_tsv1, new_qza1, new_tsv2, new_qza2
 
     def get_common_paths(self):
