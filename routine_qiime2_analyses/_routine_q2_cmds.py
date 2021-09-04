@@ -452,6 +452,8 @@ def songbird_cmd(
     if not isfile(out_paths['html']):
         cmd += run_export(out_paths['tens'], out_paths['html'], 'songbird')
 
+    cmd += '\nrm %s\n' % new_qza
+
     return cmd, fcmd, bcmd
 
 
