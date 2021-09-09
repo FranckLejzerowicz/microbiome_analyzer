@@ -426,9 +426,9 @@ def songbird_cmd(
         bcmd += ' --p-formula "%s" \\\n' % bformula
         bcmd += ' --p-epochs %s \\\n' % params['epochs']
         if batches > 0.8 * nsams:
-            cmd += ' --p-batch-size %s \\\n' % str(int(nsams * 0.8))
+            bcmd += ' --p-batch-size %s \\\n' % str(int(nsams * 0.8))
         else:
-            cmd += ' --p-batch-size %s \\\n' % params['batches']
+            bcmd += ' --p-batch-size %s \\\n' % params['batches']
         bcmd += ' --p-differential-prior %s \\\n' % params['diff_priors']
         bcmd += ' --p-learning-rate %s \\\n' % params['learns']
         bcmd += ' --p-min-sample-count %s \\\n' % params['thresh_samples']
@@ -452,7 +452,7 @@ def songbird_cmd(
     if not isfile(out_paths['html']):
         cmd += run_export(out_paths['tens'], out_paths['html'], 'songbird')
 
-    cmd += '\nrm %s\n' % new_qza
+    # cmd += '\nrm %s\n' % new_qza
 
     return cmd, fcmd, bcmd
 
