@@ -510,9 +510,6 @@ class DiffModels(object):
                         for x in formula.split(
                             "levels=['")[-1].split("']")[0].split(",")
                     ]}
-                    print()
-                    print('levels')
-                    print(levels)
                 elif "Treatment('" in formula:
                     levels = {formula_split_c: [
                         formula.split("Treatment('")[-1].split("')")[0]
@@ -552,18 +549,6 @@ class DiffModels(object):
                     common_levels = set(levels_set) & set(cur_levels)
                     only_meta = set(levels_set) ^ common_levels
                     only_model = set(cur_levels) ^ common_levels
-                    print()
-                    print('cur_levels')
-                    print(cur_levels)
-                    print()
-                    print('common_levels')
-                    print(common_levels)
-                    print()
-                    print('only_meta')
-                    print(only_meta)
-                    print()
-                    print('only_model')
-                    print(only_model)
                     if len(only_model):
                         issue = 'Songbird formula "Diff" factors(s) missing' \
                                 ' in metadata "%s": %s' % (
