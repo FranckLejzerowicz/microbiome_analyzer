@@ -84,7 +84,6 @@ class AnalysesConfig(object):
         self.i_datasets_folder = args[1]
         self.project_name = args[2]
         self.qiime_env = args[3]
-
         self.raref = args[4]
         self.filt_threshs = args[5]
         self.longi_column = args[6]
@@ -99,41 +98,42 @@ class AnalysesConfig(object):
         self.beta_type = args[15]
         self.procrustes = args[16]
         self.mantel = args[17]
-        self.distance_decay = args[18]
-        self.collapse_taxo = args[19]
-        self.train_test = args[20]
+        self.dm_decay = args[18]
+        self.geo_decay = args[19]
+        self.collapse_taxo = args[20]
+        self.train_test = args[21]
         self.train_test_dict = {}
-        self.adonis_formulas = args[21]
-        self.doc_config = args[22]
-        self.sourcetracking_config = args[23]
-        self.phate_config = args[24]
-        self.do_biplots = args[25]
-        self.force = args[26]
-        self.i_classifier = args[27]
-        self.i_wol_tree = args[28]
-        self.i_sepp_tree = args[29]
-        self.i_qemistree = args[30]
-        self.diff_models = args[31]
-        self.mmvec_pairs = args[32]
-        self.mmvec_highlights = args[33]
-        self.xmmvec = args[34]
-        self.run_params = args[35]
-        self.chmod = args[36]
-        self.skip = args[37]
-        self.gpu = args[38]
-        self.standalone = args[39]
-        self.loc = args[40]
-        self.alphas = args[41]
-        self.betas = args[42]
-        self.split = args[43]
-        self.dropout = args[44]
-        self.doc_phate = args[45]
-        self.filt3d = args[46]
-        self.filt3d_config = args[47]
-        self.filt_only = args[48]
-        self.jobs = args[49]
-        self.slurm = args[50]
-        self.chunkit = args[51]
+        self.adonis_formulas = args[22]
+        self.doc_config = args[23]
+        self.sourcetracking_config = args[24]
+        self.phate_config = args[25]
+        self.do_biplots = args[26]
+        self.force = args[27]
+        self.i_classifier = args[28]
+        self.i_wol_tree = args[29]
+        self.i_sepp_tree = args[30]
+        self.i_qemistree = args[31]
+        self.diff_models = args[32]
+        self.mmvec_pairs = args[33]
+        self.mmvec_highlights = args[34]
+        self.xmmvec = args[35]
+        self.run_params = args[36]
+        self.chmod = args[37]
+        self.skip = args[38]
+        self.gpu = args[39]
+        self.standalone = args[40]
+        self.loc = args[41]
+        self.alphas = args[42]
+        self.betas = args[43]
+        self.split = args[44]
+        self.dropout = args[45]
+        self.doc_phate = args[46]
+        self.filt3d = args[47]
+        self.filt3d_config = args[48]
+        self.filt_only = args[49]
+        self.jobs = args[50]
+        self.slurm = args[51]
+        self.chunkit = args[52]
 
     def get_prjct_anlss_nm(self):
         return get_prjct_anlss_nm(self.project_name)
@@ -228,9 +228,10 @@ class AnalysesConfig(object):
                 workflow.append(('Mantel tests',))
             if self.nestedness_groups and 'nestedness' not in self.skip:
                 workflow.append(('Nestedness analysis',))
-            if self.distance_decay and 'decay' not in self.skip:
+            if self.dm_decay and 'dm_decay' not in self.skip:
                 workflow.append(('Beta-distance decay',))
-
+            if self.geo_decay and 'geo_decay' not in self.skip:
+                workflow.append(('Geo-distance decay',))
         if self.phate_config and 'phate' not in self.skip:
             workflow.append(('phate',))
         if 'doc' not in self.skip and self.doc_config:
