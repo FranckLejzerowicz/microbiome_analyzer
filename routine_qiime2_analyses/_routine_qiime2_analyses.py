@@ -728,6 +728,7 @@ def routine_qiime2_analyses(
     input_to_filtered = {}
     mmvec_outputs = []
     print(config.mmvec_pairs)
+    print(config.diff_models)
     paired_datasets = PairedData(config, project)
     if p_mmvec_pairs:
         if filt3d:
