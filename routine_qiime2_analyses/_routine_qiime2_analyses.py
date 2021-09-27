@@ -756,7 +756,6 @@ def routine_qiime2_analyses(
             differentials.prep_songbirds(paired_datasets.mmvec_pd, project)
             differentials.make_train_test()
             differentials.songbird()
-            differentials.make_qurros()
             # q2s_pd = summarize_songbirds(config.i_datasets_folder)
             # out_folder = get_analysis_folder(i_datasets_folder, 'songbird')
             # q2s_fp = '%s/songbird_q2.tsv' % out_folder
@@ -764,6 +763,7 @@ def routine_qiime2_analyses(
             # print('\t\t==> Written:', q2s_fp)
             # create_songbird_feature_metadata(
             #     i_datasets_folder, taxonomies, q2s_pd)
+        differentials.make_qurros()
 
     if filt3d:
         print('[%s] (run_filt3d)' % datetime.datetime.now())
