@@ -44,8 +44,10 @@ from routine_qiime2_analyses._routine_q2_alpha import (
 from routine_qiime2_analyses._routine_q2_beta import (
     run_beta, export_beta, run_pcoas, run_biplots, run_emperor,
     run_emperor_biplot, run_empress, run_empress_biplot)
-from routine_qiime2_analyses._routine_q2_decay import (
-    run_distance_decay, distance_decay_figure)
+from routine_qiime2_analyses._routine_q2_dm_decay import (
+    run_dm_decay, dm_decay_figure)
+from routine_qiime2_analyses._routine_q2_geo_decay import (
+    run_geo_decay, geo_decay_figure)
 from routine_qiime2_analyses._routine_q2_procrustes_mantel import (
     run_procrustes, run_mantel)
 from routine_qiime2_analyses._routine_q2_deicode import run_deicode
@@ -78,7 +80,8 @@ def routine_qiime2_analyses(
         p_beta_type: tuple,
         p_procrustes: str,
         p_mantel: str,
-        p_distance_decay: str,
+        p_dm_decay: str,
+        p_geo_decay: str,
         p_collapse_taxo: str,
         p_train_test: str,
         p_adonis_formulas: str,
@@ -217,7 +220,7 @@ def routine_qiime2_analyses(
         p_filt_threshs, p_longi_column, p_raref_depths, eval_rarefs,
         p_alpha_subsets, p_beta_subsets, p_perm_tests, p_perm_tests_min,
         p_beta_groups, p_nestedness_groups, p_beta_type, p_procrustes,
-        p_mantel, p_distance_decay, p_collapse_taxo, p_train_test,
+        p_mantel, p_dm_decay, p_geo_decay, p_collapse_taxo, p_train_test,
         p_adonis_formulas, p_doc_config, p_sourcetracking_config,
         p_phate_config, do_biplots, force, i_classifier, i_wol_tree,
         i_sepp_tree, i_qemistree, p_diff_models, p_mmvec_pairs,
@@ -653,20 +656,27 @@ def routine_qiime2_analyses(
             # print(AnalysisPrep.analyses_commands.keys())
             # print(AnalysisPrepdsa)
 
-    if 'beta' not in p_skip and p_distance_decay and 'decay' not in p_skip:
+    if 'beta' not in p_skip and p_dm_decay and 'dm_decay' not in p_skip:
         print('[%s] (run_distance_decay)' % datetime.datetime.now())
-        distance_decay_res = run_distance_decay(
-            i_datasets_folder, betas, p_distance_decay, datasets_rarefs,
+        dm_decay_res = run_dm_decay(
+            i_datasets_folder, betas, p_dm_decay, datasets_rarefs,
             force, prjct_nm, qiime_env, p_chmod, noloc, slurm, split,
-            run_params['decay'], filt_raref, jobs, chunkit)
+            run_params['dm_decay'], filt_raref, jobs, chunkit)
         # if distance_decay_res:
-        #     print('(making_distance_decay_figures)')
-        #     distance_decay_figure(i_datasets_folder, distance_decay_res,
+        #     print('(making_dm_decay_figures)')
+        #     dm_decay_figure(i_datasets_folder, dm_decay_res,
         #                           datasets_rarefs, filt_raref)
         # AnalysisPrep('Alpha diversity').alpha(config, project)
         # print(AnalysisPrep.analyses_commands)
         # print(AnalysisPrep.analyses_commands.keys())
         # print(AnalysisPrepdsa)
+
+    if 'beta' not in p_skip and p_geo_decay and 'geo_decay' not in p_skip:
+        print('[%s] (run_geo_decay)' % datetime.datetime.now())
+        geo_decay_res = run_geo_decay(
+            i_datasets_folder, betas, p_geo_decay, datasets_rarefs,
+            force, prjct_nm, qiime_env, p_chmod, noloc, slurm, split,
+            run_params['geo_decay'], filt_raref, jobs, chunkit)
 
     # PHATE ---------------------------------------------------------------------
     if p_phate_config and 'phate' not in p_skip:
@@ -746,6 +756,7 @@ def routine_qiime2_analyses(
             differentials.prep_songbirds(paired_datasets.mmvec_pd, project)
             differentials.make_train_test()
             differentials.songbird()
+            differentials.make_qurros()
             # q2s_pd = summarize_songbirds(config.i_datasets_folder)
             # out_folder = get_analysis_folder(i_datasets_folder, 'songbird')
             # q2s_fp = '%s/songbird_q2.tsv' % out_folder

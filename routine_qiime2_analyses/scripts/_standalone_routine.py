@@ -113,10 +113,16 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/procrustes_subsets.yml' and README)."
 )
 @click.option(
-    "-decay", "--p-distance-decay", required=False, show_default=True,
+    "-ddecay", "--p-dm-decay", required=False, show_default=True,
     default=False, help="Parameters for distance decay analysis (not "
                         "geographic). Must be a yaml file, e.g.\n(see "
                         "example in 'examples/distance_decay.yml' and README)."
+)
+@click.option(
+    "-gdecay", "--p-geo-decay", required=False, show_default=True,
+    default=False, help="Parameters for geographic distance decay analysis. "
+                        "Must be a yaml file, e.g.\n(see example in "
+                        "'examples/geographic_decay.yml' and README)."
 )
 @click.option(
     "-coll", "--p-collapse-taxo", required=False, show_default=True,
@@ -322,7 +328,8 @@ def standalone_routine(
         p_beta_type,
         p_procrustes,
         p_mantel,
-        p_distance_decay,
+        p_dm_decay,
+        p_geo_decay,
         p_collapse_taxo,
         p_train_test,
         p_adonis_formulas,
@@ -377,7 +384,8 @@ def standalone_routine(
         p_beta_type=p_beta_type,
         p_procrustes=p_procrustes,
         p_mantel=p_mantel,
-        p_distance_decay=p_distance_decay,
+        p_dm_decay=p_dm_decay,
+        p_geo_decay=p_geo_decay,
         p_collapse_taxo=p_collapse_taxo,
         p_train_test=p_train_test,
         p_adonis_formulas=p_adonis_formulas,

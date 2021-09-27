@@ -1296,12 +1296,48 @@ def write_nestedness_nodfs(new_biom_meta: str, odir: str,
     return to_write
 
 
-def write_distance_decay(mat_qza: str, mat_qza_filt: str, new_qza: str,
+def write_dm_decay(mat_qza: str, mat_qza_filt: str, new_qza: str,
                          new_tsv: str, new_meta: str, mode: str, mode_group: str,
                          mode_group_source: str, mode_group_target: str,
                          mode_value_source: str, mode_value_target: str,
                          iteration: int, step: int, n_nodes: str,
                          n_procs: str, cur_sh: TextIO):
+    cmd = ''
+    if not isfile(new_qza):
+        cmd += 'qiime diversity filter-distance-matrix \\\n'
+        cmd += '--m-metadata-file %s \\\n' % new_meta
+        cmd += '--i-distance-matrix %s \\\n' % mat_qza
+        cmd += '--o-filtered-distance-matrix %s\n' % mat_qza_filt
+
+        cmd += 'qiime distance-decay %s \\\n' % mode
+        cmd += '--i-distance-matrix %s \\\n' % mat_qza_filt
+        if mode != 'individual':
+            cmd += '--m-metadata-file %s \\\n' % new_meta
+            if 'targeted' in mode:
+                cmd += '--p-source-category %s \\\n' % mode_group_source
+                cmd += '--p-target-category %s \\\n' % mode_group_target
+                cmd += '--p-source-category-value %s \\\n' % mode_value_source
+                cmd += '--p-target-category-value %s \\\n' % mode_value_target
+            else:
+                cmd += '--p-category %s \\\n' % mode_group
+            cmd += '--p-balance \\\n'
+        cmd += '--p-iteration %s \\\n' % iteration
+        cmd += '--p-step %s \\\n' % step
+        cmd += '--p-jobs %s \\\n' % (int(n_nodes) * int(n_procs))
+        cmd += '--o-distance-decay %s\n' % new_qza
+        cmd += 'rm %s\n' % mat_qza_filt
+    if not isfile(new_tsv):
+        cmd += run_export(new_qza, new_tsv, 'decay')
+        cmd += 'rm %s\n' % new_qza
+    cur_sh.write(cmd)
+
+
+def write_geo_decay(mat_qza: str, mat_qza_filt: str, new_qza: str,
+                    new_tsv: str, new_meta: str, mode: str, mode_group: str,
+                    mode_group_source: str, mode_group_target: str,
+                    mode_value_source: str, mode_value_target: str,
+                    iteration: int, step: int, n_nodes: str,
+                    n_procs: str, cur_sh: TextIO):
     cmd = ''
     if not isfile(new_qza):
         cmd += 'qiime diversity filter-distance-matrix \\\n'

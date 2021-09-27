@@ -481,8 +481,8 @@ class DiffModels(object):
     def get_songbird_pd(self, songbird):
         self.songbird_pd = pd.DataFrame(
             songbird, columns=[
-                'dataset', 'filter', 'params', 'subset',
-                'differentials', 'baseline', 'html', 'pair'
+                'dataset', 'qza', 'meta', 'filter', 'params',
+                'subset', 'differentials', 'baseline', 'html', 'pair'
             ])
 
     def check_metadata_models(self, meta, meta_pd, songbird_models):
@@ -589,6 +589,22 @@ class DiffModels(object):
                     print('\t', meta.replace(self.config.i_datasets_folder, ''))
             print('#'*60)
 
+    def make_qurros(self) -> None:
+        """Make qurro plots"""
+        cmds = {}
+        for r, row in self.songbird_pd.iterrows():
+            dat = row['dataset']
+            tax = self.project.datasets[dat].tax[-1]
+            qurro_qzv = '%s_qurro.qzv' % splitext(row['differentials'])[0]
+            cmd = 'qiime qurro differential-plot'
+            cmd += ' --i-table %s' % row['qza']
+            cmd += ' --i-ranks %s' % row['differentials']
+            cmd += ' --m-sample-metadata-file %s' % row['meta']
+            cmd += ' --m-feature-metadata-file %s' % tax
+            cmd += ' --o-visualization %s' % qurro_qzv
+            cmds.setdefault(dat, []).append(cmd)
+        self.register_command('qurro', cmds)
+
     def songbird(self) -> None:
         """Main script for the creation of songbird jobs.
         It iterates over the rows of the table created
@@ -642,7 +658,7 @@ class DiffModels(object):
                             qza, new_qza, new_meta, nsams, params, formula,
                             bformula, out_paths)
                         songbird.append([
-                            dat, filt, '%s_%s' % (
+                            dat, new_qza, meta_fp, filt, '%s_%s' % (
                                 params_dir.replace('/', '__'), model),
                             subset, out_paths['diff'], model_baseline,
                             out_paths['html'], pair])
@@ -655,9 +671,9 @@ class DiffModels(object):
         if songbird:
             self.get_songbird_pd(songbird)
         self.show_models_issues(mess)
-        self.register_command('songbird', dat_cmds)
         self.register_command('songbird_filter', dat_fcmds)
         self.register_command('songbird_baselines', dat_bcmds)
+        self.register_command('songbird', dat_cmds)
         self.summarize_songbirds()
         self.create_songbird_feature_metadata()
 
