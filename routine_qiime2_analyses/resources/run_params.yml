@@ -229,6 +229,13 @@ songbird:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2020.2"
+qurro:
+  time: "24"
+  n_nodes: "1"
+  n_procs: "1"
+  mem_num: "5"
+  mem_dim: "gb"
+  env: "qiime2-2020.2"
 phate:
   time: "72"
   n_nodes: "1"
