@@ -177,10 +177,8 @@ def run_single_decay(odir: str, group: str, new_meta_pd: pd.DataFrame,
     return res
 
 
-def distance_decay_figure(i_datasets_folder: str,
-                          distance_decay_res: dict,
-                          datasets_rarefs: dict,
-                          filt_raref: str) -> None:
+def dm_decay_figure(i_datasets_folder: str, distance_decay_res: dict,
+                    datasets_rarefs: dict, filt_raref: str) -> None:
 
     odir = get_analysis_folder(i_datasets_folder, 'decay')
     for dat, metrics_group_subset_mode_modegrps in distance_decay_res.items():
