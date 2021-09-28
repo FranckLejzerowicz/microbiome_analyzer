@@ -644,12 +644,13 @@ class DiffModels(object):
                         pair_dir, filt, subset, params_dir, model, self.config)
                     nsams = self.write_new_meta(
                         meta_pd, new_meta, meta_vars, drop, params)
+                    print(self.models_baselines)
                     if dat in self.models_baselines and model in \
                             self.models_baselines[dat]:
                         model_baselines = self.models_baselines[dat][model]
+                    print(model_baselines)
                     for model_baseline in model_baselines:
                         print(model_baseline)
-                        print(sorted(model_baselines.keys()))
                         bformula = model_baselines[model_baseline]
                         bodir = get_analysis_folder(
                             self.config.i_datasets_folder,
