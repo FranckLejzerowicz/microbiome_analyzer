@@ -596,7 +596,7 @@ class DiffModels(object):
             dat = row['dataset']
             tax = self.project.datasets[dat].tax[-1]
             qurro_qzv = '%s_qurro.qzv' % splitext(row['differentials'])[0]
-            if not isfile(qurro_qzv):
+            if not isfile(qurro_qzv) and isfile(row['differentials']):
                 cmd = 'qiime qurro differential-plot'
                 cmd += ' --i-table %s' % row['qza']
                 cmd += ' --i-ranks %s' % row['differentials']
@@ -604,7 +604,6 @@ class DiffModels(object):
                 cmd += ' --m-feature-metadata-file %s' % tax
                 cmd += ' --o-visualization %s' % qurro_qzv
                 cmds.setdefault(dat, []).append(cmd)
-                print(cmd)
         self.register_command('qurro', cmds)
 
     def songbird(self) -> None:
