@@ -648,6 +648,8 @@ class DiffModels(object):
                             self.models_baselines[dat]:
                         model_baselines = self.models_baselines[dat][model]
                     for model_baseline in model_baselines:
+                        print(model_baseline)
+                        print(sorted(model_baselines.keys()))
                         bformula = model_baselines[model_baseline]
                         bodir = get_analysis_folder(
                             self.config.i_datasets_folder,
