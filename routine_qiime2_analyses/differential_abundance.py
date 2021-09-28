@@ -599,7 +599,7 @@ class DiffModels(object):
             if not isfile(qurro_qzv) and isfile(row['differentials']):
                 cmd = 'qiime qurro differential-plot'
                 cmd += ' --i-table %s' % row['qza']
-                cmd += ' --i-ranks %s' % row['differentials']
+                cmd += ' --i-ranks %s.qza' % splitext(row['differentials'])[0]
                 cmd += ' --m-sample-metadata-file %s' % row['meta']
                 cmd += ' --m-feature-metadata-file %s' % tax
                 cmd += ' --o-visualization %s' % qurro_qzv
