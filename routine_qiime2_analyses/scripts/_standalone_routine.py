@@ -229,15 +229,11 @@ from routine_qiime2_analyses import __version__
 )
 @click.option(
     "-As", "--p-alphas", default=None, show_default=True, multiple=True,
-    type=click.Choice(['observed_otus','pielou_e','shannon','faith_pd']),
-    help="Alpha to use: 'observed_otus','pielou_e','shannon','faith_pd'."
+    help="Alpha diversity indices to use."
 )
 @click.option(
     "-Bs", "--p-betas", default=None, show_default=True, multiple=True,
-    type=click.Choice(['jaccard', 'braycurtis', 'aitchison',
-                       'unweighted_unifrac', 'weighted_unifrac']),
-    help="Beta to use: 'jaccard', 'braycurtis','aitchison',"
-         "'unweighted_unifrac','weighted_unifrac'."
+    help="Beta diversity metrics to use."
 )
 @click.option(
     "--do_biplots/--no-do_biplots", default=False, show_default=True,
