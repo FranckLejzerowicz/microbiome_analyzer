@@ -1358,6 +1358,9 @@ def get_metrics(file_name: str, ABs: tuple) -> list:
                         metrics.append(line_strip)
                 else:
                     metrics.append(line_strip)
+    for AB in ABs:
+        if AB not in metrics:
+            metrics.append(AB)
     return metrics
 
 
