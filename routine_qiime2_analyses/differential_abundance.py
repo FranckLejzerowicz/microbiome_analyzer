@@ -112,19 +112,19 @@ class DiffModels(object):
                     ['dataset', 'filter', 'subset']):
                 row_d = row.iloc[0, :].to_dict()
                 tsv, qza, meta = row_d['tsv'], row_d['qza'], row_d['meta']
-                if isfile(tsv) and isfile(qza) and isfile(meta):
-                    continue
                 data = self.project.datasets[dataset]
                 variable, factors = row_d['variable'], row_d['factors']
                 meta_pd = get_new_meta_pd(
                     data.metadata[0], subset, variable, factors)
+                meta_pd.to_csv(meta, index=False, sep='\t')
+                if isfile(tsv) and isfile(qza):
+                    continue
                 tsv_pd = data.data[0][meta_pd.sample_name.tolist()]
                 preval, abund = row_d['prevalence'], row_d['abundance']
                 if row_d['is_mb']:
                     tsv_pd, res = filter_mb_table(preval, abund, tsv_pd)
                 else:
                     tsv_pd, res = filter_non_mb_table(preval, abund, tsv_pd)
-                meta_pd.to_csv(meta, index=False, sep='\t')
                 if self.config.force or not isfile(tsv):
                     write_filtered_tsv(tsv, tsv_pd)
                 if self.config.force or not isfile(qza):
