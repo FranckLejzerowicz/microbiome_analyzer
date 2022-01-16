@@ -8,8 +8,7 @@
 
 import click
 
-from routine_qiime2_analyses.routine_qiime2_analyses import (
-    routine_qiime2_analyses)
+from routine_qiime2_analyses.microbiome_analyzer import microbiome_analyzer
 from routine_qiime2_analyses import __version__
 
 
@@ -276,7 +275,7 @@ from routine_qiime2_analyses import __version__
 @click.version_option(__version__, prog_name="routine_qiime2_analyses")
 
 
-def standalone_routine(
+def standalone_analyzer(
         i_datasets,
         i_datasets_folder,
         p_project_name,
@@ -326,7 +325,7 @@ def standalone_routine(
         p_chunkit
 ):
 
-    routine_qiime2_analyses(
+    microbiome_analyzer(
         datasets=i_datasets,
         datasets_folder=i_datasets_folder,
         project_name=p_project_name,
@@ -378,4 +377,4 @@ def standalone_routine(
 
 
 if __name__ == "__main__":
-    standalone_routine()
+    standalone_analyzer()

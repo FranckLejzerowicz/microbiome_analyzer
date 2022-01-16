@@ -6,6 +6,6 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from ._standalone_routine import standalone_routine
+from ._standalone_analyzer import standalone_analyzer
 
-__all__ = ["standalone_routine"]
+__all__ = ["standalone_analyzer"]
