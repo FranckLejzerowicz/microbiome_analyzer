@@ -296,7 +296,7 @@ def get_wol_tree(wol_tree: str) -> str:
             if isfile(wol_tree_nwk):
                 print('Warning: about to overwrite %s\nExiting' % wol_tree_nwk)
                 sys.exit(0)
-            run_export(wol_tree, wol_tree_nwk, 'Phylogeny')
+            run_export(wol_tree, wol_tree_nwk, 'phylogeny')
             return wol_tree_nwk
         else:
             # need more formal checks (sniff in skbio /
