@@ -8,7 +8,7 @@
 
 import click
 
-from routine_qiime2_analyses._routine_qiime2_analyses import (
+from routine_qiime2_analyses.routine_qiime2_analyses import (
     routine_qiime2_analyses)
 from routine_qiime2_analyses import __version__
 
@@ -65,32 +65,21 @@ from routine_qiime2_analyses import __version__
     help="server run paramters"
 )
 @click.option(
-    "-b", "--p-alpha-subsets", required=False, show_default=True, default=None,
-    help="Regex to use for subsetting features for alpha diversity subsets"
-         "(yml file)."
+    "-k", "--p-feature-subsets", required=False, show_default=True, default=None,
+    help="Regex to use for subsetting features (yml file)."
 )
 @click.option(
-    "-k", "--p-beta-subsets", required=False, show_default=True, default=None,
-    help="Regex to use for subsetting features for beta diversity "
-         "subsets (yml file)."
-)
-@click.option(
-    "-t", "--p-perm-tests", multiple=True, required=False, show_default=True,
+    "-t", "--p-test", multiple=True, required=False, show_default=True,
     default=False, help="Groups to tests between in each PERMANOVA subset "
          "(multiple values are possible, e.g. '-d sex -d age_cat')."
 )
 @click.option(
-    "-tmin", "--p-perm-tests-min", required=False, show_default=True,
-    default=10, help="Minimum number of samples per group for PERMANOVA test "
-                     "to happen,"
-)
-@click.option(
-    "-g", "--p-beta-groups", required=False, show_default=True, default=False,
+    "-g", "--p-sample-subsets", required=False, show_default=True, default=False,
     help="Subsets for DMs, PCoAs, PERMANOVAs, etc. Must be a yaml file, e.g.\n"
          "(see example in 'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
-    "-nstd", "--p-nestedness-groups", required=False, show_default=True,
+    "-nstd", "--p-nestedness", required=False, show_default=True,
     default=False, help="Nestedness analysis config. Must be a yaml file, "
                         "e.g.\n(see example in 'examples/nestedness.yml' "
                         "and README)."
@@ -116,7 +105,7 @@ from routine_qiime2_analyses import __version__
     "-ddecay", "--p-dm-decay", required=False, show_default=True,
     default=False, help="Parameters for distance decay analysis (not "
                         "geographic). Must be a yaml file, e.g.\n(see "
-                        "example in 'examples/distance_decay.yml' and README)."
+                        "example in 'examples/dm_decay.yml' and README)."
 )
 @click.option(
     "-gdecay", "--p-geo-decay", required=False, show_default=True,
@@ -125,10 +114,10 @@ from routine_qiime2_analyses import __version__
                         "'examples/geographic_decay.yml' and README)."
 )
 @click.option(
-    "-coll", "--p-collapse-taxo", required=False, show_default=True,
+    "-coll", "--p-collapse", required=False, show_default=True,
     default=False, help="Nominative or rank-based taxonmic collapse per "
                         "dataset. Must be a yaml file, e.g.\n(see example in "
-                        "'examples/collapse_taxo.yml' and README)."
+                        "'examples/collapse.yml' and README)."
 )
 @click.option(
     "-tt", "--p-train-test", required=False, show_default=True, default=False,
@@ -136,29 +125,29 @@ from routine_qiime2_analyses import __version__
          "(see example in 'examples/train_test.yml' and README)."
 )
 @click.option(
-    "-a", "--p-adonis-formulas", required=False, default=False,
+    "-a", "--p-adonis", required=False, default=False,
     show_default=True, help="Formula for Adonis tests for each PERMANOVA "
                             "subset. Must be a yaml file, e.g.\n(see example "
-                            "in examples/adonis_formulas.yml' and README)."
+                            "in examples/adonis.yml' and README)."
 )
 @click.option(
-    "-phate", "--p-phate-config", required=False, default=False,
+    "-phate", "--p-phate", required=False, default=False,
     show_default=True, help="Filters, subsets, parameters and stratifications "
                             "for the PHATE latent space analysis\nMust be a "
                             "yaml file, (see example in "
-                            "'examples/phate_config.yml' and README)."
+                            "'examples/phate.yml' and README)."
 )
 @click.option(
-    "-st", "--p-sourcetracking-config", required=False, default=False,
+    "-st", "--p-sourcetracking", required=False, default=False,
     show_default=True, help="Filters, subsets, parameters and isn/sources for "
                             "sourcetracking\nMust be a yaml file, (see example "
-                            "in 'examples/sourcetracking_config.yml' and "
+                            "in 'examples/sourcetracking.yml' and "
                             "README)."
 )
 @click.option(
-    "-doc", "--p-doc-config", required=False, default=False, show_default=True,
+    "-doc", "--p-doc", required=False, default=False, show_default=True,
     help="Filters and subsets for the dissimilarity overlap curves analyses"
-         "Must be a yaml file, (see example in 'examples/doc_config.yml'"
+         "Must be a yaml file, (see example in 'examples/doc.yml'"
          "and README)."
 )
 @click.option(
@@ -190,25 +179,20 @@ from routine_qiime2_analyses import __version__
          "for volatility analysis."
 )
 @click.option(
-    "-f", "--p-filt-threshs", show_default=True, default=False,
+    "-f", "--p-filter", show_default=True, default=False,
     help="Minimum sample read abundance to be kept in the sample (per dataset)"
          "(>1 = based on absolute reads, 0-1 = based on relative reads)."
          "Must be a yaml file, e.g. (see example in "
          "'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
-    "-r", "--p-raref-depths", required=False, show_default=False,
+    "-r", "--p-rarefs", required=False, show_default=False,
     help="rarefaction depth per dataset. Must be a yaml file, e.g. "
          "(see example in 'examples/permanova_subsets.yml' and README)."
 )
 @click.option(
     "-c", "--p-chmod", default='664', show_default=True,
     help="Change output files permission (default = 664 [= -rw-rw-r--])."
-)
-@click.option(
-    "--eval-rarefs/--no-eval-rarefs", required=False, show_default=False,
-    help="Perform an evaluation of the various rarefaction depths "
-         "and the passed one."
 )
 @click.option(
     "-skip", "--p-skip", default=None, show_default=True, multiple=True,
@@ -236,7 +220,7 @@ from routine_qiime2_analyses import __version__
     help="Beta diversity metrics to use."
 )
 @click.option(
-    "--do_biplots/--no-do_biplots", default=False, show_default=True,
+    "--biplot/--no-biplot", default=False, show_default=True,
     help="Whether to do the PCoA biplots or not"
 )
 @click.option(
@@ -268,26 +252,12 @@ from routine_qiime2_analyses import __version__
          "lower looping level (i.e. more jobs)."
 )
 @click.option(
-    "--dropout/--no-dropout", default=True, show_default=True,
-    help="Allow samples dropouts for the features subsetting (alpha and beta)."
-)
-@click.option(
-    "--doc-phate/--no-doc-phate", default=True, show_default=True,
-    help="Apply DOC on each PHATE cluster as a subset"
-         "(for filtering/subsets present in both DIC and PHATE .yml configs)."
-)
-@click.option(
-    "--filt3d/--no-filt3d", default=False, show_default=True,
-    help="Only check the effect of filtering thresholds passed to songbird "
-         "and mmvec instead of running all of them."
-)
-@click.option(
     "--filt-only/--no-filt-only", default=False, show_default=True,
     help="Only process the filtered version (and not also the raw) "
          "version of each dataset."
 )
 @click.option(
-    "-filt3d_config", "--p-filt3d-config", required=False, show_default=False,
+    "-filt3d", "--p-filt3d", required=False, show_default=False,
     help="Levels for the exploration of filtering. Must be a yaml file."
 )
 @click.option(
@@ -312,27 +282,24 @@ def standalone_routine(
         p_project_name,
         p_qiime2_env,
         p_longi_column,
-        p_filt_threshs,
-        p_raref_depths,
-        eval_rarefs,
-        p_alpha_subsets,
-        p_beta_subsets,
-        p_perm_tests,
-        p_perm_tests_min,
-        p_beta_groups,
-        p_nestedness_groups,
+        p_filter,
+        p_rarefs,
+        p_feature_subsets,
+        p_test,
+        p_sample_subsets,
+        p_nestedness,
         p_beta_type,
         p_procrustes,
         p_mantel,
         p_dm_decay,
         p_geo_decay,
-        p_collapse_taxo,
+        p_collapse,
         p_train_test,
-        p_adonis_formulas,
-        p_doc_config,
-        p_sourcetracking_config,
-        p_phate_config,
-        do_biplots,
+        p_adonis,
+        p_doc,
+        p_sourcetracking,
+        p_phate,
+        biplot,
         force,
         i_classifier,
         i_wol_tree,
@@ -352,10 +319,7 @@ def standalone_routine(
         p_alphas,
         p_betas,
         split,
-        dropout,
-        doc_phate,
-        filt3d,
-        p_filt3d_config,
+        p_filt3d,
         filt_only,
         jobs,
         slurm,
@@ -363,55 +327,49 @@ def standalone_routine(
 ):
 
     routine_qiime2_analyses(
-        i_datasets,
-        i_datasets_folder,
-        p_project_name,
-        p_qiime2_env,
-        p_longi_column=p_longi_column,
-        p_filt_threshs=p_filt_threshs,
-        p_raref_depths=p_raref_depths,
-        eval_rarefs=eval_rarefs,
-        p_alpha_subsets=p_alpha_subsets,
-        p_beta_subsets=p_beta_subsets,
-        p_perm_tests=p_perm_tests,
-        p_perm_tests_min=p_perm_tests_min,
-        p_beta_groups=p_beta_groups,
-        p_nestedness_groups=p_nestedness_groups,
-        p_beta_type=p_beta_type,
-        p_procrustes=p_procrustes,
-        p_mantel=p_mantel,
-        p_dm_decay=p_dm_decay,
-        p_geo_decay=p_geo_decay,
-        p_collapse_taxo=p_collapse_taxo,
-        p_train_test=p_train_test,
-        p_adonis_formulas=p_adonis_formulas,
-        p_doc_config=p_doc_config,
-        p_sourcetracking_config=p_sourcetracking_config,
-        p_phate_config=p_phate_config,
-        do_biplots=do_biplots,
+        datasets=i_datasets,
+        datasets_folder=i_datasets_folder,
+        project_name=p_project_name,
+        qiime_env=p_qiime2_env,
+        longi_column=p_longi_column,
+        raref=raref,
+        filter_fp=p_filter,
+        rarefs_fp=p_rarefs,
+        feature_subsets_fp=p_feature_subsets,
+        tests=p_test,
+        sample_subsets_fp=p_sample_subsets,
+        nestedness_fp=p_nestedness,
+        beta_type=p_beta_type,
+        procrustes_fp=p_procrustes,
+        mantel_fp=p_mantel,
+        dm_decay_fp=p_dm_decay,
+        geo_decay_fp=p_geo_decay,
+        collapse_fp=p_collapse,
+        train_test_fp=p_train_test,
+        adonis_fp=p_adonis,
+        doc_fp=p_doc,
+        sourcetracking_fp=p_sourcetracking,
+        phate_fp=p_phate,
+        biplot=biplot,
         force=force,
-        i_classifier=i_classifier,
-        i_wol_tree=i_wol_tree,
-        i_sepp_tree=i_sepp_tree,
-        i_qemistree=i_qemistree,
-        p_diff_models=p_diff_models,
-        p_mmvec_pairs=p_mmvec_pairs,
-        p_mmvec_highlights=p_mmvec_highlights,
-        p_xmmvec=p_xmmvec,
-        p_run_params=p_run_params,
-        p_chmod=p_chmod,
-        p_skip=p_skip,
+        classifier=i_classifier,
+        wol_tree=i_wol_tree,
+        sepp_tree=i_sepp_tree,
+        qemistree=i_qemistree,
+        diff_models_fp=p_diff_models,
+        mmvec_pairs_fp=p_mmvec_pairs,
+        mmvec_highlights_fp=p_mmvec_highlights,
+        xmmvec_fp=p_xmmvec,
+        run_params_fp=p_run_params,
+        chmod=p_chmod,
+        skip=p_skip,
         gpu=gpu,
         standalone=standalone,
-        raref=raref,
-        noloc=loc,
-        As=p_alphas,
-        Bs=p_betas,
+        loc=loc,
+        alphas=p_alphas,
+        betas=p_betas,
         split=split,
-        dropout=dropout,
-        doc_phate=doc_phate,
-        filt3d=filt3d,
-        p_filt3d_config=p_filt3d_config,
+        filt3d_fp=p_filt3d,
         filt_only=filt_only,
         jobs=jobs,
         slurm=slurm,

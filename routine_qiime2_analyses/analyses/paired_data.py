@@ -7,33 +7,28 @@
 # ----------------------------------------------------------------------------
 
 import os
+import sys
 import random
 import itertools
 import pandas as pd
 from os.path import isdir, isfile, splitext
 from routine_qiime2_analyses.analyses_prep import AnalysisPrep
-from routine_qiime2_analyses._routine_q2_cmds import (
-    get_case, get_new_meta_pd, run_import, run_export, filter_feature_table,
-)
-from routine_qiime2_analyses._routine_q2_metadata import (
-    get_train_perc_from_numeric, get_meta_subset, get_cat_vars_and_vc,
-    make_train_test_from_cat, rename_duplicate_columns
-)
-from routine_qiime2_analyses._routine_q2_io_utils import (
-    read_meta_pd, get_analysis_folder, filter_mb_table, filter_non_mb_table,
-    write_filtered_tsv
-)
-from routine_qiime2_analyses._routine_q2_mmvec import (
-    get_mmvec_dicts, write_mmvec_cmd
-)
+from routine_qiime2_analyses._cmds import (
+    run_import, run_export, write_filter, write_mmvec)
+from routine_qiime2_analyses._metadata import (
+    get_subset, get_subset_pd, get_train_perc_from_numeric, get_meta_subset,
+    get_cat_vars_and_vc, make_train_test_from_cat, rename_duplicate_columns)
+from routine_qiime2_analyses._io import (
+    read_meta_pd, get_output, write_filtered_tsv)
+from routine_qiime2_analyses._filter import filter_mb_table, filter_non_mb_table
 
 
 class PairedData(object):
 
     def __init__(self, config, project) -> None:
-        if config.mmvec_pairs:
+        if config.mmvec_pairs_fp:
             self.config = config
-            paired_config = get_mmvec_dicts(config.mmvec_pairs)
+            paired_config = self.get_mmvec_dicts()
             self.pairs = paired_config[0]
             self.filtering = paired_config[1]
             self.params = paired_config[2]
@@ -49,6 +44,119 @@ class PairedData(object):
                 self.unstack_mmvecs()
                 self.get_common_paths()
         self.mmvec_pd = pd.DataFrame()
+
+    def get_pairs(self) -> dict:
+        """
+        Get the parameters for mmvec pairs to process.
+        """
+        if 'pairs' not in self.config.mmvec_pairs:
+            print('[mmvec] No datasets pairs specified:\nExiting\n')
+            sys.exit(0)
+        mmvec_pairs = {}
+        for pair, paired_datasets in self.config.mmvec_pairs['pairs'].items():
+            n_dats = len(paired_datasets)
+            if n_dats != 2:
+                print('[mmvec] Must be two datasets per mmvec pair (found %s)\n'
+                      'Exiting\n' % n_dats)
+                sys.exit(0)
+            paired = []
+            for dat in paired_datasets:
+                if dat[-1] == '*':
+                    paired.append((dat[:-1], 1))
+                else:
+                    paired.append((dat, 0))
+            mmvec_pairs[pair] = paired
+        return mmvec_pairs
+
+    @staticmethod
+    def get_dat_mb_or_not(dat: str) -> tuple:
+        if dat[-1] == '*':
+            return (dat[:-1], 1)
+        else:
+            return (dat, 0)
+
+    def get_filtering(self, mmvec_pairs: dict) -> dict:
+        """
+        Get the parameters for songbird passed by the user.
+        """
+        dats = []
+        filtering = {}
+        for pair, dats_pair in mmvec_pairs.items():
+            if pair not in filtering:
+                filtering[pair] = {'0_0': {}}
+            for dat in dats_pair:
+                dats.append(dat)
+                filtering[pair]['0_0'][dat] = ['0', '0']
+        if 'filtering' not in self.config.mmvec_pairs:
+            print('No filtering thresholds set in '
+                  '%s\n:' % self.config.mmvec_pairs_fp)
+        if 'global' in self.config.mmvec_pairs['filtering']:
+            for filt_name, prev_abund in self.config.mmvec_pairs[
+                    'filtering']['global'].items():
+                for pair, dats_pair in mmvec_pairs.items():
+                    if pair not in filtering:
+                        filtering[pair] = {}
+                    if filt_name not in filtering[pair]:
+                        filtering[pair][filt_name] = {}
+                    for dat in dats_pair:
+                        dats.append(dat)
+                        filtering[pair][filt_name][dat] = prev_abund
+        for pair, pair_d in self.config.mmvec_pairs['filtering'].items():
+            if pair == 'global':
+                continue
+            filtering[pair] = {}
+            for filt_name, dats_d in pair_d.items():
+                filtering[pair][filt_name] = {}
+                for dat_, prev_abund in dats_d.items():
+                    dat = self.get_dat_mb_or_not(dat_)
+                    if dat in dats:
+                        filtering[pair][filt_name][dat] = prev_abund
+        return filtering
+
+    def get_mmvec_params(self) -> dict:
+        """
+        Get the parameters for songbird passed by the user.
+        """
+        params = {
+            'train_column': ['None'],
+            'n_examples': ['10'],
+            'batches': ['2'],
+            'learns': ['1e-4'],
+            'epochs': ['5000'],
+            'input_prior': ['0.8'],
+            'output_prior': ['0.8'],
+            'thresh_feats': ['0'],
+            'latent_dims': ['3'],
+            'summary_interval': ['10']
+        }
+        if 'params' not in self.config.mmvec_pairs:
+            print('No parameters set in %s:\nUsing defaults: %s' % (
+                self.config.mmvec_pairs_fp, ', '.join([
+                    '%s: %s' % (k, v) for k, v in params.items()])))
+        else:
+            for param, cur_param in self.config.mmvec_pairs['params'].items():
+                if not isinstance(cur_param, list):
+                    print('Parameter %s should be a list (correct in %s)\n' % (
+                        param, self.config.mmvec_pairs_fp))
+                    sys.exit(0)
+                params[param] = cur_param
+        return params
+
+    def get_subsets(self) -> dict:
+        subsets = {'ALL': [[]]}
+        if 'subsets' in self.config.mmvec_pairs:
+            subsets.update(self.config.mmvec_pairs['subsets'])
+        return subsets
+
+    def get_mmvec_dicts(self):
+        """
+        Collect pairs of datasets from the passed yaml file:
+        """
+        mmvec_pairs = self.get_pairs()
+        mmvec_filtering = self.get_filtering(mmvec_pairs)
+        mmvec_params = self.get_mmvec_params()
+        mmvec_subsets = self.get_subsets()
+        return mmvec_pairs, mmvec_filtering, mmvec_params, mmvec_subsets
 
     def unstack_mmvecs(self):
         mmvecs_us = self.mmvecs.set_index(
@@ -113,11 +221,11 @@ class PairedData(object):
         new_qza2 = '%s.qza' % splitext(new_tsv2)[0]
         cmd = ''
         if self.config.force or not isfile(new_qza1):
-            cmd += filter_feature_table(qza1, new_qza1, meta_fp)
+            cmd += write_filter(qza1, new_qza1, meta_fp)
         if self.config.force or not isfile(new_tsv1):
             cmd += run_export(new_qza1, new_tsv1, 'FeatureTable')
         if self.config.force or not isfile(new_qza2):
-            cmd += filter_feature_table(qza2, new_qza2, meta_fp)
+            cmd += write_filter(qza2, new_qza2, meta_fp)
         if self.config.force or not isfile(new_tsv2):
             cmd += run_export(new_qza2, new_tsv2, 'FeatureTable')
         if cmd:
@@ -129,12 +237,10 @@ class PairedData(object):
         paths = []
         pfs = ['pair', 'filter', 'subset']
         for (pair, filter, subset), mmvec in self.mmvecs.groupby(pfs):
-            data_dir = get_analysis_folder(
-                self.config.i_datasets_folder,
-                'mmvec/common/data/%s/%s' % (pair, subset))
-            meta_dir = get_analysis_folder(
-                self.config.i_datasets_folder,
-                'mmvec/common/metadata/%s/%s' % (pair, subset))
+            data_dir = get_output(self.config.folder,
+                                  'mmvec/common/data/%s/%s' % (pair, subset))
+            meta_dir = get_output(self.config.folder,
+                                  'mmvec/common/metadata/%s/%s' % (pair, subset))
             mmvec_d = mmvec.iloc[0, :].to_dict()
             dat1, dat2 = mmvec_d['dataset1'], mmvec_d['dataset2']
             prev1, prev2 = mmvec_d['prevalence1'], mmvec_d['prevalence2']
@@ -144,6 +250,8 @@ class PairedData(object):
             if not isfile(meta1) or not isfile(meta2):
                 continue
             meta1_pd, meta2_pd = read_meta_pd(meta1), read_meta_pd(meta2)
+            print(meta1_pd)
+            print(meta2_pd)
             sams = set(meta1_pd.sample_name) & set(meta2_pd.sample_name)
             if len(sams) < 10:
                 print('Not enough samples in pair %s: %s (%s) vs %s (%s)' % (
@@ -179,15 +287,9 @@ class PairedData(object):
                 train_tests = self.make_train_test_column(
                     meta_fp, self.config.train_test_dict,
                     meta_subset, dat1, dat2)
-                # print()
-                # print()
-                # print("['mmvec']", meta_fp)
-                # print("['mmvec']", [x for x in meta_subset.columns
-                #                     if 'train' in x])
                 rewrite = False
                 meta_subset_cols = set(meta_subset.columns)
                 for train_col, train_samples in train_tests.items():
-                    # print("['mmvec']", train_col, len(train_samples))
                     if train_col not in meta_subset_cols:
                         rewrite = True
                         meta_subset[train_col] = [
@@ -199,8 +301,6 @@ class PairedData(object):
     def make_datasets_paths(self, project):
         cmds = {}
         datasets_path = self.get_datasets_paths()
-        # print("datasets_path")
-        # print(datasets_path)
         for (dataset, filter, subset), row in datasets_path.groupby(
                 ['dataset', 'filter', 'subset']):
             row_d = row.iloc[0, :].to_dict()
@@ -209,14 +309,14 @@ class PairedData(object):
                 continue
             data = project.datasets[dataset]
             variable, factors = row_d['variable'], row_d['factors']
-            meta_pd = get_new_meta_pd(data.metadata[0], subset,
-                                      variable, factors)
-            tsv_pd = data.data[0][meta_pd.sample_name.tolist()]
+            meta_pd = get_subset_pd(data.metadata, subset, variable, factors)
+            tsv_pd = data.data[''].to_dataframe(dense=True)
+            tsv_pd = tsv_pd[meta_pd.sample_name.tolist()]
             preval, abund = row_d['prevalence'], row_d['abundance']
             if row_d['is_mb']:
-                tsv_pd, res = filter_mb_table(preval, abund, tsv_pd)
+                tsv_pd, _ = filter_mb_table(preval, abund, tsv_pd)
             else:
-                tsv_pd, res = filter_non_mb_table(preval, abund, tsv_pd)
+                tsv_pd, _ = filter_non_mb_table(preval, abund, tsv_pd)
             meta_pd.to_csv(meta, index=False, sep='\t')
             if self.config.force or not isfile(tsv):
                 write_filtered_tsv(tsv, tsv_pd)
@@ -242,9 +342,8 @@ class PairedData(object):
             dataset = row['dataset']
             filter = row['filter']
             subset = row['subset']
-            odir = get_analysis_folder(
-                self.config.i_datasets_folder,
-                'mmvec/datasets/%s/%s' % (dataset, subset))
+            odir = get_output(self.config.folder,
+                              'mmvec/datasets/%s/%s' % (dataset, subset))
             rad = '%s_%s' % (dataset, filter)
             tsv = '%s/tab_%s.tsv' % (odir, rad)
             qza = '%s.qza' % splitext(tsv)[0]
@@ -259,8 +358,7 @@ class PairedData(object):
         datasets_paths = datasets_paths.merge(
             pd.DataFrame(paths, columns=[
                 'dataset', 'filter', 'subset', 'tsv', 'qza', 'meta']),
-            on=['dataset', 'filter', 'subset'], how='left'
-        )
+            on=['dataset', 'filter', 'subset'], how='left')
         # print("datasets_paths")
         # print(datasets_paths.iloc[:, :5])
         return datasets_paths
@@ -300,7 +398,7 @@ class PairedData(object):
 
     def merge_subsets_apply(self):
         subsets_fp = [
-            [pair, var, subset, get_case(subset, var)]
+            [pair, var, subset, get_subset(subset, var)]
             for var, subsets in self.subsets.items()
             for subset in subsets
             for pair in self.mmvecs.pair.unique()]
@@ -478,10 +576,10 @@ class PairedData(object):
             d2, p2, a2 = row['dataset2'], row['prevalence2'], row['abundance2']
             for p, params in params_pd.iterrows():
                 res_dir = self.get_res_dir(params)
-                odir = get_analysis_folder(
-                    self.config.i_datasets_folder,
-                    'mmvec/paired/%s/%s/%s_%s-%s__%s_%s-%s/%s' % (
-                        pair, subset, d1, p1, a1, d2, p2, a2, res_dir))
+                odir = get_output(self.config.folder,
+                                  'mmvec/paired/%s/%s/%s_%s-%s__%s_%s-%s/%s' % (
+                                      pair, subset, d1, p1, a1,
+                                      d2, p2, a2, res_dir))
                 mod_dir, mod_rnk, mod_rdn, mod_stt = self.get_out(odir, 'model')
                 nul_dir, nul_rnk, nul_rdn, nul_stt = self.get_out(odir, 'null')
                 summary = '%s/paired-summary.qzv' % odir
@@ -492,7 +590,7 @@ class PairedData(object):
                     'mmvec_out__%s' % res_dir, odir
                 ])
                 if self.config.force or not isfile(summary):
-                    cmd = write_mmvec_cmd(
+                    cmd = write_mmvec(
                         row['meta_fp'], row['new_qza1'], row['new_qza2'],
                         res_dir, mod_dir, nul_dir, mod_rnk, mod_rdn, mod_stt,
                         nul_rnk, nul_rdn, nul_stt, summary, params['batches'],

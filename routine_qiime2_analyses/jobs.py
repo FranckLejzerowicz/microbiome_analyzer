@@ -9,23 +9,16 @@
 import os
 import subprocess
 import numpy as np
-from os.path import splitext
-from routine_qiime2_analyses._routine_q2_io_utils import (
-    get_prjct_anlss_nm, get_job_folder
-)
+from os.path import isdir, splitext
 
 
 class CreateScripts(object):
 
-    def __init__(self, config, prjct_nm, run_params, filt_raref, slurm):
+    def __init__(self, config):
         self.config = config
-        self.prjct_nm = prjct_nm
-        self.run_params = run_params
-        self.filt_raref = filt_raref
-        self.slurm = slurm
         self.jobs_folders = {}
-        self.shs = {}
         self.to_chunk = {}
+        self.shs = {}
 
     def xpbs_call(self, sh, pbs_slm, job, params):
         cmd = [
@@ -41,7 +34,7 @@ class CreateScripts(object):
             '-c', self.config.chmod,
             '--noq'
         ]
-        if self.slurm:
+        if self.config.slurm:
             cmd.append('--slurm')
         # if tmp:
         #     cmd.extend(['-T', tmp])
@@ -57,6 +50,7 @@ class CreateScripts(object):
 
     def run_xpbs(self, sh, pbs_slm, nlss, params, dat,
                  idx='None', single=False, main_o=None):
+
         if os.getcwd().startswith('/panfs'):
             sh_lines = open(sh).readlines()
             with open(sh, 'w') as o:
@@ -65,14 +59,15 @@ class CreateScripts(object):
                 for sh_line in sh_lines:
                     o.write(sh_line.replace(os.getcwd(), ''))
 
-        job = '%s.%s.%s%s' % (self.prjct_nm, nlss, dat, self.filt_raref)
+        job = '%s.%s.%s%s' % (self.config.prjct_nm, nlss,
+                              dat, self.config.filt_raref)
         if idx != 'None':
             job = '%s_%s' % (job, idx)
         if self.config.jobs:
             self.xpbs_call(sh, pbs_slm, job, params)
 
         if single:
-            if self.slurm:
+            if self.config.slurm:
                 launcher = 'sbatch'
             else:
                 launcher = 'qsub'
@@ -80,9 +75,9 @@ class CreateScripts(object):
                 pbs_slm = pbs_slm.replace(os.getcwd(), '')
             if not main_o:
                 if self.config.jobs:
-                    print('[TO RUN] %s' % launcher, pbs_slm)
+                    print('%s' % launcher, pbs_slm)
                 else:
-                    print('[TO RUN] sh', sh)
+                    print('sh', sh)
             else:
                 if self.config.jobs:
                     main_o.write('%s %s\n' % (launcher, pbs_slm))
@@ -94,11 +89,12 @@ class CreateScripts(object):
         if len(to_chunk) > self.config.chunkit:
             array_split = np.array_split(to_chunk, self.config.chunkit)
             for idx, keys in enumerate(array_split):
-                head_sh = '%s_%s_chunk%s.sh' % (job_folder, self.prjct_nm, idx)
+                head_sh = '%s_%s_chunk%s.sh' % (
+                    job_folder, self.config.prjct_nm, idx)
                 chunks[(head_sh, idx)] = sorted(keys)
         else:
             chunks = dict((('%s_%s_chunk%s.sh' % (
-                job_folder, self.prjct_nm, idx), idx), [x])
+                job_folder, self.config.prjct_nm, idx), idx), [x])
                           for idx, x in enumerate(to_chunk))
 
         for (sh, idx), commands in chunks.items():
@@ -106,7 +102,7 @@ class CreateScripts(object):
                 with open(sh, 'w') as o:
                     for command in commands:
                         o.write(command)
-                if self.slurm:
+                if self.config.slurm:
                     pbs_slm = '%s.slm' % splitext(sh)[0]
                     launcher = 'sbatch'
                 else:
@@ -126,21 +122,43 @@ class CreateScripts(object):
         if os.getcwd().startswith('/panfs'):
             to_run = to_run.replace(os.getcwd(), '')
         if self.config.jobs:
-            print('[TO RUN]', sh_pbs, to_run)
+            print(sh_pbs, to_run)
         else:
-            print('[TO RUN]', 'sh', to_run.replace('.pbs', '.sh'))
+            print('sh', to_run.replace('.pbs', '.sh'))
+
+    def get_prjct_anlss_nm(self, project_name: str) -> str:
+        """
+        Get a smaller name for printing in qstat / squeue.
+
+        Parameters
+        ----------
+        project_name : str
+            Command-line passed project name.
+
+        Returns
+        -------
+        prjct_nm : str
+            Same name without the vows ("aeiouy").
+        """
+        alpha = 'aeiouy'
+        prjct_nm = ''.join(x for x in project_name if x.lower() not in alpha)
+        if prjct_nm == '':
+            prjct_nm = project_name
+        return prjct_nm
 
     def write_scripts(self, analyses_commands):
         self.get_jobs_folders(analyses_commands)
         self.get_shs(analyses_commands)
         for analysis, shs in self.shs.items():
-            nlss = get_prjct_anlss_nm(analysis)
-            if 'import' in analysis:
-                params = self.run_params['import']
-            elif 'songbird' in analysis:
-                params = self.run_params['songbird']
-            else:
-                params = self.run_params[analysis]
+            nlss = self.get_prjct_anlss_nm(analysis)
+            params = self.config.run_params.get(
+                'import', self.config.run_params['default'])
+            # if 'import' in analysis:
+            #     params = self.config.run_params['import']
+            # elif 'songbird' in analysis:
+            #     params = self.config.run_params['songbird']
+            # else:
+            #     params = self.config.run_params[analysis]
             main_sh = self.jobs_folders[analysis][0]
             with open(main_sh, 'w') as main_o:
                 if not self.config.chunkit:
@@ -149,7 +167,7 @@ class CreateScripts(object):
                             for dat, cmd in dats_commands:
                                 o.write('echo "%s"\n' % cmd.replace('"', ''))
                                 o.write('%s\n' % cmd)
-                        if self.slurm:
+                        if self.config.slurm:
                             pbs_slm = '%s.slm' % splitext(sh)[0]
                         else:
                             pbs_slm = '%s.pbs' % splitext(sh)[0]
@@ -164,7 +182,7 @@ class CreateScripts(object):
     def get_shs(self, analyses_commands):
         for analysis, dats_commands in analyses_commands.items():
             job_folder = self.jobs_folders[analysis][1]
-            print('analysis:', analysis)
+            # print('analysis:', analysis)
             for dat, commands in dats_commands.items():
                 sh = '%s_%s.sh' % (job_folder, dat)
                 for idx, command in enumerate(commands):
@@ -174,14 +192,21 @@ class CreateScripts(object):
                     self.shs[analysis].setdefault(sh, []).append((dat, command))
                     self.to_chunk[analysis].append(command)
 
+    def get_job_folder(self, analysis: str):
+        """
+        Get the job folder name.
+        """
+        job_folder = '%s/jobs/%s' % (self.config.folder, analysis)
+        if not isdir(job_folder):
+            os.makedirs(job_folder)
+        return job_folder
+
     def get_jobs_folders(self, analyses_commands):
         for analysis in analyses_commands:
             self.jobs_folders[analysis] = [
-                '%s/run_%s_%s%s.sh' % (
-                    get_job_folder(self.config.i_datasets_folder, analysis),
-                    analysis, self.prjct_nm, self.filt_raref),
-                '%s/run_%s_%s%s' % (
-                    get_job_folder(
-                        self.config.i_datasets_folder, '%s/chunks' % analysis),
-                    analysis, self.prjct_nm, self.filt_raref),
-            ]
+                '%s/%s%s.sh' % (
+                    self.get_job_folder(analysis),
+                    self.config.prjct_nm, self.config.filt_raref),
+                '%s/%s%s' % (
+                    self.get_job_folder('%s/chunks' % analysis),
+                    self.config.prjct_nm, self.config.filt_raref)]

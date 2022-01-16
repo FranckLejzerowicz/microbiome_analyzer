@@ -8,24 +8,19 @@
 
 import glob
 import pandas as pd
+import pkg_resources
+from scipy.stats import spearmanr
 from os.path import dirname, isfile, splitext
-
 from skbio.stats.ordination import OrdinationResults
 
 from routine_qiime2_analyses.analyses_prep import AnalysisPrep
-from routine_qiime2_analyses._routine_q2_cmds import (
-    get_case, get_new_meta_pd, run_import, run_export, filter_feature_table,
-)
-from routine_qiime2_analyses._routine_q2_io_utils import (
-    read_yaml_file, get_analysis_folder
-)
-from routine_qiime2_analyses._routine_q2_taxonomy import (
-    get_split_taxonomy
-)
-from routine_qiime2_analyses._routine_q2_mmbird import (
-    get_order_omics, get_pc_sb_correlations, edit_ordi_qzv, get_qzs,
-    get_biplot_commands, get_xmmvec_commands, get_paired_heatmaps_command
-)
+from routine_qiime2_analyses._io import get_output
+from routine_qiime2_analyses._taxonomy import get_split_taxonomy
+from routine_qiime2_analyses._cmds import (
+    get_biplot_commands, get_xmmvec_commands, get_paired_heatmaps_command)
+
+RESOURCES = pkg_resources.resource_filename(
+    "routine_qiime2_analyses", "resources")
 
 
 class PostAnalysis(object):
@@ -39,8 +34,8 @@ class PostAnalysis(object):
         self.metas = {}
         self.mmvec_res = {}
         self.mmvec_issues = set()
-        self.xmmvecs = read_yaml_file(config.xmmvec)
-        self.highlights = read_yaml_file(config.mmvec_highlights)
+        self.xmmvecs = self.config.xmmvec
+        self.highlights = self.config.mmvec_highlights
 
     def merge_mmvec_songbird(self, songbird_pd):
         rename_dic1 = dict(
@@ -128,7 +123,7 @@ class PostAnalysis(object):
                     filt = filt2
                     filt_ = filt1
                 feats_diff_cols = []
-                cur_mmvec_folder = get_analysis_folder(
+                cur_mmvec_folder = get_output(
                     self.config.i_datasets_folder,
                     'mmvec/metadata/%s/%s' % (pair, subset))
                 omic_diff_list = []
@@ -220,6 +215,95 @@ class PostAnalysis(object):
                 self.metas[(pair, subset, omic, filt, omic_, filt_)] = (
                     meta_omic_fp, meta_omic_pd, feats_diff_cols)
 
+    @staticmethod
+    def get_qzs(ordi_fp):
+        qza = ordi_fp.replace('.txt', '.qza')
+        qzv = ordi_fp.replace('.txt', '_emperor.qzv')
+        return qza, qzv
+
+    @staticmethod
+    def edit_ordi_qzv(ordi, ordi_fp, highlight, regexes_list, meta, meta_pd):
+
+        to_keep_feats = {}
+        for regex in regexes_list:
+            to_keep_feats[
+                regex.lower()] = ordi.features.index.str.lower().str.contains(
+                regex.lower())
+        to_keep_feats_pd = pd.DataFrame(to_keep_feats)
+        to_keep_feats = to_keep_feats_pd.any(axis=1)
+        feats_subset_list = ordi.features.index[to_keep_feats].tolist()
+
+        if feats_subset_list:
+            ordi_edit = '%s_%s%s' % (
+                splitext(ordi_fp)[0], highlight, splitext(ordi_fp)[1])
+            ordi.features = ordi.features.loc[feats_subset_list, :].copy()
+            ordi.write(ordi_edit)
+            n_edit = ordi.features.shape[0]
+
+            meta_edit = '%s_%s%s' % (
+                splitext(meta)[0], highlight, splitext(meta)[1])
+            meta_edit_pd = meta_pd.loc[feats_subset_list, :].copy()
+            meta_edit_pd.to_csv(meta_edit, index=True, sep='\t')
+        else:
+            ordi_edit = ''
+            meta_edit = ''
+            n_edit = 0
+        return n_edit, meta_edit, ordi_edit
+
+    @staticmethod
+    def get_pc_sb_correlations(pair, case, ordi, omic1, omic2, filt1, filt2,
+                               diff_cols1, meta_pd1, diff_cols2, meta_pd2,
+                               meta_fp, omic1_common_fp, omic2_common_fp,
+                               ranks_fp):
+        corrs = []
+        max_r = 0
+        for r in range(3):
+            if ordi.features.shape[1] > r:
+                max_r = r
+                feats = ordi.features[r]
+                if len(diff_cols1):
+                    for model in diff_cols1:
+                        x = meta_pd1.loc[
+                            [x for x in meta_pd1.index if x in feats.index],
+                            model
+                        ].astype(float)
+                        x = x[x.notnull()]
+                        y = feats[x.index]
+                        r2, p2 = spearmanr(x, y)
+                        corrs.append([pair, case, omic1, filt1,
+                                      'PC%s' % (r + 1), model, r2, p2,
+                                      'spearman',
+                                      meta_fp, omic1_common_fp, ranks_fp])
+                sams = ordi.samples[r]
+                if len(diff_cols2):
+                    for model in diff_cols2:
+                        x = meta_pd2.loc[
+                            [x for x in meta_pd2.index if x in sams.index],
+                            model
+                        ].astype(float)
+                        x = x[x.notnull()]
+                        y = sams[x.index]
+                        r2, p2 = spearmanr(x, y)
+                        corrs.append([pair, case, omic2, filt2,
+                                      'PC%s' % (r + 1), model, r2, p2,
+                                      'spearman',
+                                      meta_fp, omic2_common_fp, ranks_fp])
+        corrs_pd = pd.DataFrame(corrs, columns=[
+            'pair',
+            'case',
+            'omic',
+            'filt',
+            'mmvec_pc',
+            'model',
+            'correlation_coefficient',
+            'pvalue',
+            'correlation_method',
+            'meta_fp',
+            'features_fp',
+            'ranks_fp'
+        ])
+        return corrs_pd, max_r
+
     def get_mmvec_res(self):
         mmvec_out_cols = [x for x in self.mmvec_songbird_pd.columns if
                           x.startswith('mmvec_out__')]
@@ -261,14 +345,28 @@ class PostAnalysis(object):
                 ] = [mmvec_out_ranks, mmvec_out_ordi, meta_fp,
                      omic1_common_fp, omic2_common_fp]
 
+    @staticmethod
+    def get_order_omics(omic1, omic2, filt1, filt2, case, omics_pairs):
+        omic_feature, omic_sample = ('feature', 'sample')
+        omic_microbe, omic_metabolite = ('microbe', 'metabolite')
+        omic_filt1 = '%s__%s__%s' % (omic1, case, filt1)
+        omic_filt2 = '%s__%s__%s' % (omic2, case, filt2)
+        if (omic_filt2, omic_filt1) in omics_pairs:
+            omic_feature, omic_sample = ('sample', 'feature')
+            omic_microbe, omic_metabolite = ('metabolite', 'microbe')
+            omic1, omic2 = omic2, omic1
+            filt1, filt2 = filt2, filt1
+        return omic1, omic2, filt1, filt2, omic_feature, omic_sample, omic_microbe, omic_metabolite
+
     def get_pair_cmds(self, omics_pairs):
         crowdeds = [0, 1]
         pc_sb_correlations = []
+        pre_paired_fp = '%s/mmvec_pre_paired-heatmaps.py' % RESOURCES
         for keys, values in self.mmvec_res.items():
             pair, case, omic1, omic2, filt1, filt2, sams, mmvec = keys
             ranks_fp, ordi_fp, meta_fp, omic1_common, omic2_common = values
-            order_omics = get_order_omics(omic1, omic2, filt1, filt2, case,
-                                          omics_pairs)
+            order_omics = self.get_order_omics(omic1, omic2, filt1, filt2,
+                                               case, omics_pairs)
             omic1 = order_omics[0]
             omic2 = order_omics[1]
             filt1 = order_omics[2]
@@ -285,7 +383,7 @@ class PostAnalysis(object):
                                                       filt2, omic1, filt1)]
             # features are biplot, samples are dots
             ordi = OrdinationResults.read(ordi_fp)
-            cur_pc_sb_correlations, max_r = get_pc_sb_correlations(
+            cur_pc_sb_correlations, max_r = self.get_pc_sb_correlations(
                 pair, case, ordi, omic1, omic2, filt1, filt2, diff_cols1,
                 meta_pd1, diff_cols2, meta_pd2, meta_fp, omic1_common,
                 omic2_common, ranks_fp)
@@ -295,15 +393,15 @@ class PostAnalysis(object):
             if pair in self.highlights:
                 pair_highlights = self.highlights[pair]
                 for highlight, regexes_list in pair_highlights.items():
-                    n_edit, meta_edit, ordi_edit_fp = edit_ordi_qzv(
+                    n_edit, meta_edit, ordi_edit_fp = self.edit_ordi_qzv(
                         ordi, ordi_fp, highlight, regexes_list, meta1, meta_pd1)
                     if n_edit:
-                        qza, qzv = get_qzs(ordi_edit_fp)
+                        qza, qzv = self.get_qzs(ordi_edit_fp)
                         cmd += get_biplot_commands(
                             ordi_edit_fp, qza, qzv, omic_feature, omic_sample,
                             meta_edit, meta2, n_edit, max_r)
             ordi_edit_fp = ordi_fp
-            qza, qzv = get_qzs(ordi_edit_fp)
+            qza, qzv = self.get_qzs(ordi_edit_fp)
             for crowded in crowdeds:
                 if crowded:
                     n_ordi_feats = ordi.features.shape[0]
@@ -329,7 +427,7 @@ class PostAnalysis(object):
                                                          topn)
             cmd += get_paired_heatmaps_command(
                 ranks_fp, omic1_common, omic2_common, meta1, features_names,
-                topn, heat)
+                topn, heat, pre_paired_fp)
             self.cmds.setdefault(pair, []).append(cmd)
         return pc_sb_correlations
 
@@ -357,7 +455,7 @@ class PostAnalysis(object):
         pc_sb_correlations = self.get_pair_cmds(omics_pairs)
 
         if len(pc_sb_correlations):
-            out_folder = get_analysis_folder(self.config.i_datasets_folder,
+            out_folder = get_output(self.config.i_datasets_folder,
                                              'mmbird')
             out_correlations = '%s/pc_vs_songbird_correlations.tsv' % out_folder
             pc_sb_correlations_pd = pd.concat(pc_sb_correlations)
