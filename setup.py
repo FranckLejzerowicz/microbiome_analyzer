@@ -55,9 +55,9 @@ setup(
     install_requires=[
         "click",
         "pandas",
+        "scikit-bio==0.5.6",
         "numpy",
         "scipy",
-        "scikit-bio",
         "pyyaml",
         "plotly==4.8.2",
         "phate",
