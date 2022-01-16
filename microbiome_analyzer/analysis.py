@@ -36,7 +36,7 @@ from microbiome_analyzer._taxonomy import (
     get_split_levels, fix_collapsed_data, find_matching_features)
 
 RESOURCES = pkg_resources.resource_filename(
-    "routine_qiime2_analyses", "resources")
+    "microbiome_analyzer", "resources")
 
 
 class AnalysisPrep(object):

@@ -13,7 +13,7 @@ from os.path import abspath, exists, isfile
 from microbiome_analyzer._io import read_yaml_file
 
 RESOURCES = pkg_resources.resource_filename(
-    "routine_qiime2_analyses", "resources")
+    "microbiome_analyzer", "resources")
 
 
 class AnalysesConfig(object):

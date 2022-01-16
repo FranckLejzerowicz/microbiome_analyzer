@@ -19,7 +19,7 @@ from os.path import basename, isfile, isdir, splitext
 from microbiome_analyzer._cmds import run_export
 
 RESOURCES = pkg_resources.resource_filename(
-    "routine_qiime2_analyses", "resources/wol")
+    "microbiome_analyzer", "resources/wol")
 
 
 def read_yaml_file(file_path: str) -> dict:
