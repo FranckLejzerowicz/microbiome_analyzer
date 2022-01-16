@@ -15,7 +15,7 @@ from skbio.tree import TreeNode
 import pkg_resources
 import itertools as its
 
-from routine_qiime2_analyses.dataset_collection import Datasets, Data
+from routine_qiime2_analyses.datasets import Datasets, Data
 from routine_qiime2_analyses._cmds import (
     run_import, run_export, write_rarefy, write_fasta, write_collapse,
     write_sepp, write_alpha, write_filter,
