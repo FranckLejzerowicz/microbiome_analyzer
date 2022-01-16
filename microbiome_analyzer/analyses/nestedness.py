@@ -19,7 +19,7 @@ from microbiome_analyzer._cmds import write_filter, run_export, run_add_metadata
 from microbiome_analyzer._io import get_cohort, subset_meta
 
 RESOURCES = pkg_resources.resource_filename(
-    "routine_qiime2_analyses", "resources/python_scripts")
+    "microbiome_analyzer", "resources/python_scripts")
 
 
 class Nestedness(object):

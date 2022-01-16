@@ -16,7 +16,7 @@ from microbiome_analyzer._cmds import run_export
 from microbiome_analyzer._io import subset_meta
 
 RESOURCES = pkg_resources.resource_filename(
-    "routine_qiime2_analyses", "resources/r_scripts")
+    "microbiome_analyzer", "resources/r_scripts")
 
 
 class DOC(object):

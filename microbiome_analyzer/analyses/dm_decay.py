@@ -16,7 +16,7 @@ from microbiome_analyzer._cmds import run_export
 from microbiome_analyzer._io import subset_meta, get_output
 
 RESOURCES = pkg_resources.resource_filename(
-    "routine_qiime2_analyses", "resources/python_scripts")
+    "microbiome_analyzer", "resources/python_scripts")
 
 
 class DmDecay(object):
