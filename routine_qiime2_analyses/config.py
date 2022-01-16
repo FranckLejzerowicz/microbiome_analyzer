@@ -31,7 +31,7 @@ class AnalysesConfig(object):
         self.train_test_dict = self.get_train_test_dict()
         if self.jobs:
             self.check_xpbs_install()  # Xpbs must be installed to prepare jobs
-        workflow = self.get_workflow()
+        self.workflow = self.get_workflow()
 
     def parse_yamls(self):
         for arg in list(self.__dict__):
