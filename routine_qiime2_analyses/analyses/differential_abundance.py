@@ -18,8 +18,7 @@ from routine_qiime2_analyses._cmds import run_import, write_songbird
 from routine_qiime2_analyses._metadata import (
     get_subset, get_subset_pd, rename_duplicate_columns,
     get_train_perc_from_numeric, get_cat_vars_and_vc, make_train_test_from_cat)
-from routine_qiime2_analyses._io import (
-    read_meta_pd, get_output, write_filtered_tsv)
+from routine_qiime2_analyses._io import read_meta_pd, get_output, write_filtered_tsv
 from routine_qiime2_analyses._filter import filter_mb_table, filter_non_mb_table
 
 
