@@ -23,9 +23,9 @@ classes = """
 classifiers = [s.strip() for s in classes.split('\n') if s]
 
 description = (
-    "routine_qiime2_analyses is a command line tool that write"
-    "commands to run one by one to perform standard qiime2 analyses on a"
-    "HPC running Torque."
+    "microbiome_analyzer is a command line tool that writes commands to run one"
+    "by one to perform analyses (mainly using qiime2) on a HPC running Slurm,"
+    "Torque or none of these."
 )
 
 with open("README.md") as f:
@@ -37,7 +37,7 @@ with open("routine_qiime2_analyses/__init__.py", "rb") as f:
     hit = _version_re.search(f.read().decode("utf-8")).group(1)
     version = str(ast.literal_eval(hit))
 
-standalone = ['routine_qiime2_analyses=routine_qiime2_analyses.scripts._standalone_routine:standalone_routine']
+standalone = ['microbiome_analyzer=routine_qiime2_analyses.scripts._standalone_analyzer:standalone_analyzer']
 
 setup(
     name="routine_qiime2_analyses",
@@ -56,6 +56,7 @@ setup(
         "click",
         "pandas",
         "numpy",
+        "scipy",
         "scikit-bio",
         "pyyaml",
         "plotly==4.8.2",
@@ -68,21 +69,22 @@ setup(
     package_data={
         'routine_qiime2_analyses': [
             'test/*/*/*',
-            'resources/alpha_metrics.txt',
-            'resources/beta_metrics.txt',
-            'resources/g2lineage.txt',
-            'resources/nestedness.sh',
             'resources/run_params.yml',
-            'resources/spatial_autocorrelation_modeling.sh',
-            'resources/summarize_permanovas.py',
-            'resources/nestedness_graphs.py',
-            'resources/nestedness_nodfs.py',
-            'resources/wol_tree.nwk',
-            'resources/mmvec_pre_paired-heatmaps.py',
+            'resources/beta_metrics.txt',
+            'resources/alpha_metrics.txt',
+            'resources/wol/wol_tree.nwk',
+            'resources/wol/g2lineage.txt',
+            'resources/r_scripts/doc.R',
+            'resources/r_scripts/adonis.R',
+            'resources/sh_scripts/nestedness.sh',
+            'resources/sh_scripts/spatial_autocorrelation_modeling.sh',
+            'resources/python_scripts/nestedness_nodfs.py',
+            'resources/python_scripts/nestedness_graphs.py',
+            'resources/python_scripts/summarize_permanovas.py',
+            'resources/python_scripts/mmvec_pre_paired-heatmaps.py',
             'examples/*'
         ],
     },
     include_package_data=True,
     python_requires='>=3.6',
-    # dependency_links = ['http://github.com/mtai/python-gearman/tarball/master#egg=gearman-2.0.0beta']
 )
