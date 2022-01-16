@@ -13,7 +13,7 @@ import random
 import itertools
 import pandas as pd
 from os.path import dirname, isdir, isfile, splitext
-from routine_qiime2_analyses.analyses_prep import AnalysisPrep
+from routine_qiime2_analyses.analysis import AnalysisPrep
 from routine_qiime2_analyses._cmds import run_import, write_songbird
 from routine_qiime2_analyses._metadata import (
     get_subset, get_subset_pd, rename_duplicate_columns,
@@ -455,11 +455,18 @@ class DiffModels(object):
             return '%s/unpaired' % dat
 
     def get_dirs(
-            self, pair_dir, filt, subset, filt_list, params_list, model) -> tuple:
+            self,
+            pair_dir,
+            filt,
+            subset,
+            filt_list,
+            params_list,
+            model
+    ) -> tuple:
 
         dat_dir = pair_dir
         p_dir = ''
-        for (name, level)  in [
+        for (name, level) in [
             ('filter', filt),
             ('subset', subset),
             ('songbird_filt', filt_list),
@@ -646,8 +653,9 @@ class DiffModels(object):
     def check_metadata_models(self, meta, meta_pd, songbird_models):
         models = {}
         for model, formula_ in songbird_models.items():
-            vars = set()
             drop = {}
+            levels = {}
+            variables = set()
             formula = formula_.strip('"').strip("'")
             if formula.startswith('C('):
                 formula_split = formula.split('C(')[-1].rsplit(')', 1)
@@ -666,18 +674,17 @@ class DiffModels(object):
                 elif 'Treatment("' in formula:
                     levels = {formula_split_c: [
                         formula.split('Treatment("')[-1].split('")')[0]]}
-                vars.add(formula_split_c)
-                vars.update(set([x for x in re.split(
+                variables.add(formula_split_c)
+                variables.update(set([x for x in re.split(
                     '[+/:*]', formula_split[1]) if x]))
             else:
                 formula_split = re.split('[+/:*]', formula)
                 formula = formula
-                vars.update(set([x for x in formula_split]))
-                levels = {}
+                variables.update(set([x for x in formula_split]))
 
-            common_with_md = set(meta_pd.columns.values) & vars
-            if sorted(vars) != sorted(common_with_md):
-                only_formula = sorted(vars ^ common_with_md)
+            common_with_md = set(meta_pd.columns.values) & variables
+            if sorted(variables) != sorted(common_with_md):
+                only_formula = sorted(variables ^ common_with_md)
                 issue = 'Songbird formula term(s) missing in metadata:\n\t' \
                         '%s\n\t  [not used]: %s=%s' % (
                             ', '.join(only_formula), model, formula)
@@ -714,7 +721,7 @@ class DiffModels(object):
                                     formula_split_c, levels)
                         self.models_issues.setdefault(issue, set()).add(meta)
                         continue
-            models[model] = [formula, vars, drop]
+            models[model] = [formula, variables, drop]
         return models
 
     def show_models_issues(self, mess):

@@ -11,12 +11,12 @@ import pkg_resources
 import pandas as pd
 
 from os.path import isdir, isfile, splitext
-from routine_qiime2_analyses.analyses_prep import AnalysisPrep
+from routine_qiime2_analyses.analysis import AnalysisPrep
 from routine_qiime2_analyses._cmds import run_export
 from routine_qiime2_analyses._io import subset_meta, get_output
 
 RESOURCES = pkg_resources.resource_filename(
-    "routine_qiime2_analyses", "resources")
+    "routine_qiime2_analyses", "resources/python_scripts")
 
 
 class DmDecay(object):

@@ -14,14 +14,14 @@ import pandas as pd
 import pkg_resources
 
 from os.path import basename, isdir, isfile, splitext
-from routine_qiime2_analyses.dataset_collection import Datasets
-from routine_qiime2_analyses.analyses_prep import AnalysisPrep
+from routine_qiime2_analyses.datasets import Datasets
+from routine_qiime2_analyses.analysis import AnalysisPrep
 from routine_qiime2_analyses._cmds import (
     write_filter, run_export, run_add_metadata)
 from routine_qiime2_analyses._io import get_cohort, subset_meta
 
 RESOURCES = pkg_resources.resource_filename(
-    "routine_qiime2_analyses", "resources")
+    "routine_qiime2_analyses", "resources/python_scripts")
 
 
 class Nestedness(object):

@@ -13,14 +13,14 @@ from scipy.stats import spearmanr
 from os.path import dirname, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
-from routine_qiime2_analyses.analyses_prep import AnalysisPrep
+from routine_qiime2_analyses.analysis import AnalysisPrep
 from routine_qiime2_analyses._io import get_output
 from routine_qiime2_analyses._taxonomy import get_split_taxonomy
 from routine_qiime2_analyses._cmds import (
     get_biplot_commands, get_xmmvec_commands, get_paired_heatmaps_command)
 
 RESOURCES = pkg_resources.resource_filename(
-    "routine_qiime2_analyses", "resources")
+    "routine_qiime2_analyses", "resources/python_scripts")
 
 
 class PostAnalysis(object):

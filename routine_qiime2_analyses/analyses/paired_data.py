@@ -12,7 +12,7 @@ import random
 import itertools
 import pandas as pd
 from os.path import isdir, isfile, splitext
-from routine_qiime2_analyses.analyses_prep import AnalysisPrep
+from routine_qiime2_analyses.analysis import AnalysisPrep
 from routine_qiime2_analyses._cmds import (
     run_import, run_export, write_filter, write_mmvec)
 from routine_qiime2_analyses._metadata import (
@@ -250,13 +250,11 @@ class PairedData(object):
             if not isfile(meta1) or not isfile(meta2):
                 continue
             meta1_pd, meta2_pd = read_meta_pd(meta1), read_meta_pd(meta2)
-            print(meta1_pd)
-            print(meta2_pd)
             sams = set(meta1_pd.sample_name) & set(meta2_pd.sample_name)
             if len(sams) < 10:
-                print('Not enough samples in pair %s: %s (%s) vs %s (%s)' % (
-                    pair, mmvec_d['dataset1'], meta1_pd.shape[0],
-                          mmvec_d['dataset2'], meta2_pd.shape[0]))
+                print('- Too few samples (%s) for "%s": %s (%s) vs %s (%s)' % (
+                    pair, len(sams), mmvec_d['dataset1'], meta1_pd.shape[0],
+                    mmvec_d['dataset2'], meta2_pd.shape[0]))
                 continue
             meta_fp, new_tsv1, new_qza1, new_tsv2, new_qza2 = self.get_new_fps(
                 meta_dir, data_dir, qza1, qza2, dat1, prev1, abun1,
@@ -265,8 +263,8 @@ class PairedData(object):
             meta_subset.to_csv(meta_fp, index=False, sep='\t')
             paths.append([pair, filter, subset, sams, meta_fp,
                           new_tsv1, new_tsv2, new_qza1, new_qza2])
-            print('\t\t\t* [TODO]', pair, filter, subset, ':',
-                  dat1, 'vs', dat2, '(%s samples)' % meta_subset.shape[0])
+            # print('* [self.analysis]', pair, filter, subset, ':',
+            #       dat1, 'vs', dat2, '(%s samples)' % meta_subset.shape[0])
         if paths:
             common_paths_pd = pd.DataFrame(paths, columns=(
                     pfs + ['common_sams', 'meta_fp', 'new_tsv1', 'new_tsv2',
@@ -344,7 +342,7 @@ class PairedData(object):
             subset = row['subset']
             odir = get_output(self.config.folder,
                               'mmvec/datasets/%s/%s' % (dataset, subset))
-            rad = '%s_%s' % (dataset, filter)
+            rad = '%s_%s_%s' % (dataset, filter, subset)
             tsv = '%s/tab_%s.tsv' % (odir, rad)
             qza = '%s.qza' % splitext(tsv)[0]
             meta = '%s/meta_%s.tsv' % (odir, rad)
