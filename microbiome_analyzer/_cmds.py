@@ -22,35 +22,35 @@ def run_import(
     
     Parameters
     ----------
-    input_path
-    output_path
-    typ
+    input_path : str
+        Input file to import to qiime2 artefact.
+    output_path : str
+        Output qiime2 artefact.
+    typ : str
+        qiime2 type.
 
     Returns
     -------
-
+    cmd : str
+        Qiime2 command.
     """
     cmd = ''
+    infile = input_path
     if typ.startswith("FeatureTable"):
         if not input_path.endswith('biom'):
-            cur_biom = '%s.biom' % splitext(input_path)[0]
+            infile = '%s.biom' % splitext(input_path)[0]
             cmd += 'biom convert \\\n'
             cmd += '  -i %s \\\n' % input_path
-            cmd += '  -o %s \\\n' % cur_biom
+            cmd += '  -o %s \\\n' % infile
             cmd += '  --table-type="OTU table" \\\n'
             cmd += '  --to-hdf5\n\n'
-            cmd += 'qiime tools import \\\n'
-            cmd += '  --input-path %s \\\n' % cur_biom
-            cmd += '  --output-path %s \\\n' % output_path
-            cmd += '  --type "FeatureTable[Frequency]"\n'
-        else:
-            cmd += 'qiime tools import \\\n'
-            cmd += '  --input-path %s \\\n' % input_path
-            cmd += '  --output-path %s \\\n' % output_path
-            cmd += '  --type "FeatureTable[Frequency]"\n'
+        cmd += 'qiime tools import \\\n'
+        cmd += '  --input-path %s \\\n' % infile
+        cmd += '  --output-path %s \\\n' % output_path
+        cmd += '  --type "FeatureTable[Frequency]"\n'
     else:
         cmd += 'qiime tools import \\\n'
-        cmd += '  --input-path %s \\\n' % input_path
+        cmd += '  --input-path %s \\\n' % infile
         cmd += '  --output-path %s \\\n' % output_path
         cmd += '  --type "%s"\n' % typ
     return cmd
@@ -66,59 +66,47 @@ def run_export(
 
     Parameters
     ----------
-    input_path
-    output_path
-    typ
+    input_path : str
+        Input qiime2 artefact.
+    output_path : str
+        Output file to import to qiime2 artefact.
+    typ : str
+        qiime2 type.
 
     Returns
     -------
-
+    cmd : str
+        Qiime2 command.
     """
-    cmd = ''
+    inp = splitext(input_path)[0]
+    out = splitext(output_path)[0]
+
+    cmd = 'qiime tools export \\\n'
+    cmd += '  --input-path %s \\\n' % input_path
+    cmd += '  --output-path %s\n' % out
     if typ.startswith("FeatureTable"):
-        if not output_path.endswith('biom'):
-            cur_biom = '%s.biom' % splitext(output_path)[0]
-            cmd += 'qiime tools export \\\n'
-            cmd += '  --input-path %s \\\n' % input_path
-            cmd += '  --output-path %s\n' % splitext(output_path)[0]
-            cmd += 'mv %s/*.biom %s\n' % (splitext(output_path)[0], cur_biom)
+        if output_path.endswith('biom'):
+            cmd += 'mv %s/*.biom %s\n' % (out, output_path)
+            cmd += 'rm -rf %s\n' % inp
+        else:
+            cur_biom = '%s.biom' % out
+            cmd += 'mv %s/*.biom %s\n' % (out, cur_biom)
             cmd += 'biom convert'
             cmd += '  -i %s \\\n' % cur_biom
             cmd += '  -o %s.tmp \\\n' % output_path
             cmd += '  --to-tsv\n\n'
             cmd += 'tail -n +2 %s.tmp > %s\n\n' % (output_path, output_path)
-            cmd += 'rm -rf %s %s.tmp\n' % (splitext(output_path)[0], output_path)
-        else:
-            cmd += 'qiime tools export \\\n'
-            cmd += '  --input-path %s \\\n' % input_path
-            cmd += '  --output-path %s\n' % splitext(output_path)[0]
-            cmd += 'mv %s/*.biom %s\n' % (splitext(input_path)[0], output_path)
-            cmd += 'rm -rf %s\n' % splitext(input_path)[0]
+            cmd += 'rm -rf %s %s.tmp\n' % (out, output_path)
     else:
-        cmd += 'qiime tools export \\\n'
-        cmd += '  --input-path %s \\\n' % input_path
-        cmd += '  --output-path %s\n' % splitext(output_path)[0]
-        if 'Phylogeny' in typ:
-            cmd += 'mv %s/*.nwk %s\n' % (splitext(output_path)[0], output_path)
-        elif 'biplot' in typ:
-            cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
-        elif 'mmvec_summary' in typ:
-            cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
-        elif 'mmvec' in typ:
-            cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
-        elif 'pcoa' in typ:
-            cmd += 'mv %s/*.txt %s\n' % (splitext(output_path)[0], output_path)
-        elif 'perms' in typ:
-            cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
-        elif 'songbird' in typ:
-            cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
-        elif 'mantel' in typ:
-            cmd += 'mv %s/index.html %s\n' % (splitext(output_path)[0], output_path)
-        elif 'decay' in typ:
-            cmd += 'mv %s/decay.tsv %s\n' % (splitext(output_path)[0], output_path)
+        if 'phylogeny' in typ:
+            cmd += 'mv %s/*.nwk %s\n' % (out, output_path)
+        elif typ in ['pcoa', 'biplot', 'mmvec']:
+            cmd += 'mv %s/*.txt %s\n' % (out, output_path)
+        elif typ in ['perms', 'mantel', 'songbird', 'mmvec_summary']:
+            cmd += 'mv %s/index.html %s\n' % (out, output_path)
         else:
-            cmd += 'mv %s/*.tsv %s\n' % (splitext(output_path)[0], output_path)
-        cmd += 'rm -rf %s\n' % splitext(output_path)[0]
+            cmd += 'mv %s/*.tsv %s\n' % (out, output_path)
+        cmd += 'rm -rf %s\n' % out
     return cmd
 
 
@@ -919,13 +907,6 @@ def write_emperor_biplot(
     cmd += '--i-biplot %s \\\n' % biplot
     cmd += '--m-sample-metadata-file %s \\\n' % meta
     if isfile(biplot_tax):
-        # tax_tmp = '%s_tax.tmp' % splitext(biplot)[0]
-        # tax_tmp_pd = pd.read_csv(biplot_tax, header=0, sep='\t', dtype=str)
-        # if 'Taxon' in tax_tmp_pd:
-        #     tax_pd = pd.concat([tax_tmp_pd, tax_pd], axis=1, sort=False)
-        #     tax_pd.to_csv(tax_tmp, index=False, sep='\t')
-        # else:
-        #     tax_tmp = biplot_tax
         cmd += '--m-feature-metadata-file %s \\\n' % biplot_tax
     cmd += '--p-number-of-features 10 \\\n'
     cmd += '--o-visualization %s\n' % qzv
