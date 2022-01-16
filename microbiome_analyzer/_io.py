@@ -16,7 +16,7 @@ import pkg_resources
 import pandas as pd
 
 from os.path import basename, isfile, isdir, splitext
-from routine_qiime2_analyses._cmds import run_export
+from microbiome_analyzer._cmds import run_export
 
 RESOURCES = pkg_resources.resource_filename(
     "routine_qiime2_analyses", "resources/wol")

@@ -14,7 +14,7 @@ import pandas as pd
 import plotly
 import plotly.graph_objs as go
 
-from routine_qiime2_analyses._io import convert_to_biom
+from microbiome_analyzer._io import convert_to_biom
 
 
 def no_filtering(

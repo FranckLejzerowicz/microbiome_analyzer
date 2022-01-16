@@ -33,14 +33,14 @@ with open("README.md") as f:
 
 _version_re = re.compile(r"__version__\s+=\s+(.*)")
 
-with open("routine_qiime2_analyses/__init__.py", "rb") as f:
+with open("microbiome_analyzer/__init__.py", "rb") as f:
     hit = _version_re.search(f.read().decode("utf-8")).group(1)
     version = str(ast.literal_eval(hit))
 
-standalone = ['microbiome_analyzer=routine_qiime2_analyses.scripts._standalone_analyzer:standalone_analyzer']
+standalone = ['microbiome_analyzer=microbiome_analyzer.scripts._standalone_analyzer:standalone_analyzer']
 
 setup(
-    name="routine_qiime2_analyses",
+    name="microbiome_analyzer",
     version=version,
     license="BSD",
     description=description,
@@ -50,7 +50,7 @@ setup(
     author_email="franck.lejzerowicz@gmail.com",
     maintainer="Franck Lejzerowicz",
     maintainer_email="franck.lejzerowicz@gmail.com",
-    url="https://github.com/FranckLejzerowicz/routine_qiime2_analyses",
+    url="https://github.com/FranckLejzerowicz/microbiome_analyzer",
     packages=find_packages(),
     install_requires=[
         "click",

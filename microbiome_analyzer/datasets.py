@@ -12,10 +12,10 @@ from os.path import isfile, splitext
 import pandas as pd
 from biom import load_table
 
-from routine_qiime2_analyses._io import (
+from microbiome_analyzer._io import (
     read_meta_pd, convert_to_biom, check_features, get_output, get_cohort)
-from routine_qiime2_analyses._rarefy import get_dat_depths, get_digit_depth
-from routine_qiime2_analyses._taxonomy import (
+from microbiome_analyzer._rarefy import get_dat_depths, get_digit_depth
+from microbiome_analyzer._taxonomy import (
     get_tax_tables, parse_split_taxonomy, edit_split_taxonomy)
 
 

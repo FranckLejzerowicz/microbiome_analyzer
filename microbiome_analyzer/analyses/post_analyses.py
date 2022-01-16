@@ -13,10 +13,10 @@ from scipy.stats import spearmanr
 from os.path import dirname, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
-from routine_qiime2_analyses.analysis import AnalysisPrep
-from routine_qiime2_analyses._io import get_output
-from routine_qiime2_analyses._taxonomy import get_split_taxonomy
-from routine_qiime2_analyses._cmds import (
+from microbiome_analyzer.analysis import AnalysisPrep
+from microbiome_analyzer._io import get_output
+from microbiome_analyzer._taxonomy import get_split_taxonomy
+from microbiome_analyzer._cmds import (
     get_biplot_commands, get_xmmvec_commands, get_paired_heatmaps_command)
 
 RESOURCES = pkg_resources.resource_filename(

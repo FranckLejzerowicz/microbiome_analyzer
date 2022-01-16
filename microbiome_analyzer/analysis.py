@@ -15,8 +15,8 @@ from skbio.tree import TreeNode
 import pkg_resources
 import itertools as its
 
-from routine_qiime2_analyses.datasets import Datasets, Data
-from routine_qiime2_analyses._cmds import (
+from microbiome_analyzer.datasets import Datasets, Data
+from microbiome_analyzer._cmds import (
     run_import, run_export, write_rarefy, write_fasta, write_collapse,
     write_sepp, write_alpha, write_filter,
     write_barplots, write_tabulate, write_alpha_correlation,
@@ -25,13 +25,13 @@ from routine_qiime2_analyses._cmds import (
     write_empress, write_permanova_permdisp, write_adonis,
     write_tsne, write_umap, write_procrustes, write_mantel, write_phate,
     write_sourcetracking)
-from routine_qiime2_analyses._filter import (
+from microbiome_analyzer._filter import (
     no_filtering, get_dat_filt, filtering_thresholds,
     harsh_filtering, filter_3d)
-from routine_qiime2_analyses._rarefy import get_digit_depth
-from routine_qiime2_analyses._io import (
+from microbiome_analyzer._rarefy import get_digit_depth
+from microbiome_analyzer._io import (
     add_q2_type, subset_meta, get_wol_tree, get_sepp_tree)
-from routine_qiime2_analyses._taxonomy import (
+from microbiome_analyzer._taxonomy import (
     get_taxonomy_command, get_edit_taxonomy_command, get_gids,
     get_split_levels, fix_collapsed_data, find_matching_features)
 

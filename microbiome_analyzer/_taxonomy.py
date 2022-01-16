@@ -10,9 +10,9 @@ import biom
 import pandas as pd
 from os.path import isfile
 
-from routine_qiime2_analyses._io import (
+from microbiome_analyzer._io import (
     read_meta_pd, get_taxonomy_classifier, get_analysis_folder, parse_g2lineage)
-from routine_qiime2_analyses._cmds import (
+from microbiome_analyzer._cmds import (
     write_fasta, write_taxonomy_sklearn, run_export, run_import)
 
 

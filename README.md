@@ -1,4 +1,4 @@
-# routine_qiime2_analyses
+# microbiome_analyzer
 
 ## Description
 
@@ -25,12 +25,12 @@ for which another folder containing metadata for these samples is present, and r
 
 ## Installation
 ```
-pip install --upgrade git+https://github.com/FranckLejzerowicz/routine_qiime2_analyses.git
+pip install --upgrade git+https://github.com/FranckLejzerowicz/microbiome_analyzer.git
 ```
 or 
 ```
-git clone https://github.com/FranckLejzerowicz/routine_qiime2_analyses.git
-cd routine_qiime2_analyses
+git clone https://github.com/FranckLejzerowicz/microbiome_analyzer.git
+cd microbiome_analyzer
 python3 setup.py build_ext --inplace --force install
 ```
 
@@ -71,11 +71,11 @@ There must be a perfect matching of this _internal_ name in the features/metadat
     **The analysis is performed as follows:**
     - If both datasets are to be processed:
     ```
-    routine_qiime2_analyses -i datasets_folder -d dataset_number_1 -d dataset_number_2 -n jobs_name -e qiime2-2019.10
+    microbiome_analyzer -i datasets_folder -d dataset_number_1 -d dataset_number_2 -n jobs_name -e qiime2-2019.10
     ```
     - If only the `dataset_number_2` dataset is to be processed:
     ```
-    routine_qiime2_analyses -i datasets_folder -d dataset_number_2 -n jobs_name -e qiime2-2019.10
+    microbiome_analyzer -i datasets_folder -d dataset_number_2 -n jobs_name -e qiime2-2019.10
     ```
 In fact, the tool simply generates scripts files that need to be started manually, and which
 output should be scrutinized manually (**highly recommended**). This just a way to help you
@@ -85,7 +85,7 @@ obtain the standard qiime2 command lines pre-written for Torque/Slurm and ready 
 
 After running this command (you can try):
 ```
-routine_qiime2_analyses -i ./routine_qiime2_analyses/test/files -d dataset_number_1 -n jobs_name -e qiime2-2019.10
+microbiome_analyzer -i ./microbiome_analyzer/test/files -d dataset_number_1 -n jobs_name -e qiime2-2019.10
 ```
 You would obtain _files_ in the `jobs` folders (scripts to check and run),
 and _folders_ in the `qiime` folder (locations for qiime2 outputs).
@@ -119,30 +119,30 @@ and _folders_ in the `qiime` folder (locations for qiime2 outputs).
 
 The jobs to run are in printed in the stdout, i.e. the commands to copy-paste on the
 HPC terminal to actually run the jobs are those after the `[TO RUN]` indicators that print
-in the terminal as you run `routine_qiime2_analyses`, here, for the above example:  
+in the terminal as you run `microbiome_analyzer`, here, for the above example:  
 ```
 # Fetching data and metadata (in dataset_number_1)
 # Import tables to qiime2
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_tables/0_run_import.pbs
+[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_tables/0_run_import.pbs
 # Calculate alpha diversity indices
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha/1_run_alpha.sh
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha/1_run_alpha.sh
 # Merge alpha diversity indices to metadata
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha/2_run_merge_alphas.sh
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha/2_run_merge_alphas.sh
 # Export alpha diversity indices to metadata
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha/3_run_merge_alpha_export.pbs
+[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha/3_run_merge_alpha_export.pbs
 # Correlate numeric metadata variables with alpha diversity indices
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha_correlations/4_run_alpha_correlation.sh
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha_correlations/4_run_alpha_correlation.sh
 # Calculate beta diversity indices
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/beta/2_run_beta.sh
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/beta/2_run_beta.sh
 # Export beta diversity matrices
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/beta/2x_run_beta_export.pbs
+[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/beta/2x_run_beta_export.pbs
 # Calculate principal coordinates
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/pcoa/3_run_pcoa.sh
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/pcoa/3_run_pcoa.sh
 # Make EMPeror plots
 
 Warning: Make sure you first run alpha -> alpha merge -> alpha export
         (if you want alpha diversity as a variable in the PCoA)!
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/emperor/4_run_emperor.sh
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/emperor/4_run_emperor.sh
 ```
 The job are labeled for you to get a suggestion of the order in which to run them
 (this is essentially what `snakemake` would do but it does but the whole point
@@ -246,11 +246,11 @@ In this example, there will be one subset for:
  
 For example:
 ```
-routine_qiime2_analyses \
+microbiome_analyzer \
     -t sex \
     -t age_cat \
-    -g ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml \
-    -i ./routine_qiime2_analyses/test/files \
+    -g ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml \
+    -i ./microbiome_analyzer/test/files \
     -d dataset_number_1 \
     -d test2 \
     -n test \
@@ -289,10 +289,10 @@ which in R, would correspond to these commands:
  
 For example:
 ```
-routine_qiime2_analyses \
-    -a ./routine_qiime2_analyses/examples/example_ADONIS_formulas.yml \
-    -g ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml \
-    -i ./routine_qiime2_analyses/test/files \
+microbiome_analyzer \
+    -a ./microbiome_analyzer/examples/example_ADONIS_formulas.yml \
+    -g ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml \
+    -i ./microbiome_analyzer/test/files \
     -d dataset_number_1 \
     -d dataset_number_2 \
     -n jobs_name \
@@ -408,7 +408,7 @@ Use a `*` character after the dataset name to indicate if it is a metabolomics d
 ## Usage
 
 ```
-routine_qiime2_analyses -i <input_folder_path> -d <dataset_name> -n <project_name> -e <qiime2_env> [OPTIONS]
+microbiome_analyzer -i <input_folder_path> -d <dataset_name> -n <project_name> -e <qiime2_env> [OPTIONS]
 ```
 
 ### Optional arguments
@@ -491,17 +491,17 @@ routine_qiime2_analyses -i <input_folder_path> -d <dataset_name> -n <project_nam
 
 For the command:
 ```
-routine_qiime2_analyses  \
-    -i ./routine_qiime2_analyses/test/files  \
+microbiome_analyzer  \
+    -i ./microbiome_analyzer/test/files  \
     -d dataset_number_1  \
     -d dataset_number_2  \
-    -t ./routine_qiime2_analyses/resources/web_of_life_tree.nwk  \
+    -t ./microbiome_analyzer/resources/web_of_life_tree.nwk  \
     -n test_name  \
     -e qiime2-2019.10  \
     -t sex \
     -t age_cat  \
-    -g ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml  \
-    -a ./routine_qiime2_analyses/examples/example_ADONIS_formulas.yml  \
+    -g ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml  \
+    -a ./microbiome_analyzer/examples/example_ADONIS_formulas.yml  \
     --gid  \
     -l timepoint_months
     -f 10000
@@ -510,49 +510,49 @@ The standard output shows you the scripts that have been written with qiime2 com
 ```
 # Fetching data and metadata (in dataset_number_1, dataset_number_2)
 # Import tables to qiime2
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_tables/0_run_import.pbs
+[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_tables/0_run_import.pbs
 # Filter samples for a min number of 10000 reads
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_filtered/1_run_import_filtered.pbs
+[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_filtered/1_run_import_filtered.pbs
 # Shear Web of Life tree to features' genome IDs
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_1/0_import_tree.pbs
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_2/0_import_tree.pbs
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_1_min10000_339s/0_import_tree.pbs
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/import_tree_dataset_number_2_min10000_339s/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_tree_dataset_number_1/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_tree_dataset_number_2/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_tree_dataset_number_1_min10000_339s/0_import_tree.pbs
+[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_tree_dataset_number_2_min10000_339s/0_import_tree.pbs
 # Calculate alpha diversity indices
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha/1_run_alpha.sh
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha/1_run_alpha.sh
 # Merge alpha diversity indices to metadata
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha/2_run_merge_alphas.sh
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha/2_run_merge_alphas.sh
 # Export alpha diversity indices to metadata
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha/3_run_merge_alpha_export.pbs
+[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha/3_run_merge_alpha_export.pbs
 # Correlate numeric metadata variables with alpha diversity indices
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha_correlations/4_run_alpha_correlation.sh
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha_correlations/4_run_alpha_correlation.sh
 # Longitudinal change in alpha diversity indices
 
 Warning: First make sure you run alpha -> alpha merge -> alpha export before running volatility
         (if you need the alpha as a response variable)!
 # Calculate beta diversity indices
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/beta/2_run_beta.sh
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/beta/2_run_beta.sh
 # Export beta diversity matrices
-[TO RUN] qsub /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/beta/2x_run_beta_export.pbs
+[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/beta/2x_run_beta_export.pbs
 # Calculate principal coordinates
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/pcoa/3_run_pcoa.sh
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/pcoa/3_run_pcoa.sh
 # Make EMPeror plots
 
 Warning: Make sure you first run alpha -> alpha merge -> alpha export
         (if you want alpha diversity as a variable in the PCoA)!
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/emperor/4_run_emperor.sh
-# DEICODE (groups config in ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml)
-sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/deicode/3_run_beta_deicode.sh
-# Kruskal-Wallis (groups config in ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml)
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/alpha_group_significance/6_run_alpha_group_significance.sh
-# PERMANOVA (groups config in ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml)
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/emperor/4_run_emperor.sh
+# DEICODE (groups config in ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml)
+sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/deicode/3_run_beta_deicode.sh
+# Kruskal-Wallis (groups config in ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml)
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha_group_significance/6_run_alpha_group_significance.sh
+# PERMANOVA (groups config in ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml)
 Beta diversity, distances matrices must be generated already to automatise PERMANOVA
         (re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/permanova/3_run_beta_group_significance.sh
-# Run Adonis (groups config in ./routine_qiime2_analyses/examples/example_PERMANOVA_subsets.yml)
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/permanova/3_run_beta_group_significance.sh
+# Run Adonis (groups config in ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml)
 Beta diversity, distances matrices must be generated already to automatise adonis
         (re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)
-[TO RUN] sh /Data/Programs/routine_qiime2_analyses/routine_qiime2_analyses/test/files/jobs/adonis/3_run_adonis.sh
+[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/adonis/3_run_adonis.sh
 ```
 
 

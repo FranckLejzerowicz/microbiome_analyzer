@@ -8,8 +8,8 @@
 
 import click
 
-from routine_qiime2_analyses.microbiome_analyzer import microbiome_analyzer
-from routine_qiime2_analyses import __version__
+from microbiome_analyzer.microbiome_analyzer import microbiome_analyzer
+from microbiome_analyzer import __version__
 
 
 @click.command()

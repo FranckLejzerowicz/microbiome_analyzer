@@ -12,14 +12,14 @@ import random
 import itertools
 import pandas as pd
 from os.path import isdir, isfile, splitext
-from routine_qiime2_analyses.analysis import AnalysisPrep
-from routine_qiime2_analyses._cmds import (
+from microbiome_analyzer.analysis import AnalysisPrep
+from microbiome_analyzer._cmds import (
     run_import, run_export, write_filter, write_mmvec)
-from routine_qiime2_analyses._metadata import (
+from microbiome_analyzer._metadata import (
     get_subset, get_subset_pd, get_train_perc_from_numeric, get_meta_subset,
     get_cat_vars_and_vc, make_train_test_from_cat, rename_duplicate_columns)
-from routine_qiime2_analyses._io import read_meta_pd, get_output, write_filtered_tsv
-from routine_qiime2_analyses._filter import filter_mb_table, filter_non_mb_table
+from microbiome_analyzer._io import read_meta_pd, get_output, write_filtered_tsv
+from microbiome_analyzer._filter import filter_mb_table, filter_non_mb_table
 
 
 class PairedData(object):

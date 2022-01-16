@@ -42,8 +42,8 @@ def get_config():
     cfg.VCS = "git"
     cfg.style = "pep440"
     cfg.tag_prefix = ""
-    cfg.parentdir_prefix = "routine_qiime2_analyses-"
-    cfg.versionfile_source = "routine_qiime2_analyses/_version.py"
+    cfg.parentdir_prefix = "microbiome_analyzer-"
+    cfg.versionfile_source = "microbiome_analyzer/_version.py"
     cfg.verbose = False
     return cfg
 

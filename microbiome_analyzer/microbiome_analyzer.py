@@ -6,17 +6,17 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from routine_qiime2_analyses.config import AnalysesConfig
-from routine_qiime2_analyses.datasets import Datasets
-from routine_qiime2_analyses.jobs import CreateScripts
-from routine_qiime2_analyses.analysis import AnalysisPrep
-from routine_qiime2_analyses.analyses.nestedness import Nestedness
-from routine_qiime2_analyses.analyses.dm_decay import DmDecay
-from routine_qiime2_analyses.analyses.doc import DOC
-from routine_qiime2_analyses.analyses.sourcetracking import Sourcetracking
-from routine_qiime2_analyses.analyses.post_analyses import PostAnalysis
-from routine_qiime2_analyses.analyses.differential_abundance import DiffModels
-from routine_qiime2_analyses.analyses.paired_data import PairedData
+from microbiome_analyzer.config import AnalysesConfig
+from microbiome_analyzer.datasets import Datasets
+from microbiome_analyzer.jobs import CreateScripts
+from microbiome_analyzer.analysis import AnalysisPrep
+from microbiome_analyzer.analyses.nestedness import Nestedness
+from microbiome_analyzer.analyses.dm_decay import DmDecay
+from microbiome_analyzer.analyses.doc import DOC
+from microbiome_analyzer.analyses.sourcetracking import Sourcetracking
+from microbiome_analyzer.analyses.post_analyses import PostAnalysis
+from microbiome_analyzer.analyses.differential_abundance import DiffModels
+from microbiome_analyzer.analyses.paired_data import PairedData
 # from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
 
 

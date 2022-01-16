@@ -11,9 +11,9 @@ import random
 import pkg_resources
 
 from os.path import isdir, isfile
-from routine_qiime2_analyses.analysis import AnalysisPrep
-from routine_qiime2_analyses._cmds import run_export
-from routine_qiime2_analyses._io import subset_meta
+from microbiome_analyzer.analysis import AnalysisPrep
+from microbiome_analyzer._cmds import run_export
+from microbiome_analyzer._io import subset_meta
 
 RESOURCES = pkg_resources.resource_filename(
     "routine_qiime2_analyses", "resources/r_scripts")

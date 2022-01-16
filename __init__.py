@@ -11,4 +11,4 @@ from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = ['routine_qiime2_analyses']
+__all__ = ['microbiome_analyzer']

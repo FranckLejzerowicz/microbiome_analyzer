@@ -10,7 +10,7 @@ import sys
 import subprocess
 import pkg_resources
 from os.path import abspath, exists, isfile
-from routine_qiime2_analyses._io import read_yaml_file
+from microbiome_analyzer._io import read_yaml_file
 
 RESOURCES = pkg_resources.resource_filename(
     "routine_qiime2_analyses", "resources")
