@@ -189,13 +189,13 @@ After running these two jobs, if you re-run the same, simple command above, you 
 
 ```
 # alpha
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/alpha/jbs_nm.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha/jbs_nm.sh
 # tabulate
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/tabulate/jbs_nm.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/tabulate/jbs_nm.sh
 # barplot
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/barplot/jbs_nm.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/barplot/jbs_nm.sh
 # beta
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/beta/jbs_nm.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/beta/jbs_nm.sh
 ```
 That's more work ready to start, because now the data table was imported to qiime2:
 
@@ -927,63 +927,63 @@ The standard output shows you the scripts that have been written, i.e.,
 pretty much all the analyses available here so far: 
 ```
 # import
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/import/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/import/tst_flt_rrf.sh
 # rarefy
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/rarefy/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/rarefy/tst_flt_rrf.sh
 # taxonomy
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/taxonomy/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/taxonomy/tst_flt_rrf.sh
 # import_trees
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/import_trees/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/import_trees/tst_flt_rrf.sh
 # subsets
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/subsets/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/subsets/tst_flt_rrf.sh
 # alpha
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/alpha/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha/tst_flt_rrf.sh
 # alpha_correlations
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/alpha_correlations/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha_correlations/tst_flt_rrf.sh
 # tabulate
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/tabulate/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/tabulate/tst_flt_rrf.sh
 # alpha_rarefaction
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/alpha_rarefaction/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha_rarefaction/tst_flt_rrf.sh
 # volatility
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/volatility/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/volatility/tst_flt_rrf.sh
 # mmvec_single_imports
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/mmvec_single_imports/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/mmvec_single_imports/tst_flt_rrf.sh
 # mmvec_paired_imports
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/mmvec_paired_imports/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/mmvec_paired_imports/tst_flt_rrf.sh
 # phate
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/phate/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/phate/tst_flt_rrf.sh
 # barplot
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/barplot/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/barplot/tst_flt_rrf.sh
 # beta
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/beta/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/beta/tst_flt_rrf.sh
 # deicode
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/deicode/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/deicode/tst_flt_rrf.sh
 # pcoa
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/pcoa/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/pcoa/tst_flt_rrf.sh
 # tsne
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/tsne/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/tsne/tst_flt_rrf.sh
 # umap
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/umap/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/umap/tst_flt_rrf.sh
 # permanova
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/permanova/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/permanova/tst_flt_rrf.sh
 # adonis
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/adonis/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/adonis/tst_flt_rrf.sh
 # dm_decay
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/dm_decay/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/dm_decay/tst_flt_rrf.sh
 # dm_decay_plot
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/dm_decay_plot/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/dm_decay_plot/tst_flt_rrf.sh
 # doc_R
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/doc_R/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/doc_R/tst_flt_rrf.sh
 # songbird_imports
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/songbird_imports/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird_imports/tst_flt_rrf.sh
 # songbird_filter
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/songbird_filter/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird_filter/tst_flt_rrf.sh
 # songbird_baselines
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/songbird_baselines/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird_baselines/tst_flt_rrf.sh
 # songbird
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/songbird/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird/tst_flt_rrf.sh
 # qurro
-sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/qurro/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/qurro/tst_flt_rrf.sh
 ```
 
 
