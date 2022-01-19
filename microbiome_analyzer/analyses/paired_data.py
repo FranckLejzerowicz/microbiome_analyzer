@@ -596,7 +596,7 @@ class PairedData(object):
                         params['thresh_feats'], params['latent_dims'],
                         params['train_column'], params['n_examples'],
                         params['summary_interval'], self.config.gpu,
-                        self.config.standalone, self.config.qiime_env)
+                        self.config.qiime_env)
                     cmds.setdefault(row['pair'], []).append(cmd)
         if mmvec:
             self.get_mmvec_pd(mmvec)
