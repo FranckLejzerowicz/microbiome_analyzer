@@ -1,0 +1,21 @@
+soft: "/Users/franck/programs/Nestedness"
+subsets:
+  sex:
+  - - "Male"
+  - - "Female"
+sample_colors:
+  - "sex"
+feature_colors:
+  - 1
+  - 2
+  - 3
+nodfs:
+  - "sex"
+modes:
+  - "overall"
+  - "withineachtype"
+  - "betweeneachpairoftypes"
+nulls:
+  - "equiprobablefixed"
+params:
+  iterations: 20

@@ -1,0 +1,47 @@
+models:
+  dataset_number_1:
+    sex: "C(sex, Treatment('Female'))"
+    sex_PLUS_income: "C(sex, Treatment('Female'))+income"
+  dataset_number_5:
+    sex: "C(sex, Treatment('Female'))"
+    sex_PLUS_income: "C(sex, Treatment('Female'))+income"
+baselines:
+  dataset_number_1:
+    sex_PLUS_income:
+      timepoint_months: "timepoint_months"
+  dataset_number_5:
+    sex_PLUS_income:
+      income: "income"
+      timepoint_months: "timepoint_months"
+filtering:
+  global:
+    "0_0":
+      - '0'
+      - '0'
+    "0.000001_0":
+      - '0.000001'
+      - '0'
+subsets:
+  sex:
+    - - "Female"
+    - - "Male"
+params:
+  batches:
+    - "2"
+  learns:
+    - "1e-2"
+    - "1e-5"
+  epochs:
+    - "2"
+  thresh_feats:
+    - "0"
+  thresh_samples:
+    - "0"
+  diff_priors:
+    - "0.5"
+  train:
+    - '0.7'
+    - '0.99'
+    - 'not'
+    - 'traintest1'
+    - '1.3'

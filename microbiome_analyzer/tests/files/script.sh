@@ -1,0 +1,25 @@
+microbiome_analyzer \
+  -i ./microbiome_analyzer/tests/files \
+  -e qiime2-2021.11 \
+  -n test \
+  -d dataset_number_1 \
+  -d dataset_number_5 \
+  -d vioscreen_foods_consumed_grams_per_day_1800s_noLiquids \
+  -f ./microbiome_analyzer/tests/files/filtering.yml \
+  -filt3d ./microbiome_analyzer/tests/files/filtering_3d.yml \
+  -r ./microbiome_analyzer/tests/files/rarefactions.yml \
+  -k ./microbiome_analyzer/tests/files/clades.yml \
+  -c ./microbiome_analyzer/tests/files/collapse.yml \
+  -g ./microbiome_analyzer/tests/files/subsets.yml \
+  -a ./microbiome_analyzer/tests/files/adonis.yml \
+  -mtl ./microbiome_analyzer/tests/files/procrustes.yml \
+  -prc ./microbiome_analyzer/tests/files/procrustes.yml \
+  -m ./microbiome_analyzer/tests/files/mmvec.yml \
+  -s ./microbiome_analyzer/tests/files/songbird.yml \
+  -ddecay ./microbiome_analyzer/tests/files/dm_decay.yml \
+  -phate ./microbiome_analyzer/tests/files/phate.yml \
+  -doc ./microbiome_analyzer/tests/files/doc.yml \
+  -t sex -t group \
+  --no-jobs \
+  --raref \
+  --biplot

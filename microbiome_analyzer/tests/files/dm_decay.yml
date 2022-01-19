@@ -1,0 +1,10 @@
+modes:
+  between:
+    - "sex"
+    - "HEI_groups"
+  within:
+    - "sex"
+    - "HEI_groups"
+params:
+  step: 10
+  iteration: 10

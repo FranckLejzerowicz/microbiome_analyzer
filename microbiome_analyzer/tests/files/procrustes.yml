@@ -1,0 +1,7 @@
+pairs:
+  dataset_number_1_5:
+    - "dataset_number_1"
+    - "dataset_number_5"
+  dataset_number_2_3:
+    - "dataset_number_2"
+    - "dataset_number_3"

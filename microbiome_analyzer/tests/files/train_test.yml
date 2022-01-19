@@ -1,0 +1,8 @@
+datasets:
+  dataset_number_1:
+    traintest_sex:
+      - "sex"
+  dataset_number_5:
+    traintest_sex:
+      - "sex"
+train: 0.7

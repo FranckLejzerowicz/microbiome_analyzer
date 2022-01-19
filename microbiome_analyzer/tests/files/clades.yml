@@ -1,0 +1,16 @@
+dataset_number_1:
+  genome_selection:
+    - "G000006785"
+    - "G000006925"
+    - "G000007265"
+    - "G000007465"
+    - "G000007525"
+    - "G000007785"
+    - "G000008865"
+    - "G000008925"
+dataset_number_5:
+  Milks_and_Cow:
+    - "Milk"
+    - "Cow"
+  Milks:
+    - "Milk|Grain"

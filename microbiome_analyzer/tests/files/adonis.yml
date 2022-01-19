@@ -1,0 +1,24 @@
+models:
+  dataset_number_1:
+    timepoint_months_PLUS_income: "timepoint_months+income"
+    timepoint_months_INTER_income: "timepoint_months*income"
+    timepoint_months_PLUS_income_INTER_sex: "timepoint_months+income*sex"
+    sex: "sex"
+    timepoint_months: "timepoint_months"
+  dataset_number_5:
+    timepoint_months: "timepoint_months"
+    timepoint_months_PLUS_income: "timepoint_months+income"
+strata:
+  global: "sex"
+  dataset_number_1:
+    timepoint_months_PLUS_income:
+    - "sex"
+    - "group"
+    - "notacolumn"
+    timepoint_months_INTER_income:
+    - "sex"
+    timepoint_months_PLUS_income_INTER_sex:
+    - "sex"
+  vioscreen_foods_consumed_grams_per_day_1800s_noLiquids:
+    age_PLUS_height_cm:
+    - "sex"

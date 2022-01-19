@@ -1,0 +1,18 @@
+params:
+  r: 2
+  subr: 50
+  mov_avg: 5
+  ci:
+    - '0.025'
+    - '0.5'
+    - '0.975'
+  span: 0.2
+  degree: 1
+  family: 'symmetric'
+  iterations: 2
+  surface: 'interpolate'
+  nulls: 1
+  non_zero: 1
+  null: 1
+  use_mp: False
+do_r: 1

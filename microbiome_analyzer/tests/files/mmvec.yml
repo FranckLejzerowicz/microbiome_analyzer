@@ -1,0 +1,48 @@
+pairs:
+  dataset_number_1_5:
+    - "dataset_number_1"
+    - "dataset_number_5"
+  dataset_number_2_3:
+    - "dataset_number_2"
+    - "dataset_number_3"
+filtering:
+  global:
+    "0.000001_0":
+      - '0.000001'
+      - '0'
+    "0_0":
+      - '0'
+      - '0'
+#    "0.000001_0":
+#      vioscreen_foods_consumed_grams_per_day_1800s_noLiquids:
+#        - '0.000001'
+#        - '0'
+#      gOTU_uniq_filt:
+#        - '0.000001'
+#        - '0'
+subsets:
+  sex:
+  - - "Male"
+  - - "Female"
+params:
+  train_column:
+    - 'None'
+    - 'traintest_sex'
+  n_examples:
+    - '20'
+  batches:
+    - '2'
+    - '5'
+  learns:
+    - '1e-3'
+    - '1e-4'
+  epochs:
+    - '2'
+  priors:
+    - '0.5'
+  thresh_feats:
+    - '0'
+  thresh_sams:
+    - '0'
+  latent_dims:
+    - '3'
