@@ -53,7 +53,7 @@ setup(
     url="https://github.com/FranckLejzerowicz/microbiome_analyzer",
     packages=find_packages(),
     install_requires=[
-        "click",
+        "click==7.1.2",
         "pandas",
         "scikit-bio==0.5.6",
         "numpy",
