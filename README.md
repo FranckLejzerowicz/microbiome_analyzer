@@ -731,33 +731,262 @@ microbiome_analyzer -i <input_folder_path> -d <dataset_name> -n <project_name> -
 ### Optional arguments
 
 ``` 
+  -i, --i-datasets-folder TEXT    Path to the folder containing the sub-
+                                  folders 'data' and 'metadata'.  [required]
+
+  -d, --i-datasets TEXT           Dataset(s) identifier(s). Multiple is
+                                  possible: e.g. -d dataset_number_1 and -d
+                                  dataset_number_2 for
+                                  'tab_dataset_number_1.tsv' and
+                                  tab_dataset_number_2.tsv'.  [required]
+
+  -n, --p-project-name TEXT       Nick name for your project.  [required]
+  -e, --p-qiime2-env TEXT         name of your qiime2 conda environment (e.g.
+                                  qiime2-2021.11).  [required]
+
+  -w, --i-wol-tree TEXT           path to the tree containing the genome IDs
+                                  (will check if exist in features names) (On
+                                  barnacle, it is there: /projects/wol/profili
+                                  ng/dbs/wol/phylogeny/tree.nwk).  [default:
+                                  resources/wol_tree.nwk]
+
+  -x, --i-sepp-tree TEXT          Qiime2 SEPP reference database to use for
+                                  16S reads placement:
+                                  https://docs.qiime2.org/2019.10/data-
+                                  resources/#sepp-reference-databases (auto
+                                  detection of datasets' tables with sequences
+                                  as features).
+
+  -q, --i-qemistree TEXT          Path to a folder containing Qemistree's
+                                  feature data (named 'feature-
+                                  data_<dataset_identifier>.qza'), and tree
+                                  for each metabolomics dataset (named
+                                  'qemistree_<dataset_identifier>.qza').
+
+  -z, --i-classifier TEXT         Qiime2 reference taxonomic classifier
+                                  database to use for 16Sreads assignment:
+                                  https://docs.qiime2.org/2020.2/data-
+                                  resources/#taxonomy-classifiers-for-use-
+                                  with-q2-feature-classifier.
+
+  -u, --p-run-params TEXT         server run parameters.
+  -k, --p-feature-subsets TEXT    Regex to use for subsetting features (yml
+                                  file).
+
+  -t, --p-test TEXT               Groups to tests between in each PERMANOVA
+                                  subset (multiple values possible, e.g. '-d
+                                  sex -d age_cat').  [default: False]
+
+  -g, --p-sample-subsets TEXT     Subsets for DMs, PCoAs, PERMANOVAs, etc (yml
+                                  file).  [default: False]
+
+  -nstd, --p-nestedness TEXT      Nestedness analysis config  (yml file).
+                                  [default: False]
+
+  -bt, --p-beta-type [permanova|anosim|permdisp]
+                                  Type of beta group significance
+  -prc, --p-procrustes TEXT       Pairs and subsets for procrustes/protests
+                                  (yaml file).  [default: False]
+
+  -mtl, --p-mantel TEXT           Pairs and subsets for mantel test (yaml
+                                  file).  [default: False]
+
+  -ddecay, --p-dm-decay TEXT      Parameters for (not geographic) distance
+                                  decay analysis (yaml file).  [default:
+                                  False]
+
+  -gdecay, --p-geo-decay TEXT     Parameters for geographic distance decay
+                                  analysis (yml file).  [default: False]
+
+  -c, --p-collapse TEXT           Nominative or rank-based taxonmic collapse
+                                  per dataset (yaml file).  [default: False]
+
+  -tt, --p-train-test TEXT        Train test split per dataset (yaml file).
+                                  [default: False]
+
+  -a, --p-adonis TEXT             Formula for Adonis tests for each PERMANOVA
+                                  subset (yaml file).  [default: False]
+
+  -phate, --p-phate TEXT          Filters, subsets, parameters and
+                                  stratifications for the PHATE latent space
+                                  analysis (yaml file).  [default: False]
+
+  -st, --p-sourcetracking TEXT    Filters, subsets, parameters and
+                                  sink/sources for sourcetracking (yaml file).
+                                  [default: False]
+
+  -doc, --p-doc TEXT              Filters and subsets for the dissimilarity
+                                  overlap curves analyses  (yaml file).
+                                  [default: False]
+
+  -s, --p-diff-models TEXT        Formulas for multinomial regression-based
+                                  differential abundance ranking (songbird)
+                                  (yaml file).  [default: False]
+
+  -m, --p-mmvec-pairs TEXT        Pairs of datasets for which to compute co-
+                                  occurrences probabilities (mmvec) (yaml
+                                  file).  [default: False]
+
+  -hlg, --p-mmvec-highlights TEXT
+                                  Features to highlights on mmvec biplot (per
+                                  dataset) (yaml file).  [default: False]
+
+  -mm, --p-xmmvec TEXT            Config for Xmmvec (yaml file).  [default:
+                                  False]
+
+  -l, --p-longi-column TEXT       If data is longitudinal; provide the time
+                                  metadata columnfor volatility analysis.
+                                  [default: False]
+
+  -f, --p-filter TEXT             Samples to remove, min. read abundance and
+                                  feature prevalence (>1 = based on absolute
+                                  reads, 0-1 = based on relative reads). (yaml
+                                  file).  [default: False]
+
+  -r, --p-rarefs TEXT             rarefaction depth per dataset (yaml file).
+  -chmod, --p-chmod TEXT          Change output files permission (default =
+                                  664 [= -rw-rw-r--]).  [default: 664]
+
+  -skip, --p-skip [alpha|merge_alpha|export_alpha|alpha_correlations|alpha_group_significance|wol|taxonomy|barplot|volatility|beta|export_beta|pcoa|biplot|emperor|emperor_biplot|empress|empress_biplot|phate|doc|deicode|sepp|do_pies|alpha_kw|permanova|procrustes|mantel|decay|nestedness|adonis|songbird|mmvec|mmbird]
+                                  Steps to skip (e.g. if already done or not
+                                  necessary).
+
+  -As, --p-alphas TEXT            Alpha diversity indices to use.
+  -Bs, --p-betas TEXT             Beta diversity metrics to use.
+  --biplot / --no-biplot          Whether to do the PCoA biplots or not
+                                  [default: False]
+
+  --force / --no-force            Force the re-writing of scripts for all
+                                  commands(default is to not re-run if output
+                                  file exists).  [default: False]
+
+  --gpu / --no-gpu                Use GPUs instead of CPUs for MMVEC.
+                                  [default: False]
+
+  --raref / --no-raref            Whether to rarefy and only perform the
+                                  routine analyses on the rarefied dataset(s).
+                                  [default: False]
+
+  --loc / --no-loc                whether to do compute on scratch.  [default:
+                                  True]
+
+  --filt-only / --no-filt-only    Only process the filtered version (and not
+                                  also the raw) version of each dataset.
+                                  [default: False]
+
+  -filt3d, --p-filt3d TEXT        Levels for the exploration of filtering.
+                                  Must be a yaml file.
+
+  --jobs / --no-jobs              Whether to prepare Torque jobs from scripts.
+                                  [default: True]
+
+  --slurm / --no-slurm            Whether to prepare Slurm and not Torque
+                                  jobs.  [default: False]
+
+  -chunkit, --p-chunkit INTEGER   Maximum number of jobs at which extra jobs
+                                  will be added in chunks
+
+  --version                       Show the version and exit.
+  --help                          Show this message and exit.
 ```
 
 ## Example
 
-For the command:
+Once all data files imported and using the `--force` option, you can
+run the following (using the files in the `tests/files` folder): 
 ```
-microbiome_analyzer  \
-    -i ./microbiome_analyzer/test/files  \
-    -d dataset_number_1  \
-    -d dataset_number_2  \
-    -t ./microbiome_analyzer/resources/web_of_life_tree.nwk  \
-    -n test_name  \
-    -e qiime2-2019.10  \
-    -t sex \
-    -t age_cat  \
-    -g ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml  \
-    -a ./microbiome_analyzer/examples/example_ADONIS_formulas.yml  \
-    --gid  \
-    -l timepoint_months
-    -f 10000
+microbiome_analyzer \
+  -i ./microbiome_analyzer/tests/files \
+  -e qiime2-2021.11 \
+  -n test \
+  -d dataset_number_1 \
+  -d dataset_number_5 \
+  -d vioscreen_foods_consumed_grams_per_day_1800s_noLiquids \
+  -f ./microbiome_analyzer/tests/files/filtering.yml \
+  -filt3d ./microbiome_analyzer/tests/files/filtering_3d.yml \
+  -r ./microbiome_analyzer/tests/files/rarefactions.yml \
+  -k ./microbiome_analyzer/tests/files/clades.yml \
+  -c ./microbiome_analyzer/tests/files/collapse.yml \
+  -g ./microbiome_analyzer/tests/files/subsets.yml \
+  -a ./microbiome_analyzer/tests/files/adonis.yml \
+  -mtl ./microbiome_analyzer/tests/files/procrustes.yml \
+  -prc ./microbiome_analyzer/tests/files/procrustes.yml \
+  -m ./microbiome_analyzer/tests/files/mmvec.yml \
+  -s ./microbiome_analyzer/tests/files/songbird.yml \
+  -ddecay ./microbiome_analyzer/tests/files/dm_decay.yml \
+  -phate ./microbiome_analyzer/tests/files/phate.yml \
+  -doc ./microbiome_analyzer/tests/files/doc.yml \
+  -t sex -t group \
+  -l timepoint_months \
+  --no-jobs \
+  --raref \
+  --biplot \
+  --force
 ```
-The standard output shows you the scripts that have been writte
-with qiime2 commands and that need to be run:
+The standard output shows you the scripts that have been written, i.e.,  
+pretty much all the analyses available here so far: 
 ```
+# import
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/import/tst_flt_rrf.sh
+# rarefy
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/rarefy/tst_flt_rrf.sh
+# taxonomy
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/taxonomy/tst_flt_rrf.sh
+# import_trees
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/import_trees/tst_flt_rrf.sh
+# subsets
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/subsets/tst_flt_rrf.sh
+# alpha
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/alpha/tst_flt_rrf.sh
+# alpha_correlations
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/alpha_correlations/tst_flt_rrf.sh
+# tabulate
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/tabulate/tst_flt_rrf.sh
+# alpha_rarefaction
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/alpha_rarefaction/tst_flt_rrf.sh
+# volatility
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/volatility/tst_flt_rrf.sh
+# mmvec_single_imports
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/mmvec_single_imports/tst_flt_rrf.sh
+# mmvec_paired_imports
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/mmvec_paired_imports/tst_flt_rrf.sh
+# phate
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/phate/tst_flt_rrf.sh
+# barplot
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/barplot/tst_flt_rrf.sh
+# beta
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/beta/tst_flt_rrf.sh
+# deicode
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/deicode/tst_flt_rrf.sh
+# pcoa
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/pcoa/tst_flt_rrf.sh
+# tsne
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/tsne/tst_flt_rrf.sh
+# umap
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/umap/tst_flt_rrf.sh
+# permanova
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/permanova/tst_flt_rrf.sh
+# adonis
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/adonis/tst_flt_rrf.sh
+# dm_decay
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/dm_decay/tst_flt_rrf.sh
+# dm_decay_plot
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/dm_decay_plot/tst_flt_rrf.sh
+# doc_R
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/doc_R/tst_flt_rrf.sh
+# songbird_imports
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/songbird_imports/tst_flt_rrf.sh
+# songbird_filter
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/songbird_filter/tst_flt_rrf.sh
+# songbird_baselines
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/songbird_baselines/tst_flt_rrf.sh
+# songbird
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/songbird/tst_flt_rrf.sh
+# qurro
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/qurro/tst_flt_rrf.sh
 ```
 
 
 ### Bug Reports
 
-contact `flejzerowicz@health.ucsd.edu`
+contact `franck.lejzerowicz@gmail.com`
