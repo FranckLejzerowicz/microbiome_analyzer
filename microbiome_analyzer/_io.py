@@ -144,7 +144,7 @@ def check_features(data_pd: biom.Table) -> tuple:
     genome_ids = {}
     for feature in features:
         dna = check_if_not_dna(feature, dna, not_dna)
-        if re.search('G\d{9}', feature):
+        if re.match('G\d{9}', feature):
             if ';' in feature:
                 correct = True
                 feature_corr = feature.replace(';', '|').replace(' ', '')

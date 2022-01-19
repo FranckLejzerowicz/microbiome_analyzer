@@ -15,8 +15,7 @@ from skbio.stats.ordination import OrdinationResults
 def run_import(
         input_path: str,
         output_path: str,
-        typ: str
-) -> str:
+        typ: str) -> str:
     """
     Return the import qiime2 command.
     
@@ -395,7 +394,7 @@ def write_alpha(
 
     """
     if metric in ['faith_pd']:
-        if not datasets_phylo[0] or not trees:
+        if not datasets_phylo[0] or not trees or not isfile(trees[1]):
             return ''
         cmd = 'qiime diversity alpha-phylogenetic \\\n'
         if datasets_phylo[1]:
@@ -651,7 +650,7 @@ def write_beta(
     """
     cmd = ''
     if 'unifrac' in metric:
-        if phylo[0] and tree[1]:
+        if phylo[0] and tree[1] and isfile(tree[1]):
             cmd += 'qiime diversity beta-phylogenetic \\\n'
             if tree[0]:
                 cmd += '--i-table %s \\\n' % tree[0]
@@ -1454,7 +1453,6 @@ def write_mmvec(
         n_example: str,
         summary_interval: str,
         gpu: bool,
-        standalone: bool,
         qiime_env: str
 ) -> str:
     """
@@ -1488,7 +1486,6 @@ def write_mmvec(
     n_example
     summary_interval
     gpu
-    standalone
     qiime_env
 
     Returns
@@ -1496,12 +1493,11 @@ def write_mmvec(
 
     """
     cmd = ''
-    if gpu or standalone:
+    if gpu:
         biom1 = '%s.biom' % splitext(qza1)[0]
         biom2 = '%s.biom' % splitext(qza2)[0]
         cmd += '\nmmvec paired-omics \\\n'
-        if gpu:
-            cmd += '--arm-the-gpu \\\n'
+        cmd += '--arm-the-gpu \\\n'
         cmd += '--microbe-file %s \\\n' % biom1
         cmd += '--metabolite-file %s \\\n' % biom2
         cmd += '--min-feature-count %s \\\n' % thresh_feat
@@ -1579,6 +1575,7 @@ def write_mmvec(
         if not isfile(ordination_tsv):
             cmd += run_export(ordination_qza, ordination_tsv, 'mmvec')
     return cmd
+
 
 def run_add_metadata(
         input_path: str,

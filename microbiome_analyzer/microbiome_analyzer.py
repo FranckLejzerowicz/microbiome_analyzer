@@ -25,8 +25,13 @@ def microbiome_analyzer(**kwargs):
     Main qiime2 functions writer.
     """
     config = AnalysesConfig(**kwargs)
+    config.init()
+
     project = Datasets(config)
+    project.collect_datasets()
+
     scripting = CreateScripts(config)
+
     analysis = AnalysisPrep(config, project)
     analysis.import_datasets()
     if config.filt3d:
@@ -41,6 +46,7 @@ def microbiome_analyzer(**kwargs):
         analysis.taxonomy()
     project.get_taxo_levels()
     project.get_precomputed_trees()
+    analysis.import_trees()
     if 'wol' not in config.skip:
         analysis.shear_tree()
     if config.sepp_tree and 'sepp' not in config.skip:

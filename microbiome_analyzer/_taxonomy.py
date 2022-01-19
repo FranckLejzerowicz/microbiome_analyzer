@@ -61,7 +61,6 @@ def get_split_taxonomy(taxa, extended=False, taxo_sep=';'):
                            if len(x.strip()) and not x.startswith('x__')]
             split_lens.add(len(taxon_split))
             split_taxa.append(pd.Series(taxon_split))
-
     # if the parsed and split taxonomies have  very variable number of fields
     # or very long split results  it is terminated here as a taxonomy that
     # does not make sense
@@ -205,22 +204,18 @@ def get_taxonomy_command(dat, config, data):
     cmd = ''
     if data.tax[0] == 'wol':
         cmd = run_taxonomy_wol(
-            # config.force, data.data[0], data.tax[1],
             config.force, data.data[''], data.tax[1],
             data.tax[2], data.features)
     elif data.tax[0] in ['amplicon', 'sklearn']:
         if config.classifier:
             cmd = run_taxonomy_amplicon(
-                # dat, config.i_datasets_folder, config.force, data.data[0],
                 dat, config.i_datasets_folder, config.force, data.data[''],
                 data.tax[1], data.tax[2], config.classifier)
         else:
             print('No classifier passed for 16S data\nExiting...')
-    # elif not data.data[0].index.is_numeric():
     # and also add classyfire
     else:
         cmd = run_taxonomy_others(
-            # config.force, data.data[0], data.tax[1], data.tax[2])
             config.force, data.data[''], data.tax[1], data.tax[2])
     return cmd
 
@@ -475,11 +470,11 @@ def find_matching_features(data, subset_regex) -> list:
     tax_pd = data.taxa
     to_keep_feats = {}
     for regex in subset_regex:
-        to_keep_feats['%s_1' % regex] = pd.Series(feats, index=feats).astype(
-            str).str.lower().str.contains(str(regex).lower())
+        to_keep_feats['%s_1' % regex] = pd.Series(
+            feats, index=feats).astype(str).str.contains(str(regex))
         if tax_pd:
             to_keep_feats['%s_2' % regex] = tax_pd[0].loc[
-                tax_pd[0].Taxon.str.lower().str.contains(str(regex).lower()),
+                tax_pd[0].Taxon.str.contains(str(regex)),
                 'Feature ID']
     to_keep_feats_pd = pd.DataFrame(to_keep_feats)
     to_keep_feats = to_keep_feats_pd.loc[to_keep_feats_pd.any(axis=1)]

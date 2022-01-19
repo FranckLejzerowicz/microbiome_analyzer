@@ -79,12 +79,9 @@ class AnalysisPrep(object):
         self.analysis = 'import'
         for dat, data in self.project.datasets.items():
             qza = '%s/data/tab_%s.qza' % (self.config.folder, dat)
-            # data.qza.append(qza)
             data.qza[''] = qza
-            # data.biom.append('%s.biom' % splitext(qza)[0])
             data.biom[''] = '%s.biom' % splitext(qza)[0]
             cmd = run_import(
-                # data.tsv[0], qza, 'FeatureTable[Frequency]')
                 data.tsv[''], qza, 'FeatureTable[Frequency]')
             self.register_provenance(dat, (qza,), cmd)
             if self.config.force or not isfile(qza):
@@ -146,6 +143,7 @@ class AnalysisPrep(object):
             data_filt.meta = data.meta.replace(dat, dat_filt)
             data_filt.filts = dat
             data_filt.filt = dat_filt.split('%s_' % dat)[-1]
+            data_filt.metadata = data.metadata
             data_filt.source = data.source
             qza_exists = isfile(data_filt.qza[''])
             meta_exists = isfile(data_filt.meta)
@@ -160,14 +158,14 @@ class AnalysisPrep(object):
                 data_filt_pd = data_filt_biom.to_dataframe(dense=True)
                 data_filt_pd.index.name = '#OTU ID'
                 data_filt_pd.to_csv(data_filt.tsv[''], index=True, sep='\t')
-                data_filt.data.append(data_filt_biom)
+                data_filt.data[''] = data_filt_biom
                 cmd = run_import(data_filt.tsv[''], data_filt.qza[''],
                                  'FeatureTable[Frequency]')
                 flt_cmds += cmd
                 self.register_provenance(
                     dat, (data_filt.tsv[''], data_filt.qza['']), flt_cmds)
-                self.cmds.setdefault(dat_filt, []).append(cmd)
-                data_filt.metadata = data.metadata
+                if not isfile(data_filt.qza['']):
+                    self.cmds.setdefault(dat_filt, []).append(cmd)
             data_filt.phylo = data.phylo
             data_filt.features = get_gids(data.features, data_filt.data[''])
             project_filt[dat_filt] = data_filt
@@ -183,7 +181,7 @@ class AnalysisPrep(object):
             if not self.config.force:
                 if self.config.filt_only and dat not in self.project.filt_raw:
                     continue
-            sams_sums = data.data[''].sum()
+            sams_sums = data.data[''].sum(axis='sample')
             o_dir = self.get_output(dat)
             for ddx, depth_ in enumerate(data.raref_depths[1]):
                 depth = get_digit_depth(depth_, sams_sums)
@@ -216,8 +214,18 @@ class AnalysisPrep(object):
                 cmd += get_edit_taxonomy_command(data)
             if cmd:
                 self.cmds.setdefault(dat, []).append(cmd)
-                self.register_provenance(
-                    dat, (data.tax[1], data.tax[2],), cmd)
+                self.register_provenance(dat, (data.tax[1], data.tax[2],), cmd)
+        self.register_command()
+
+    def import_trees(self):
+        self.analysis = 'import_trees'
+        for dat, data in self.project.datasets.items():
+            _, qza, nwk = data.tree
+            if nwk:
+                cmd = run_import(nwk, qza, 'Phylogeny[Rooted]')
+                self.register_provenance(dat, (qza,), cmd)
+                if self.config.force or not isfile(qza):
+                    self.cmds.setdefault(dat, []).append(cmd)
         self.register_command()
 
     def shear_tree(self):
@@ -377,127 +385,6 @@ class AnalysisPrep(object):
                 metrics.append(user_metric)
         return metrics
 
-    def make_pies(self) -> None:
-        pies_data = {}
-        for dat, data in self.project.datasets.items():
-            pies_data[dat] = []
-            odir = self.get_output(dat)
-            out_pdf = '%s/pies_%s.pdf' % (odir, dat)
-            with PdfPages(out_pdf) as pdf:
-                split_taxa, split_taxa_fp = split_taxa_pds[dat]
-                ranks = split_taxa.columns.tolist()
-                ranks_col = []
-                for row in split_taxa.values:
-                    ranks_col.append(ranks[(len([x for idx, x in enumerate(row)
-                                                 if str(x).lstrip(
-                            '%s_' % ranks[idx]).strip('_')]) - 1)])
-                split_taxa['rank'] = ranks_col
-                for idx, (tab_, meta) in enumerate(datasets_read[dat]):
-                    nsams = tab_.shape[1]
-                    cur_raref = datasets_rarefs[dat][idx]
-                    tab_sum = tab_.sum(1)
-                    tab_bool = tab_.astype(bool).sum(1)
-                    tab = pd.concat([
-                        tab_sum,
-                        tab_sum / tab_sum.sum(),
-                        tab_bool,
-                        (tab_bool / nsams) * 100,
-                        split_taxa[['rank']]
-                    ], axis=1)
-                    tab.columns = ['abundance', 'abundance_percent',
-                                   'prevalence', 'prevalence_percent', 'rank']
-                    pies_data_raref = {}
-                    for min_abundance in [1, 2, 5, 10, 100]:
-                        tab_min = tab.loc[tab.abundance >= min_abundance].copy()
-                        abundance_bins = [int(x) for x in np.logspace(0,
-                                                                      np.log10(
-                                                                          tab_min[
-                                                                              'abundance'].max() + 1),
-                                                                      num=16)]
-                        tab_min['abundance_bin'] = [
-                            '%s-%s' % (abundance_bins[x], abundance_bins[x + 1])
-                            for x in
-                            np.digitize(tab_min['abundance'],
-                                        bins=abundance_bins[1:], right=True)
-                        ]
-
-                        prevalence_bins = [1, 2, 5] + list(range(10, 101, 10))
-                        tab_min['prevalence_percent_bin'] = [
-                            '%s-%s' % (
-                            prevalence_bins[x], prevalence_bins[x + 1]) for x in
-                            np.digitize(tab_min['prevalence_percent'],
-                                        bins=prevalence_bins[1:], right=True)
-                        ]
-
-                        abundances = tab_min[
-                            ['rank', 'abundance_bin', 'abundance']
-                        ].groupby(
-                            ['rank', 'abundance_bin']).count().unstack().fillna(
-                            0)
-                        abundances.columns = abundances.columns.droplevel()
-                        pies_data_raref['abundances'] = abundances
-
-                        prevalences = tab_min[
-                            ['rank', 'prevalence_percent_bin', 'prevalence']
-                        ].groupby(['rank',
-                                   'prevalence_percent_bin']).count().unstack().fillna(
-                            0)
-                        prevalences.columns = prevalences.columns.droplevel()
-                        pies_data_raref['prevalences'] = prevalences
-
-                        tab_gb = pd.concat([
-                            tab_min.groupby('rank').count().iloc[:, 0],
-                            tab_min[['rank', 'abundance']].groupby(
-                                'rank').sum(),
-                            tab_min[['rank', 'abundance_percent']].groupby(
-                                'rank').sum(),
-                        ], axis=1)
-                        tab_gb.columns = ['count', 'abundance_sum',
-                                          'abundance_percent_sum']
-                        pies_data_raref['tab_gb'] = tab_gb
-
-                        f = plt.figure(figsize=(6, 6))
-                        plt.pie([x[0] for x in tab_gb.values],
-                                labels=['%s (%s)\n%s reads' % (
-                                r, row.iloc[0], row.iloc[1])
-                                        for r, row in tab_gb.iterrows()],
-                                autopct='%1.2f',
-                                startangle=90)
-                        plt.title(
-                            "Number of features assigned per taxon level: %s%s\nmin %s reads, %s features" % (
-                                dat, cur_raref, min_abundance,
-                                tab_min.shape[0]), size=12)
-                        plt.close()
-                        pdf.savefig(f, bbox_inches='tight')
-
-                        if abundances.shape[0]:
-                            cols = sorted(abundances.columns.tolist(),
-                                          key=lambda x: int(x.split('-')[0]))
-                            ax = abundances.plot(kind='bar', stacked=True)
-                            plt.ylabel('Number of features')
-                            plt.title(
-                                "Features per abundance group: %s%s\nmin %s reads, %s features" % (
-                                    dat, cur_raref, min_abundance,
-                                    tab_min.shape[0]), size=12)
-                            handles, _ = ax.get_legend_handles_labels()
-                            plt.legend(handles, cols)
-                            pdf.savefig(bbox_inches='tight')
-                            plt.close()
-
-                        if prevalences.shape[0]:
-                            cols = sorted(prevalences.columns.tolist(),
-                                          key=lambda x: int(x.split('-')[0]))
-                            ax = prevalences.plot(kind='bar', stacked=True)
-                            plt.ylabel('Number of features')
-                            plt.title(
-                                "Features per prevalence group: %s%s\nmin %s reads, %s features" % (
-                                    dat, cur_raref, min_abundance,
-                                    tab_min.shape[0]), size=12)
-                            handles, _ = ax.get_legend_handles_labels()
-                            plt.legend(handles, cols)
-                            pdf.savefig(bbox_inches='tight')
-                            plt.close()
-
     def get_features_subsets(self, dat, dat_subset, data,
                              data_subset, feats, raref):
         cmd = ''
@@ -578,6 +465,8 @@ class AnalysisPrep(object):
                 continue
             o_dir = self.get_output(data.path)
             for raref, qza in data.qza.items():
+                if not isfile(qza):
+                    continue
                 qzv = '%s/bar%s.qzv' % (o_dir, raref)
                 if self.config.force or not isfile(qzv):
                     cmd = write_barplots(qza, qzv, data.meta, data.tax[1])
@@ -589,17 +478,19 @@ class AnalysisPrep(object):
         self.analysis = 'alpha'
         metrics = self.get_metrics(self.config.alphas)
         for dat, data in self.project.datasets.items():
-            for raref, qza_in in data.qza.items():
+            for raref, qza in data.qza.items():
+                if not isfile(qza):
+                    continue
                 alphas = []
                 o_dir = self.get_output(data.path)
                 for metric in metrics:
                     qza_out = '%s/alpha%s_%s.qza' % (o_dir, raref, metric)
                     tsv_out = '%s.tsv' % splitext(qza_out)[0]
-                    cmd = write_alpha(qza_in, qza_out, data.phylo,
+                    cmd = write_alpha(qza, qza_out, data.phylo,
                                       data.tree, metric)
                     if not cmd:
                         continue
-                    alphas.append([qza_out, qza_in, metric])
+                    alphas.append([qza_out, qza, metric])
                     if self.config.force or not isfile(tsv_out):
                         cmd += run_export(qza_out, tsv_out, '')
                         self.register_provenance(dat, (qza_out, tsv_out,), cmd)
@@ -614,6 +505,8 @@ class AnalysisPrep(object):
                 for method in ['spearman', 'pearson']:
                     o_dir = self.get_output('/%s/%s' % (data.path, method))
                     for (qza, _, metric) in metrics_alphas:
+                        if not isfile(qza):
+                            continue
                         qzv = '%s/alphacorr%s_%s.qzv' % (o_dir, raref, metric)
                         if self.config.force or not isfile(qzv):
                             cmd = write_alpha_correlation(qza, qzv, method,
@@ -682,6 +575,8 @@ class AnalysisPrep(object):
             o_dir = self.get_output(data.path)
             for raref, alphas in data.alpha.items():
                 for (qza, tab, m) in alphas:
+                    if not isfile(qza):
+                        continue
                     qzv = '%s/rarcurve%s_%s.qzv' % (o_dir, raref, m)
                     if self.config.force or not isfile(qzv):
                         cmd = write_alpha_rarefaction(tab, qzv, m, data.phylo,

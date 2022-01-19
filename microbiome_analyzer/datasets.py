@@ -121,7 +121,6 @@ class Datasets(object):
         """Initialize the class instance with the dataset name"""
         self.config = config
         self.datasets = {}
-        self.collect_datasets()
         self.edits = {}
 
     def collect_datasets(self):
@@ -153,13 +152,12 @@ class Datasets(object):
         for dataset, data in self.datasets.items():
             if dataset in Datasets.filt_raw:
                 data.raref_depths = self.datasets[
-                    Datasets.filt_raw[dataset]
-                ].raref_depths
+                    Datasets.filt_raw[dataset]].raref_depths
             if not data.raref_depths:
                 continue
             for depth_ in data.raref_depths[1]:
                 depth = '_raref%s' % get_digit_depth(
-                    depth_, data.data[''].sum())
+                    depth_, data.data[''].sum(axis='sample'))
                 data.rarefs.append(depth)
 
     def set_rarefaction_depths(self):
@@ -240,7 +238,7 @@ class Datasets(object):
             folder = get_output(self.config.folder, 'phylo/%s' % dataset)
             tree_qza = '%s/tree_%s.qza' % (folder, dataset)
             tree_nwk = '%s.nwk' % splitext(tree_qza)[0]
-            if isfile(tree_nwk) and isfile(tree_qza):
+            if isfile(tree_nwk):
                 data.tree = ('', tree_qza, tree_nwk)
                 data.phylo = ('precpu', 0)
 
