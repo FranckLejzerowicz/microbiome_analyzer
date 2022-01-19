@@ -3,35 +3,39 @@
 ## Description
 
 Running the microbiome diversity analyses has become easy thanks to tools such as [qiime2](https://docs.qiime2.org/2019.10/install/).
-Yet, using the many command line to perform basic steps such as importing files in the right format, 
-subsetting to remove rare species, and notably run this on a High-Performance Computer (HPC) can be cumbersome.
-This wrapper does the same things as what is done in [qiita](https://qiita.ucsd.edu)-analysis, and is what could be done more 
+Yet, using many command lines to perform basic steps such as importing files in the right format, 
+subsetting to remove rare species, subset samples, collapse features based on taxonomix rank or names, 
+and for all that to run this on a High-Performance Computer (HPC), can be cumbersome.
+This wrapper does the same things as what is available (and not yet available) in [qiita](https://qiita.ucsd.edu)-analysis, and is what could be done more 
 efficiently using [snakemake](https://snakemake.readthedocs.io/en/stable/). Yet, here's a version tailored for user having access to a HPC using either the
-[Torque](http://docs.adaptivecomputing.com/torque/4-0-2/help.htm) or [Slurm](https://slurm.schedmd.com/documentation.html) scheduler, and where a conda and
-a qiime2 conda environment are installed. 
+[Torque](http://docs.adaptivecomputing.com/torque/4-0-2/help.htm) or [Slurm](https://slurm.schedmd.com/documentation.html) scheduler, and where a qiime2 conda environment are installed. 
 
 Here, it allows the user to pass a folder with .tsv or .biom files corresponding to microbiome-to-sample features tables,
 for which another folder containing metadata for these samples is present, and run a series of analyses automatically:
 - **features filtering**,
-- fetching of the Web of Life **phylogeny** sub tree (only for features generated using the gOTU pipeline), 
-- **alpha** diversity analysis (for now, using "observed_otus", "pielou_e", "shannon" metrics),
-- **beta** diversity analysis (for now, using "jaccard", "braycurtis", "aitchison" metrics),
-- **deicode**
+- fetching of the Web of Life **phylogeny** sub tree (features generated using the 
+- [OGUs](https://www.biorxiv.org/content/10.1101/2021.04.04.438427v1.abstract) pipeline), 
+- **alpha** diversity analysis
+- **beta** diversity analysis
+  - **pcoa**
+  - **tsne**
+  - **umap**
+  - **robust-pca**
 - **permanova**
-- **adonis**
-- **songbird**
+- **procrustes**
+- **mantel**
+- R's **adonis**
+- **nestedness** (incl. NODF calulcation acrss
+- **dissimilarity-overlap curves**
+- Differential analysis using **(songbird)[https://github.com/biocore/songbird]**
+- Co-occurrence estimation between datasets using **(mmvec)[https://github.com/biocore/mmvec]**
+- **sourcetracking**
 - ... _(more to come)_
 
 
 ## Installation
 ```
 pip install --upgrade git+https://github.com/FranckLejzerowicz/microbiome_analyzer.git
-```
-or 
-```
-git clone https://github.com/FranckLejzerowicz/microbiome_analyzer.git
-cd microbiome_analyzer
-python3 setup.py build_ext --inplace --force install
 ```
 
 *_Note that python and pip should be python3_
@@ -85,7 +89,7 @@ obtain the standard qiime2 command lines pre-written for Torque/Slurm and ready 
 
 After running this command (you can try):
 ```
-microbiome_analyzer -i ./microbiome_analyzer/test/files -d dataset_number_1 -n jobs_name -e qiime2-2019.10
+microbiome_analyzer -i ./microbiome_analyzer/tests/files -d dataset_number_1 -n jobs_name -e qiime2-2021.11
 ```
 You would obtain _files_ in the `jobs` folders (scripts to check and run),
 and _folders_ in the `qiime` folder (locations for qiime2 outputs).
@@ -117,105 +121,187 @@ and _folders_ in the `qiime` folder (locations for qiime2 outputs).
         └── dataset_number_1
 ```
 
-The jobs to run are in printed in the stdout, i.e. the commands to copy-paste on the
-HPC terminal to actually run the jobs are those after the `[TO RUN]` indicators that print
-in the terminal as you run `microbiome_analyzer`, here, for the above example:  
+Here's the stdout for the simple command above:
 ```
-# Fetching data and metadata (in dataset_number_1)
-# Import tables to qiime2
-[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_tables/0_run_import.pbs
-# Calculate alpha diversity indices
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha/1_run_alpha.sh
-# Merge alpha diversity indices to metadata
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha/2_run_merge_alphas.sh
-# Export alpha diversity indices to metadata
-[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha/3_run_merge_alpha_export.pbs
-# Correlate numeric metadata variables with alpha diversity indices
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha_correlations/4_run_alpha_correlation.sh
-# Calculate beta diversity indices
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/beta/2_run_beta.sh
-# Export beta diversity matrices
-[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/beta/2x_run_beta_export.pbs
-# Calculate principal coordinates
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/pcoa/3_run_pcoa.sh
-# Make EMPeror plots
-
-Warning: Make sure you first run alpha -> alpha merge -> alpha export
-        (if you want alpha diversity as a variable in the PCoA)!
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/emperor/4_run_emperor.sh
-```
-The job are labeled for you to get a suggestion of the order in which to run them
-(this is essentially what `snakemake` would do but it does but the whole point
- here is to have some human verification.)
-
-## **WARNING**: Check the jobs scripts first!
-
-The files to copy-paste in the HPC terminal all have a name that start by a number. 
-However, different things happen if the file name ends with: 
-- `.pbs`: submit one HPC job (_that may consist in of several qiime2 commands, e.g. import multiple artefacts_)
-- `.sh`: script that submits multiple HPC jobs (_each may also consist of several qiime2 commands_)
-  - these multiple jobs are the `.pbs` files in the subfolders named `chunks`
-
-**PLEASE ALWAYS DO CHECK OF THE ACTUAL QIIME2 COMMANDS, WRITTEN IN THE `.pbs` FILES**  
-
-Example:
-```
-├── jobs
-│   ├── alpha
-│   │   ├── 1_run_alpha.sh
-│   │   ├── 2_run_merge_alphas.sh
-│   │   ├── 3_run_merge_alpha_export.pbs
-│   │   ├── 3_run_merge_alpha_export.sh
-│   │   └── chunks
-│   │       ├── run_alpha_dataset_number_1.pbs
-│   │       ├── run_alpha_dataset_number_1.sh
-│   │       ├── run_merge_alpha_dataset_number_1.pbs
-│   │       └── run_merge_alpha_dataset_number_1.sh
-│   ├── alpha_correlations
-│   │   ├── 4_run_alpha_correlation.sh
-│   │   └── chunks
-│   │       ├── run_alpha_correlation_dataset_number_1.pbs
-│   │       └── run_alpha_correlation_dataset_number_1.sh
-│   ├── beta
-│   │   ├── 2_run_beta.sh
-│   │   ├── 2x_run_beta_export.pbs
-│   │   ├── 2x_run_beta_export.sh
-│   │   └── chunks
-│   │       ├── run_beta_dataset_number_1.pbs
-│   │       └── run_beta_dataset_number_1.sh
-│   ├── emperor
-│   │   ├── 4_run_emperor.sh
-│   │   └── chunks
-│   │       ├── run_emperor_dataset_number_1_tab_dataset_number_1_aitchison.pbs
-│   │       ├── run_emperor_dataset_number_1_tab_dataset_number_1_aitchison.sh
-│   │       ├── run_emperor_dataset_number_1_tab_dataset_number_1_braycurtis.pbs
-│   │       ├── run_emperor_dataset_number_1_tab_dataset_number_1_braycurtis.sh
-│   │       ├── run_emperor_dataset_number_1_tab_dataset_number_1_jaccard.pbs
-│   │       └── run_emperor_dataset_number_1_tab_dataset_number_1_jaccard.sh
-│   ├── import_tables
-│   │   ├── 0_run_import.pbs
-│   │   └── 0_run_import.sh
-│   └── pcoa
-│       ├── 3_run_pcoa.sh
-│       └── chunks
-│           ├── run_PCoA_dataset_number_1.pbs
-│           └── run_PCoA_dataset_number_1.sh
-
+# import
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jbs_nm.sh
+# taxonomy
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/taxonomy/jbs_nm.sh
 ```
 
-## PERMANOVA
+These prints are jobs to run, i.e. these `sh` commands only need to be copy-pasted on the
+HPC terminal to actually run the `.pbs` (for Torque) or `.slm` (for Slurm, use option `--slurm`)
+scripts within. For example, the first `.sh` file contains:
 
-It is possible to run PERMANOVA for a series of user-defined subsets of the data and to test difference between 
-different groups of each subset automatically.
+```
+$ cat /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jbs_nm.sh
+qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_1.pbs
+```
 
-#### **permanova tests** `-t`
+* Note: If you where to prepare scripts for 5 datasets:
+  ```
+  microbiome_analyzer -i ./microbiome_analyzer/tests/files \
+      -d dataset_number_1 \
+      -d dataset_number_2 \
+      -d dataset_number_3 \
+      -d dataset_number_4 \
+      -d dataset_number_5 \
+      -n jobs_name -e qiime2-2021.11
+  ```
+  Then this first `.sh` file would contain:
+  ```
+  $ cat /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jbs_nm.sh
+  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_1.pbs
+  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_2.pbs
+  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_3.pbs
+  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_4.pbs
+  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_5.pbs
+  ```
+  * *Trick here*: using the option `-chunkit <int>` to group the commands into less jobs. This can be 
+  useful if you have say 50 datasets across which distance matrices you plan on doing mantel tests,
+  this would send probably too many jobs to the scheduler. Let's see what it does to make For our 5 datasets:
+  ```
+  microbiome_analyzer -i ./microbiome_analyzer/tests/files \
+      -d dataset_number_1 \
+      -d dataset_number_2 \
+      -d dataset_number_3 \
+      -d dataset_number_4 \
+      -d dataset_number_5 \
+      -n jobs_name -e qiime2-2021.11 -chunkit 3
+  ```
+  The `.sh` file would now contain only two jobs:
+  ```
+  $ cat /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jbs_nm.sh
+  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_jbs_nm_chunk0.pbs
+  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_jbs_nm_chunk1.pbs
+  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_jbs_nm_chunk2.pbs
+  ```
 
-This use of `-t` will result in one test for each factor to the column `sex`, as well as one subset for each
-factor to the column `age_cat`. As in this example, note that `-t` can be used multiple time, once per group. 
+Only `import` and `taxonomy` are showing up because the former one needs to be run first before most other
+usual routine qiime2 analyses, whereas the latter can be run by generating fasta file from the features before
+running the taxonomic assignment. 
+
+Note that this feature-to-fasta encoding into taxonomy only would work for features encoded as sequences or that 
+correspond to the Web of Life genomes ("G#########" format). *If the features are taxa or OTU names, the taxonomy
+will be each taxon or OTU name*: in this case, please edit manually the taxonomy file (column "Taxon").
+
+After running these two jobs, if you re-run the same, simple command above, you get:
+
+```
+# alpha
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/alpha/jbs_nm.sh
+# tabulate
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/tabulate/jbs_nm.sh
+# barplot
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/barplot/jbs_nm.sh
+# beta
+sh /Users/franck/programs/microbiome_analyzer/microbiome_analyzer/tests/files/jobs/beta/jbs_nm.sh
+```
+That's more work ready to start, because now the data table was imported to qiime2:
+
+__WARNING: It is strongly recommended to check the jobs scripts first!__
+
+## High-level configurations
+
+Whatever the analyses you will run, `microbiome_analyzer` can run them on 
+different version of each dataset, that are all defined using yaml files
+passed in command line, including:
+
+### Filtering (option `-f`):
+
+The yaml file tells, for each dataset, which samples to remove (`names`), 
+and which thresholds to use to remove rare features (`features`) and poorly
+sequenced samples (`samples`), e.g.:
+
+```
+dataset_number_1:  # dataset name
+  names:
+  - "samplename1"
+  - "samplename2"
+  samples: 100
+  features: 0.0001
+```
+which is interpreted as a dictionary:
+```
+{"dataset_number_1": {"names": ["samplename1", "samplename2"],
+                      features: 0.0001, samples: 100}    
+```
+The filteting proceeds in this order:
+* first remove the samples in the `names` list 
+* second remove the `samples` that do not have enough reads 
+* third remove the `features` (from each sample) that do not have enough reads
     
-#### **group subsets** `-g`
- 
-A config file must be provided in the following .yml format:  
+For the thresholds, if the number is above 1, then the filtering is based on absolute reads values,
+but it it is between 0 and 1, then the filtering is based on percentages, and in effect:
+* if `samples: 100`: all samples must have 100 reads or more  
+* if `samples: 0.25`: all samples must have 25% of the average amount of reads per sample  
+* of `features: 1000`: all features with less than 1000 reads in a sample will be removed from that sample.
+* of `features: 0.001`: all features with less than 0.1% of the reads of a sample will be removed from that sample.
+    
+
+### Rarefaction depths: (option `-r` and `--raref`):
+
+Note that `--raref` **MUST** be set for the rarefaction to happen. If no yaml file is given along
+using option `-r`, then the rarefaction will be done using as rarefaction depth the second percentile
+of the distribution of number of reads per sample. 
+
+If the following yaml file is given to option `-r`:
+```
+dataset_number_1:
+  - "100"
+  - "200"
+dataset_number_2:
+  - min
+```
+There will be two rarefaction depths for `dataset_number_1`, while `dataset_number_2`
+will be rarefied to the depth of the minimum of the distribution of number of reads per sample.
+
+### Feature subsets (option `-k`):
+
+The yaml file gives, for each dataset, the list of names **or regex** to find the features 
+for which to make different subsets. 
+```
+dataset_number_1:
+  OGUs_selection:
+    - "G000146185"
+    - "G000153885"
+    - "G000153905"
+  OGUs_ragex:
+    - "G000[12]0000[89]"
+dataset_number_5:
+  Milk_dataset:
+    - "Milk"
+```
+This will create:
+- two subsets for `dataset_number_1`:
+  * subset `OGUs_selection` will contain three features given exactly
+  * subset `OGUs_ragex` will contain max the four features matching the regex (i.e., `G000100008`, `G000100009`, `G000200009` or `G000200009`) 
+- one subset for `dataset_number_5`:
+  * subset `Milk_dataset` will contain all features contaiing the work "Milk".
+
+### Taxonomic collapsing (option `--coll`):
+
+The yaml file gives, for each dataset, a given name of taxonomic level as key,
+and as value, either:
+- the identifier in the taxonomy for this level (e.g.
+`"p_Firmicutes"` will be a phylum and hence `"p"`).
+- the index of the column to collapse to in the taxonomic table 
+(`1` would be for the very first, coarsest taxonomic level).
+
+```
+dataset_number_1:
+  phylum: "p"
+  family: "f"
+  genus: "g"
+dataset_number_5:
+  level1: 1
+  level2: 2
+  level4: 4
+```
+
+### Sample subsets (option `-g`):
+
+The yaml config file must be have  the following format:  
 ```
 sex:
 - - Male
@@ -229,127 +315,358 @@ income:
 - - '<15000'
 - - '>15000'
 ```
-which is interpreted as a dictionary which for each metadata variable, lists one or more factor(s) 
-defining a subset:
+which is interpreted as a dictionary which for each metadata variable, 
+lists one or more factor(s) defining a subset:
 ```
 {'sex': [['Male'], ['Female']],
  'timepoint_months': [['9', '24'], ['24', '36']],
  'income': [['<15000'], ['>15000']]}    
 ```
 In this example, there will be one subset for:
- - samples having `Male` in column `sex`
- - samples having `Female` in column `sex`
- - samples having `9` or `24` in column `timepoint_months`
- - samples having `24` or `36` in column `timepoint_months`
- - samples having a value inferior to `15000` in column `income`
- - samples having a value superior to `15000` in column `income`
- 
-For example:
+- samples having `Male` in column `sex`
+- samples having `Female` in column `sex`
+- samples having `9` or `24` in column `timepoint_months`
+- samples having `24` or `36` in column `timepoint_months`
+- samples having a value inferior to `15000` in column `income`
+- samples having a value superior to `15000` in column `income`
+
+Note that each subset will be made on each combination of the above, i.e., for 
+each filtering version, each feature subset and each taxonomic level. 
+
+## Analyses of the datasets (and their versions)
+
+### Automatic
+
+A range of analyses are prepared systemacially, including:
+* [**Phylogenetic sequence placement**](https://docs.qiime2.org/2021.11/plugins/available/fragment-insertion/)
+using **SEPP** (for 16S data, which is detected)
+* [**Alpha diversity**](https://docs.qiime2.org/2021.11/plugins/available/diversity/alpha/): by default, the metrics defined in the resource files located in
+    `./microbiome_analyzer/resources/alpha_metrics.txt` are used, i.e.:
+    `pielou_e`, `shannon`, `faith_pd` and `observed_otus` (or `observed_features`
+    in latest qiime2 versions).
+* [**Alpha correlations**](https://docs.qiime2.org/2021.11/plugins/available/diversity/alpha-correlation/)
+* [**Merging**](https://docs.qiime2.org/2021.11/plugins/available/metadata/tabulate/) of all alpha metrics (i.e., all dataset versions) to the metadata
+* [**Alpha rarefaction**](https://docs.qiime2.org/2021.11/plugins/available/diversity/alpha-rarefaction/)
+* [**Barplot**](https://docs.qiime2.org/2021.11/plugins/available/taxa/barplot/):
+* Beta diversity:
+  * [**DEICODE**](https://github.com/biocore/DEICODE) is a robust PCA method.   
+  * [**Distance matrices generation**](https://docs.qiime2.org/2021.11/plugins/available/diversity/beta/): by default, the metrics defined in the resource files located in
+`./microbiome_analyzer/resources/beta_metrics.txt` are used, i.e.:
+`jaccard`, `braycurtis`, `aitchison`, `unweighted_unifrac` and `weighted_unifrac`.
+  * Dimensionality reduction:
+    * [**PCoA**](https://docs.qiime2.org/2021.11/plugins/available/diversity/pcoa/)
+    * [**PCoA (biplot)**](https://docs.qiime2.org/2021.11/plugins/available/diversity/pcoa-biplot/)
+    * [**t-SNE**](https://docs.qiime2.org/2021.11/plugins/available/diversity/tsne/)
+    * [**UMAP**](https://docs.qiime2.org/2021.11/plugins/available/diversity/umap/)
+  * Vizualization:
+    * [**Emperor**](https://docs.qiime2.org/2021.11/plugins/available/emperor/plot/)
+    * [**Emperor (biplot)**](https://docs.qiime2.org/2021.11/plugins/available/emperor/biplot/)
+    * [**Empress**](https://library.qiime2.org/plugins/empress/32/) for all 
+    * [**Empress (biplot)**](https://library.qiime2.org/plugins/empress/32/)
+
+### Volatility (option `-l`)
+
+* [**Volatility**](https://docs.qiime2.org/2021.11/plugins/available/longitudinal/volatility/)
+will output in `./qiime/volatility` and must be triggered by using the option `-l`, 
+which should be a continuous (or numeric ordinal) metadata columns (usually the time points).
+
+### Procrustes (option `-prc`) and Mantel test (option `-mtl`)
+
+* [**Procrustes**](https://docs.qiime2.org/2021.11/plugins/available/diversity/procrustes-analysis/) 
+will output in `./qiime/procrustes` under a folder defined for each datasets pair  
+* [**Mantel test**](https://docs.qiime2.org/2021.11/plugins/available/diversity/mantel/)
+will output in `./qiime/mantel` under a folder defined for each datasets pair
+
+These two-datasets comparison methods are using the same subsetting mechanism,
+to run on the sample in common between datasets pairs defined in a yaml file, e.g.:
 ```
-microbiome_analyzer \
-    -t sex \
-    -t age_cat \
-    -g ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml \
-    -i ./microbiome_analyzer/test/files \
-    -d dataset_number_1 \
-    -d test2 \
-    -n test \
-    -e qiime2-2019.10
+pairs:
+  dataset_number_1_5:  # invented name  
+    - "dataset_number_1"
+    - "dataset_number_5"
+  my_datastes_pair:  # invented name  
+    - "dataset_number_3"
+    - "dataset_number_4"
 ```
-        
-The output is self contained, e.g.: `tab_dataset_number_2_braycurtis_sex_Female__timepoint_months_permanova.qzv`
-is for the `Female` subset of metadata variable `sex` (it also does the result for `Male` etc), and using PERMANOVA to perform comparison between 
-the groups in columns `timepoint_months`. 
 
+Note that as above, the tests are also computed for sample subsets applied to these pairs.
 
-## ADONIS
+### PERMANOVA (option(s) `-t`)
 
-It is possible to run R's Adonis in Qiime2 for a series of user-defined formulas to test difference as in PERMANOVA
-for multivariate data but with continuous and multiple metadata variables as regressors
-(see [http://cc.oulu.fi/~jarioksa/softhelp/vegan/html/adonis.html](http://cc.oulu.fi/~jarioksa/softhelp/vegan/html/adonis.html)).
+* [**PERMANOVA and PERMDISP**](https://docs.qiime2.org/2021.11/plugins/available/diversity/beta-group-significance/):
+It is possible to run PERMANOVA for a series of user-defined subsets of the data and to test difference between 
+different groups of each subset automatically.
+
+#### **permanova tests** 
+
+This use of `-t` will result in one test for each factor to the column `sex`, as well as one subset for each
+factor to the column `age_cat`. As in this example, note that `-t` can be used multiple time, once per group. 
+
+### PHATE (yaml file to option `-phate`)
+
+* [**PHATE**](https://github.com/KrishnaswamyLab/PHATE) is dimensionality reduction method that captures both local and global structures,
+that will output in `./qiime/phate`
+
+### Adonis (yaml file to option `-a`)
+
+* [**Adonis**](https://docs.qiime2.org/2021.11/plugins/available/diversity/adonis/):
+will output in `./qiime/adonis`
+
+It is possible to run R's Adonis in Qiime2 for a series of user-defined formulas 
+to test difference as in PERMANOVA for multivariate data but with continuous and
+multiple metadata variables as regressors (see [here](http://cc.oulu.fi/~jarioksa/softhelp/vegan/html/adonis.html)).
 The passed models will perform on each of the subsets defined in the file passed to option `-g`, as above.
 
-#### **adonis formula** `-a`
-
-A config file must be provided in the following .yml format:
-```
-sexPLUSincomeINTERtime: "sex+income*timepoint_months"
-incomePLUStime: "income+timepoint_months"
-```
-which is interpreted as a dictionary which for each metadata variable, lists one or more factor(s) 
-defining a subset:
-```
-{'sexPLUSincomeINTERtime': 'sex+income*timepoint_months',
- 'incomePLUStime': 'income+timepoint_months'}
-```
-In this example, there will be one model for each formula (and for each distance matrix),
-which in R, would correspond to these commands:
- - `adonis(<bray_curtis_distance_matrix-file> ~ sex + income * timepoint_months, <metadata-file>)`
- - `adonis(<bray_curtis_distance_matrix-file> ~ income * timepoint_months, <metadata-file>)`
- 
-For example:
-```
-microbiome_analyzer \
-    -a ./microbiome_analyzer/examples/example_ADONIS_formulas.yml \
-    -g ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml \
-    -i ./microbiome_analyzer/test/files \
-    -d dataset_number_1 \
-    -d dataset_number_2 \
-    -n jobs_name \
-    -e qiime2-2019.10
-```
-This use of `-a` will result in one test for each formula placed as rows in the .yml file. 
-    
-#### **group subsets** `-g`
- 
-A config file must be provided in the following .yml format.
-This is the exact same file (and thus format) as for the PERMANOVA above.   
-    
-The output is self contained, e.g.: `tab_dataset_number_1_braycurtis_sex_Female__sexPLUSincomeINTERtime_adonis.qzv` is for
-the `Female` subset of metadata variable `sex` (it also does the result for `Male` etc), and using ADONIS to perform
-testing between the groups in columns `timepoint_months`. 
-
- 
-## SONGBIRD
-
-It is possible to run Jamie Morton's Songbird in Qiime2 for a series of user-defined formulas to model for,
-and also apply this formula for different data subset (same 
-format as for PERMANOVA), and with given parameters (see [songbird help page](https://github.com/biocore/songbird)):
-
-#### **formula + subsets + parameters** `-s`:
+#### **adonis formula** 
 
 A config file must be provided in the following .yml format:
 ```
 models:
-  timeINTERsexPLUSincome: "sex+income*timepoint_months"
-  timePLUSincome: "income+timepoint_months"
+  dataset_number_1:
+    timepoint_months_PLUS_income: "timepoint_months+income"
+    timepoint_months_INTER_income: "timepoint_months*income"
+    timepoint_months_PLUS_income_INTER_sex: "timepoint_months+income*sex"
+    sex: "sex"
+    timepoint_months: "timepoint_months"
+  dataset_number_5:
+    timepoint_months: "timepoint_months"
+    timepoint_months_PLUS_income: "timepoint_months+income"
+strata:
+  global: "sex"
+  dataset_number_1:
+    timepoint_months_PLUS_income:
+    - "sex"
+    - "group"
+    - "notacolumn"
+    timepoint_months_INTER_income:
+    - "sex"
+    timepoint_months_PLUS_income_INTER_sex:
+    - "sex"
+  vioscreen_foods_consumed_grams_per_day_1800s_noLiquids:
+    age_PLUS_height_cm:
+    - "sex"
+```
+In this example, there will be one model for each formula (and for each distance matrix),
+which in R, would correspond to these commands:
+ - `adonis(<DM> ~ timepoint_months + income, <metadata-file>)`
+ - `adonis(<DM> ~ timepoint_months * income, <metadata-file>)`
+ - `adonis(<DM> ~ timepoint_months + income * sex, <metadata-file>)`
+
+## Sourcetracking
+
+## 
+
+## Differential abundance (using [songbird](https://github.com/biocore/songbird)) and co-occurrence (using [mmvec](https://github.com/biocore/mmvec)) 
+
+These two methods can "communicate" using several yaml files with different options, in order to:
+- [option `-mm`] correlate the songbird differentials with the PC of the mmvec embeddings.
+- [option `-hlg`] highlights specific groups of featured in interactive co-occurrence heatmaps using [Xmmvec](https://github.com/FranckLejzerowicz/Xmmvec).
+
+**Note** that both tools can use a custom training set that can be defined based
+on a metadata column, using the option `-tt`. This option takes a yaml file (again!)
+which is fairly simple. It tells which column name to create for each dataset, and based 
+on randomly selecting which proportion of each factor in each other column, e.g.:
+```
+datasets:
+  dataset_number_1:   # a dataset name
+    traintest_sex:    # a column to create in metadata of this dataset
+      - "sex"         # which columns to use for (balanced) random sampling 
+  dataset_number_5:   # another dataset name
+    traintest_sex:
+      - "sex"
+train: 0.7            # proportiton to randomly sample for training
+```
+These columns (here `traintest_sex`) can be now used in the parameters of 
+songbird and mmvec!
+
+
+### Songbird (option `-s`)
+
+This tool runs [songbird](https://github.com/biocore/songbird), a QIIME2 
+plugin for differential abundance measure. It can take as input a number of 
+parameters and also, is often used to run several models for several 
+datasets. This tool eases the process by reading a single configuration file 
+defining all datasets to use, as well as all the filtering and samples 
+subsets to make per dataset, and the parameters.
+
+This config file must be provided in the following `.yml` format:
+```
+models:
+  dataset_number_1:
+    timeINTERsexPLUSincome: "sex+income*timepoint_months"
+    sexPLUSincome: "sex+income"
+  dataset_number_2:
+    sexPLUSincome: "sex+income"
+baselines:
+  dataset_number_1:
+    sexPLUSincome:
+      sex: "sex"
+      income: "income"
 subsets:
   sex:
-  - - Male
   - - Female
+  - - Male
+filtering:
+  dataset_number_1:
+    0.1-0.0001:
+    - '0.1'
+    - '0.0001'
 params:
   batches:
-    - 2
+    - 20
+    - 40
   learns:
     - 1e-4
   epochs:
-    - 5000
+    - 1000
+    - 2000
   thresh_feats:
-    - 0
+    - 10
   thresh_samples:
-    - 0
+    - 1000
   diff_priors:
-    - 0.1
-    - 1
+    - 0.5
+  train:
+    - '0.7'
+    - 'traintest_sex'
 ```
-which is interpreted as a dictionary with the folowing "sections": `models`, `subsets` and `params`
 
-- `models`: for each model name, one formula as for _ADONIS_.
-- `subsets`: for each variable name, subsets for one or more factors of this variable,
-    as for _PERMANOVA_.
-- `params`: parameters to songbird (see [doc](https://github.com/biocore/songbird))
+The allowed "sections" are `models`, `baselines`, `filtering`, `subsets` and 
+`params`:
 
-## **MMVEC** `-m`:
+- `models`: for each dataset, one (or more) model name(s) and associated 
+  model formula (which can accommodate categorical variables in formulation, 
+  see [here](https://github.com/biocore/songbird#3-specifying-a-formula-)). 
+    - In the above example, both `dataset_number_1` and `dataset_number_2` will test 
+      for the model named `sexPLUSincome` by the user, which will actually 
+      use the formula `sex+income`.
+
+
+- `baselines`: for each dataset **and for each model name** defined in 
+  `models`, one (or more) model name(s) and associated model formula (as in 
+  'models'), but here to be run as baseline, i.e., for comparison. For 
+  example, with a config having the following: 
+  ```
+  baselines:
+    datasetName2:
+      sexPLUSincome:
+        sex: "sex"
+        income: "income"
+  ```
+  the model `sexPLUSincome` (which formula was `sex+income`) will be 
+  compared for `dataset_number_2` with both the results of model `sex` (which 
+  formula is simply `sex`) and `income` (which formula is simply `income`). 
+  Note that by default, the baseline is `1` and thus the "section" 
+  `baselines` can be missing. It is important to know that Pseudo Q2 values 
+  are only reliable to assess models compared against the same baseline 
+  (this tool will reuse the same baseline model result when assessed against 
+  multiple times, hence saving lots of computation time!) 
+
+
+- `filtering`: for each dataset, one (or more) filtering name(s), and two 
+  filtering values:
+    * first: the sample prevalence threshold
+    * second: the sample abundance threshold
+
+  In both cases, the value can be between 0 and 1, which will be 
+      interpreted as a fraction, e.g. `0.4` would mean _min 40%_ (of samples,
+      or the reads per sample), while a value of 1 or more will be 
+      interpreted as an absolute number, e.g. `10` would mean _min 10_ 
+      (sample occurrences, or reads per sample).
+
+  In the above example, only `dataset_number_1` will be filtered (`dataset_number_2` 
+  will be used raw, or filtered using songbird params, see below), to keep 
+  only features that have at least 0.01% of the reads of each sample 
+  (`0.0001`), for 10% of the samples (`0.1`).   
+  ```
+  dataset_Name1:
+  0.1-0.0001:
+  - '0.1'
+  - '0.0001'
+  ```
+  (For the name, I recommend using the filtering values linked by an 
+  underscore.)
+
+
+- `subsets`: the subsets are applied to all datasets (i.e., no sub-header per 
+  dataset), e.g.:
+  ```
+  subsets:
+    sex:
+    - - Female
+    - - Male
+    age_cat:
+    - - 'baby'
+      - 'teen'
+    - - '30s'
+      - '40s'  
+      - '50s'  
+    income:
+    - - '<15000'
+    - - '>15000'
+  ```
+  which is interpreted as 6 different subsets:
+  * Females only (value of `sex` is in `['Female']`
+  * Males only (value of `sex` is in `['Male']`
+  * Young people only (value of `age_cat` is in `['baby', 'teen']`
+  * Older people only (value of `age_cat` is in `['30s', '40s', 50s']`
+  * Poor people only (value of `income` is below 15,000
+  * Rich people only (value of `income` is above 15,000
+
+
+  The outputs will have one folder per subset, which will be named `sex_Female` 
+for the first subset, etc...
+
+- `params`: just like for "section" `subsets`, the parameters are applied to 
+  all datasets (i.e., no sub-header per dataset), and the accepted 
+  parameters are:
+  - `train`: can be an existing metadata variable to pass to 
+    `--p-training-column` (containing only `Train` and `Test` factors), or a 
+    number between 0 and 1 to specify the fraction of samples to randomly 
+    pick for training (default is 0.7, or 70%).
+  - `batches`: `--p-batch-size`
+  - `learns`: `--p-learning-rate`
+  - `epochs`: `--p-epochs`
+  - `diff_priors`: `--differential-prior`
+  - `thresh_feats`: `--min-feature-count`
+  - `thresh_samples`: `--min-sample-count`
+  - `summary_interval`: `--p-summary-interval` 
+  
+  This "section" is where most of the combinatorial ability of this tool can 
+  be leveraged, ass you can pass more than one value per parameters: each
+  combination of all parameters will be run, e.g.:
+  ```
+  params:
+    batches:
+      - 20
+      - 40
+    train:
+      - 0.6
+      - 0.7
+  ```
+  will run **4** combinations of parameters.
+
+**Note**: it you re-run `microbiome_analyzer`, with any config file, it will parse 
+all the outputs from all configs and summarize all model performances (i.e., 
+the Pseudo Q2 values) into one main table located in the `qiime/songbird` 
+output folder. This table is called `songbird_q2.tsv` and it contains the 
+following columns:
+  - `pair`: currently only contain `unpaired` (paired datasets in dev...)
+  - `dataset`: dataset name
+  - `filter`: filtering name (not the filtering values, so be explicit!)
+  - `subset`: samples subset (e.g. `sex_Female` fror the explanation above)
+  - `model`: model name (not the model formula, so be explicit!)
+  - `songbird_filter`: filtering in songbird (`f#_s#` for feature and sample)
+  - `parameters`: concatenation of `batchsize`_`learnrate`_`epochs`_`diffprior`_`traintest`_`summary_interval`
+  - `baseline`: baseline name of the model (not the model formula, so be explicit!)
+  - `differentials`: file path to the feature differentials (main output)
+  - `Pseudo_Q_squared`: performance value after cross-validation
+
+**Note2**: The output folders will contain a `readme.txt` file explaining 
+the folder name, which can be any of the "sections" setup defined in the 
+config file.
+
+### **mmvec** (option `-m`):
 
 It is possible to run Jamie Morton's MMVEC in Qiime2 for a series of user-defined thresholds to get filter multiple
 omics datasets to predict co-occurrences for (see [mmvec help page](https://github.com/biocore/mmvec)).
@@ -414,77 +731,6 @@ microbiome_analyzer -i <input_folder_path> -d <dataset_name> -n <project_name> -
 ### Optional arguments
 
 ``` 
-  -i, --i-datasets-folder TEXT    Path to the folder containing the sub-
-                                  folders 'data' and 'metadata'.  [required]
-  -d, --i-datasets TEXT           Dataset(s) identifier(s). Multiple is
-                                  possible: e.g. -d dataset_number_1 and -d
-                                  dataset_number_2 for
-                                  'tab_dataset_number_1.tsv' and
-                                  tab_dataset_number_2.tsv'.  [required]
-  -w, --i-wol-tree TEXT           path to the tree containing the genome IDs
-                                  (will check if exist in features names)(On
-                                  barnacle, it is there: /projects/wol/profili
-                                  ng/dbs/wol/phylogeny/tree.nwk).  [default:
-                                  resources/wol_tree.nwk]
-  -x, --i-sepp-tree TEXT          Qiime2 SEPP reference database to use for
-                                  16S reads placement:
-                                  https://docs.qiime2.org/2019.10/data-
-                                  resources/#sepp-reference-databases (auto
-                                  detection of datasets' tables with sequences
-                                  as features).
-  -n, --p-project-name TEXT       Nick name for your project.  [required]
-  -e, --p-qiime2-env TEXT         name of your qiime2 conda environment (e.g.
-                                  qiime2-2019.10)   [required]
-  -t, --p-perm-tests TEXT         Groups to tests between in each PERMANOVA
-                                  subset (multiple values are possible, e.g.
-                                  '-d sex -d age_cat').  [default: False]
-  -g, --p-perm-groups TEXT        Subsets for PERMANOVA. Must be a yaml file,
-                                  e.g.
-                                  (see example in
-                                  'examples/permanova_subsets.yml' and
-                                  README).  [default: False]
-  -a, --p-adonis-formulas TEXT    Formula for Adonis tests for each PERMANOVA
-                                  subset. Must be a yaml file, e.g.
-                                  (see
-                                  example in 'examples/adonis_formulas.yml'
-                                  and README).  [default: False]
-  -s, --p-diff-models TEXT        Formulas for multinomial regression-based
-                                  differential abundance ranking (songbird).
-                                  MUST BE YAML FILE, see
-                                  'examples/songbird_models.yml' and README.
-                                  [default: False]
-  -m, --p-mmvec-pairs TEXT        Pairs of datasets for which to compute co-
-                                  occurrences probabilities (mmvec).
-                                  MUST BE
-                                  YAML FILE, see 'examples/mmvec_pairs.yml'
-                                  and README.  [default: False]
-  -l, --p-longi-column TEXT       If data is longitudinal; provide the time
-                                  metadata columnfor volatility analysis.
-                                  [default: False]
-  -f, --p-reads-filter INTEGER    Minimum number of reads per sample to be
-                                  kept.  [default: 0]
-  -c, --p-chmod TEXT              Change output files permission (default =
-                                  664 [= -rw-rw-r--]).  [default: 664]
-  -skip, --p-skip [alpha|merge_alpha|export_alpha|alpha_correlations|volatility|beta|export_beta|emperor|deicode|alpha_kw|permanova|adonis|songbird|mmvec]
-                                  Steps to skip (e.g. if already done or not
-                                  necessary).
-                                  Skipping 'alpha' will also skip
-                                  'merge_alpha',
-                                  'export_alpha','alpha_correlations',
-                                  'alpha_kw' and 'volatility'.
-                                  Skipping 'beta'
-                                  will also skip 'export_beta',
-                                  'emperor','deicode', 'permanova', 'adonis''.
-  --force / --no-force            Force the re-writing of scripts for all
-                                  commands(default is to not re-run if output
-                                  file exists).  [default: False]
-  --gpu / --no-gpu                Use GPUs instead of CPUs for MMVEC.
-                                  [default: False]
-  --standalone / --no-standalone  Whether to run MMVEC using the standalone
-                                  version (to check tensorboard).  [default:
-                                  False]
-  --version                       Show the version and exit.
-  --help                          Show this message and exit.
 ```
 
 ## Example
@@ -506,53 +752,9 @@ microbiome_analyzer  \
     -l timepoint_months
     -f 10000
 ```
-The standard output shows you the scripts that have been written with qiime2 commands and that need to be run:
+The standard output shows you the scripts that have been writte
+with qiime2 commands and that need to be run:
 ```
-# Fetching data and metadata (in dataset_number_1, dataset_number_2)
-# Import tables to qiime2
-[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_tables/0_run_import.pbs
-# Filter samples for a min number of 10000 reads
-[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_filtered/1_run_import_filtered.pbs
-# Shear Web of Life tree to features' genome IDs
-[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_tree_dataset_number_1/0_import_tree.pbs
-[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_tree_dataset_number_2/0_import_tree.pbs
-[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_tree_dataset_number_1_min10000_339s/0_import_tree.pbs
-[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/import_tree_dataset_number_2_min10000_339s/0_import_tree.pbs
-# Calculate alpha diversity indices
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha/1_run_alpha.sh
-# Merge alpha diversity indices to metadata
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha/2_run_merge_alphas.sh
-# Export alpha diversity indices to metadata
-[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha/3_run_merge_alpha_export.pbs
-# Correlate numeric metadata variables with alpha diversity indices
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha_correlations/4_run_alpha_correlation.sh
-# Longitudinal change in alpha diversity indices
-
-Warning: First make sure you run alpha -> alpha merge -> alpha export before running volatility
-        (if you need the alpha as a response variable)!
-# Calculate beta diversity indices
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/beta/2_run_beta.sh
-# Export beta diversity matrices
-[TO RUN] qsub /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/beta/2x_run_beta_export.pbs
-# Calculate principal coordinates
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/pcoa/3_run_pcoa.sh
-# Make EMPeror plots
-
-Warning: Make sure you first run alpha -> alpha merge -> alpha export
-        (if you want alpha diversity as a variable in the PCoA)!
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/emperor/4_run_emperor.sh
-# DEICODE (groups config in ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml)
-sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/deicode/3_run_beta_deicode.sh
-# Kruskal-Wallis (groups config in ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml)
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/alpha_group_significance/6_run_alpha_group_significance.sh
-# PERMANOVA (groups config in ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml)
-Beta diversity, distances matrices must be generated already to automatise PERMANOVA
-        (re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/permanova/3_run_beta_group_significance.sh
-# Run Adonis (groups config in ./microbiome_analyzer/examples/example_PERMANOVA_subsets.yml)
-Beta diversity, distances matrices must be generated already to automatise adonis
-        (re-run this after steps "2_run_beta.sh" and "2x_run_beta_export.pbs" are done)
-[TO RUN] sh /Data/Programs/microbiome_analyzer/microbiome_analyzer/test/files/jobs/adonis/3_run_adonis.sh
 ```
 
 
