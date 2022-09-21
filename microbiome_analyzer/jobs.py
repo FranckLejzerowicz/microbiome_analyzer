@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2020, Franck Lejzerowicz.
+# Copyright (c) 2022, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -19,27 +19,41 @@ class CreateScripts(object):
         self.jobs_folders = {}
         self.to_chunk = {}
         self.shs = {}
+        self.sh = None
 
     def xpbs_call(self, sh, pbs_slm, job, params):
+        # mandatory options
         cmd = [
-            'Xpbs',
+            'Xhpc',
             '-i', sh,
             '-o', pbs_slm,
             '-j', job,
             '-e', self.config.qiime_env,
             '-t', params['time'],
             '-n', params['n_nodes'],
-            '-p', params['n_procs'],
+            '-c', params['n_procs'],
             '-M', params['mem_num'], params['mem_dim'],
-            '-c', self.config.chmod,
-            '--noq'
+            '--no-stat', '--quiet'
         ]
-        if self.config.slurm:
-            cmd.append('--slurm')
-        # if tmp:
-        #     cmd.extend(['-T', tmp])
-        if not self.config.loc:
-            cmd.append('--no-loc')
+        # always provide an account
+        if self.config.account:
+            cmd.extend(['-a', self.config.account])
+        # get the job script file path and use it
+        if self.config.torque:
+            cmd.append('--torque')
+        # machine-specific setup: env activating and slurm partition
+        if params['machine']:
+            cmd.append('--%s' % params['machine'])
+        if params['partition']:
+            cmd.append('--p-partition %s' % params['partition'])
+        # setup the scratch location to be used for the current software
+        if isinstance(params['scratch'], int):
+            cmd.extend(['--localscratch', str(params['scratch'])])
+        elif params['scratch'] == 'scratch':
+            cmd.append('--scratch')
+        elif params['scratch'] == 'userscratch':
+            cmd.append('--userscratch')
+
         subprocess.call(cmd)
 
         if os.getcwd().startswith('/panfs'):
@@ -67,10 +81,10 @@ class CreateScripts(object):
             self.xpbs_call(sh, pbs_slm, job, params)
 
         if single:
-            if self.config.slurm:
-                launcher = 'sbatch'
-            else:
+            if self.config.torque:
                 launcher = 'qsub'
+            else:
+                launcher = 'sbatch'
             if os.getcwd().startswith('/panfs'):
                 pbs_slm = pbs_slm.replace(os.getcwd(), '')
             if not main_o:
@@ -102,12 +116,12 @@ class CreateScripts(object):
                 with open(sh, 'w') as o:
                     for command in commands:
                         o.write(command)
-                if self.config.slurm:
-                    pbs_slm = '%s.slm' % splitext(sh)[0]
-                    launcher = 'sbatch'
-                else:
+                if self.config.torque:
                     pbs_slm = '%s.pbs' % splitext(sh)[0]
                     launcher = 'qsub'
+                else:
+                    pbs_slm = '%s.slm' % splitext(sh)[0]
+                    launcher = 'sbatch'
                 if self.config.jobs:
                     self.run_xpbs(sh, pbs_slm, nlss, params, 'chnk', str(idx))
                     if os.getcwd().startswith('/panfs'):
@@ -119,12 +133,12 @@ class CreateScripts(object):
     def print_message(self, message, sh_pbs, to_run):
         if message:
             print('#', message)
-        if os.getcwd().startswith('/panfs'):
+        if os.getcwd().startswith('/panfs') or os.getcwd().startswith('${SCRA'):
             to_run = to_run.replace(os.getcwd(), '')
         if self.config.jobs:
             print(sh_pbs, to_run)
         else:
-            print('sh', to_run.replace('.pbs', '.sh'))
+            print('sh', to_run.replace('.slm', '.sh'))
 
     def get_prjct_anlss_nm(self, project_name: str) -> str:
         """
@@ -153,12 +167,6 @@ class CreateScripts(object):
             nlss = self.get_prjct_anlss_nm(analysis)
             params = self.config.run_params.get(
                 'import', self.config.run_params['default'])
-            # if 'import' in analysis:
-            #     params = self.config.run_params['import']
-            # elif 'songbird' in analysis:
-            #     params = self.config.run_params['songbird']
-            # else:
-            #     params = self.config.run_params[analysis]
             main_sh = self.jobs_folders[analysis][0]
             with open(main_sh, 'w') as main_o:
                 if not self.config.chunkit:
@@ -167,10 +175,10 @@ class CreateScripts(object):
                             for dat, cmd in dats_commands:
                                 o.write('echo "%s"\n' % cmd.replace('"', ''))
                                 o.write('%s\n' % cmd)
-                        if self.config.slurm:
-                            pbs_slm = '%s.slm' % splitext(sh)[0]
-                        else:
+                        if self.config.torque:
                             pbs_slm = '%s.pbs' % splitext(sh)[0]
+                        else:
+                            pbs_slm = '%s.slm' % splitext(sh)[0]
                         self.run_xpbs(sh, pbs_slm, nlss, params,
                                       dat, 'None', True, main_o)
                 else:
@@ -191,21 +199,14 @@ class CreateScripts(object):
                     self.shs[analysis].setdefault(sh, []).append((dat, command))
                     self.to_chunk[analysis].append(command)
 
-    def get_job_folder(self, analysis: str):
-        """
-        Get the job folder name.
-        """
-        job_folder = '%s/jobs/%s' % (self.config.folder, analysis)
-        if not isdir(job_folder):
-            os.makedirs(job_folder)
-        return job_folder
-
     def get_jobs_folders(self, analyses_commands):
         for analysis in analyses_commands:
-            self.jobs_folders[analysis] = [
-                '%s/%s%s.sh' % (
-                    self.get_job_folder(analysis),
-                    self.config.prjct_nm, self.config.filt_raref),
-                '%s/%s%s' % (
-                    self.get_job_folder('%s/chunks' % analysis),
-                    self.config.prjct_nm, self.config.filt_raref)]
+            analysis_dir = '%s/%s' % (self.config.output_folder, analysis)
+            main_sh = '%s/run_%s%s.sh' % (analysis_dir, self.config.prjct_nm,
+                                          self.config.filt_raref)
+            jobs_dir = '%s/jobs' % analysis_dir
+            job_chunk = '%s/chunks_%s%s' % (jobs_dir, self.config.prjct_nm,
+                                           self.config.filt_raref)
+            if not isdir(jobs_dir):
+                os.makedirs(jobs_dir)
+            self.jobs_folders[analysis] = [main_sh, job_chunk]
