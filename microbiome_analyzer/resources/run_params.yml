@@ -5,6 +5,9 @@ default:
   mem_num: "1"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 import:
   time: "4"
   n_nodes: "1"
