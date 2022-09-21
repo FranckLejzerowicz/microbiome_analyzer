@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2020, Franck Lejzerowicz.
+# Copyright (c) 2022, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -57,7 +57,7 @@ class AnalysisPrep(object):
         self.messages = set()
 
     def get_output(self, dat, cohort=''):
-        out = '%s/qiime/%s/%s' % (self.config.folder, self.analysis, dat)
+        out = '%s/%s/%s' % (self.config.output_folder, self.analysis, dat)
         if cohort:
             out = (out + '/' + cohort).rstrip('/')
         if not isdir(out):
@@ -78,7 +78,7 @@ class AnalysisPrep(object):
     def import_datasets(self):
         self.analysis = 'import'
         for dat, data in self.project.datasets.items():
-            qza = '%s/data/tab_%s.qza' % (self.config.folder, dat)
+            qza = '%s/%s.qza' % (self.config.data_folder, dat)
             data.qza[''] = qza
             data.biom[''] = '%s.biom' % splitext(qza)[0]
             cmd = run_import(
@@ -186,7 +186,7 @@ class AnalysisPrep(object):
             for ddx, depth_ in enumerate(data.raref_depths[1]):
                 depth = get_digit_depth(depth_, sams_sums)
                 raref = data.rarefs[ddx + 1]
-                tsv = '%s/tab_%s%s.tsv' % (o_dir, dat, raref)
+                tsv = '%s/%s%s.tsv' % (o_dir, dat, raref)
                 biom = '%s.biom' % splitext(tsv)[0]
                 qza = '%s.qza' % splitext(tsv)[0]
                 cmd = write_rarefy(data.qza[''], qza, depth)
@@ -390,7 +390,7 @@ class AnalysisPrep(object):
         cmd = ''
         self.analysis = 'subsets'
         o_dir = self.get_output(dat)
-        tsv_subset = '%s/tab_%s%s.tsv' % (o_dir, dat_subset, raref)
+        tsv_subset = '%s/%s%s.tsv' % (o_dir, dat_subset, raref)
         biom_subset = '%s.biom' % splitext(tsv_subset)[0]
         qza_subset = '%s.qza' % splitext(tsv_subset)[0]
         data_subset.tsv[raref] = tsv_subset
@@ -774,8 +774,8 @@ class AnalysisPrep(object):
                         meta_pd.to_csv(meta, index=False, sep='\t')
                         dm_qza = '%s/dm%s.qza' % (o_dir, raref)
                         new_qza = '%s/tab%s.qza' % (o_dir, raref)
-                        cmd = write_deicode(qza, meta, new_qza, ordi,
-                                            dm_qza, qzv)
+                        cmd = write_deicode(
+                            qza, meta, new_qza, ordi, dm_qza, qzv)
                         cmd += run_export(ordi, ordi_tsv, 'pcoa')
                         self.register_provenance(dat, (ordi, qza,), cmd)
                         self.cmds.setdefault(dat, []).append(cmd)
