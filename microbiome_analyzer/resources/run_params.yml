@@ -15,6 +15,9 @@ import:
   mem_num: "10"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 filter:
   time: "4"
   n_nodes: "1"
@@ -22,6 +25,9 @@ filter:
   mem_num: "10"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 rarefy:
   time: "4"
   n_nodes: "1"
@@ -29,6 +35,9 @@ rarefy:
   mem_num: "10"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 qemistree:
   time: "1"
   n_nodes: "1"
@@ -36,6 +45,9 @@ qemistree:
   mem_num: "1"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 taxonomy:
   time: "8"
   n_nodes: "1"
@@ -43,6 +55,9 @@ taxonomy:
   mem_num: "50"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 wol:
   time: "1"
   n_nodes: "1"
@@ -50,6 +65,9 @@ wol:
   mem_num: "2"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 sepp:
   time: "100"
   n_nodes: "2"
@@ -57,6 +75,9 @@ sepp:
   mem_num: "150"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 collapse:
   time: "1"
   n_nodes: "1"
@@ -64,6 +85,9 @@ collapse:
   mem_num: "10"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 subset:
   time: "1"
   n_nodes: "1"
@@ -71,6 +95,9 @@ subset:
   mem_num: "1"
   mem_dim: "gb"
   env: "qiime2-2020.6"
+  partition:
+  scratch:
+  machine:
 alpha:
   time: "4"
   n_nodes: "1"
@@ -78,6 +105,9 @@ alpha:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 merge_alpha:
   time: "1"
   n_nodes: "1"
@@ -85,6 +115,9 @@ merge_alpha:
   mem_num: "10"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 alpha_correlations:
   time: "10"
   n_nodes: "1"
@@ -92,6 +125,9 @@ alpha_correlations:
   mem_num: "30"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 tabulate:
   time: "1"
   n_nodes: "1"
@@ -99,6 +135,9 @@ tabulate:
   mem_num: "100"
   mem_dim: "mb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 alpha_rarefaction:
   time: "10"
   n_nodes: "1"
@@ -106,6 +145,9 @@ alpha_rarefaction:
   mem_num: "1"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 volatility:
   time: "2"
   n_nodes: "1"
@@ -113,6 +155,9 @@ volatility:
   mem_num: "100"
   mem_dim: "mb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 alpha_kw:
   time: "2"
   n_nodes: "1"
@@ -120,6 +165,9 @@ alpha_kw:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 barplot:
   time: "1"
   n_nodes: "1"
@@ -127,6 +175,9 @@ barplot:
   mem_num: "500"
   mem_dim: "mb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 beta:
   time: "24"
   n_nodes: "1"
@@ -134,6 +185,9 @@ beta:
   mem_num: "30"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 pcoa:
   time: "10"
   n_nodes: "1"
@@ -141,6 +195,9 @@ pcoa:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 tsne:
   time: "10"
   n_nodes: "1"
@@ -148,6 +205,9 @@ tsne:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 umap:
   time: "10"
   n_nodes: "1"
@@ -155,6 +215,9 @@ umap:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 emperor:
   time: "10"
   n_nodes: "1"
@@ -162,6 +225,9 @@ emperor:
   mem_num: "5"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 empress:
   time: "10"
   n_nodes: "1"
@@ -169,6 +235,9 @@ empress:
   mem_num: "5"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 biplot:
   time: "10"
   n_nodes: "1"
@@ -176,6 +245,9 @@ biplot:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 emperor_biplot:
   time: "10"
   n_nodes: "1"
@@ -183,6 +255,9 @@ emperor_biplot:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 empress_biplot:
   time: "10"
   n_nodes: "1"
@@ -190,6 +265,9 @@ empress_biplot:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 deicode:
   time: "4"
   n_nodes: "1"
@@ -197,6 +275,9 @@ deicode:
   mem_num: "80"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 permanova:
   time: "48"
   n_nodes: "1"
@@ -204,6 +285,9 @@ permanova:
   mem_num: "40"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 adonis:
   time: "6"
   n_nodes: "1"
@@ -211,6 +295,9 @@ adonis:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 mmvec:
   time: "48"
   n_nodes: "1"
@@ -218,6 +305,9 @@ mmvec:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 nestedness:
   time: "48"
   n_nodes: "1"
@@ -225,6 +315,9 @@ nestedness:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 nestedness_nodfs:
   time: "72"
   n_nodes: "1"
@@ -232,6 +325,9 @@ nestedness_nodfs:
   mem_num: "4"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 nestedness_graphs:
   time: "72"
   n_nodes: "1"
@@ -239,6 +335,9 @@ nestedness_graphs:
   mem_num: "4"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 procrustes:
   time: "48"
   n_nodes: "1"
@@ -246,6 +345,9 @@ procrustes:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 mantel:
   time: "72"
   n_nodes: "1"
@@ -253,6 +355,9 @@ mantel:
   mem_num: "10"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 dm_decay:
   time: "72"
   n_nodes: "1"
@@ -260,6 +365,9 @@ dm_decay:
   mem_num: "10"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 dm_decay_plot:
   time: "4"
   n_nodes: "1"
@@ -267,6 +375,9 @@ dm_decay_plot:
   mem_num: "1"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 geo_decay:
   time: "72"
   n_nodes: "1"
@@ -274,6 +385,9 @@ geo_decay:
   mem_num: "10"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 procrustes_R:
   time: "120"
   n_nodes: "1"
@@ -281,6 +395,9 @@ procrustes_R:
   mem_num: "30"
   mem_dim: "gb"
   env: "renv"
+  partition:
+  scratch:
+  machine:
 songbird:
   time: "48"
   n_nodes: "1"
@@ -288,6 +405,9 @@ songbird:
   mem_num: "20"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 qurro:
   time: "24"
   n_nodes: "1"
@@ -295,6 +415,9 @@ qurro:
   mem_num: "5"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
 phate:
   time: "72"
   n_nodes: "1"
@@ -302,12 +425,18 @@ phate:
   mem_num: "10"
   mem_dim: "gb"
   env: "phate"
+  partition:
+  scratch:
+  machine:
 sourcetracking:
   time: "72"
   n_nodes: "1"
   n_procs: "2"
   mem_num: "60"
   mem_dim: "gb"
+  partition:
+  scratch:
+  machine:
 doc:
   time: "150"
   n_nodes: "1"
@@ -315,6 +444,9 @@ doc:
   mem_num: "20"
   mem_dim: "gb"
   env: "xdoc"
+  partition:
+  scratch:
+  machine:
 mmbird:
   time: "2"
   n_nodes: "1"
@@ -322,3 +454,6 @@ mmbird:
   mem_num: "8"
   mem_dim: "gb"
   env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:

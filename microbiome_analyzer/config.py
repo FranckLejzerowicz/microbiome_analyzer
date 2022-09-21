@@ -153,6 +153,8 @@ class AnalysesConfig(object):
                     # check that qiime2 environment exists
                     self.check_env(conda_envs, param_val)
                     self.run_params[analysis][param] = param_val
+                else:
+                    self.run_params[analysis][param] = param_val
 
     def get_run_params(self):
         """Get the run parameters based on the default
