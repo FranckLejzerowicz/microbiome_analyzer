@@ -349,8 +349,8 @@ def write_sepp(
     -------
 
     """
-    out_fp_sepp_plac = '%s/plac_%s' % (dirname(out_fp_sepp_tree),
-                                       basename(out_fp_sepp_tree)[4:])
+    out_fp_sepp_plac = '%s/placements_%s' % (dirname(out_fp_sepp_tree),
+                                             basename(out_fp_sepp_tree))
     cmd = ''
     if not isfile(out_fp_sepp_tree):
         cmd += 'qiime fragment-insertion sepp \\\n'
