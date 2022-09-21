@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2020, Franck Lejzerowicz.
+# Copyright (c) 2022, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -98,9 +98,8 @@ class Data(object):
             Data.dnas.append(self.dat)
             self.phylo = ('amplicon', 0)
 
-    def get_feature_metadata(self):
-        feat = self.meta.split('metadata/meta_')[0]
-        feat_fps = glob.glob('%s/qiime/feature_metadata/feat_*' % feat)
+    def get_feature_metadata(self, output_folder):
+        feat_fps = glob.glob('%s/feature_metadata/*' % output_folder)
         if feat_fps:
             for feat_fp in feat_fps:
                 # feature metadata can be large: no formatting check, yet!
@@ -126,12 +125,12 @@ class Datasets(object):
     def collect_datasets(self):
         for dat in self.config.datasets:
             data = Data(dat)
-            tsv = '%s/data/tab_%s.tsv' % (self.config.folder, dat)
+            tsv = '%s/%s.tsv' % (self.config.data_folder, dat)
             biom = '%s.biom' % splitext(tsv)[0]
             if not isfile(biom) and not isfile(tsv):
                 print('[skipping] Not tsv/biom table for %s' % dat)
                 continue
-            meta = '%s/metadata/meta_%s.tsv' % (self.config.folder, dat)
+            meta = '%s/%s.tsv' % (self.config.metadata_folder, dat)
             if not isfile(meta):
                 print('[skipping] Not metadata table for %s' % dat)
                 continue
@@ -145,7 +144,7 @@ class Datasets(object):
                 data.data[''] = convert_to_biom(data.data[''])
             data.read_meta_pd()
             data.check_gid_or_dna()
-            data.get_feature_metadata()
+            data.get_feature_metadata(self.config.output_folder)
             self.datasets[dat] = data
 
     def set_rarefaction_paths(self):
@@ -164,7 +163,7 @@ class Datasets(object):
         for dataset, data in self.datasets.items():
             sam_sum = pd.Series(data.data[''].sum(axis='sample'))
             skip, depths = get_dat_depths(
-                dataset, self.config.folder, self.config.rarefs, sam_sum)
+                dataset, self.config.rarefs, self.config.output_folder, sam_sum)
             if skip:
                 continue
             data.raref_depths = depths
@@ -176,12 +175,12 @@ class Datasets(object):
     def set_taxonomy_paths(self, method):
         for dataset_, data in self.datasets.items():
             dataset = self._get_filt_raw(dataset_)
-            odir = get_output(self.config.folder, 'taxonomy/%s' % dataset)
+            out = get_output(self.config.output_folder, 'taxonomy/%s' % dataset)
             if data.phylo and data.phylo[0] == 'amplicon':
-                tax_tsv = '%s/tax_%s_%s.tsv' % (odir, dataset, method)
+                tax_tsv = '%s/%s_%s.tsv' % (out, dataset, method)
                 meth = method
             else:
-                tax_tsv = '%s/tax_%s.tsv' % (odir, dataset)
+                tax_tsv = '%s/%s.tsv' % (out, dataset)
                 if data.phylo and data.phylo[0] == 'wol':
                     meth = 'wol'
                 else:
@@ -194,8 +193,9 @@ class Datasets(object):
             if dataset in Datasets.filt_raw:
                 continue
             if data.phylo:
-                odir = get_output(self.config.folder, 'phylo/%s' % dataset)
-                tree_nwk = '%s/tree_%s.nwk' % (odir, dataset)
+                odir = get_output(self.config.output_folder,
+                                  'phylogeny/%s' % dataset)
+                tree_nwk = '%s/%s.nwk' % (odir, dataset)
                 tree_qza = '%s.qza' % splitext(tree_nwk)[0]
                 if data.phylo[0] == 'amplicon':
                     intree_qza = '%s_inTree.qza' % splitext(tree_nwk)[0]
@@ -206,8 +206,9 @@ class Datasets(object):
     def set_seqs_paths(self):
         for dataset, data in self.datasets.items():
             if data.phylo and data.phylo[0] == 'amplicon':
-                odir = get_output(self.config.folder, 'seqs/%s' % dataset)
-                seqs_fas = '%s/seq_%s.fasta' % (odir, dataset)
+                odir = get_output(self.config.output_folder,
+                                  'sequences/%s' % dataset)
+                seqs_fas = '%s/%s.fasta' % (odir, dataset)
                 seqs_qza = '%s.qza' % splitext(seqs_fas)[0]
                 data.seqs = (seqs_qza, seqs_fas)
 
@@ -222,12 +223,13 @@ class Datasets(object):
     def get_precomputed_taxonomy(self, method='sklearn'):
         for dataset_, data in self.datasets.items():
             dataset = self._get_filt_raw(dataset_)
-            folder = get_output(self.config.folder, 'taxonomy/%s' % dataset)
-            tax_qza = '%s/tax_%s_%s.qza' % (folder, dataset, method)
+            folder = get_output(
+                self.config.output_folder, 'taxonomy/%s' % dataset)
+            tax_qza = '%s/%s_%s.qza' % (folder, dataset, method)
             tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
             if isfile(tax_tsv) and isfile(tax_qza):
                 data.tax = ['', tax_qza, tax_tsv]
-            tax_qza = '%s/tax_%s.qza' % (folder, dataset)
+            tax_qza = '%s/%s.qza' % (folder, dataset)
             tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
             if isfile(tax_tsv) and isfile(tax_qza):
                 data.tax = ['', tax_qza, tax_tsv]
@@ -235,8 +237,9 @@ class Datasets(object):
     def get_precomputed_trees(self):
         for dataset_, data in self.datasets.items():
             dataset = self._get_filt_raw(dataset_)
-            folder = get_output(self.config.folder, 'phylo/%s' % dataset)
-            tree_qza = '%s/tree_%s.qza' % (folder, dataset)
+            folder = get_output(
+                self.config.output_folder, 'phylogeny/%s' % dataset)
+            tree_qza = '%s/%s.qza' % (folder, dataset)
             tree_nwk = '%s.nwk' % splitext(tree_qza)[0]
             if isfile(tree_nwk):
                 data.tree = ('', tree_qza, tree_nwk)
