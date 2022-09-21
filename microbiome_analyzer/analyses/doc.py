@@ -51,7 +51,7 @@ class DOC(object):
             self.run_r()
 
     def get_output(self, dat, cohort=''):
-        out = '%s/qiime/doc/%s' % (self.config.folder, dat)
+        out = '%s/doc/%s' % (self.config.output_folder, dat)
         if cohort:
             out = (out + '/' + cohort).rstrip('/')
         if not isdir(out):
@@ -147,7 +147,8 @@ class DOC(object):
                     new_qza = '%s/tab.qza' % o_dir
                     new_tsv = '%s/tab.tsv' % o_dir
                     token = [str(random.choice(range(100))) for x in range(3)]
-                    mp_dir = '%s/doc_%s' % (self.config.folder, ''.join(token))
+                    mp_dir = '%s/doc_%s' % (self.config.output_folder,
+                                            ''.join(token))
                     mp_tsv = '%s/tab.tsv' % mp_dir
                     docs.setdefault(cohort, []).append((o_dir,))
                     if self.config.force or not isfile('%s/DO.tsv' % o_dir):
