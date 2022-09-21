@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2020, Franck Lejzerowicz.
+# Copyright (c) 2022, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -190,7 +190,7 @@ def get_output(folder, analysis):
     :param analysis: name of the qiime2 analysis (e.g. beta).
     :return: output folder name.
     """
-    odir = '%s/qiime/%s' % (folder, analysis)
+    odir = '%s/%s' % (folder, analysis)
     if not isdir(odir):
         os.makedirs(odir)
     return odir
@@ -369,20 +369,6 @@ def get_taxonomy_classifier(classifier: str) -> str:
               '#taxonomy-classifiers-for-use-with-q2-feature-classifier)\n'
               'Exiting...' % (classifier, '\n- %s' % '\n- '.join(classifiers)))
         sys.exit(0)
-
-
-def get_analysis_folder(i_datasets_folder, analysis):
-    """
-    Get the output folder name.
-
-    :param i_datasets_folder: Path to the folder containing the data/metadata subfolders.
-    :param analysis: name of the qiime2 analysis (e.g. beta).
-    :return: output folder name.
-    """
-    odir = '%s/qiime/%s' % (i_datasets_folder, analysis)
-    if not isdir(odir):
-        os.makedirs(odir)
-    return odir
 
 
 def parse_g2lineage() -> dict:
