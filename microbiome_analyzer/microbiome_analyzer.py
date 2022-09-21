@@ -13,7 +13,7 @@ from microbiome_analyzer.analysis import AnalysisPrep
 from microbiome_analyzer.analyses.nestedness import Nestedness
 from microbiome_analyzer.analyses.dm_decay import DmDecay
 from microbiome_analyzer.analyses.doc import DOC
-from microbiome_analyzer.analyses.sourcetracking import Sourcetracking
+# from microbiome_analyzer.analyses.sourcetracking import Sourcetracking
 from microbiome_analyzer.analyses.post_analyses import PostAnalysis
 from microbiome_analyzer.analyses.differential_abundance import DiffModels
 from microbiome_analyzer.analyses.paired_data import PairedData
@@ -116,8 +116,8 @@ def microbiome_analyzer(**kwargs):
             pass
     if 'doc' not in config.skip and config.doc:
         DOC(config, project)
-    if config.sourcetracking and 'sourcetracking' not in config.skip:
-        Sourcetracking(config, project)
+    # if config.sourcetracking and 'sourcetracking' not in config.skip:
+    #     Sourcetracking(config, project)
 
     if config.mmvec_pairs and 'mmvec' not in config.skip:
         paired_datasets.make_train_test()
