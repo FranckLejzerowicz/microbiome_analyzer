@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2020, Franck Lejzerowicz.
+# Copyright (c) 2022, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -11,7 +11,7 @@ import pandas as pd
 from os.path import isfile
 
 from microbiome_analyzer._io import (
-    read_meta_pd, get_taxonomy_classifier, get_analysis_folder, parse_g2lineage)
+    read_meta_pd, get_taxonomy_classifier, parse_g2lineage)
 from microbiome_analyzer._cmds import (
     write_fasta, write_taxonomy_sklearn, run_export, run_import)
 
@@ -209,7 +209,7 @@ def get_taxonomy_command(dat, config, data):
     elif data.tax[0] in ['amplicon', 'sklearn']:
         if config.classifier:
             cmd = run_taxonomy_amplicon(
-                dat, config.i_datasets_folder, config.force, data.data[''],
+                dat, config.output_folder, config.force, data.data[''],
                 data.tax[1], data.tax[2], config.classifier)
         else:
             print('No classifier passed for 16S data\nExiting...')
@@ -255,14 +255,14 @@ def run_taxonomy_wol(force: bool, biom: biom.Table, out_qza: str,
 
 
 def run_taxonomy_amplicon(
-        dat: str, i_datasets_folder: str, force: bool, biom: biom.Table,
+        dat: str, output_folder: str, force: bool, biom: biom.Table,
         out_qza: str, out_tsv: str, classifier: str) -> str:
     """
 
     Parameters
     ----------
     dat
-    i_datasets_folder
+    output_folder
     force
     biom
     out_qza
@@ -278,10 +278,11 @@ def run_taxonomy_amplicon(
         cmd += run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
     else:
         ref_classifier_qza = get_taxonomy_classifier(classifier)
-        odir_seqs = get_analysis_folder(i_datasets_folder, 'seqs/%s' % dat)
-        out_fp_seqs_rad = '%s/seq_%s' % (odir_seqs, dat)
-        out_fp_seqs_fasta = '%s.fasta' % out_fp_seqs_rad
-        out_fp_seqs_qza = '%s.qza' % out_fp_seqs_rad
+        odir_seqs = '%s/sequences/%s' % (output_folder, dat)
+        if not isdir(odir_seqs):
+            os.makedirs(odir_seqs)
+        out_fp_seqs_fasta = '%s/%s.fasta' % (odir_seqs, dat)
+        out_fp_seqs_qza = '%s/%s.qza' % (odir_seqs, dat)
         if force or not isfile(out_fp_seqs_qza):
             cmd += write_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, biom)
         if force or not isfile(out_qza):
