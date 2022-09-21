@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2020, Franck Lejzerowicz.
+# Copyright (c) 2022, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -9,7 +9,7 @@
 import sys
 import subprocess
 import pkg_resources
-from os.path import abspath, exists, isfile
+from os.path import abspath, dirname, exists, isfile, isdir
 from microbiome_analyzer._io import read_yaml_file
 
 RESOURCES = pkg_resources.resource_filename("microbiome_analyzer", "resources")
@@ -30,7 +30,7 @@ class AnalysesConfig(object):
         self.train_test_dict = {}
 
     def init(self):
-        self.check_input()
+        self.check_input_output()
         self.parse_yamls()
         self.get_prjct_anlss_nm()  # project name for jobs
         self.get_run_params()  # default (e.g. memory)
@@ -56,20 +56,28 @@ class AnalysesConfig(object):
                         self.subsets[var] = vals_set
         self.subsets['ALL'] = [[]]
 
-    def check_input(self):
+    def check_input_output(self):
         """Check that the main input folder exists
             and that it is indeed a folder, not a file.
         Returns its absolute path for unambiguous use
             in the rest of the code.
         """
-        if not exists(self.datasets_folder):
-            print('%s does exist\nExiting...' % self.datasets_folder)
-            sys.exit(1)
-        self.folder = abspath(self.datasets_folder)
-        if isfile(self.folder):
-            print('%s is a file. Needs a folder as input\nExiting...' %
-                  self.folder)
-            sys.exit(1)
+        if not exists(self.data_folder):
+            sys.exit('%s does exist\nExiting...' % self.data_folder)
+        elif not isdir(self.data_folder):
+            sys.exit('%s must be a folder\nExiting...' % self.data_folder)
+        if not exists(self.metadata_folder):
+            sys.exit('%s does exist\nExiting...' % self.metadata_folder)
+        elif not isdir(self.metadata_folder):
+            sys.exit('%s must be a folder\nExiting...' % self.metadata_folder)
+        self.data_folder = abspath(self.data_folder)
+        self.metadata_folder = abspath(self.metadata_folder)
+
+        if '/' in self.output_folder:
+            if not isdir(dirname(self.output_folder)):
+                sys.exit('output folder "%s" must exist\nExiting...' %
+                         self.output_folder)
+        self.output_folder = abspath(self.output_folder)
 
     def get_prjct_anlss_nm(self):
         """
@@ -184,13 +192,13 @@ class AnalysesConfig(object):
     @staticmethod
     def check_xpbs_install():
         """Try to get the install path of third party tool
-        Xpbs (https://github.com/FranckLejzerowicz/Xpbs).
+        Xhpc (https://github.com/FranckLejzerowicz/Xhpc).
         If it exists, nothing happens and the code proceeds.
         Otherwise, the code ends and tells what to do.
         """
-        ret_code, ret_path = subprocess.getstatusoutput('which Xpbs')
+        ret_code, ret_path = subprocess.getstatusoutput('which Xhpc')
         if ret_code:
-            print('Xpbs is not installed (and make sure '
+            print('Xhpc is not installed (and make sure '
                   'to edit its config.txt)\nExiting...')
             sys.exit(1)
         else:
@@ -198,7 +206,7 @@ class AnalysesConfig(object):
                 for line in f:
                     break
             if line.startswith('$HOME'):
-                print('Xpbs is installed but its config.txt '
+                print('Xhpc is installed but its config.txt '
                       'need editing!\nExiting...')
                 sys.exit(1)
 
