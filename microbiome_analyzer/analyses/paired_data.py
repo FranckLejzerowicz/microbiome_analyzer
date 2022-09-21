@@ -236,10 +236,12 @@ class PairedData(object):
         paths = []
         pfs = ['pair', 'filter', 'subset']
         for (pair, filter, subset), mmvec in self.mmvecs.groupby(pfs):
-            data_dir = get_output(self.config.folder,
-                                  'mmvec/common/data/%s/%s' % (pair, subset))
-            meta_dir = get_output(self.config.folder,
-                                  'mmvec/common/metadata/%s/%s' % (pair, subset))
+            data_dir = get_output(
+                self.config.output_folder,
+                'qiime/mmvec/common/data/%s/%s' % (pair, subset))
+            meta_dir = get_output(
+                self.config.output_folder,
+                'qiime/mmvec/common/metadata/%s/%s' % (pair, subset))
             mmvec_d = mmvec.iloc[0, :].to_dict()
             dat1, dat2 = mmvec_d['dataset1'], mmvec_d['dataset2']
             prev1, prev2 = mmvec_d['prevalence1'], mmvec_d['prevalence2']
@@ -339,8 +341,8 @@ class PairedData(object):
             dataset = row['dataset']
             filter = row['filter']
             subset = row['subset']
-            odir = get_output(self.config.folder,
-                              'mmvec/datasets/%s/%s' % (dataset, subset))
+            odir = get_output(self.config.output_folder,
+                              'qiime/mmvec/datasets/%s/%s' % (dataset, subset))
             rad = '%s_%s_%s' % (dataset, filter, subset)
             tsv = '%s/tab_%s.tsv' % (odir, rad)
             qza = '%s.qza' % splitext(tsv)[0]
@@ -573,10 +575,10 @@ class PairedData(object):
             d2, p2, a2 = row['dataset2'], row['prevalence2'], row['abundance2']
             for p, params in params_pd.iterrows():
                 res_dir = self.get_res_dir(params)
-                odir = get_output(self.config.folder,
-                                  'mmvec/paired/%s/%s/%s_%s-%s__%s_%s-%s/%s' % (
-                                      pair, subset, d1, p1, a1,
-                                      d2, p2, a2, res_dir))
+                odir = get_output(
+                    self.config.output_folder,
+                    'qiime/mmvec/paired/%s/%s/%s_%s-%s__%s_%s-%s/%s' % (
+                        pair, subset, d1, p1, a1, d2, p2, a2, res_dir))
                 mod_dir, mod_rnk, mod_rdn, mod_stt = self.get_out(odir, 'model')
                 nul_dir, nul_rnk, nul_rdn, nul_stt = self.get_out(odir, 'null')
                 summary = '%s/paired-summary.qzv' % odir

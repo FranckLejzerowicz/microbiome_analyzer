@@ -150,7 +150,8 @@ class DmDecay(object):
         self.res_pd = pd.DataFrame(self.res, columns=[
             'dat', 'raref', 'metric', 'mode', 'mode_group', 'tsv'])
         for dat, dat_pd in self.res_pd.groupby('dat'):
-            o_dir = get_output(self.config.folder, 'dm_decay/%s' % dat)
+            o_dir = get_output(self.config.output_folder,
+                               'qiime/dm_decay/%s' % dat)
             dat_fpo = '%s/res.tsv' % o_dir
             fig_o = '%s/decays.pdf' % o_dir
             dat_pd.to_csv(dat_fpo, index=False, sep='\t')

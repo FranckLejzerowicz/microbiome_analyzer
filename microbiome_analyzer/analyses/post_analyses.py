@@ -124,8 +124,8 @@ class PostAnalysis(object):
                     filt_ = filt1
                 feats_diff_cols = []
                 cur_mmvec_folder = get_output(
-                    self.config.i_datasets_folder,
-                    'mmvec/metadata/%s/%s' % (pair, subset))
+                    self.config.output_folder,
+                    'qiime/mmvec/metadata/%s/%s' % (pair, subset))
                 omic_diff_list = []
                 if len(sb_head_diff_fp):
                     for sb_head, diff_fp in sb_head_diff_fp.items():

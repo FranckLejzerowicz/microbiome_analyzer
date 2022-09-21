@@ -213,7 +213,7 @@ class DiffModels(object):
                 subset = row['subset']
                 for analysis in ['mmvec', 'songbird']:
                     odir = get_output(
-                        self.config.folder, '%s/datasets/%s/%s' % (
+                        self.config.output_folder, 'qiime/%s/datasets/%s/%s' % (
                             analysis, dataset, subset))
                     rad = '%s_%s' % (dataset, filter)
                     tsv = '%s/tab_%s.tsv' % (odir, rad)
@@ -518,7 +518,7 @@ class DiffModels(object):
 
             dat_dir = '%s/%s' % (dat_dir, add_dir)
             o_dir = get_output(
-                self.config.folder, 'songbird/%s' % dat_dir)
+                self.config.output_folder, 'qiime/songbird/%s' % dat_dir)
             readme = '%s/readme.txt' % o_dir
             with open(readme, 'w') as o:
                 o.write(text)
@@ -585,7 +585,7 @@ class DiffModels(object):
     def summarize_songbirds(self):
         q2s = []
         songbird = get_output(
-            self.config.folder, 'songbird')
+            self.config.output_folder, 'qiime/songbird')
         for root, dirs, files in os.walk(songbird):
             for fil in files:
                 if fil == 'tensorboard.html':
@@ -635,7 +635,7 @@ class DiffModels(object):
                 if len(dataset_sbs):
                     dataset_sbs_pd = pd.concat(dataset_sbs, axis=1, sort=False)
                     o_dir = get_output(
-                        self.config.folder, 'songbird/%s' % dat)
+                        self.config.output_folder, 'qiime/songbird/%s' % dat)
                     fpo_tsv = '%s/differentials_%s.tsv' % (o_dir, dat)
                     self.project.datasets[dat].sb = fpo_tsv
                     fpo_qza = '%s/differentials_%s.qza' % (o_dir, dat)
@@ -788,13 +788,13 @@ class DiffModels(object):
                     if dat in self.models_baselines and model in \
                             self.models_baselines[dat]:
                         model_baselines = self.models_baselines[dat][model]
-                    for model_baseline in model_baselines:
-                        b_formula = model_baselines[model_baseline]
+                    for model_base in model_baselines:
+                        b_formula = model_baselines[model_base]
                         b_o_dir = get_output(
-                            self.config.folder,
-                            'songbird/%s/b-%s' % (dat_dir, model_baseline))
+                            self.config.output_folder,
+                            'qiime/songbird/%s/b-%s' % (dat_dir, model_base))
                         out_paths = self.get_out_paths(
-                            o_dir, b_o_dir, model_baseline, baselines)
+                            o_dir, b_o_dir, model_base, baselines)
                         # convergence = self.check_stats_convergence(out_paths)
                         cmd, fcmd, bcmd = write_songbird(
                             qza, new_qza, new_meta, nsams, params, formula,
@@ -802,7 +802,7 @@ class DiffModels(object):
                         songbird.append([
                             dat, new_qza, meta_fp, filt, '%s_%s' % (
                                 p_dir.replace('/', '__'), model),
-                            subset, out_paths['diff'], model_baseline,
+                            subset, out_paths['diff'], model_base,
                             out_paths['html'], pair])
                         if cmd:
                             dat_cmds.setdefault(dat, []).append(cmd)
