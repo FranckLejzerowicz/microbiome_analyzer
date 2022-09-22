@@ -173,7 +173,7 @@ class CreateScripts(object):
                     for sh, dats_commands in shs.items():
                         with open(sh, 'w') as o:
                             for dat, cmd in dats_commands:
-                                o.write('echo "%s"\n' % cmd.replace('"', ''))
+                                # o.write('echo "%s"\n' % cmd.replace('"', ''))
                                 o.write('%s\n' % cmd)
                         if self.config.torque:
                             pbs_slm = '%s.pbs' % splitext(sh)[0]
