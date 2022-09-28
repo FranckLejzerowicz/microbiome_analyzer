@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2020, Franck Lejzerowicz.
+# Copyright (c) 2022, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -8,7 +8,7 @@
 
 import unittest
 import pkg_resources
-from microbiome_analyzer.config import AnalysesConfig
+from microbiome_analyzer.core.config import AnalysesConfig
 
 OUT = pkg_resources.resource_filename("microbiome_analyzer", "tests")
 RESOURCE = pkg_resources.resource_filename("microbiome_analyzer", "resources")
@@ -56,7 +56,7 @@ class ConfigTests(unittest.TestCase):
             'betas': None,
             'biplot': True,
             'chmod': '664',
-            'chunkit': None,
+            'chunks': None,
             'filt_only': False,
             'force': True,
             'gpu': False,

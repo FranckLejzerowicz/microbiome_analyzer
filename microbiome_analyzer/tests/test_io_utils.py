@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2020, Franck Lejzerowicz.
+# Copyright (c) 2022, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -14,27 +14,28 @@ import pandas as pd
 import pkg_resources
 from pathlib import Path
 from pandas.testing import assert_frame_equal
-from routine_qiime2_analyses._routine_q2_io_utils import (
+
+from microbiome_analyzer._inputs import (
+    read_yaml_file,
+    get_feature_sample_col,
+    read_meta_pd
+)
+from microbiome_analyzer._io_utils import (
     check_input,
     get_prjct_anlss_nm,
     get_filt_raref_suffix,
-    read_yaml_file,
     get_run_params,
     get_data_paths,
     get_corresponding_meta,
     read_data_table,
-    read_meta_pd,
-    get_feature_sample_col,
     check_if_not_dna,
     collect_genome_id,
     check_features,
     genome_id_or_dna,
 )
 
-TEST = pkg_resources.resource_filename(
-    'routine_qiime2_analyses', 'test')
-RESOURCES = pkg_resources.resource_filename(
-    'routine_qiime2_analyses', 'resources')
+TEST = pkg_resources.resource_filename('microbiome_analyzer', 'tests')
+RESOURCES = pkg_resources.resource_filename('microbiome_analyzer', 'resources')
 
 
 class InitChecks(unittest.TestCase):
@@ -116,9 +117,9 @@ class RunParams(unittest.TestCase):
         self.run_params = read_yaml_file(self.run_params_fp)
         # import:
         #   time: "4"
-        #   n_nodes: "1"
-        #   n_procs: "1"
-        #   mem_num: "10"
+        #   nodes: "1"
+        #   cpus: "1"
+        #   mem: "10"
         #   mem_dim: "gb"
         #   env: "qiime2-2020.2"
         self.conda_envs = {'qiime2-2020.2', 'a_conda_env'}
@@ -137,13 +138,13 @@ class RunParams(unittest.TestCase):
             o.write('import:\n  mem_dim: "tb"\n')
 
     def test_get_run_params(self):
-        expected = {'time': "10", 'n_nodes': "1", 'n_procs': "1",
-                    'mem_num': "10", 'mem_dim': "gb", 'env': "qiime2-2020.2"}
+        expected = {'time': "10", 'nodes': "1", 'cpus': "1",
+                    'mem': "10", 'mem_dim': "gb", 'env': "qiime2-2020.2"}
         observed = get_run_params(self.update_time_param_fp, self.conda_envs)
         self.assertEqual(observed['import'], expected)
 
-        expected = {'time': "10", 'n_nodes': "1", 'n_procs': "1",
-                    'mem_num': "10", 'mem_dim': "gb", 'env': "a_conda_env"}
+        expected = {'time': "10", 'nodes': "1", 'cpus': "1",
+                    'mem': "10", 'mem_dim': "gb", 'env': "a_conda_env"}
         observed = get_run_params(self.update_env_param_fp, self.conda_envs)
         self.assertEqual(observed['import'], expected)
 
@@ -151,8 +152,8 @@ class RunParams(unittest.TestCase):
             get_run_params(self.update_not_a_env_fp, self.conda_envs)
         self.assertEqual(cm.exception.code, 1)
 
-        expected = {'time': "4", 'n_nodes': "1", 'n_procs': "1",
-                    'mem_num': "10", 'mem_dim': "gb", 'env': "qiime2-2020.2"}
+        expected = {'time': "4", 'nodes': "1", 'cpus': "1",
+                    'mem': "10", 'mem_dim': "gb", 'env': "qiime2-2020.2"}
         observed = get_run_params(self.update_not_mem_dim_fp, self.conda_envs)
         self.assertEqual(observed['import'], expected)
 

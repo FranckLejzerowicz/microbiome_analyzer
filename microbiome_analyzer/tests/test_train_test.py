@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2020, Franck Lejzerowicz.
+# Copyright (c) 2022, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -7,16 +7,9 @@
 # ----------------------------------------------------------------------------
 
 import os
-from os.path import isfile
-import re
 import unittest
-import pandas as pd
 import pkg_resources
-from pathlib import Path
-from pandas.testing import assert_frame_equal
-from routine_qiime2_analyses._routine_q2_io_utils import (
-    get_train_test_dict,
-)
+from microbiome_analyzer._io_utils import get_train_test_dict
 
 TEST = pkg_resources.resource_filename(
     'routine_qiime2_analyses', 'test')

@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2020, Franck Lejzerowicz.
+# Copyright (c) 2022, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -11,10 +11,8 @@ import unittest
 import numpy as np
 import pkg_resources
 from biom.table import Table
-import pandas as pd
-from os.path import basename, dirname, isfile, splitext
-from skbio.stats.ordination import OrdinationResults
-from microbiome_analyzer._cmds import (
+from os.path import isfile
+from microbiome_analyzer.core.commands import (
     run_import, run_export, write_rarefy, write_fasta, write_taxonomy_sklearn,
 )
 
