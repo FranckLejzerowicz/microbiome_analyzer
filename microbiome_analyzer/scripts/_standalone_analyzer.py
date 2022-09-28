@@ -14,14 +14,8 @@ from microbiome_analyzer import __version__
 
 @click.command()
 @click.option(
-    "-i", "--data-folder", required=True,
-    help="Path to the folder containing the data tables")
-@click.option(
-    "-j", "--metadata-folder", required=True,
-    help="Path to the folder containing the metadata tables")
-@click.option(
-    "-o", "--output-folder", required=True,
-    help="Path to a folder containing the outputs")
+    "-i", "--analysis-folder", required=True,
+    help="Path to the folder containing the data and metadata sub-folders")
 @click.option(
     "-d", "--datasets", multiple=True, required=True,
     help="Dataset(s) identifier(s). Multiple is possible: e.g. "
@@ -31,20 +25,28 @@ from microbiome_analyzer import __version__
     "-n", "--project-name", required=True, show_default=True,
     help="Nick name for your project")
 @click.option(
+    "-f", "--filter", show_default=True, default=False,
+    help="Samples to remove, min. read abundance and feature prevalence "
+         "(>1 = based on absolute reads, 0-1 = based on relative reads). "
+         "(yaml file)")
+@click.option(
+    "-r", "--rarefs", required=False, show_default=False,
+    help="rarefaction depth per dataset (yaml file)")
+@click.option(
     "-e", "--qiime2-env", required=True, show_default=True,
     help="name of your qiime2 conda environment (e.g. qiime2-2021.11)")
+@click.option(
+    "-v", "--sepp-tree", required=False, show_default=True, default=None,
+    help="Qiime2 SEPP reference database to use for 16S reads placement: "
+         "https://docs.qiime2.org/2019.10/data-resources/#sepp-reference-"
+         "databases (auto detection of datasets' tables with sequences as "
+         "features)")
 @click.option(
     "-w", "--wol-tree", required=False, show_default=True,
     default='resources/wol_tree.nwk',
     help="path to the tree containing the genome IDs (will check if exist in "
          "features names) (On barnacle, it is there: "
          "/projects/wol/profiling/dbs/wol/phylogeny/tree.nwk)")
-@click.option(
-    "-x", "--sepp-tree", required=False, show_default=True, default=None,
-    help="Qiime2 SEPP reference database to use for 16S reads placement: "
-         "https://docs.qiime2.org/2019.10/data-resources/#sepp-reference-"
-         "databases (auto detection of datasets' tables with sequences as "
-         "features)")
 @click.option(
     "-q", "--qemistree", required=False, show_default=True, default=None,
     help="Path to a folder containing Qemistree's feature data "
@@ -64,12 +66,15 @@ from microbiome_analyzer import __version__
     "-k", "--feature-subsets", required=False, show_default=True,
     default=None, help="Regex to use for subsetting features (yml file)")
 @click.option(
+    "-g", "--sample-subsets", required=False, show_default=True,
+    default=False, help="Subsets for DMs, PCoAs, PERMANOVAs, etc (yml file)")
+@click.option(
     "-t", "--test", multiple=True, required=False, show_default=True,
     default=False, help="Groups to tests between in each PERMANOVA subset "
                         "(multiple values possible, e.g. '-d sex -d age_cat')")
 @click.option(
-    "-g", "--sample-subsets", required=False, show_default=True,
-    default=False, help="Subsets for DMs, PCoAs, PERMANOVAs, etc (yml file)")
+    "-a", "--adonis", required=False, default=False, show_default=True,
+    help="Formula for Adonis tests for each PERMANOVA subset (yaml file)")
 @click.option(
     "-nstd", "--nestedness", required=False, show_default=True,
     default=False, help="Nestedness analysis config  (yml file)")
@@ -96,9 +101,6 @@ from microbiome_analyzer import __version__
 @click.option(
     "-tt", "--train-test", required=False, show_default=True, default=False,
     help="Train test split per dataset (yaml file)")
-@click.option(
-    "-a", "--adonis", required=False, default=False, show_default=True,
-    help="Formula for Adonis tests for each PERMANOVA subset (yaml file)")
 @click.option(
     "-phate", "--phate", required=False, default=False, show_default=True,
     help="Filters, subsets, parameters and stratifications for the PHATE latent"
@@ -127,31 +129,54 @@ from microbiome_analyzer import __version__
     "-mm", "--xmmvec", required=False, default=False, show_default=True,
     help="Config for Xmmvec (yaml file)")
 @click.option(
-    "-l", "--longi-column", required=False, default=False, show_default=True,
+    "-lon", "--longi-column", required=False, default=False, show_default=True,
     help="If data is longitudinal; provide the time metadata column"
          "for volatility analysis")
 @click.option(
-    "-f", "--filter", show_default=True, default=False,
-    help="Samples to remove, min. read abundance and feature prevalence "
-         "(>1 = based on absolute reads, 0-1 = based on relative reads). "
-         "(yaml file)")
-@click.option(
-    "-r", "--rarefs", required=False, show_default=False,
-    help="rarefaction depth per dataset (yaml file)")
-@click.option(
-    "-chmod", "--chmod", default='664', show_default=True,
+    "-chmod", "--chmod", default=None, show_default=True,
     help="Change output files permission (default = 664 [= -rw-rw-r--])")
 @click.option(
     "-skip", "--skip", default=None, show_default=True, multiple=True,
     help="Steps to skip (e.g. if already done or not necessary)",
-    type=click.Choice(['alpha', 'merge_alpha', 'export_alpha',
-                       'alpha_correlations', 'alpha_group_significance',
-                       'wol', 'taxonomy', 'barplot', 'volatility', 'beta',
-                       'export_beta', 'pcoa', 'biplot', 'emperor',
-                       'emperor_biplot', 'empress', 'empress_biplot',
-                       'phate', 'doc', 'deicode', 'sepp', 'do_pies',
-                       'alpha_kw', 'permanova', 'procrustes', 'mantel', 'decay',
-                       'nestedness', 'adonis', 'songbird', 'mmvec', 'mmbird']))
+    type=click.Choice([
+        'taxonomy',
+        'barplot',
+        'wol',
+        'sepp',
+        'pies',
+        'collapse',
+        'feature_subsets',
+        'alpha',
+        'alpha_merge',
+        'alpha_rarefactions',
+        'alpha_correlations',
+        'alpha_group_significance',
+        'volatility',
+        'phate',
+        'beta',
+        'deicode',
+        'pcoa',
+        'umap',
+        'tsne',
+        'emperor',
+        'empress',
+        'biplot',
+        'emperor_biplot',
+        'empress_biplot',
+        'permanova',
+        'adonis',
+        'doc',
+        'procrustes',
+        'mantel',
+        'nestedness',
+        'dm_decay',
+        'geo_decay',
+        'sourcetracking',
+        'doc',
+        'mmvec',
+        'songbird',
+        'mmbird'
+    ]))
 @click.option(
     "-As", "--alphas", default=None, show_default=True, multiple=True,
     help="Alpha diversity indices to use")
@@ -176,9 +201,6 @@ from microbiome_analyzer import __version__
     help="Whether to rarefy and only perform the routine "
          "analyses on the rarefied dataset(s)")
 @click.option(
-    "--loc/--no-loc", default=True, show_default=True,
-    help="whether to do compute on scratch")
-@click.option(
     "--filt-only/--no-filt-only", default=False, show_default=True,
     help="Only process the filtered version (and not also the raw) "
          "version of each dataset")
@@ -192,7 +214,19 @@ from microbiome_analyzer import __version__
     "--torque/--no-torque", default=False, show_default=True,
     help="Whether to prepare Torque and not Slurm jobs")
 @click.option(
-    "-chunks", "--chunks", required=False, show_default=False,
+    "-l", "--localscratch", type=int, show_default=False, default=None,
+    help="Use localscratch with the provided memory amount (in GB)")
+@click.option(
+    "--scratch/--no-scratch", default=False, show_default=True,
+    help="Use the scratch folder to move files and compute")
+@click.option(
+    "--userscratch/--no-userscratch", default=False, show_default=True,
+    help="Use the userscratch folder to move files and compute")
+@click.option(
+    "--move-back/--no-move-back", default=True, show_default=True,
+    help="Do not move back from scratch (makes sense only for --userscratch)")
+@click.option(
+    "-x", "--chunks", required=False, show_default=False,
     type=int, default=None,
     help="Maximum number of jobs at which extra jobs will be added in chunks")
 @click.version_option(__version__, prog_name="microbiome_analyzer")
@@ -200,9 +234,7 @@ from microbiome_analyzer import __version__
 
 def standalone_analyzer(
         datasets,
-        data_folder,
-        metadata_folder,
-        output_folder,
+        analysis_folder,
         project_name,
         qiime2_env,
         longi_column,
@@ -234,11 +266,10 @@ def standalone_analyzer(
         mmvec_highlights,
         xmmvec,
         run_params,
-        chmod,
         skip,
+        chmod,
         gpu,
         raref,
-        loc,
         alphas,
         betas,
         account,
@@ -246,14 +277,16 @@ def standalone_analyzer(
         filt_only,
         jobs,
         torque,
+        localscratch,
+        scratch,
+        userscratch,
+        move_back,
         chunks
 ):
 
     microbiome_analyzer(
         datasets=datasets,
-        data_folder=data_folder,
-        metadata_folder=metadata_folder,
-        output_folder=output_folder,
+        dir=analysis_folder,
         project_name=project_name,
         qiime_env=qiime2_env,
         longi_column=longi_column,
@@ -286,10 +319,9 @@ def standalone_analyzer(
         mmvec_highlights_fp=mmvec_highlights,
         xmmvec_fp=xmmvec,
         run_params_fp=run_params,
-        chmod=chmod,
         skip=skip,
+        chmod=chmod,
         gpu=gpu,
-        loc=loc,
         alphas=alphas,
         betas=betas,
         account=account,
@@ -297,7 +329,11 @@ def standalone_analyzer(
         filt_only=filt_only,
         jobs=jobs,
         torque=torque,
-        chunkit=chunks
+        localscratch=localscratch,
+        scratch=scratch,
+        userscratch=userscratch,
+        move_back=move_back,
+        chunks=chunks
     )
 
 

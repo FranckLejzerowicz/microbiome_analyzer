@@ -8,11 +8,12 @@
 
 import biom
 import pandas as pd
-from os.path import isfile
 
-from microbiome_analyzer._io import (
-    read_meta_pd, get_taxonomy_classifier, parse_g2lineage)
-from microbiome_analyzer._cmds import (
+from microbiome_analyzer._inputs import read_meta_pd
+from microbiome_analyzer._io_utils import (
+    get_taxonomy_classifier, parse_g2lineage)
+from microbiome_analyzer._scratch import io_update, to_do, rep
+from microbiome_analyzer.core.commands import (
     write_fasta, write_taxonomy_sklearn, run_export, run_import)
 
 
@@ -188,13 +189,13 @@ def edit_split_taxonomy(
     return split_taxa_pd
 
 
-def get_taxonomy_command(dat, config, data):
+def get_taxonomy_command(self, dat, data):
     """
 
     Parameters
     ----------
+    self
     dat
-    config
     data
 
     Returns
@@ -203,131 +204,138 @@ def get_taxonomy_command(dat, config, data):
     """
     cmd = ''
     if data.tax[0] == 'wol':
-        cmd = run_taxonomy_wol(
-            config.force, data.data[''], data.tax[1],
-            data.tax[2], data.features)
+        cmd = run_taxonomy_wol(self, dat, data)
     elif data.tax[0] in ['amplicon', 'sklearn']:
-        if config.classifier:
-            cmd = run_taxonomy_amplicon(
-                dat, config.output_folder, config.force, data.data[''],
-                data.tax[1], data.tax[2], config.classifier)
+        if self.config.classifier:
+            cmd = run_taxonomy_amplicon(self, dat, data)
         else:
             print('No classifier passed for 16S data\nExiting...')
-    # and also add classyfire
     else:
-        cmd = run_taxonomy_others(
-            config.force, data.data[''], data.tax[1], data.tax[2])
+        cmd = run_taxonomy_others(self, dat, data)
     return cmd
 
 
-def run_taxonomy_wol(force: bool, biom: biom.Table, out_qza: str,
-                     out_tsv: str, cur_datasets_features: dict) -> str:
+def run_taxonomy_wol(self, dat, data) -> str:
     """
 
     Parameters
     ----------
-    force
-    biom
-    out_qza
-    out_tsv
-    cur_datasets_features
+    self
+    dat
+    data
 
     Returns
     -------
 
     """
     cmd = ''
-    if force or not isfile(out_qza):
+    out_qza, out_tsv, feats = data.tax[1], data.tax[2], data.features
+    if self.config.force or to_do(out_qza):
         g2lineage = parse_g2lineage()
-        rev_cur_datasets_features = dict(
-            (y, x) for x, y in cur_datasets_features.items())
-        if not isfile(out_tsv):
-            with open(out_tsv, 'w') as o:
+        feats_rev = dict((y, x) for x, y in feats.items())
+        if to_do(out_tsv):
+            with open(rep(out_tsv), 'w') as o:
                 o.write('Feature ID\tTaxon\n')
-                for feat in biom.ids(axis='observation'):
-                    if rev_cur_datasets_features[feat] in g2lineage:
-                        o.write('%s\t%s\n' % (
-                            feat, g2lineage[rev_cur_datasets_features[feat]]))
+                for feat in data.data[''].ids(axis='observation'):
+                    if feats_rev[feat] in g2lineage:
+                        o.write('%s\t%s\n' % (feat, g2lineage[feats_rev[feat]]))
                     else:
                         o.write('%s\t%s\n' % (feat, feat.replace('|', '; ')))
+        io_update(self, i_f=out_tsv, o_f=out_qza, key=dat)
         cmd = run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
     return cmd
 
 
-def run_taxonomy_amplicon(
-        dat: str, output_folder: str, force: bool, biom: biom.Table,
-        out_qza: str, out_tsv: str, classifier: str) -> str:
+def run_taxonomy_amplicon(self, dat: str, data) -> str:
     """
 
     Parameters
     ----------
+    self
     dat
-    output_folder
-    force
-    biom
-    out_qza
-    out_tsv
-    classifier
+    data
 
     Returns
     -------
 
     """
     cmd = ''
-    if isfile(out_tsv) and not isfile(out_qza):
+    out_qza, out_tsv = data.tax[1], data.tax[2]
+    if not to_do(out_tsv) and to_do(out_qza):
         cmd += run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
+        io_update(self, i_f=out_tsv, o_f=out_qza, key=dat)
     else:
-        ref_classifier_qza = get_taxonomy_classifier(classifier)
-        odir_seqs = '%s/sequences/%s' % (output_folder, dat)
-        if not isdir(odir_seqs):
-            os.makedirs(odir_seqs)
-        out_fp_seqs_fasta = '%s/%s.fasta' % (odir_seqs, dat)
-        out_fp_seqs_qza = '%s/%s.qza' % (odir_seqs, dat)
-        if force or not isfile(out_fp_seqs_qza):
-            cmd += write_fasta(out_fp_seqs_fasta, out_fp_seqs_qza, biom)
-        if force or not isfile(out_qza):
-            cmd += write_taxonomy_sklearn(out_qza, out_fp_seqs_qza,
-                                          ref_classifier_qza)
+        classifier_qza = get_taxonomy_classifier(self.config.classifier)
+        odir_seqs = '%s/sequences/%s' % (self.dir, dat)
+        seqs_fasta = '%s/%s.fasta' % (odir_seqs, dat)
+        seqs_qza = '%s/%s.qza' % (odir_seqs, dat)
+        self.dirs.add(odir_seqs)
+        if self.config.force or to_do(seqs_qza):
+            cmd += write_fasta(seqs_fasta, seqs_qza, data.data[''])
+            io_update(self, i_f=seqs_fasta, o_f=seqs_qza, key=dat)
+        if self.config.force or to_do(out_qza):
+            cmd += write_taxonomy_sklearn(classifier_qza, seqs_qza, out_qza)
             cmd += run_export(out_qza, out_tsv, '')
+            i_f = [classifier_qza]
+            if not to_do(seqs_qza):
+                i_f.append(seqs_fasta)
+            io_update(self, i_f=i_f, o_f=[out_qza, out_tsv], key=dat)
     return cmd
 
 
-def run_taxonomy_others(force: bool, biom: biom.Table,
-                        out_qza: str, out_tsv: str) -> str:
+def run_taxonomy_others(
+        self,
+        dat,
+        data
+) -> str:
     """
 
     Parameters
     ----------
-    force
-    biom
-    out_qza
-    out_tsv
+    self
+    dat
+    data
 
     Returns
     -------
 
     """
     cmd = ''
-    if force or not isfile(out_qza):
-        if not isfile(out_tsv):
-            with open(out_tsv, 'w') as o:
+    out_qza, out_tsv = data.tax[1], data.tax[2]
+    if self.config.force or to_do(out_qza):
+        if to_do(out_tsv):
+            with open(rep(out_tsv), 'w') as o:
                 o.write('Feature ID\tTaxon\n')
-                for feat in biom.ids(axis='observation'):
+                for feat in data.data[''].ids(axis='observation'):
                     o.write('%s\t%s\n' % (feat, feat))
         cmd = run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
+        io_update(self, i_f=out_tsv, o_f=out_qza, key=dat)
     return cmd
 
 
-def get_edit_taxonomy_command(data):
+def get_edit_taxonomy_command(self, dat, data):
+    """
+
+    Parameters
+    ----------
+    self
+    dat
+    data
+
+    Returns
+    -------
+
+    """
     cmd = ''
-    out_pd = pd.read_csv(data.tax[2], dtype=str, sep='\t')
+    tax_qza, tax_tsv = data.tax[1], data.tax[2]
+    out_pd = pd.read_csv(rep(tax_tsv), dtype=str, sep='\t')
     taxo = out_pd['Taxon'].tolist()
     taxo_edit = get_taxa_edit(taxo)
     if taxo != taxo_edit:
         out_pd['Taxon'] = taxo_edit
-        out_pd.to_csv(data.tax[2], index=False, sep='\t')
-        cmd = run_import(
-            data.tax[2], data.tax[1], 'FeatureData[Taxonomy]')
+        out_pd.to_csv(rep(tax_tsv), index=False, sep='\t')
+        cmd = run_import(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
+        io_update(self, i_f=tax_qza, o_f=tax_tsv, key=dat)
     return cmd
 
 
@@ -343,14 +351,14 @@ def get_taxa_edit(taxo):
     return taxo_edit
 
 
-def get_gids(features: dict, biom: biom.Table):
+def get_gids(features: dict, biom_table: biom.Table):
     """
 
     Parameters
     ----------
     features : dict
         Mapping genome -> feature
-    biom : biom.Table
+    biom_table : biom.Table
         BIOM table
 
     Returns
@@ -358,7 +366,7 @@ def get_gids(features: dict, biom: biom.Table):
     gid_features : dict
         Mapping genome -> feature
     """
-    data_feats = set(biom.ids(axis='observation'))
+    data_feats = set(biom_table.ids(axis='observation'))
     gid_features = dict(gid for gid in features.items() if gid[1] in data_feats)
     return gid_features
 
@@ -419,6 +427,8 @@ def get_split_taxa_index(split_taxa_pd: pd.DataFrame, header_index):
 
 
 def fix_collapsed_data(
+        self,
+        dat: str,
         remove_empty: set,
         coll_biom: biom.Table,
         coll_tsv: str,
@@ -428,6 +438,8 @@ def fix_collapsed_data(
     """
     Parameters
     ----------
+    self
+    dat : str
     remove_empty : set
     coll_biom : biom.Table
     coll_tsv : str
@@ -448,17 +460,18 @@ def fix_collapsed_data(
         coll_biom.filter(ids_to_keep=list(ids - remove_empty))
         coll_biom.remove_empty()
         coll_pd = coll_biom.to_dataframe(dense=True)
-        coll_pd.index.name = '#OTU ID'
-        coll_pd.to_csv(coll_tsv, index=True, sep='\t')
+        coll_pd.index.name = 'FeatureID'
+        coll_pd.to_csv(rep(coll_tsv), index=True, sep='\t')
 
-        coll_meta_pd = read_meta_pd(coll_meta)
+        coll_meta_pd = read_meta_pd(rep(coll_meta))
         if coll_meta_pd.index.size != coll_pd.columns.size:
             cmd += '# Feature metadata edited too: %s\n' % coll_meta
             coll_meta_pd = coll_meta_pd.loc[
                 coll_meta_pd.sample_name.isin(coll_pd.columns.tolist())]
-            coll_meta_pd.to_csv(coll_meta, index=False, sep='\t')
-    if not isfile(coll_qza):
+            coll_meta_pd.to_csv(rep(coll_meta), index=False, sep='\t')
+    if to_do(coll_qza):
         cmd += run_import(coll_tsv, coll_qza, 'FeatureTable[Frequency]')
+        io_update(self, i_f=coll_tsv, o_f=coll_qza, key=dat)
     return cmd
 
 

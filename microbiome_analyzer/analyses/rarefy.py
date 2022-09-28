@@ -16,7 +16,7 @@ np.set_printoptions(precision=2, suppress=True)
 def get_dat_depths(
         dat: str,
         depths_yml: dict,
-        output_folder: str,
+        folder: str,
         sam_sum: pd.Series) -> tuple:
     """
     Parameters
@@ -25,7 +25,7 @@ def get_dat_depths(
         Dataset name
     depths_yml : dist
         Mapping Dataset nanme -> Depths at which to rarefy
-    output_folder : str
+    folder : str
         Path to the output folder
     sam_sum : pd.Series
         Sum of reads per sample
@@ -39,7 +39,7 @@ def get_dat_depths(
     """
     skip = False
     if not depths_yml:
-        depths = get_default_raref_depth(dat, output_folder, sam_sum)
+        depths = get_default_raref_depth(dat, folder, sam_sum)
         depths_tuple = (0, depths)
     elif dat in depths_yml:
         skip, depths = get_depths(dat, depths_yml[dat], sam_sum)
@@ -52,14 +52,14 @@ def get_dat_depths(
 
 def get_default_raref_depth(
         dat: str,
-        output_folder: str,
+        folder: str,
         sam_sum: pd.Series):
     """
     Parameters
     ----------
     dat : str
         Dataset name
-    output_folder : str
+    folder : str
         Path to the output folder
     sam_sum : pd.Series
         Sum of reads per sample
@@ -69,8 +69,7 @@ def get_default_raref_depth(
     depths : list
         Rarefaction depths
     """
-    raref_files = glob.glob('%s/rarefy/%s/tab_raref*.qza' % (
-        output_folder, dat))
+    raref_files = glob.glob('%s/rarefy/%s/tab_raref*.qza' % (folder, dat))
     if len(raref_files):
         depths = [x.split('_raref')[-1].split('.tsv')[0] for x in raref_files]
     else:

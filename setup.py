@@ -62,7 +62,8 @@ setup(
         "plotly==4.8.2",
         "phate",
         "biom-format",
-        "seaborn"
+        "seaborn",
+        "Xhpc==2.7"
     ],
     classifiers=classifiers,
     entry_points={'console_scripts': standalone},

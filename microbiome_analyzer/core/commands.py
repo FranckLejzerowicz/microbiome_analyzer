@@ -11,6 +11,8 @@ import pandas as pd
 from os.path import basename, dirname, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
+from microbiome_analyzer._scratch import io_update, to_do, rep
+
 
 def run_import(
         input_path: str,
@@ -38,20 +40,20 @@ def run_import(
     if typ.startswith("FeatureTable"):
         if not input_path.endswith('biom'):
             infile = '%s.biom' % splitext(input_path)[0]
-            cmd += 'biom convert \\\n'
-            cmd += '  -i %s \\\n' % input_path
-            cmd += '  -o %s \\\n' % infile
-            cmd += '  --table-type="OTU table" \\\n'
-            cmd += '  --to-hdf5\n\n'
-        cmd += 'qiime tools import \\\n'
-        cmd += '  --input-path %s \\\n' % infile
-        cmd += '  --output-path %s \\\n' % output_path
-        cmd += '  --type "FeatureTable[Frequency]"\n'
+            cmd += 'biom convert'
+            cmd += ' -i %s' % input_path
+            cmd += ' -o %s' % infile
+            cmd += ' --table-type="OTU table"'
+            cmd += ' --to-hdf5\n'
+        cmd += 'qiime tools import'
+        cmd += ' --input-path %s' % infile
+        cmd += ' --output-path %s' % output_path
+        cmd += ' --type "FeatureTable[Frequency]"\n'
     else:
-        cmd += 'qiime tools import \\\n'
-        cmd += '  --input-path %s \\\n' % infile
-        cmd += '  --output-path %s \\\n' % output_path
-        cmd += '  --type "%s"\n' % typ
+        cmd += 'qiime tools import'
+        cmd += ' --input-path %s' % infile
+        cmd += ' --output-path %s' % output_path
+        cmd += ' --type "%s"\n' % typ
     return cmd
 
 
@@ -80,8 +82,8 @@ def run_export(
     inp = splitext(input_path)[0]
     out = splitext(output_path)[0]
 
-    cmd = 'qiime tools export \\\n'
-    cmd += '  --input-path %s \\\n' % input_path
+    cmd = 'qiime tools export'
+    cmd += '  --input-path %s' % input_path
     cmd += '  --output-path %s\n' % out
     if typ.startswith("FeatureTable"):
         if output_path.endswith('biom'):
@@ -91,8 +93,8 @@ def run_export(
             cur_biom = '%s.biom' % out
             cmd += 'mv %s/*.biom %s\n' % (out, cur_biom)
             cmd += 'biom convert'
-            cmd += '  -i %s \\\n' % cur_biom
-            cmd += '  -o %s.tmp \\\n' % output_path
+            cmd += '  -i %s' % cur_biom
+            cmd += '  -o %s.tmp' % output_path
             cmd += '  --to-tsv\n\n'
             cmd += 'tail -n +2 %s.tmp > %s\n\n' % (output_path, output_path)
             cmd += 'rm -rf %s %s.tmp\n' % (out, output_path)
@@ -129,17 +131,17 @@ def write_rarefy(
     -------
 
     """
-    cmd = 'qiime feature-table rarefy \\\n'
-    cmd += '--i-table %s \\\n' % qza
-    cmd += '--p-sampling-depth %s \\\n' % str(depth)
-    cmd += '--o-rarefied-table %s\n' % qza_out
+    cmd = 'qiime feature-table rarefy'
+    cmd += ' --i-table %s' % qza
+    cmd += ' --p-sampling-depth %s' % str(depth)
+    cmd += ' --o-rarefied-table %s\n' % qza_out
     return cmd
 
 
 def write_fasta(
-        out_fp_seqs_fasta: str,
-        out_fp_seqs_qza: str,
-        biom: biom.Table,
+        seqs_fasta: str,
+        seqs_qza: str,
+        biom_table: biom.Table,
         tsv_fp: str = ''
 ) -> str:
     """
@@ -147,17 +149,17 @@ def write_fasta(
 
     Parameters
     ----------
-    out_fp_seqs_fasta
-    out_fp_seqs_qza
-    biom
+    seqs_fasta
+    seqs_qza
+    biom_table
     tsv_fp
 
     Returns
     -------
 
     """
-    with open(out_fp_seqs_fasta, 'w') as fas_o:
-        for seq in biom.ids(axis='observation'):
+    with open(rep(seqs_fasta), 'w') as fas_o:
+        for seq in biom_table.ids(axis='observation'):
             fas_o.write('>%s\n%s\n' % (seq.strip(), seq.strip()))
     cmd = '# Write features as fasta file:\n'
     cmd += '#  - Features from: %s\n' % tsv_fp
@@ -167,15 +169,14 @@ def write_fasta(
     cmd += "#     for seq in tsv_pd.index:\n"
     cmd += "#         o.write('>%s\\n%s\\n' % (seq.strip(), seq.strip()))\n"
     cmd += '# ```:\n'
-    cmd += run_import(
-        out_fp_seqs_fasta, out_fp_seqs_qza, 'FeatureData[Sequence]')
+    cmd += run_import(seqs_fasta, seqs_qza, 'FeatureData[Sequence]')
     return cmd
 
 
 def write_taxonomy_sklearn(
-        out_qza: str,
-        out_fp_seqs_qza: str,
-        ref_classifier_qza: str
+        classifier_qza: str,
+        seqs_qza: str,
+        out_qza: str
 ) -> str:
     """
     Classify reads by taxon using a fitted classifier.
@@ -183,19 +184,19 @@ def write_taxonomy_sklearn(
 
     Parameters
     ----------
+    classifier_qza
+    seqs_qza
     out_qza
-    out_fp_seqs_qza
-    ref_classifier_qza
 
     Returns
     -------
 
     """
-    cmd = 'qiime feature-classifier classify-sklearn \\\n'
-    cmd += '--i-reads %s \\\n' % out_fp_seqs_qza
-    cmd += '--i-classifier %s \\\n' % ref_classifier_qza
-    cmd += '--p-n-jobs %s \\\n' % '4'
-    cmd += '--o-classification %s\n' % out_qza
+    cmd = 'qiime feature-classifier classify-sklearn'
+    cmd += ' --i-classifier %s' % classifier_qza
+    cmd += ' --i-reads %s' % seqs_qza
+    cmd += ' --p-n-jobs %s' % '4'
+    cmd += ' --o-classification %s\n' % out_qza
     return cmd
 
 
@@ -228,11 +229,11 @@ def write_collapse_taxo(
     """
     cmd = ''
     if not isfile(collapsed_qza):
-        cmd += 'qiime taxa collapse \\\n'
-        cmd += '--i-table %s \\\n' % tab_qza
-        cmd += '--i-taxonomy %s \\\n' % tax_qza
-        cmd += '--p-level %s \\\n' % level
-        cmd += '--o-collapsed-table %s\n\n' % collapsed_qza
+        cmd += 'qiime taxa collapse'
+        cmd += ' --i-table %s' % tab_qza
+        cmd += ' --i-taxonomy %s' % tax_qza
+        cmd += ' --p-level %s' % level
+        cmd += ' --o-collapsed-table %s\n\n' % collapsed_qza
     if remove_empty:
         tax_tmp = '%s_filtempty%s.tsv' % (splitext(tax_qza)[0], level)
         cmd += '\n# Metadata to remove empty/catch-all features: %s\n' % (
@@ -242,11 +243,11 @@ def write_collapse_taxo(
             for tax in remove_empty:
                 cmd += '#  - %s\n' % tax
                 o.write('%s\tremove\n' % tax)
-        cmd += '\n\nqiime feature-table filter-features \\\n'
-        cmd += '--i-table %s \\\n' % collapsed_qza
-        cmd += '--m-metadata-file %s \\\n' % tax_tmp
-        cmd += '--o-filtered-table %s2.qza \\\n' % collapsed_qza
-        cmd += '--p-exclude-ids\n'
+        cmd += '\n\nqiime feature-table filter-features'
+        cmd += ' --i-table %s' % collapsed_qza
+        cmd += ' --m-metadata-file %s' % tax_tmp
+        cmd += ' --o-filtered-table %s2.qza' % collapsed_qza
+        cmd += ' --p-exclude-ids\n'
         cmd += 'mv %s2.qza %s\n' % (collapsed_qza, collapsed_qza)
     if not isfile(collapsed_tsv):
         cmd += run_export(collapsed_qza, collapsed_tsv, 'FeatureTable')
@@ -256,6 +257,8 @@ def write_collapse_taxo(
 
 
 def write_collapse(
+        self,
+        dat: str,
         tab_qza: str,
         tax_qza: str,
         collapsed_qza: str,
@@ -269,55 +272,70 @@ def write_collapse(
 
     Parameters
     ----------
-    tab_qza
-    tax_qza
-    collapsed_qza
-    collapsed_tsv
-    meta_fp
-    collapsed_meta
-    level
-    remove_empty
+    self
+    dat : str
+    tab_qza : str
+    tax_qza : str
+    collapsed_qza : str
+    collapsed_tsv : str
+    meta_fp : str
+    collapsed_meta : str
+    level : int
+    remove_empty : set
 
     Returns
     -------
 
     """
     cmd = ''
-    if not isfile(collapsed_qza):
-        cmd += 'qiime taxa collapse \\\n'
-        cmd += '--i-table %s \\\n' % tab_qza
-        cmd += '--i-taxonomy %s \\\n' % tax_qza
-        cmd += '--p-level %s \\\n' % level
-        cmd += '--o-collapsed-table %s\n\n' % collapsed_qza
+    if to_do(collapsed_qza):
+        cmd += 'qiime taxa collapse'
+        cmd += ' --i-table %s' % tab_qza
+        cmd += ' --i-taxonomy %s' % tax_qza
+        cmd += ' --p-level %s' % level
+        cmd += ' --o-collapsed-table %s\n\n' % collapsed_qza
+        io_update(self, i_f=[tab_qza, tax_qza], o_f=collapsed_qza, key=dat)
+
     if remove_empty:
         tax_tmp = '%s_filtempty%s.tsv' % (splitext(tax_qza)[0], level)
         cmd += '\n# Metadata to remove empty/catch-all features: %s\n' % (
             tax_tmp)
-        with open(tax_tmp, 'w') as o:
+        with open(rep(tax_tmp), 'w') as o:
             o.write('Feature ID\tTaxon\n')
             for tax in remove_empty:
                 cmd += '#  - %s\n' % tax
                 o.write('%s\tremove\n' % tax)
-        cmd += '\n\nqiime feature-table filter-features \\\n'
-        cmd += '--i-table %s \\\n' % collapsed_qza
-        cmd += '--m-metadata-file %s \\\n' % tax_tmp
-        cmd += '--o-filtered-table %s2.qza \\\n' % collapsed_qza
-        cmd += '--p-exclude-ids\n'
+        cmd += '\n\nqiime feature-table filter-features'
+        cmd += ' --i-table %s' % collapsed_qza
+        cmd += ' --m-metadata-file %s' % tax_tmp
+        cmd += ' --o-filtered-table %s2.qza' % collapsed_qza
+        cmd += ' --p-exclude-ids\n'
         cmd += 'mv %s2.qza %s\n' % (collapsed_qza, collapsed_qza)
-    if not isfile(collapsed_tsv):
+        io_update(self, i_f=tax_tmp, o_f=collapsed_qza, key=dat)
+
+    if to_do(collapsed_tsv):
         cmd += run_export(collapsed_qza, collapsed_tsv, 'FeatureTable')
-    if not isfile(collapsed_meta):
+        if isfile(collapsed_qza):
+            io_update(self, i_f=collapsed_qza, o_f=collapsed_tsv, key=dat)
+        else:
+            io_update(self, o_f=collapsed_tsv, key=dat)
+
+    if to_do(collapsed_meta):
         cmd += 'cp %s %s\n' % (meta_fp, collapsed_meta)
+        io_update(self, i_f=meta_fp, o_f=collapsed_meta, key=dat)
+
     return cmd
 
 
 def write_sepp(
-        out_fp_seqs_qza: str,
-        ref_tree_qza: str,
-        out_fp_sepp_tree: str,
+        self,
+        dat: str,
+        seqs_qza: str,
+        tree_qza: str,
+        sepp_tree: str,
         qza: str,
         qza_in: str,
-        qza_in_tsv: str,
+        tsv_in: str,
         qza_out: str
 ) -> str:
     """
@@ -337,39 +355,47 @@ def write_sepp(
 
     Parameters
     ----------
-    out_fp_seqs_qza
-    ref_tree_qza
-    out_fp_sepp_tree
+    self
+    dat
+    seqs_qza
+    tree_qza
+    o_tree
     qza
     qza_in
-    qza_in_tsv
+    tsv_in
     qza_out
 
     Returns
     -------
 
     """
-    out_fp_sepp_plac = '%s/placements_%s' % (dirname(out_fp_sepp_tree),
-                                             basename(out_fp_sepp_tree))
+    plac = '%s/plac_%s' % (dirname(sepp_tree), basename(sepp_tree))
     cmd = ''
-    if not isfile(out_fp_sepp_tree):
-        cmd += 'qiime fragment-insertion sepp \\\n'
-        cmd += '--i-representative-sequences %s \\\n' % out_fp_seqs_qza
-        cmd += '--i-reference-database %s \\\n' % ref_tree_qza
-        cmd += '--o-tree %s \\\n' % out_fp_sepp_tree
-        cmd += '--o-placements %s \\\n' % out_fp_sepp_plac
-        cmd += '--p-threads 24\n'
-    if not isfile(qza_in_tsv):
-        cmd += 'qiime fragment-insertion filter-features \\\n'
-        cmd += '--i-table %s \\\n' % qza
-        cmd += '--i-tree %s \\\n' % out_fp_sepp_tree
-        cmd += '--o-filtered-table %s \\\n' % qza_in
-        cmd += '--o-removed-table %s\n' % qza_out
-        cmd += run_export(qza_in, qza_in_tsv, 'FeatureTable')
+    if to_do(o_tree):
+        cmd += 'qiime fragment-insertion sepp'
+        cmd += ' --i-representative-sequences %s' % seqs_qza
+        cmd += ' --i-reference-database %s' % tree_qza
+        cmd += ' --o-tree %s' % o_tree
+        cmd += ' --o-placements %s' % plac
+        cmd += ' --p-threads %s\n' % self.run_params['sepp']['cpus']
+        io_update(self, i_f=[seqs_qza, tree_qza], o_f=[o_tree, plac], key=dat)
+    if to_do(tsv_in):
+        cmd += 'qiime fragment-insertion filter-features'
+        cmd += ' --i-table %s' % qza
+        cmd += ' --i-tree %s' % o_tree
+        cmd += ' --o-filtered-table %s' % qza_in
+        cmd += ' --o-removed-table %s\n' % qza_out
+        cmd += run_export(qza_in, tsv_in, 'FeatureTable')
+        i_f = [qza]
+        if not to_do(o_tree):
+            i_f.append(o_tree)
+        io_update(self, i_f=i_f, o_f=[qza_in, qza_out, tsv_in], key=dat)
     return cmd
 
 
 def write_alpha(
+        self,
+        dat: str,
         qza: str,
         qza_out: str,
         datasets_phylo: list,
@@ -383,6 +409,8 @@ def write_alpha(
 
     Parameters
     ----------
+    self
+    dat
     qza
     qza_out
     datasets_phylo
@@ -393,22 +421,28 @@ def write_alpha(
     -------
 
     """
+    i_f = []
     if metric in ['faith_pd']:
-        if not datasets_phylo[0] or not trees or not isfile(trees[1]):
+        if not datasets_phylo[0] or not trees or to_do(trees[1]):
             return ''
-        cmd = 'qiime diversity alpha-phylogenetic \\\n'
+        cmd = 'qiime diversity alpha-phylogenetic'
         if datasets_phylo[1]:
-            cmd += '--i-table %s \\\n' % trees[0]
+            cmd += ' --i-table %s' % trees[0]
+            i_f.append(trees[0])
         else:
-            cmd += '--i-table %s \\\n' % qza
-        cmd += '--i-phylogeny %s \\\n' % trees[1]
-        cmd += '--p-metric %s \\\n' % metric
-        cmd += '--o-alpha-diversity %s\n' % qza_out
+            cmd += ' --i-table %s' % qza
+            i_f.append(qza)
+        cmd += ' --i-phylogeny %s' % trees[1]
+        i_f.append(trees[1])
+        cmd += ' --p-metric %s' % metric
+        cmd += ' --o-alpha-diversity %s\n' % qza_out
     else:
-        cmd = 'qiime diversity alpha \\\n'
-        cmd += '--i-table %s \\\n' % qza
-        cmd += '--p-metric %s \\\n' % metric
-        cmd += '--o-alpha-diversity %s\n\n' % qza_out
+        i_f.append(qza)
+        cmd = 'qiime diversity alpha'
+        cmd += ' --i-table %s' % qza
+        cmd += ' --p-metric %s' % metric
+        cmd += ' --o-alpha-diversity %s\n\n' % qza_out
+    io_update(self, i_f=i_f, o_f=qza_out, key=dat)
     return cmd
 
 
@@ -436,18 +470,18 @@ def write_filter(
 
     """
 
-    cmd = 'qiime feature-table filter-features \\\n'
-    cmd += '--i-table %s \\\n' % qza
-    cmd += '--m-metadata-file %s \\\n' % meta_subset
-    cmd += '--o-filtered-table %s\n\n' % qza_subset
+    cmd = 'qiime feature-table filter-features'
+    cmd += ' --i-table %s' % qza
+    cmd += ' --m-metadata-file %s' % meta_subset
+    cmd += ' --o-filtered-table %s\n\n' % qza_subset
     return cmd
 
 
 def write_barplots(
         qza: str,
-        qzv: str,
+        tax_qza: str,
         meta: str,
-        tax_qza: str
+        qzv: str
 ) -> str:
     """
     Visualize taxonomy with an interactive bar plot¶
@@ -460,19 +494,19 @@ def write_barplots(
     Parameters
     ----------
     qza
-    qzv
-    meta
     tax_qza
+    meta
+    qzv
 
     Returns
     -------
 
     """
-    cmd = 'qiime taxa barplot \\\n'
-    cmd += '--i-table %s \\\n' % qza
-    cmd += '--i-taxonomy %s \\\n' % tax_qza
-    cmd += '--m-metadata-file %s \\\n' % meta
-    cmd += '--o-visualization %s \\\n' % qzv
+    cmd = 'qiime taxa barplot'
+    cmd += ' --i-table %s' % qza
+    cmd += ' --i-taxonomy %s' % tax_qza
+    cmd += ' --m-metadata-file %s' % meta
+    cmd += ' --o-visualization %s' % qzv
     return cmd
 
 
@@ -494,10 +528,10 @@ def write_tabulate(
     -------
 
     """
-    cmd = 'qiime metadata tabulate \\\n'
-    cmd += '--o-visualization %s \\\n' % out_qza
+    cmd = 'qiime metadata tabulate'
+    cmd += ' --o-visualization %s' % out_qza
     for alpha in alphas:
-        cmd += '--m-input-file %s \\\n' % alpha[0]
+        cmd += ' --m-input-file %s' % alpha[0]
     cmd += '\n\n'
     return cmd
 
@@ -525,57 +559,66 @@ def write_alpha_correlation(
     -------
 
     """
-    cmd = 'qiime diversity alpha-correlation \\\n'
-    cmd += '--i-alpha-diversity %s \\\n' % qza
-    cmd += '--p-method %s \\\n' % method
-    cmd += '--m-metadata-file %s \\\n' % meta
-    cmd += '--o-visualization %s\n\n' % qzv
+    cmd = 'qiime diversity alpha-correlation'
+    cmd += ' --i-alpha-diversity %s' % qza
+    cmd += ' --p-method %s' % method
+    cmd += ' --m-metadata-file %s' % meta
+    cmd += ' --o-visualization %s\n\n' % qzv
     return cmd
 
 
 def write_alpha_rarefaction(
+        self,
+        dat: str,
         qza: str,
         qzv: str,
         metric: str,
-        phylo: tuple,
-        tree: tuple,
-        meta: str,
-        raref: str
+        raref: str,
+        data
 ) -> str:
     """
 
     Parameters
     ----------
+    self
+    dat
     qza
     qzv
     metric
-    phylo
-    tree
-    meta
-    raref
+    reref
+    data
 
     Returns
     -------
 
     """
-    cmd = 'qiime diversity alpha-rarefaction \\\n'
+    phylo = data.phylo
+    tree = data.tree
+
+    i_f = [data.meta]
+    cmd = 'qiime diversity alpha-rarefaction'
     if metric in ['faith_pd']:
         if not phylo[0] or not tree[-1]:
             return ''
         if phylo[1]:
-            cmd += '--i-table %s \\\n' % tree[0]
+            cmd += ' --i-table %s' % tree[0]
+            i_f.append(tree[0])
         else:
-            cmd += '--i-table %s \\\n' % qza
-        cmd += '--i-phylogeny %s \\\n' % tree[1]
+            cmd += ' --i-table %s' % qza
+            i_f.append(qza)
+        cmd += ' --i-phylogeny %s' % tree[1]
+        i_f.append(tree[1])
     else:
-        cmd += '--i-table %s \\\n' % qza
-    cmd += '--m-metadata-file %s \\\n' % meta
-    cmd += '--p-metrics %s \\\n' % metric
+        cmd += ' --i-table %s' % qza
+        i_f.append(qza)
+    cmd += ' --m-metadata-file %s' % data.meta
+    cmd += ' --p-metrics %s' % metric
     if raref:
-        cmd += '--p-max-depth %s \\\n' % raref.split('raref')[-1]
+        cmd += ' --p-max-depth %s' % raref.split('raref')[-1]
     else:
-        cmd += '--p-max-depth 5000 \\\n'
-    cmd += '--o-visualization %s\n\n' % qzv
+        cmd += ' --p-max-depth 5000'
+    cmd += ' --o-visualization %s\n\n' % qzv
+    io_update(self, i_f=i_f, o_f=qzv, key=dat)
     return cmd
 
 
@@ -610,21 +653,21 @@ def write_volatility(
     -------
 
     """
-    cmd = 'qiime longitudinal volatility \\\n'
-    cmd += '--m-metadata-file %s \\\n' % meta
-    cmd += '--p-state-column "%s" \\\n' % timepoint
-    cmd += '--p-individual-id-column "%s" \\\n' % host
-    cmd += '--o-visualization %s\n' % qzv
+    cmd = 'qiime longitudinal volatility'
+    cmd += ' --m-metadata-file %s' % meta
+    cmd += ' --p-state-column "%s"' % timepoint
+    cmd += ' --p-individual-id-column "%s"' % host
+    cmd += ' --o-visualization %s\n' % qzv
     return cmd
 
 
 def write_beta(
+        self,
+        dat: str,
         qza: str,
         dm_qza: str,
-        phylo: tuple,
         metric: str,
-        tree: tuple,
-        config
+        data
 ) -> str:
     """
     Computes a user-specified beta diversity metric for all pairs of samples
@@ -637,46 +680,60 @@ def write_beta(
 
     Parameters
     ----------
+    self
+    dat : str
     qza
     dm_qza
-    phylo
     metric
-    tree
-    config
+    data
 
     Returns
     -------
 
     """
+
+    phylo = data.phylo
+    tree = data.tree
+
+    i_f = []
     cmd = ''
     if 'unifrac' in metric:
-        if phylo[0] and tree[1] and isfile(tree[1]):
-            cmd += 'qiime diversity beta-phylogenetic \\\n'
+        if phylo[0] and tree[1] and not to_do(tree[1]):
+            cmd += 'qiime diversity beta-phylogenetic'
             if tree[0]:
-                cmd += '--i-table %s \\\n' % tree[0]
+                cmd += ' --i-table %s' % tree[0]
+                i_f.append(tree[0])
             else:
-                cmd += '--i-table %s \\\n' % qza
-            cmd += '--i-phylogeny %s \\\n' % tree[1]
+                cmd += ' --i-table %s' % qza
+                i_f.append(qza)
+            cmd += ' --i-phylogeny %s' % tree[1]
+            i_f.append(tree[1])
     else:
-        cmd = 'qiime diversity beta \\\n'
-        cmd += '--i-table %s \\\n' % qza
+        cmd = 'qiime diversity beta'
+        cmd += ' --i-table %s' % qza
+        i_f.append(qza)
     if cmd:
-        cmd += '--p-metric %s \\\n' % metric
-        n_nodes = config.run_params['beta']['n_nodes']
-        n_procs = config.run_params['beta']['n_procs']
-        if float(config.qiime_env.split('-')[1]) >= 2020.8 and 'phylo' in cmd:
-            cmd += '--p-threads %s \\\n' % (int(n_nodes) * int(n_procs))
+        cmd += ' --p-metric %s' % metric
+        nodes = self.config.run_params['beta']['nodes']
+        cpus = self.config.run_params['beta']['cpus']
+        qiime_env = self.config.qiime_env
+        if float(qiime_env.split('-')[1]) >= 2020.8 and 'phylo' in cmd:
+            cmd += ' --p-threads %s' % (int(nodes) * int(cpus))
         else:
-            cmd += '--p-n-jobs %s \\\n' % (int(n_nodes) * int(n_procs))
-        cmd += '--o-distance-matrix %s\n' % dm_qza
+            cmd += ' --p-n-jobs %s' % (int(nodes) * int(cpus))
+        cmd += ' --o-distance-matrix %s\n' % dm_qza
+        io_update(self, i_f=i_f, o_f=dm_qza, key=dat)
     return cmd
 
 
 def write_deicode(
+        self,
+        dat: str,
         qza: str,
         meta: str,
         new_qza: str,
         ordi: str,
+        ordi_tsv: str,
         dm_qza: str,
         qzv: str
 ) -> str:
@@ -687,10 +744,13 @@ def write_deicode(
 
     Parameters
     ----------
+    self
+    dat
     qza
     meta
     new_qza
     ordi
+    ordi_tsv
     dm_qza
     qzv
 
@@ -699,29 +759,44 @@ def write_deicode(
 
     """
     cmd = ''
-    if not isfile(new_qza):
-        cmd += 'qiime feature-table filter-samples \\\n'
-        cmd += '--i-table %s \\\n' % qza
-        cmd += '--m-metadata-file %s \\\n' % meta
-        cmd += '--o-filtered-table %s\n\n' % new_qza
-    if not isfile(ordi) or not isfile(dm_qza):
-        cmd += 'qiime deicode rpca \\\n'
-        cmd += '--i-table %s \\\n' % new_qza
-        # cmd += '--p-min-feature-count 10 \\\n'
-        # cmd += '--p-min-sample-count 500 \\\n'
-        cmd += '--p-n-components 2 \\\n'
-        cmd += '--o-biplot %s \\\n' % ordi
-        cmd += '--o-distance-matrix %s\n\n' % dm_qza
-    cmd += 'qiime emperor biplot \\\n'
-    cmd += '--i-biplot %s \\\n' % ordi
-    cmd += '--m-sample-metadata-file %s \\\n' % meta
-    cmd += '--o-visualization %s \\\n' % qzv
-    cmd += '--p-number-of-features 10\n\n'
+    if to_do(new_qza):
+        cmd += 'qiime feature-table filter-samples'
+        cmd += ' --i-table %s' % qza
+        cmd += ' --m-metadata-file %s' % meta
+        cmd += ' --o-filtered-table %s\n\n' % new_qza
+        io_update(self, i_f=[qza, meta], o_f=new_qza, key=dat)
+
+    if to_do(ordi) or to_do(dm_qza):
+        cmd += 'qiime deicode rpca'
+        cmd += ' --i-table %s' % new_qza
+        # cmd += ' --p-min-feature-count 10'
+        # cmd += ' --p-min-sample-count 500'
+        cmd += ' --p-n-components 2'
+        cmd += ' --o-biplot %s' % ordi
+        cmd += ' --o-distance-matrix %s\n\n' % dm_qza
+        if not to_do(new_qza):
+            io_update(self, i_f=new_qza, o_f=[ordi, dm_qza], key=dat)
+        else:
+            io_update(self, o_f=[ordi, dm_qza], key=dat)
+
+    cmd += 'qiime emperor biplot'
+    cmd += ' --i-biplot %s' % ordi
+    cmd += ' --m-sample-metadata-file %s' % meta
+    cmd += ' --o-visualization %s' % qzv
+    cmd += ' --p-number-of-features 10\n\n'
     cmd += 'rm %s %s\n\n' % (meta, new_qza)
+    cmd += run_export(ordi, ordi_tsv, 'pcoa')
+    if not to_do(ordi):
+        io_update(self, i_f=[ordi, meta], o_f=[qzv, ordi_tsv], key=dat)
+    else:
+        io_update(self, i_f=meta, o_f=[qzv, ordi_tsv], key=dat)
+
     return cmd
 
 
 def write_pcoa(
+        self,
+        dat: str,
         dm: str,
         dm_filt: str,
         meta: str,
@@ -735,6 +810,8 @@ def write_pcoa(
 
     Parameters
     ----------
+    self
+    dat : str
     dm
     dm_filt
     meta
@@ -748,22 +825,29 @@ def write_pcoa(
     """
     cmd = ''
     if group != 'ALL':
-        cmd += 'qiime diversity filter-distance-matrix \\\n'
-        cmd += '--i-distance-matrix %s \\\n' % dm
-        cmd += '--m-metadata-file %s \\\n' % meta_met
-        cmd += '--o-filtered-distance-matrix %s\n' % dm_filt
+        cmd += 'qiime diversity filter-distance-matrix'
+        cmd += ' --i-distance-matrix %s' % dm
+        cmd += ' --m-metadata-file %s' % meta_met
+        cmd += ' --o-filtered-distance-matrix %s\n' % dm_filt
     else:
         dm_filt = dm
-    cmd += 'qiime diversity pcoa \\\n'
-    cmd += '--i-distance-matrix %s \\\n' % dm_filt
-    cmd += '--o-pcoa %s\n\n' % pcoa
+
+    cmd += 'qiime diversity pcoa'
+    cmd += ' --i-distance-matrix %s' % dm_filt
+    cmd += ' --o-pcoa %s\n\n' % pcoa
     if group != 'ALL':
         cmd += 'rm %s\n\n' % dm_filt
     cmd += 'mv %s %s.tsv\n\n' % (meta_met, meta)
+    cmd += run_export(pcoa, pcoa_tsv, 'pcoa')
+
+    io_update(self, i_f=[dm, meta_met], o_f=[pcoa, pcoa_tsv, meta], key=dat)
+
     return cmd
 
 
 def write_biplot(
+        self,
+        dat:str,
         tsv: str,
         qza: str,
         meta: str,
@@ -778,6 +862,8 @@ def write_biplot(
 
     Parameters
     ----------
+    self
+    dat
     tsv
     qza
     meta
@@ -791,9 +877,9 @@ def write_biplot(
 
     """
     cmd = ''
-    if isfile(tax):
+    if not to_do(tax):
         tax_dict = {}
-        with open(tax) as f, open(biplot_tax, 'w') as o_tax:
+        with open(rep(tax)) as f, open(rep(biplot_tax), 'w') as o_tax:
             o_tax.write('Feature ID\tTaxon\tPrevious ID\n')
             n = 0
             for ldx, line in enumerate(f):
@@ -806,7 +892,7 @@ def write_biplot(
                     o_tax.write('%s\t%s\t%s\n' % (new, new, line_split[0]))
                     n += 1
         tab_tsv = '%s_table.tsv' % splitext(biplot)[0]
-        with open(tsv) as f, open(tab_tsv, 'w') as o_tab:
+        with open(rep(tsv)) as f, open(rep(tab_tsv), 'w') as o_tab:
             for ldx, line in enumerate(f):
                 t = line.strip().split('\t')
                 if t[0] in tax_dict:
@@ -815,29 +901,34 @@ def write_biplot(
                     o_tab.write(line)
         tab_qza = '%s.qza' % splitext(tab_tsv)[0]
         cmd += run_import(tab_tsv, tab_qza, 'FeatureTable[Frequency]')
+        io_update(self, i_f=tab_tsv, key=dat)
     else:
         tab_qza = qza
+        io_update(self, i_f=qza, key=dat)
 
     tab_rel_qza_tmp = '%s_rel_tmp.qza' % splitext(tab_qza)[0]
     tab_rel_qza = '%s_rel.qza' % splitext(tab_qza)[0]
 
-    cmd += '\nqiime feature-table relative-frequency \\\n'
-    cmd += '--i-table %s \\\n' % tab_qza
-    cmd += '--o-relative-frequency-table %s\n\n' % tab_rel_qza_tmp
-    cmd += '\nqiime feature-table filter-samples \\\n'
-    cmd += '--i-table %s \\\n' % tab_rel_qza_tmp
-    cmd += '--m-metadata-file %s.tsv \\\n' % meta
-    cmd += '--o-filtered-table %s\n\n' % tab_rel_qza
+    cmd += '\nqiime feature-table relative-frequency'
+    cmd += ' --i-table %s' % tab_qza
+    cmd += ' --o-relative-frequency-table %s\n\n' % tab_rel_qza_tmp
+    cmd += '\nqiime feature-table filter-samples'
+    cmd += ' --i-table %s' % tab_rel_qza_tmp
+    cmd += ' --m-metadata-file %s.tsv' % meta
+    cmd += ' --o-filtered-table %s\n\n' % tab_rel_qza
 
-    cmd += 'qiime diversity pcoa-biplot \\\n'
-    cmd += '--i-pcoa %s \\\n' % pcoa
-    cmd += '--i-features %s \\\n' % tab_rel_qza
-    cmd += '--o-biplot %s\n\n' % biplot
+    cmd += 'qiime diversity pcoa-biplot'
+    cmd += ' --i-pcoa %s' % pcoa
+    cmd += ' --i-features %s' % tab_rel_qza
+    cmd += ' --o-biplot %s\n\n' % biplot
 
     cmd += 'rm %s %s\n' % (tab_rel_qza_tmp, tab_rel_qza)
 
     out_biplot_txt = '%s.txt' % splitext(biplot)[0]
     cmd += run_export(biplot, out_biplot_txt, 'biplot')
+
+    io_update(self, i_f=[meta, pcoa], o_f=[biplot, out_biplot_txt], key=dat)
+
     return cmd
 
 
@@ -861,14 +952,16 @@ def write_emperor(
     -------
 
     """
-    cmd = 'qiime emperor plot \\\n'
-    cmd += '--i-pcoa %s \\\n' % pcoa
-    cmd += '--m-metadata-file %s \\\n' % meta
-    cmd += '--o-visualization %s\n\n' % qzv
+    cmd = 'qiime emperor plot'
+    cmd += ' --i-pcoa %s' % pcoa
+    cmd += ' --m-metadata-file %s' % meta
+    cmd += ' --o-visualization %s\n\n' % qzv
     return cmd
 
 
 def write_emperor_biplot(
+        self,
+        dat: str,
         biplot: str,
         biplot_tax: str,
         meta: str,
@@ -882,6 +975,8 @@ def write_emperor_biplot(
 
     Parameters
     ----------
+    self
+    dat
     biplot
     biplot_tax
     meta
@@ -894,27 +989,33 @@ def write_emperor_biplot(
     """
     cmd = ''
     biplot_txt = '%s.txt' % splitext(biplot)[0]
-    if isfile(biplot_txt):
-        ordi = OrdinationResults.read(biplot_txt)
+    if not to_do(biplot_txt):
+        ordi = OrdinationResults.read(rep(biplot_txt))
         ordi.features = ordi.features.iloc[:, :3]
         ordi.samples = ordi.samples.iloc[:, :3]
         ordi.eigvals = ordi.eigvals[:3]
         ordi.proportion_explained = ordi.proportion_explained[:3]
-        ordi.write(biplot_txt)
+        ordi.write(rep(biplot_txt))
     cmd += run_import(biplot_txt, biplot, "PCoAResults % Properties('biplot')")
-    cmd += 'qiime emperor biplot \\\n'
-    cmd += '--i-biplot %s \\\n' % biplot
-    cmd += '--m-sample-metadata-file %s \\\n' % meta
-    if isfile(biplot_tax):
-        cmd += '--m-feature-metadata-file %s \\\n' % biplot_tax
-    cmd += '--p-number-of-features 10 \\\n'
-    cmd += '--o-visualization %s\n' % qzv
+    cmd += 'qiime emperor biplot'
+    cmd += ' --i-biplot %s' % biplot
+    cmd += ' --m-sample-metadata-file %s' % meta
+    i_f = [biplot_txt, meta]
+    if not to_do(biplot_tax):
+        cmd += ' --m-feature-metadata-file %s' % biplot_tax
+        i_f.append(biplot_tax)
+    cmd += ' --p-number-of-features 10'
+    cmd += ' --o-visualization %s\n' % qzv
     # if isfile(biplot_tax):
     #     cmd += 'rm %s\n' % tax_tmp
+    io_update(self, i_f=i_f, o_f=qzv, key=dat)
+
     return cmd
 
 
 def write_empress(
+        self,
+        dat: str,
         qza: str,
         pcoa_biplot: str,
         qzv: str,
@@ -926,6 +1027,8 @@ def write_empress(
 
     Parameters
     ----------
+    self
+    dat
     qza
     pcoa_biplot
     qzv
@@ -938,6 +1041,8 @@ def write_empress(
 
     """
     cmd = ''
+
+    i_f = [tree[1], meta]
     if '/biplot' in pcoa_biplot:
         biplot_txt = '%s.txt' % splitext(pcoa_biplot)[0]
         if isfile(biplot_txt):
@@ -949,24 +1054,33 @@ def write_empress(
             ordi.write(biplot_txt)
         cmd += run_import(
             biplot_txt, pcoa_biplot, "PCoAResults % Properties('biplot')")
-
-    cmd += 'qiime empress community-plot \\\n'
-    cmd += '--i-tree %s \\\n' % tree[1]
-    cmd += '--i-pcoa %s \\\n' % pcoa_biplot
-    if tree[0]:
-        cmd += '--i-feature-table %s \\\n' % tree[0]
+        i_f.append(biplot_txt)
     else:
-        cmd += '--i-feature-table %s \\\n' % qza
-    cmd += '--m-sample-metadata-file %s \\\n' % meta
+        i_f.append(pcoa_biplot)
+
+    cmd += 'qiime empress community-plot'
+    cmd += ' --i-tree %s' % tree[1]
+    cmd += ' --i-pcoa %s' % pcoa_biplot
+    if tree[0]:
+        cmd += ' --i-feature-table %s' % tree[0]
+        i_f.append(tree[0])
+    else:
+        cmd += ' --i-feature-table %s' % qza
+        i_f.append(qza)
+    cmd += ' --m-sample-metadata-file %s' % meta
     for feat_meta in feat_metas:
-        cmd += '--m-feature-metadata-file %s \\\n' % feat_meta
-    cmd += '--p-number-of-features 15 \\\n'
-    cmd += '--p-filter-extra-samples \\\n'
-    cmd += '--o-visualization %s\n' % qzv
+        cmd += ' --m-feature-metadata-file %s' % feat_meta
+        i_f.append(feat_meta)
+    cmd += ' --p-number-of-features 15'
+    cmd += ' --p-filter-extra-samples'
+    cmd += ' --o-visualization %s\n' % qzv
+    io_update(self, i_f=i_f, o_f=qzv, key=dat)
     return cmd
 
 
 def write_permanova_permdisp(
+        self,
+        dat: str,
         meta: str,
         test: str,
         typ: str,
@@ -982,6 +1096,8 @@ def write_permanova_permdisp(
 
     Parameters
     ----------
+    self
+    dat
     meta
     test
     typ
@@ -995,25 +1111,35 @@ def write_permanova_permdisp(
 
     """
     cmd = ''
-    if not isfile(dm_filt):
-        cmd += 'qiime diversity filter-distance-matrix \\\n'
-        cmd += '--i-distance-matrix %s \\\n' % dm
-        cmd += '--m-metadata-file %s \\\n' % meta
-        cmd += '--o-filtered-distance-matrix %s\n\n' % dm_filt
-    if not isfile(qzv):
-        cmd += 'qiime diversity beta-group-significance \\\n'
-        cmd += '--i-distance-matrix %s \\\n' % dm_filt
-        cmd += '--p-method %s \\\n' % typ
-        cmd += '--m-metadata-file %s \\\n' % meta
-        cmd += '--m-metadata-column "%s" \\\n' % test
-        cmd += '--p-permutations 499 \\\n'
-        cmd += '--o-visualization %s\n\n' % qzv
-    if not isfile(html):
+    if to_do(dm_filt):
+        cmd += 'qiime diversity filter-distance-matrix'
+        cmd += ' --i-distance-matrix %s' % dm
+        cmd += ' --m-metadata-file %s' % meta
+        cmd += ' --o-filtered-distance-matrix %s\n\n' % dm_filt
+        io_update(self, i_f=[dm, meta], i_o=dm_filt, key=dat)
+    else:
+        io_update(self, i_f=dm_filt, key=dat)
+
+    if to_do(qzv) or to_do(html):
+        cmd += 'qiime diversity beta-group-significance'
+        cmd += ' --i-distance-matrix %s' % dm_filt
+        cmd += ' --p-method %s' % typ
+        cmd += ' --m-metadata-file %s' % meta
+        cmd += ' --m-metadata-column "%s"' % test
+        cmd += ' --p-permutations 499'
+        cmd += ' --o-visualization %s\n\n' % qzv
         cmd += run_export(qzv, html, 'perms')
+        i_f = [meta]
+        if isfile(dm_filt):
+            i_f.append(dm_filt)
+        io_update(self, i_f=i_f, i_o=[qzv, html], key=dat)
+
     return cmd
 
 
 def write_adonis(
+        self,
+        dat: str,
         meta: str,
         formula: str,
         variables: list,
@@ -1026,6 +1152,8 @@ def write_adonis(
 
     Parameters
     ----------
+    self
+    dat
     meta
     formula
     variables
@@ -1038,13 +1166,14 @@ def write_adonis(
     -------
 
     """
+    i_f = [meta]
     n_perm = '499'
     r_script = []
     for line in template:
         l = line
         if 'NAME_METRIC' in line:
             for (dm, _, me) in dms_metrics:
-                if not isfile(dm):
+                if to_do(dm):
                     continue
                 if stratas:
                     for strata in stratas:
@@ -1071,11 +1200,12 @@ def write_adonis(
                         'PERMUTATIONS', '')
         elif 'METRIC' in line:
             for (dm, _, me) in dms_metrics:
-                if not isfile(dm):
+                if to_do(dm):
                     continue
                 l = l.replace(
                     'METRIC', me).replace(
                     'DM_FP', '%s.tsv' % splitext(dm)[0])
+                i_f.append('%s.tsv' % splitext(dm)[0])
         elif 'META_FP' in line:
             l = l.replace('META_FP', meta)
         elif 'NPERM' in line:
@@ -1085,10 +1215,13 @@ def write_adonis(
         elif 'OUT' in line:
             l = l.replace('OUT', out)
         r_script.append(l)
+    io_update(self, i_f=i_f, o_f=out, key=dat)
     return r_script
 
 
 def write_tsne(
+        self,
+        dat: str,
         dm: str,
         dm_filt: str,
         meta: str,
@@ -1100,6 +1233,8 @@ def write_tsne(
 
     Parameters
     ----------
+    self
+    dat : str
     dm
     dm_filt
     meta
@@ -1113,28 +1248,35 @@ def write_tsne(
     """
     cmd = ''
     if group != 'ALL':
-        cmd += 'qiime diversity filter-distance-matrix \\\n'
-        cmd += '--i-distance-matrix %s \\\n' % dm
-        cmd += '--m-metadata-file %s \\\n' % meta_met
-        cmd += '--o-filtered-distance-matrix %s\n' % dm_filt
+        cmd += 'qiime diversity filter-distance-matrix'
+        cmd += ' --i-distance-matrix %s' % dm
+        cmd += ' --m-metadata-file %s' % meta_met
+        cmd += ' --o-filtered-distance-matrix %s\n' % dm_filt
     else:
         dm_filt = dm
+
     perplexity = '25'
     learning_rate = '200'
     early_exaggeration = '10'
-    cmd += 'qiime diversity tsne \\\n'
-    cmd += '--i-distance-matrix %s \\\n' % dm_filt
-    cmd += '--p-perplexity %s \\\n' % perplexity
-    cmd += '--p-learning-rate %s \\\n' % learning_rate
-    cmd += '--p-early-exaggeration %s \\\n' % early_exaggeration
-    cmd += '--o-tsne %s\n\n' % tsne
+    cmd += 'qiime diversity tsne'
+    cmd += ' --i-distance-matrix %s' % dm_filt
+    cmd += ' --p-perplexity %s' % perplexity
+    cmd += ' --p-learning-rate %s' % learning_rate
+    cmd += ' --p-early-exaggeration %s' % early_exaggeration
+    cmd += ' --o-tsne %s\n\n' % tsne
     if group != 'ALL':
         cmd += 'rm %s\n\n' % dm_filt
     cmd += 'mv %s %s.tsv\n\n' % (meta_met, meta)
+    cmd += run_export(tsne, tsne_tsv, 'pcoa')
+
+    io_update(self, i_f=[dm, meta_met], o_f=[tsne, tsne_tsv, meta], key=dat)
+
     return cmd
 
 
 def write_umap(
+        self,
+        dat: str,
         dm: str,
         dm_filt: str,
         meta: str,
@@ -1146,6 +1288,8 @@ def write_umap(
 
     Parameters
     ----------
+    self
+    dat : str
     dm
     dm_filt
     meta
@@ -1159,26 +1303,34 @@ def write_umap(
     """
     cmd = ''
     if group != 'ALL':
-        cmd += 'qiime diversity filter-distance-matrix \\\n'
-        cmd += '--i-distance-matrix %s \\\n' % dm
-        cmd += '--m-metadata-file %s \\\n' % meta_met
-        cmd += '--o-filtered-distance-matrix %s\n' % dm_filt
+        cmd += 'qiime diversity filter-distance-matrix'
+        cmd += ' --i-distance-matrix %s' % dm
+        cmd += ' --m-metadata-file %s' % meta_met
+        cmd += ' --o-filtered-distance-matrix %s\n' % dm_filt
     else:
         dm_filt = dm
+
     n_neighbors = '15'
     min_dist = '0.4'
-    cmd += 'qiime diversity umap \\\n'
-    cmd += '--i-distance-matrix %s \\\n' % dm_filt
-    cmd += '--p-n-neighbors %s \\\n' % n_neighbors
-    cmd += '--p-min-dist %s \\\n' % min_dist
-    cmd += '--o-umap %s\n\n' % umap
+    cmd += 'qiime diversity umap'
+    cmd += ' --i-distance-matrix %s' % dm_filt
+    cmd += ' --p-n-neighbors %s' % n_neighbors
+    cmd += ' --p-min-dist %s' % min_dist
+    cmd += ' --o-umap %s\n\n' % umap
     if group != 'ALL':
         cmd += 'rm %s\n\n' % dm_filt
     cmd += 'mv %s %s.tsv\n\n' % (meta_met, meta)
+    cmd += run_export(umap, umap_tsv, 'pcoa')
+
+    io_update(self, i_f=[dm, meta_met], o_f=[umap, umap_tsv, meta], key=dat)
+
     return cmd
 
 
 def write_procrustes(
+        self,
+        dat1: str,
+        dat2: str,
         meta_fp: str,
         meta_me: str,
         d1: str,
@@ -1193,6 +1345,9 @@ def write_procrustes(
 
     Parameters
     ----------
+    self
+    dat1 : str
+    dat2 : str
     meta_fp
     meta_me
     d1
@@ -1211,41 +1366,49 @@ def write_procrustes(
     pcoa_out2 = '%s_pcoa.qza' % splitext(d2f)[0]
     ref_pcoa = '%s_ref.qza' % splitext(pcoa_out1)[0]
     oth_pcoa = '%s_oth.qza' % splitext(pcoa_out2)[0]
-    cmd = '\nqiime diversity filter-distance-matrix \\\n'
-    cmd += '--m-metadata-file %s \\\n' % meta_me
-    cmd += '--i-distance-matrix %s \\\n' % d1
-    cmd += '--o-filtered-distance-matrix %s\n' % d1f
-    cmd += '\nqiime diversity filter-distance-matrix \\\n'
-    cmd += '--m-metadata-file %s \\\n' % meta_me
-    cmd += '--i-distance-matrix %s \\\n' % d2
-    cmd += '--o-filtered-distance-matrix %s\n' % d2f
-    cmd += '\nqiime diversity pcoa \\\n'
-    cmd += '--i-distance-matrix %s \\\n' % d1f
-    cmd += '--o-pcoa %s\n' % pcoa_out1
-    cmd += '\nqiime diversity pcoa \\\n'
-    cmd += '--i-distance-matrix %s \\\n' % d2f
-    cmd += '--o-pcoa %s\n' % pcoa_out2
-    cmd += '\nqiime diversity procrustes-analysis \\\n'
-    cmd += '--i-reference %s \\\n' % pcoa_out1
-    cmd += '--i-other %s \\\n' % pcoa_out2
-    cmd += '--o-disparity-results %s \\\n' % dis
-    cmd += '--o-transformed-reference %s \\\n' % ref_pcoa
-    cmd += '--o-transformed-other %s\n' % oth_pcoa
-    cmd += '\nqiime emperor procrustes-plot \\\n'
-    cmd += '--i-reference-pcoa %s \\\n' % ref_pcoa
-    cmd += '--i-other-pcoa %s \\\n' % oth_pcoa
-    cmd += '--m-metadata-file %s \\\n' % meta_me
-    cmd += '--o-visualization %s\n' % qzv
-    cmd += 'mv %s %s.tsv\n' % (meta_me, meta_fp)
+    cmd = '\nqiime diversity filter-distance-matrix'
+    cmd += ' --m-metadata-file %s' % meta_me
+    cmd += ' --i-distance-matrix %s' % d1
+    cmd += ' --o-filtered-distance-matrix %s\n' % d1f
+    cmd += '\nqiime diversity filter-distance-matrix'
+    cmd += ' --m-metadata-file %s' % meta_me
+    cmd += ' --i-distance-matrix %s' % d2
+    cmd += ' --o-filtered-distance-matrix %s\n' % d2f
+    cmd += '\nqiime diversity pcoa'
+    cmd += ' --i-distance-matrix %s' % d1f
+    cmd += ' --o-pcoa %s\n' % pcoa_out1
+    cmd += '\nqiime diversity pcoa'
+    cmd += ' --i-distance-matrix %s' % d2f
+    cmd += ' --o-pcoa %s\n' % pcoa_out2
+    cmd += '\nqiime diversity procrustes-analysis'
+    cmd += ' --i-reference %s' % pcoa_out1
+    cmd += ' --i-other %s' % pcoa_out2
+    cmd += ' --o-disparity-results %s' % dis
+    cmd += ' --o-transformed-reference %s' % ref_pcoa
+    cmd += ' --o-transformed-other %s\n' % oth_pcoa
+    cmd += '\nqiime emperor procrustes-plot'
+    cmd += ' --i-reference-pcoa %s' % ref_pcoa
+    cmd += ' --i-other-pcoa %s' % oth_pcoa
+    cmd += ' --m-metadata-file %s' % meta_me
+    cmd += ' --o-visualization %s\n' % qzv
+    meta_out = '%s.tsv' % meta_fp
+    cmd += 'mv %s %s\n' % (meta_me, meta_out)
     cmd += run_export(dis, tsv, '')
     cmd += 'rm %s %s %s %s %s %s %s\n' % (
         pcoa_out1, pcoa_out2, ref_pcoa, oth_pcoa, d1f, d2f, dis)
+
+    dat = '%s__%s' % (dat1, dat2)
+    io_update(self, i_f=[meta_me, d1, d2], o_f=[meta_out, qzv, tsv], key=dat)
+
     return cmd
 
 
 def write_mantel(
+        self,
         dat1: str,
+        r1: str,
         dat2: str,
+        r2: str,
         meta_fp: str,
         meta_met: str,
         d1: str,
@@ -1259,8 +1422,11 @@ def write_mantel(
 
     Parameters
     ----------
-    dat1
-    dat2
+    self
+    dat1 : str
+    r1 : str
+    dat2 : str
+    r2 : str
     meta_fp
     meta_met
     d1
@@ -1274,28 +1440,34 @@ def write_mantel(
     -------
 
     """
-    cmd = '\nqiime diversity filter-distance-matrix \\\n'
-    cmd += '--m-metadata-file %s \\\n' % meta_met
-    cmd += '--i-distance-matrix %s \\\n' % d1
-    cmd += '--o-filtered-distance-matrix %s\n' % d1f
-    cmd += '\nqiime diversity filter-distance-matrix \\\n'
-    cmd += '--m-metadata-file %s \\\n' % meta_met
-    cmd += '--i-distance-matrix %s \\\n' % d2
-    cmd += '--o-filtered-distance-matrix %s\n' % d2f
-    cmd += '\nqiime diversity mantel \\\n'
-    cmd += '--i-dm1 %s \\\n' % d1f
-    cmd += '--i-dm2 %s \\\n' % d2f
-    cmd += '--p-label1 %s \\\n' % dat1
-    cmd += '--p-label2 %s \\\n' % dat2
-    cmd += '--o-visualization %s\n' % qzv
+    cmd = '\nqiime diversity filter-distance-matrix'
+    cmd += ' --m-metadata-file %s' % meta_met
+    cmd += ' --i-distance-matrix %s' % d1
+    cmd += ' --o-filtered-distance-matrix %s\n' % d1f
+    cmd += '\nqiime diversity filter-distance-matrix'
+    cmd += ' --m-metadata-file %s' % meta_met
+    cmd += ' --i-distance-matrix %s' % d2
+    cmd += ' --o-filtered-distance-matrix %s\n' % d2f
+    cmd += '\nqiime diversity mantel'
+    cmd += ' --i-dm1 %s' % d1f
+    cmd += ' --i-dm2 %s' % d2f
+    cmd += ' --p-label1 %s' % (dat1 + r1)
+    cmd += ' --p-label2 %s' % (dat2 + r2)
+    cmd += ' --o-visualization %s\n' % qzv
     cmd += run_export(qzv, html, 'mantel')
     cmd += 'rm %s %s %s\n' % (qzv, d1f, d2f)
-    cmd += 'mv %s %s.tsv\n' % (meta_met, meta_fp)
+    meta_out = '%s.tsv' % meta_fp
+    cmd += 'mv %s %s' % (meta_met, meta_out)
+
+    dat = '%s__%s' % (dat1, dat2)
+    io_update(self, i_f=[meta_met, d1, d2], o_f=[meta_out, qzv, html], key=dat)
+
     return cmd
 
 
 def write_phate(
-        config,
+        self,
+        dat: str,
         qza: str,
         new_qza: str,
         new_tsv: str,
@@ -1303,39 +1475,44 @@ def write_phate(
         html: str
 ) -> str:
     cmd = ''
-    if not isfile(new_tsv):
-        cmd += '\nqiime feature-table filter-samples \\\n'
-        cmd += '--i-table %s \\\n' % qza
-        cmd += '--m-metadata-file %s \\\n' % meta
-        cmd += '--o-filtered-table %s\n' % new_qza
+    if to_do(new_tsv):
+        cmd += '\nqiime feature-table filter-samples'
+        cmd += ' --i-table %s' % qza
+        cmd += ' --m-metadata-file %s' % meta
+        cmd += ' --o-filtered-table %s\n' % new_qza
         cmd += run_export(new_qza, new_tsv, 'FeatureTable')
         cmd += 'rm %s %s\n' % (new_qza, new_qza.replace('.qza', '.biom'))
+        io_update(self, i_f=qza, key=dat)
 
-    cmd += '\nXphate \\\n'
-    cmd += '--i-table %s \\\n' % new_tsv
-    cmd += '--m-metadata %s \\\n' % meta
-    cmd += '--o-html %s \\\n' % html
-    if 'labels' in config.phate:
-        for label in config.phate['labels']:
-            cmd += '--p-labels %s \\\n' % label
-    # cmd += '-fp %s \\\n' % fp
-    # cmd += '-fa %s \\\n' % fa
-    n_nodes = config.run_params['beta']['n_nodes']
-    n_procs = config.run_params['beta']['n_procs']
-    cmd += '--p-cpus %s \\\n' % (int(n_nodes) * int(n_procs))
+    cmd += '\nXphate'
+    cmd += ' --i-table %s' % new_tsv
+    cmd += ' --m-metadata %s' % meta
+    cmd += ' --o-html %s' % html
+    if 'labels' in self.config.phate:
+        for label in self.config.phate['labels']:
+            cmd += ' --p-labels %s' % label
+    # cmd += '-fp %s' % fp
+    # cmd += '-fa %s' % fa
+    nodes = self.config.run_params['beta']['nodes']
+    cpus = self.config.run_params['beta']['cpus']
+    cmd += ' --p-cpus %s' % (int(nodes) * int(cpus))
 
     params = {'t': (None,), 'decay': (15,), 'knn': (5,)}
     for k, vs_ in params.items():
-        if 'params' in config.phate and k in config.phate['params']:
-            vs = config.phate['params'][k]
+        if 'params' in self.config.phate and k in self.config.phate['params']:
+            vs = self.config.phate['params'][k]
         else:
             vs = vs_
         for v in vs:
             if v:
-                cmd += '--p-%ss %s \\\n' % (k, v)
-    cmd += '--no-clusters \\\n'
-    cmd += '--separate \\\n'
-    cmd += '--verbose\n\n'
+                cmd += ' --p-%ss %s' % (k, v)
+    cmd += ' --no-clusters'
+    cmd += ' --separate'
+    cmd += ' --verbose\n\n'
+    i_f = [meta]
+    if not to_do(new_tsv):
+        i_f.append(new_tsv)
+    io_update(self, i_f=i_f, o_f=[html], key=dat)
     return cmd
 
 
@@ -1353,8 +1530,8 @@ def write_sourcetracking(
         sources: list,
         sourcetracking_params: dict,
         loo: bool,
-        n_nodes: str,
-        n_procs: str,
+        nodes: str,
+        cpus: str,
         imports: set
 ) -> str:
     """
@@ -1374,8 +1551,8 @@ def write_sourcetracking(
     sources
     sourcetracking_params
     loo
-    n_nodes
-    n_procs
+    nodes
+    cpus
     imports
 
     Returns
@@ -1403,7 +1580,7 @@ def write_sourcetracking(
     cmd += ' -fp %s' % fp
     cmd += ' -fa %s' % fa
     cmd += ' -meth %s' % meth
-    cmd += ' --p-cpus %s' % (int(n_nodes) * int(n_procs))
+    cmd += ' --p-cpus %s' % (int(nodes) * int(cpus))
     if sourcetracking_params['rarefaction']:
         cmd += ' --p-rarefaction %s' % sourcetracking_params['rarefaction']
     if sourcetracking_params['iterations']:
@@ -1411,6 +1588,7 @@ def write_sourcetracking(
     if meth == 'sourcetracker' and loo:
         cmd += ' --loo \n'
     cmd += ' --verbose \n'
+    cmd += run_export(pcoa, pcoa_tsv, 'pcoa')
     return cmd
 
 
@@ -1421,14 +1599,16 @@ def filter_feature_table(qza: str, new_qza: str, meta: str) -> str:
     :param meta:
     :return:
     """
-    cmd = '\nqiime feature-table filter-samples \\\n'
-    cmd += '--i-table %s \\\n' % qza
-    cmd += '--m-metadata-file %s \\\n' % meta
-    cmd += '--o-filtered-table %s\n' % new_qza
+    cmd = '\nqiime feature-table filter-samples'
+    cmd += ' --i-table %s' % qza
+    cmd += ' --m-metadata-file %s' % meta
+    cmd += ' --o-filtered-table %s\n' % new_qza
     return cmd
 
 
 def write_mmvec(
+        self,
+        pair: str,
         meta_fp: str,
         qza1: str,
         qza2: str,
@@ -1462,6 +1642,8 @@ def write_mmvec(
 
     Parameters
     ----------
+    self
+    pair
     meta_fp
     qza1
     qza2
@@ -1496,84 +1678,89 @@ def write_mmvec(
     if gpu:
         biom1 = '%s.biom' % splitext(qza1)[0]
         biom2 = '%s.biom' % splitext(qza2)[0]
-        cmd += '\nmmvec paired-omics \\\n'
-        cmd += '--arm-the-gpu \\\n'
-        cmd += '--microbe-file %s \\\n' % biom1
-        cmd += '--metabolite-file %s \\\n' % biom2
-        cmd += '--min-feature-count %s \\\n' % thresh_feat
-        cmd += '--epochs %s \\\n' % epoch
-        cmd += '--batch-size %s \\\n' % batch
-        cmd += '--latent-dim %s \\\n' % latent_dim
-        cmd += '--input-prior %s \\\n' % input_prior
-        cmd += '--output-prior %s \\\n' % output_prior
-        cmd += '--learning-rate %s \\\n' % learn
-        cmd += '--beta1 0.85 \\\n'
-        cmd += '--beta2 0.90 \\\n'
-        cmd += '--checkpoint-interval %s \\\n' % summary_interval
-        cmd += '--summary-interval %s \\\n' % summary_interval
-        cmd += '--summary-dir %s \\\n' % res_dir
-        cmd += '--ranks-file %s\n' % ranks_tsv
+        cmd += '\nmmvec paired-omics'
+        cmd += ' --arm-the-gpu'
+        cmd += ' --microbe-file %s' % biom1
+        cmd += ' --metabolite-file %s' % biom2
+        cmd += ' --min-feature-count %s' % thresh_feat
+        cmd += ' --epochs %s' % epoch
+        cmd += ' --batch-size %s' % batch
+        cmd += ' --latent-dim %s' % latent_dim
+        cmd += ' --input-prior %s' % input_prior
+        cmd += ' --output-prior %s' % output_prior
+        cmd += ' --learning-rate %s' % learn
+        cmd += ' --beta1 0.85'
+        cmd += ' --beta2 0.90'
+        cmd += ' --checkpoint-interval %s' % summary_interval
+        cmd += ' --summary-interval %s' % summary_interval
+        cmd += ' --summary-dir %s' % res_dir
+        cmd += ' --ranks-file %s\n' % ranks_tsv
+        io_update(
+            self, i_f=[biom1, biom2], o_d=res_dir, o_f=ranks_tsv, key=pair)
     else:
         ranks_qza = '%s.qza' % splitext(ranks_tsv)[0]
         ranks_null_qza = '%s.qza' % splitext(ranks_null_tsv)[0]
         ordination_qza = '%s.qza' % splitext(ordination_tsv)[0]
         ordination_null_qza = '%s.qza' % splitext(ordination_null_tsv)[0]
         summary_html = '%s.html' % splitext(summary)[0]
-        if not isfile(ranks_qza) or not isfile(ordination_qza) or not isfile(stats):
+        if to_do(ranks_qza) or to_do(ordination_qza) or to_do(stats):
             cmd += '\ncd %s\n' % model_odir
-            cmd_mmvec = '\nqiime mmvec paired-omics \\\n'
-            cmd_mmvec += '--i-microbes %s \\\n' % qza1
-            cmd_mmvec += '--i-metabolites %s \\\n' % qza2
-            cmd_mmvec += '--m-metadata-file %s \\\n' % meta_fp
+            cmd_mmvec = '\nqiime mmvec paired-omics'
+            cmd_mmvec += ' --i-microbes %s' % qza1
+            cmd_mmvec += ' --i-metabolites %s' % qza2
+            cmd_mmvec += ' --m-metadata-file %s' % meta_fp
             if str(train_column) != 'None':
-                cmd_mmvec += '--p-training-column %s \\\n' % train_column
+                cmd_mmvec += ' --p-training-column %s' % train_column
             else:
-                cmd_mmvec += '--p-num-testing-examples %s \\\n' % n_example
-            cmd_mmvec += '--p-min-feature-count %s \\\n' % thresh_feat
-            cmd_mmvec += '--p-epochs %s \\\n' % epoch
-            cmd_mmvec += '--p-batch-size %s \\\n' % batch
-            cmd_mmvec += '--p-latent-dim %s \\\n' % latent_dim
-            cmd_mmvec += '--p-input-prior %s \\\n' % input_prior
-            cmd_mmvec += '--p-output-prior %s \\\n' % output_prior
-            cmd_mmvec += '--p-learning-rate %s \\\n' % learn
-            cmd_mmvec += '--p-summary-interval %s \\\n' % summary_interval
+                cmd_mmvec += ' --p-num-testing-examples %s' % n_example
+            cmd_mmvec += ' --p-min-feature-count %s' % thresh_feat
+            cmd_mmvec += ' --p-epochs %s' % epoch
+            cmd_mmvec += ' --p-batch-size %s' % batch
+            cmd_mmvec += ' --p-latent-dim %s' % latent_dim
+            cmd_mmvec += ' --p-input-prior %s' % input_prior
+            cmd_mmvec += ' --p-output-prior %s' % output_prior
+            cmd_mmvec += ' --p-learning-rate %s' % learn
+            cmd_mmvec += ' --p-summary-interval %s' % summary_interval
             if 'qiime2-2020' in qiime_env:
-                cmd_mmvec += '--p-equalize-biplot \\\n'
-            cmd_mmvec += '--o-conditionals %s \\\n' % ranks_qza
-            cmd_mmvec += '--o-conditional-biplot %s \\\n' % ordination_qza
-            cmd_mmvec += '--o-model-stats %s \\\n' % stats
-            cmd_mmvec += '--output-dir %s/logdir\n' % model_odir
+                cmd_mmvec += ' --p-equalize-biplot'
+            cmd_mmvec += ' --o-conditionals %s' % ranks_qza
+            cmd_mmvec += ' --o-conditional-biplot %s' % ordination_qza
+            cmd_mmvec += ' --o-model-stats %s' % stats
+            cmd_mmvec += ' --output-dir %s/logdir\n' % model_odir
             cmd_mmvec += '\nrm -rf %s/logdir\n' % model_odir
+            cmd_mmvec += run_export(ranks_qza, ranks_tsv, '')
+            cmd_mmvec += run_export(ordination_qza, ordination_tsv, 'mmvec')
             cmd += cmd_mmvec
 
             cmd += '\ncd %s\n' % null_odir
             cmd += cmd_mmvec.replace(
-                '--p-latent-dim %s' % latent_dim,
-                '--p-latent-dim 0'
+                ' --p-latent-dim %s' % latent_dim,
+                ' --p-latent-dim 0'
             ).replace(
-                '--o-conditionals %s' % ranks_qza,
-                '--o-conditionals %s' % ranks_null_qza
+                ' --o-conditionals %s' % ranks_qza,
+                ' --o-conditionals %s' % ranks_null_qza
             ).replace(
-                '--o-conditional-biplot %s' % ordination_qza,
-                '--o-conditional-biplot %s' % ordination_null_qza
+                ' --o-conditional-biplot %s' % ordination_qza,
+                ' --o-conditional-biplot %s' % ordination_null_qza
             ).replace(
-                '--o-model-stats %s' % stats,
-                '--o-model-stats %s' % stats_null
+                ' --o-model-stats %s' % stats,
+                ' --o-model-stats %s' % stats_null
             ).replace(
                 '%s/logdir' % model_odir,
                 '%s/logdir' % null_odir
             )
 
-            cmd += '\nqiime mmvec summarize-paired \\\n'
-            cmd += '--i-model-stats %s \\\n' % stats
-            cmd += '--i-baseline-stats %s \\\n' % stats_null
-            cmd += '--o-visualization %s\n' % summary
+            cmd += '\nqiime mmvec summarize-paired'
+            cmd += ' --i-model-stats %s' % stats
+            cmd += ' --i-baseline-stats %s' % stats_null
+            cmd += ' --o-visualization %s\n' % summary
             cmd += run_export(summary, summary_html, 'mmvec_summary')
 
-        if not isfile(ranks_tsv):
-            cmd += run_export(ranks_qza, ranks_tsv, '')
-        if not isfile(ordination_tsv):
-            cmd += run_export(ordination_qza, ordination_tsv, 'mmvec')
+            io_update(
+                self, i_f=[qza1, qza2, meta_fp], key=pair,
+                o_f=[ranks_qza, ranks_tsv, ordination_qza, ordination_tsv,
+                     stats, ranks_null_qza,  ordination_null_qza, stats_null,
+                     summary, summary_html])
     return cmd
 
 
@@ -1594,14 +1781,16 @@ def run_add_metadata(
     -------
 
     """
-    cmd = 'biom add-metadata \\\n'
-    cmd += '  -i %s \\\n' % input_path
-    cmd += '  -o %s \\\n' % output_path
-    cmd += '  --sample-metadata-fp %s\n' % meta
+    cmd = 'biom add-metadata'
+    cmd += '  -i %s' % input_path
+    cmd += '  -o %s' % output_path
+    cmd += ' --sample-metadata-fp %s\n' % meta
     return cmd
 
 
 def write_songbird(
+        self,
+        dat,
         qza,
         new_qza,
         new_meta,
@@ -1609,13 +1798,14 @@ def write_songbird(
         params,
         formula,
         bformula,
-        out_paths,
-        force
+        out_paths
 ) -> tuple:
     """
 
     Parameters
     ----------
+    self
+    dat
     qza
     new_qza
     new_meta
@@ -1624,87 +1814,98 @@ def write_songbird(
     formula
     bformula
     out_paths
-    force
 
     Returns
     -------
 
     """
     fcmd = ''
-    if not isfile(new_qza):
+    if to_do(new_qza):
         fcmd += filter_feature_table(qza, new_qza, new_meta)
-
-    batches = int(params['batches'])
+        io_update(self, i_f=[qza, new_meta], o_f=new_qza, key=(dat, 'f'))
 
     cmd = ''
-    if force or not isfile(out_paths['diff_qza']):
+    force = self.config.force
+    diff_qza = out_paths['diff_qza']
+    if force or to_do(diff_qza):
+
+        diff_tsv = out_paths['diff']
+        stat = out_paths['stat']
+        stat_tsv = '%s.txt' % splitext(stat)[0]
+        plot = out_paths['plot']
+
         cmd = '# model\n'
-        cmd += '\nqiime songbird multinomial \\\n'
-        cmd += ' --i-table %s \\\n' % new_qza
-        cmd += ' --m-metadata-file %s \\\n' % new_meta
-        cmd += ' --p-formula "%s" \\\n' % formula
-        cmd += ' --p-epochs %s \\\n' % params['epochs']
-        if batches > 0.8 * nsams:
-            cmd += ' --p-batch-size %s \\\n' % str(int(nsams * 0.8))
+        cmd += '\nqiime songbird multinomial'
+        cmd += ' --i-table %s' % new_qza
+        cmd += ' --m-metadata-file %s' % new_meta
+        cmd += ' --p-formula "%s"' % formula
+        cmd += ' --p-epochs %s' % params['epochs']
+        if int(params['batches']) > 0.8 * nsams:
+            cmd += ' --p-batch-size %s' % str(int(nsams * 0.8))
         else:
-            cmd += ' --p-batch-size %s \\\n' % params['batches']
-        cmd += ' --p-differential-prior %s \\\n' % params['diff_priors']
-        cmd += ' --p-learning-rate %s \\\n' % params['learns']
-        cmd += ' --p-min-sample-count %s \\\n' % params['thresh_samples']
-        cmd += ' --p-min-feature-count %s \\\n' % params['thresh_feats']
+            cmd += ' --p-batch-size %s' % params['batches']
+        cmd += ' --p-differential-prior %s' % params['diff_priors']
+        cmd += ' --p-learning-rate %s' % params['learns']
+        cmd += ' --p-min-sample-count %s' % params['thresh_samples']
+        cmd += ' --p-min-feature-count %s' % params['thresh_feats']
         if 'examples' in params:
-            cmd += ' --p-num-random-test-examples %s \\\n' % params['examples']
+            cmd += ' --p-num-random-test-examples %s' % params['examples']
         else:
-            cmd += ' --p-training-column %s \\\n' % params['train']
-        cmd += ' --p-summary-interval %s \\\n' % params['summary_interval']
-        cmd += ' --o-differentials %s \\\n' % out_paths['diff_qza']
-        cmd += ' --o-regression-stats %s \\\n' % out_paths['stat']
-        cmd += ' --o-regression-biplot %s\n' % out_paths['plot']
-
-    if force or not isfile(out_paths['diff']):
-        cmd += run_export(out_paths['diff_qza'], out_paths['diff'], '')
-
-    stat_tsv = '%s.txt' % splitext(out_paths['stat'])[0]
-    if force or not isfile(stat_tsv):
-        cmd += run_export(out_paths['stat'], stat_tsv, '')
+            cmd += ' --p-training-column %s' % params['train']
+        cmd += ' --p-summary-interval %s' % params['summary_interval']
+        cmd += ' --o-differentials %s' % diff_qza
+        cmd += ' --o-regression-stats %s' % stat
+        cmd += ' --o-regression-biplot %s\n' % plot
+        cmd += run_export(diff_qza, diff_tsv, '')
+        cmd += run_export(stat, stat_tsv, '')
+        io_update(self, i_f=[new_qza, new_meta], key=(dat, ''),
+                  o_f=[diff_qza, diff_tsv, stat, stat_tsv, plot])
 
     bcmd = ''
-    if force or len(out_paths['bdiff_qza']) and not isfile(out_paths['bstat']):
-        bcmd += '\nqiime songbird multinomial \\\n'
-        bcmd += ' --i-table %s \\\n' % new_qza
-        bcmd += ' --m-metadata-file %s \\\n' % new_meta
-        bcmd += ' --p-formula "%s" \\\n' % bformula
-        bcmd += ' --p-epochs %s \\\n' % params['epochs']
-        if batches > 0.8 * nsams:
-            bcmd += ' --p-batch-size %s \\\n' % str(int(nsams * 0.8))
+    bdiff_qza = out_paths['bdiff_qza']
+    bstat = out_paths['bstat']
+    if force or len(bdiff_qza) and to_do(bstat):
+        bplot = out_paths['bplot']
+        bcmd += '\nqiime songbird multinomial'
+        bcmd += ' --i-table %s' % new_qza
+        bcmd += ' --m-metadata-file %s' % new_meta
+        bcmd += ' --p-formula "%s"' % bformula
+        bcmd += ' --p-epochs %s' % params['epochs']
+        if int(params['batches']) > 0.8 * nsams:
+            bcmd += ' --p-batch-size %s' % str(int(nsams * 0.8))
         else:
-            bcmd += ' --p-batch-size %s \\\n' % params['batches']
-        bcmd += ' --p-differential-prior %s \\\n' % params['diff_priors']
-        bcmd += ' --p-learning-rate %s \\\n' % params['learns']
-        bcmd += ' --p-min-sample-count %s \\\n' % params['thresh_samples']
-        bcmd += ' --p-min-feature-count %s \\\n' % params['thresh_feats']
+            bcmd += ' --p-batch-size %s' % params['batches']
+        bcmd += ' --p-differential-prior %s' % params['diff_priors']
+        bcmd += ' --p-learning-rate %s' % params['learns']
+        bcmd += ' --p-min-sample-count %s' % params['thresh_samples']
+        bcmd += ' --p-min-feature-count %s' % params['thresh_feats']
         if 'examples' in params:
-            bcmd += ' --p-num-random-test-examples %s \\\n' % params['examples']
+            bcmd += ' --p-num-random-test-examples %s' % params['examples']
         else:
-            bcmd += ' --p-training-column %s \\\n' % params['train']
-        bcmd += ' --p-summary-interval %s \\\n' % params['summary_interval']
-        bcmd += ' --o-differentials %s \\\n' % out_paths['bdiff_qza']
-        bcmd += ' --o-regression-stats %s \\\n' % out_paths['bstat']
-        bcmd += ' --o-regression-biplot %s\n' % out_paths['bplot']
+            bcmd += ' --p-training-column %s' % params['train']
+        bcmd += ' --p-summary-interval %s' % params['summary_interval']
+        bcmd += ' --o-differentials %s' % bdiff_qza
+        bcmd += ' --o-regression-stats %s' % bstat
+        bcmd += ' --o-regression-biplot %s\n' % bplot
+        io_update(self, i_f=[new_qza, new_meta], o_f=[bdiff_qza, bstat, bplot],
+                  key=(dat, 'b'))
 
-    if force or not isfile(out_paths['tens']):
-        cmd += '\nqiime songbird summarize-paired \\\n'
-        cmd += ' --i-regression-stats %s \\\n' % out_paths['stat']
-        cmd += ' --i-baseline-stats %s \\\n' % out_paths['bstat']
-        cmd += ' --o-visualization %s\n' % out_paths['tens']
-
-    if force or not isfile(out_paths['html']):
-        cmd += run_export(out_paths['tens'], out_paths['html'], 'songbird')
+    tens = out_paths['tens']
+    html = out_paths['html']
+    if force or to_do(tens):
+        cmd += '\nqiime songbird summarize-paired'
+        cmd += ' --i-regression-stats %s' % stat
+        cmd += ' --i-baseline-stats %s' % bstat
+        cmd += ' --o-visualization %s\n' % tens
+        cmd += run_export(tens, html, 'songbird')
+        io_update(self, i_f=[stat, bstat], o_f=[tens, html], key=(dat, ''))
 
     return cmd, fcmd, bcmd
 
 
 def get_biplot_commands(
+        self,
+        pair,
         ordi_edit_fp,
         qza,
         qzv,
@@ -1718,39 +1919,43 @@ def get_biplot_commands(
 
     cmd = '\n'
     if max_r >= 2:
-        if not isfile(qza):
+        if to_do(qza):
             cmd += '\nqiime tools import'
             cmd += ' --input-path %s' % ordi_edit_fp
             cmd += ' --output-path %s' % qza
             cmd += ' --type "PCoAResults %s Properties([\'biplot\'])"\nsleep 3' % '%'
+            io_update(self, i_f=ordi_edit_fp, o_f=qza, key=pair)
+        else:
+            io_update(self, i_f=qza, key=pair)
         cmd += '\nqiime emperor biplot'
         cmd += ' --i-biplot %s' % qza
         cmd += ' --m-%s-metadata-file %s' % (omic_feature, meta1_fp)
         cmd += ' --m-%s-metadata-file %s' % (omic_sample, meta2_fp)
         cmd += ' --p-number-of-features %s' % n_edit
         cmd += ' --o-visualization %s\n' % qzv
+        io_update(self, i_f=[meta1_fp, meta2_fp], o_f=qzv, key=pair)
     return cmd
 
 
 def get_xmmvec_commands(
+        self,
+        pair,
         ordi_edit_fp,
         omic1,
         omic2,
         meta1_fp,
         meta2_fp,
-        xmmvecs,
-        pair
 ):
     cmd = '\n'
-    ranks_fp = ordi_edit_fp.replace('ordination.txt', 'ranks.tsv')
     nrows = None
     ncols = None
-    if isfile(ranks_fp):
-        nrows = pd.read_table(ranks_fp, usecols=[0, 1, 2]).shape[0]
-        ncols = pd.read_table(ranks_fp, nrows=3, index_col=0).shape[1]
+    ranks_fp = ordi_edit_fp.replace('ordination.txt', 'ranks.tsv')
+    if not to_do(ranks_fp):
+        nrows = pd.read_table(rep(ranks_fp), usecols=[0, 1, 2]).shape[0]
+        ncols = pd.read_table(rep(ranks_fp), nrows=3, index_col=0).shape[1]
 
     ranks_html = ordi_edit_fp.replace('ordination.txt', 'ranks.html')
-    # if not isfile(ranks_html):
+    # if self.config.force or not isfile(ranks_html):
     if 1:
         cmd += '\nXmmvec'
         cmd += ' --i-ranks-path %s' % ranks_fp
@@ -1764,88 +1969,15 @@ def get_xmmvec_commands(
         if xmmvecs and pair in xmmvecs:
             cmd += ' --p-omic1-metadata %s' % meta1_fp
             cmd += ' --p-omic2-metadata %s' % meta2_fp
-            if omic1 in xmmvecs[pair]:
+            if omic1 in self.xmmvecs[pair]:
                 if 'color_variable' in xmmvecs[pair][omic1]:
                     cmd += ' --p-omic1-column %s' % xmmvecs[
                         pair][omic1]['color_variable']
-            if omic2 in xmmvecs[pair]:
+            if omic2 in self.xmmvecs[pair]:
                 if 'color_variable' in xmmvecs[pair][omic2]:
                     cmd += ' --p-omic2-column %s' % xmmvecs[
                         pair][omic2]['color_variable']
         cmd += '\n'
-    return cmd
-
-
-def get_paired_heatmaps_command(
-        ranks_fp: str,
-        omic1_common_fp: str,
-        omic2_common_fp: str,
-        taxonomy_tsv: str,
-        features_names: list,
-        topn: int,
-        paired_heatmap_qzv: str,
-        pre_paired_fp: str
-):
-
-    cmd = ''
-    # if not isfile(paired_heatmap_qzv):
-    if 1:
-
-        omic1_tmp = '%s_tmp.tsv' % splitext(omic1_common_fp)[0]
-        omic2_tmp = '%s_tmp.tsv' % splitext(omic2_common_fp)[0]
-        omic1_qza_tmp = '%s_tmp.qza' % splitext(omic1_common_fp)[0]
-        omic2_qza_tmp = '%s_tmp.qza' % splitext(omic2_common_fp)[0]
-        taxonomy_tsv_tmp = '%s_tmp.tsv' % splitext(taxonomy_tsv)[0]
-        ranks_fp_tmp = '%s_tmp.tsv' % splitext(ranks_fp)[0]
-        ranks_qza_tmp = '%s_tmp.qza' % splitext(ranks_fp)[0]
-
-        py = '%s.py' % splitext(paired_heatmap_qzv)[0]
-        with open(py, 'w') as o, open(pre_paired_fp) as f:
-            for line in f:
-                if "'OMIC1_COMMON_FP_TMP'" in line:
-                    o.write(line.replace('OMIC1_COMMON_FP_TMP', omic1_tmp))
-                elif "'OMIC2_COMMON_FP_TMP'" in line:
-                    o.write(line.replace('OMIC2_COMMON_FP_TMP', omic2_tmp))
-                elif "'OMIC1_COMMON_QZA_TMP'" in line:
-                    o.write(line.replace('OMIC1_COMMON_QZA_TMP', omic1_qza_tmp))
-                elif "'OMIC2_COMMON_QZA_TMP'" in line:
-                    o.write(line.replace('OMIC2_COMMON_QZA_TMP', omic2_qza_tmp))
-                elif "'OMIC1_COMMON_FP'" in line:
-                    o.write(line.replace('OMIC1_COMMON_FP', omic1_common_fp))
-                elif "'OMIC2_COMMON_FP'" in line:
-                    o.write(line.replace('OMIC2_COMMON_FP', omic2_common_fp))
-                elif "'TAXONOMY_TSV_TMP'" in line:
-                    o.write(line.replace('TAXONOMY_TSV_TMP', taxonomy_tsv_tmp))
-                elif "'TAXONOMY_TSV'" in line:
-                    o.write(line.replace('TAXONOMY_TSV', taxonomy_tsv))
-                elif "'RANKS_FP_TMP'" in line:
-                    o.write(line.replace('RANKS_FP_TMP', ranks_fp_tmp))
-                elif "'RANKS_QZA_TMP'" in line:
-                    o.write(line.replace('RANKS_QZA_TMP', ranks_qza_tmp))
-                elif "'RANKS_FP'" in line:
-                    o.write(line.replace('RANKS_FP', ranks_fp))
-                else:
-                    o.write(line)
-
-        cmd += '\npython3 %s\n' % py
-
-        cmd += '\nqiime mmvec paired-heatmap'
-        cmd += ' --i-ranks %s' % ranks_qza_tmp
-        cmd += ' --i-microbes-table %s' % omic1_qza_tmp
-        cmd += ' --i-metabolites-table %s' % omic2_qza_tmp
-        cmd += ' --m-microbe-metadata-file %s' % taxonomy_tsv_tmp
-        cmd += ' --m-microbe-metadata-column Taxon'
-        if features_names:
-            cmd += ' --p-top-k-microbes 0'
-            for features_name in features_names:
-                cmd += ' --p-features %s' % features_name
-        else:
-            cmd += ' --p-top-k-microbes %s' % topn
-        cmd += ' --p-normalize rel_row'
-        cmd += ' --p-top-k-metabolites 100'
-        cmd += ' --p-level 6'
-        cmd += ' --o-visualization %s\n' % paired_heatmap_qzv
-
-        cmd += '\nrm %s %s %s %s\n' % (
-            ranks_qza_tmp, omic1_qza_tmp, omic2_qza_tmp, taxonomy_tsv_tmp)
+        io_update(self, i_f=[ranks_fp, meta1_fp, meta2_fp], o_f=ranks_html,
+                  key=pair)
     return cmd

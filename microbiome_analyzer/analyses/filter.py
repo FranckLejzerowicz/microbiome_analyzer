@@ -14,7 +14,7 @@ import pandas as pd
 import plotly
 import plotly.graph_objs as go
 
-from microbiome_analyzer._io import convert_to_biom
+from microbiome_analyzer._io_utils import convert_to_biom
 
 
 def no_filtering(
@@ -331,10 +331,10 @@ def filter_non_mb_table(preval: str, abund: str, tsv_pd: pd.DataFrame,
     return tsv_filt_pd, res
 
 
-def filter_3d(dat, pv, ab, defaults, biom, targeted, o_dir):
+def filter_3d(dat, pv, ab, defaults, biom_, targeted, out_dir):
     prevals = defaults['preval'][pv]
     abunds = defaults['abund'][ab]
-    tab_pd = biom.to_dataframe(dense=True)
+    tab_pd = biom_.to_dataframe(dense=True)
     res = []
     for (preval, abund) in itertools.product(*[sorted(prevals),
                                                sorted(abunds)]):
@@ -350,11 +350,13 @@ def filter_3d(dat, pv, ab, defaults, biom, targeted, o_dir):
         else:
             cur_res.append(0)
         res.append(cur_res)
+
     res_pd = pd.DataFrame(res, columns=[
         'preval_filt', 'abund_filt', 'features', 'samples', 'data'])
     res_pd.preval_filt = res_pd.preval_filt.astype(float)
     res_pd.abund_filt = res_pd.abund_filt.astype(float)
     res_pd['features'] = np.log10(res_pd['features'] + 1)
+
     x = res_pd.preval_filt.unique()
     y = res_pd.abund_filt.unique()
     X, Y = np.meshgrid(x, y)
@@ -369,22 +371,19 @@ def filter_3d(dat, pv, ab, defaults, biom, targeted, o_dir):
         width=700, height=700,
         title="Filtering process",
         margin=dict(l=65, r=50, b=65, t=90))
+
     fig = go.Figure(
-        data=[
-            go.Surface(
-                x=Y, y=X, z=Z,
-                colorscale='Viridis',
-                reversescale=True)
-        ],
-        layout=layout
-    )
+        data=[go.Surface(x=Y, y=X, z=Z,
+                         colorscale='Viridis',
+                         reversescale=True)],
+        layout=layout)
     fig.update_traces(
         contours_z=dict(show=True, usecolormap=True,
                         highlightcolor="limegreen", project_z=True))
-    fig.add_scatter3d(
-        y=X.flatten(), x=Y.flatten(), z=Z.flatten(),
-        mode='markers', marker=dict(size=4, color='black'))
+    fig.add_scatter3d(y=X.flatten(), x=Y.flatten(), z=Z.flatten(),
+                      mode='markers', marker=dict(size=4, color='black'))
     res_data_pd = res_pd.loc[(res_pd.data == 1)].copy()
+
     x = res_data_pd.preval_filt.unique()
     y = res_data_pd.abund_filt.unique()
     X, Y = np.meshgrid(x, y)
@@ -392,6 +391,6 @@ def filter_3d(dat, pv, ab, defaults, biom, targeted, o_dir):
     fig.add_scatter3d(
         y=X.flatten(), x=Y.flatten(), z=Z.flatten(),
         mode='markers', marker=dict(size=6, color='red'))
-    html_fo = '%s/prevalence-as-%s_abundance-as-%s.html' % (o_dir, pv, ab)
+    html_fo = '%s/prevalence-as-%s_abundance-as-%s.html' % (out_dir, pv, ab)
     print(' -> Written:', html_fo)
     plotly.offline.plot(fig, filename=html_fo, auto_open=False)

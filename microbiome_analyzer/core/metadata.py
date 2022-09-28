@@ -149,13 +149,13 @@ def get_meta_subset(
 
 
 def get_cat_vars_and_vc(
-        vars: list,
+        vars_: list,
         vars_pd: pd.DataFrame) -> tuple:
     """
 
     Parameters
     ----------
-    vars : list
+    vars_ : list
     vars_pd : pd.DataFrame
 
     Returns
@@ -165,7 +165,7 @@ def get_cat_vars_and_vc(
     vc : pd.Series
     rep_d : dict
     """
-    cat_vars = [x for x in vars if str(vars_pd[x].dtype) == 'object']
+    cat_vars = [x for x in vars_ if str(vars_pd[x].dtype) == 'object']
     rep_d = {}
     cat_pd = None
     vc = None
@@ -215,23 +215,21 @@ def make_train_test_from_cat(
             X, y, test_size=train_perc,
             stratify=cat_pd_in['concat_cols'].tolist()
         )
-        write_cross_tab(meta_fp, cat_pd, cat_vars,
-                        train_samples, train_col, rep_d)
+        write_cross_tab(
+            meta_fp, cat_pd, cat_vars, train_samples, train_col, rep_d)
         return train_samples
     return None
 
 
 def rename_duplicate_columns(meta_subset):
-    meta_subset_cols = []
+    cols = []
     meta_subset_copy = meta_subset.copy()
     for col in meta_subset.columns:
-        if col in meta_subset_cols:
-            meta_subset_cols.append(
-                '%s.%s' % (col, meta_subset_cols.count(col))
-            )
+        if col in cols:
+            cols.append('%s.%s' % (col, cols.count(col)))
         else:
-            meta_subset_cols.append(col)
-    meta_subset_copy.columns = meta_subset_cols
+            cols.append(col)
+    meta_subset_copy.columns = cols
     return meta_subset_copy
 
 

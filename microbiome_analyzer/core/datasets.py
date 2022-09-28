@@ -6,16 +6,19 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import os
 import glob
-from os.path import isfile, splitext
+from os.path import isdir, splitext
 
 import pandas as pd
 from biom import load_table
 
-from microbiome_analyzer._io import (
-    read_meta_pd, convert_to_biom, check_features, get_output, get_cohort)
-from microbiome_analyzer._rarefy import get_dat_depths, get_digit_depth
-from microbiome_analyzer._taxonomy import (
+from microbiome_analyzer._inputs import read_meta_pd
+from microbiome_analyzer._scratch import to_do, rep
+from microbiome_analyzer._io_utils import (
+    convert_to_biom, check_features, get_cohort)
+from microbiome_analyzer.analyses.rarefy import get_dat_depths, get_digit_depth
+from microbiome_analyzer.analyses.taxonomy import (
     get_tax_tables, parse_split_taxonomy, edit_split_taxonomy)
 
 
@@ -70,16 +73,17 @@ class Data(object):
         self.path = None
 
     def read_biom(self, index=''):
-        biom = load_table(self.biom[index])
+        biom = load_table(rep(self.biom[index]))
         if biom.shape[0] >= 10:
             self.data[index] = biom
 
     def read_tsv(self):
-        data_pd = read_meta_pd(self.tsv[''], '#OTU ID').set_index('#OTU ID')
+        data_pd = read_meta_pd(rep(self.tsv['']), 'Feature ID')
+        data_pd = data_pd.set_index('Feature ID')
         self.data[''] = data_pd
 
     def read_meta_pd(self):
-        meta_pd = read_meta_pd(self.meta, 'sample_name')
+        meta_pd = read_meta_pd(rep(self.meta), 'sample_name')
         self.metadata = meta_pd
 
     def check_gid_or_dna(self):
@@ -98,15 +102,6 @@ class Data(object):
             Data.dnas.append(self.dat)
             self.phylo = ('amplicon', 0)
 
-    def get_feature_metadata(self, output_folder):
-        feat_fps = glob.glob('%s/feature_metadata/*' % output_folder)
-        if feat_fps:
-            for feat_fp in feat_fps:
-                # feature metadata can be large: no formatting check, yet!
-                # idx = 'Feature ID'
-                # feat_pd = read_meta_pd(feat_fp, idx).set_index(idx)
-                self.feat_meta.append(feat_fp)
-
 
 class Datasets(object):
     """Collect the data associated with each dataset passed but the user
@@ -118,25 +113,28 @@ class Datasets(object):
 
     def __init__(self, config) -> None:
         """Initialize the class instance with the dataset name"""
+        self.dir = config.dir
         self.config = config
         self.datasets = {}
         self.edits = {}
+        self.key_dir = None
+        self.dirs = set()
 
     def collect_datasets(self):
         for dat in self.config.datasets:
             data = Data(dat)
-            tsv = '%s/%s.tsv' % (self.config.data_folder, dat)
+            tsv = '%s/data/%s.tsv' % (self.dir, dat)
             biom = '%s.biom' % splitext(tsv)[0]
-            if not isfile(biom) and not isfile(tsv):
+            if to_do(biom) and to_do(tsv):
                 print('[skipping] Not tsv/biom table for %s' % dat)
                 continue
-            meta = '%s/%s.tsv' % (self.config.metadata_folder, dat)
-            if not isfile(meta):
+            meta = '%s/metadata/%s.tsv' % (self.dir, dat)
+            if to_do(meta):
                 print('[skipping] Not metadata table for %s' % dat)
                 continue
             data.meta = meta
             data.tsv[''] = tsv
-            if isfile(biom):
+            if not to_do(biom):
                 data.biom[''] = biom
                 data.read_biom()
             else:
@@ -144,8 +142,21 @@ class Datasets(object):
                 data.data[''] = convert_to_biom(data.data[''])
             data.read_meta_pd()
             data.check_gid_or_dna()
-            data.get_feature_metadata(self.config.output_folder)
+            data.feat_meta = self.get_feat_meta()
             self.datasets[dat] = data
+
+    def get_feat_meta(self):
+        paths = glob.glob('%s/feature_metadata/*' % rep(self.dir))
+        paths = ['${SCRATCH_FOLDER}%s' % x for x in paths]
+        return paths
+
+    def set_key_dir(self, analysis, dataset):
+        """
+        Get the output folder name and collect it for later folder creations.
+        """
+        self.key_dir = '/'.join([self.dir, analysis, dataset])
+        if not isdir(rep(self.key_dir)):
+            os.makedirs(rep(self.key_dir))
 
     def set_rarefaction_paths(self):
         for dataset, data in self.datasets.items():
@@ -162,8 +173,8 @@ class Datasets(object):
     def set_rarefaction_depths(self):
         for dataset, data in self.datasets.items():
             sam_sum = pd.Series(data.data[''].sum(axis='sample'))
-            skip, depths = get_dat_depths(
-                dataset, self.config.rarefs, self.config.output_folder, sam_sum)
+            skip, depths = get_dat_depths(dataset, self.config.rarefs,
+                                          rep(self.dir), sam_sum)
             if skip:
                 continue
             data.raref_depths = depths
@@ -175,12 +186,12 @@ class Datasets(object):
     def set_taxonomy_paths(self, method):
         for dataset_, data in self.datasets.items():
             dataset = self._get_filt_raw(dataset_)
-            out = get_output(self.config.output_folder, 'taxonomy/%s' % dataset)
+            self.set_key_dir('taxonomy', dataset)
             if data.phylo and data.phylo[0] == 'amplicon':
-                tax_tsv = '%s/%s_%s.tsv' % (out, dataset, method)
+                tax_tsv = '%s/%s_%s.tsv' % (self.key_dir, dataset, method)
                 meth = method
             else:
-                tax_tsv = '%s/%s.tsv' % (out, dataset)
+                tax_tsv = '%s/%s.tsv' % (self.key_dir, dataset)
                 if data.phylo and data.phylo[0] == 'wol':
                     meth = 'wol'
                 else:
@@ -193,9 +204,8 @@ class Datasets(object):
             if dataset in Datasets.filt_raw:
                 continue
             if data.phylo:
-                odir = get_output(self.config.output_folder,
-                                  'phylogeny/%s' % dataset)
-                tree_nwk = '%s/%s.nwk' % (odir, dataset)
+                self.set_key_dir('phylogeny', dataset)
+                tree_nwk = '%s/%s.nwk' % (self.key_dir, dataset)
                 tree_qza = '%s.qza' % splitext(tree_nwk)[0]
                 if data.phylo[0] == 'amplicon':
                     intree_qza = '%s_inTree.qza' % splitext(tree_nwk)[0]
@@ -206,9 +216,8 @@ class Datasets(object):
     def set_seqs_paths(self):
         for dataset, data in self.datasets.items():
             if data.phylo and data.phylo[0] == 'amplicon':
-                odir = get_output(self.config.output_folder,
-                                  'sequences/%s' % dataset)
-                seqs_fas = '%s/%s.fasta' % (odir, dataset)
+                self.set_key_dir('sequences', dataset)
+                seqs_fas = '%s/%s.fasta' % (self.key_dir, dataset)
                 seqs_qza = '%s.qza' % splitext(seqs_fas)[0]
                 data.seqs = (seqs_qza, seqs_fas)
 
@@ -223,25 +232,23 @@ class Datasets(object):
     def get_precomputed_taxonomy(self, method='sklearn'):
         for dataset_, data in self.datasets.items():
             dataset = self._get_filt_raw(dataset_)
-            folder = get_output(
-                self.config.output_folder, 'taxonomy/%s' % dataset)
-            tax_qza = '%s/%s_%s.qza' % (folder, dataset, method)
+            self.set_key_dir('taxonomy', dataset)
+            tax_qza = '%s/%s_%s.qza' % (self.key_dir, dataset, method)
             tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
-            if isfile(tax_tsv) and isfile(tax_qza):
+            if not to_do(tax_tsv) and not to_do(tax_qza):
                 data.tax = ['', tax_qza, tax_tsv]
-            tax_qza = '%s/%s.qza' % (folder, dataset)
+            tax_qza = '%s/%s.qza' % (self.key_dir, dataset)
             tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
-            if isfile(tax_tsv) and isfile(tax_qza):
+            if not to_do(tax_tsv) and not to_do(tax_qza):
                 data.tax = ['', tax_qza, tax_tsv]
 
     def get_precomputed_trees(self):
         for dataset_, data in self.datasets.items():
             dataset = self._get_filt_raw(dataset_)
-            folder = get_output(
-                self.config.output_folder, 'phylogeny/%s' % dataset)
-            tree_qza = '%s/%s.qza' % (folder, dataset)
+            self.set_key_dir('phylogeny', dataset)
+            tree_qza = '%s/%s.qza' % (self.key_dir, dataset)
             tree_nwk = '%s.nwk' % splitext(tree_qza)[0]
-            if isfile(tree_nwk):
+            if not to_do(tree_nwk):
                 data.tree = ('', tree_qza, tree_nwk)
                 data.phylo = ('precpu', 0)
 
@@ -255,18 +262,19 @@ class Datasets(object):
         for dat, data in self.datasets.items():
             if not data.tax:
                 continue
-            if not isfile(data.tax[2]):
-                print("Can't split taxonomy: %s is not present" % data.tax[2])
+            tax_tsv = data.tax[2]
+            if to_do(tax_tsv):
+                print("Can't split taxonomy: %s is not present" % rep(tax_tsv))
                 continue
             if dat in Datasets.filt_raw:
                 data.taxa = tuple(self.datasets[Datasets.filt_raw[dat]].taxa)
                 continue
-            split_taxa_fp = '%s_splitaxa.txt' % splitext(data.tax[2])[0]
-            tax_pd, split_taxa_pd = get_tax_tables(data.tax[2])
+            split_taxa_fp = '%s_splitaxa.txt' % splitext(tax_tsv)[0]
+            tax_pd, split_taxa_pd = get_tax_tables(rep(tax_tsv))
             if split_taxa_pd.shape[1] > 1:
                 ranks = parse_split_taxonomy(split_taxa_pd)
                 split_taxa_pd = edit_split_taxonomy(ranks, split_taxa_pd)
-            split_taxa_pd.to_csv(split_taxa_fp, index=True, sep='\t')
+            split_taxa_pd.to_csv(rep(split_taxa_fp), index=True, sep='\t')
             data.taxa = (tax_pd, split_taxa_pd, split_taxa_fp)
 
     def set_sample_subsets(self):
@@ -300,11 +308,11 @@ class Datasets(object):
                 if case_val[0] == '>':
                     new_meta_pd = new_meta_pd[
                         new_meta_pd[group].astype(float) >= float(case_val[1:])
-                        ].copy()
+                    ].copy()
                 elif case_val[0] == '<':
                     new_meta_pd = new_meta_pd[
                         new_meta_pd[group].astype(float) <= float(case_val[1:])
-                        ].copy()
+                    ].copy()
         else:
             new_meta_pd = meta_pd[meta_pd[group].isin(vals)].copy()
         return set(new_meta_pd.sample_name)

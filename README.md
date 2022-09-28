@@ -157,9 +157,11 @@ qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_data
   qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_4.pbs
   qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_5.pbs
   ```
-  * *Trick here*: using the option `-chunkit <int>` to group the commands into less jobs. This can be 
-  useful if you have say 50 datasets across which distance matrices you plan on doing mantel tests,
-  this would send probably too many jobs to the scheduler. Let's see what it does to make For our 5 datasets:
+  * *Trick here*: using the option `-x <int>` (or `--chunks <int>`) to group 
+    the commands into less jobs. This can be useful if you have say 50 
+    datasets across which distance matrices you plan on doing mantel tests, 
+    this would send probably too many jobs to the scheduler. Let's see what 
+    it does to make For our 5 datasets:
   ```
   microbiome_analyzer -i ./microbiome_analyzer/tests/files \
       -d dataset_number_1 \
@@ -167,7 +169,7 @@ qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_data
       -d dataset_number_3 \
       -d dataset_number_4 \
       -d dataset_number_5 \
-      -n jobs_name -e qiime2-2021.11 -chunkit 3
+      -n jobs_name -e qiime2-2021.11 -x 3
   ```
   The `.sh` file would now contain only two jobs:
   ```
@@ -883,7 +885,7 @@ microbiome_analyzer -i <input_folder_path> -d <dataset_name> -n <project_name> -
   --slurm / --no-slurm            Whether to prepare Slurm and not Torque
                                   jobs.  [default: False]
 
-  -chunkit, --p-chunkit INTEGER   Maximum number of jobs at which extra jobs
+  -x, --chunks INTEGER            Maximum number of jobs at which extra jobs
                                   will be added in chunks
 
   --version                       Show the version and exit.

@@ -1,459 +1,597 @@
 default:
   time: "12"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "1"
+  nodes: "1"
+  cpus: "1"
+  mem: "1"
   mem_dim: "gb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
+  chunks:
 import:
   time: "4"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "10"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
   mem_dim: "gb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
+  chunks:
+import_trees:
+  time: "4"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+filter3d:
+  time: "4"
+  nodes: "1"
+  cpus: "1"
+  mem: "1"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
 filter:
   time: "4"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "10"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
   mem_dim: "gb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
+  chunks:
 rarefy:
   time: "4"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "10"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
   mem_dim: "gb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
+  chunks:
 qemistree:
   time: "1"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "1"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
   mem_dim: "gb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
+  chunks:
 taxonomy:
   time: "8"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "50"
+  nodes: "1"
+  cpus: "1"
+  mem: "50"
   mem_dim: "gb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
+  chunks:
+barplot:
+  time: "1"
+  nodes: "1"
+  cpus: "1"
+  mem: "500"
+  mem_dim: "mb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
 wol:
   time: "1"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "2"
+  nodes: "1"
+  cpus: "1"
+  mem: "2"
   mem_dim: "gb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
+  chunks:
 sepp:
   time: "100"
-  n_nodes: "2"
-  n_procs: "12"
-  mem_num: "150"
+  nodes: "2"
+  cpus: "12"
+  mem: "150"
   mem_dim: "gb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
+  chunks:
+pies:
+  time: "10"
+  nodes: "'"
+  cpus: "1"
+  mem: "1"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
 collapse:
   time: "1"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "10"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
   mem_dim: "gb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
-subset:
+  chunks:
+feature_subsets:
   time: "1"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "1"
+  nodes: "1"
+  cpus: "1"
+  mem: "1"
   mem_dim: "gb"
   env: "qiime2-2020.6"
   partition:
   scratch:
   machine:
+  chunks:
 alpha:
   time: "4"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "20"
+  nodes: "1"
+  cpus: "1"
+  mem: "4"
   mem_dim: "gb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
-merge_alpha:
+  chunks:
+alpha_merge:
   time: "1"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "10"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-alpha_correlations:
-  time: "10"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "30"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-tabulate:
-  time: "1"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "100"
+  nodes: "1"
+  cpus: "1"
+  mem: "500"
   mem_dim: "mb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
+  chunks:
 alpha_rarefaction:
   time: "10"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "1"
+  nodes: "1"
+  cpus: "1"
+  mem: "5"
   mem_dim: "gb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
+  chunks:
+alpha_correlations:
+  time: "10"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+alpha_group_significance:
+  time: "2"
+  nodes: "1"
+  cpus: "1"
+  mem: "15"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
 volatility:
   time: "2"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "100"
+  nodes: "1"
+  cpus: "1"
+  mem: "200"
   mem_dim: "mb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
-alpha_kw:
-  time: "2"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "20"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-barplot:
-  time: "1"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "500"
-  mem_dim: "mb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-beta:
-  time: "24"
-  n_nodes: "1"
-  n_procs: "8"
-  mem_num: "30"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-pcoa:
-  time: "10"
-  n_nodes: "1"
-  n_procs: "2"
-  mem_num: "20"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-tsne:
-  time: "10"
-  n_nodes: "1"
-  n_procs: "2"
-  mem_num: "20"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-umap:
-  time: "10"
-  n_nodes: "1"
-  n_procs: "2"
-  mem_num: "20"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-emperor:
-  time: "10"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "5"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-empress:
-  time: "10"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "5"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-biplot:
-  time: "10"
-  n_nodes: "1"
-  n_procs: "2"
-  mem_num: "20"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-emperor_biplot:
-  time: "10"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "20"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-empress_biplot:
-  time: "10"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "20"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-deicode:
-  time: "4"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "80"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-permanova:
-  time: "48"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "40"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-adonis:
-  time: "6"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "20"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-mmvec:
-  time: "48"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "20"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-nestedness:
-  time: "48"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "20"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-nestedness_nodfs:
-  time: "72"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "4"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-nestedness_graphs:
-  time: "72"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "4"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-procrustes:
-  time: "48"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "20"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-mantel:
-  time: "72"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "10"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-dm_decay:
-  time: "72"
-  n_nodes: "1"
-  n_procs: "4"
-  mem_num: "10"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-dm_decay_plot:
-  time: "4"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "1"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-geo_decay:
-  time: "72"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "10"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-procrustes_R:
-  time: "120"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "30"
-  mem_dim: "gb"
-  env: "renv"
-  partition:
-  scratch:
-  machine:
-songbird:
-  time: "48"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "20"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
-qurro:
-  time: "24"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "5"
-  mem_dim: "gb"
-  env: "qiime2-2021.11"
-  partition:
-  scratch:
-  machine:
+  chunks:
 phate:
   time: "72"
-  n_nodes: "1"
-  n_procs: "4"
-  mem_num: "10"
+  nodes: "1"
+  cpus: "4"
+  mem: "10"
   mem_dim: "gb"
   env: "phate"
   partition:
   scratch:
   machine:
-sourcetracking:
-  time: "72"
-  n_nodes: "1"
-  n_procs: "2"
-  mem_num: "60"
-  mem_dim: "gb"
-  partition:
-  scratch:
-  machine:
-doc:
-  time: "150"
-  n_nodes: "1"
-  n_procs: "4"
-  mem_num: "20"
-  mem_dim: "gb"
-  env: "xdoc"
-  partition:
-  scratch:
-  machine:
-mmbird:
-  time: "2"
-  n_nodes: "1"
-  n_procs: "1"
-  mem_num: "8"
+  chunks:
+beta:
+  time: "24"
+  nodes: "1"
+  cpus: "8"
+  mem: "30"
   mem_dim: "gb"
   env: "qiime2-2021.11"
   partition:
   scratch:
   machine:
+  chunks:
+deicode:
+  time: "4"
+  nodes: "1"
+  cpus: "1"
+  mem: "20"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+pcoa:
+  time: "10"
+  nodes: "1"
+  cpus: "2"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+umap:
+  time: "10"
+  nodes: "1"
+  cpus: "2"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+tsne:
+  time: "10"
+  nodes: "1"
+  cpus: "2"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+emperor:
+  time: "10"
+  nodes: "1"
+  cpus: "1"
+  mem: "5"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+empress:
+  time: "10"
+  nodes: "1"
+  cpus: "1"
+  mem: "5"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+biplot:
+  time: "10"
+  nodes: "1"
+  cpus: "2"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+emperor_biplot:
+  time: "10"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+empress_biplot:
+  time: "10"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+permanova:
+  time: "48"
+  nodes: "1"
+  cpus: "1"
+  mem: "40"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+adonis:
+  time: "6"
+  nodes: "1"
+  cpus: "1"
+  mem: "20"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+
+procrustes:
+  time: "48"
+  nodes: "1"
+  cpus: "1"
+  mem: "20"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+procrustes_r:
+  time: "120"
+  nodes: "1"
+  cpus: "1"
+  mem: "30"
+  mem_dim: "gb"
+  env: "renv"
+  partition:
+  scratch:
+  machine:
+  chunks:
+mantel:
+  time: "72"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+
+nestedness:
+  time: "48"
+  nodes: "1"
+  cpus: "1"
+  mem: "20"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+nestedness_nodfs:
+  time: "72"
+  nodes: "1"
+  cpus: "1"
+  mem: "4"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+nestedness_graphs:
+  time: "72"
+  nodes: "1"
+  cpus: "1"
+  mem: "4"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+dm_decay:
+  time: "72"
+  nodes: "1"
+  cpus: "4"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+dm_decay_plot:
+  time: "4"
+  nodes: "1"
+  cpus: "1"
+  mem: "1"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+geo_decay:
+  time: "72"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+
+sourcetracking:
+  time: "72"
+  nodes: "1"
+  cpus: "2"
+  mem: "60"
+  mem_dim: "gb"
+  partition:
+  scratch:
+  machine:
+  chunks:
+doc:
+  time: "150"
+  nodes: "1"
+  cpus: "4"
+  mem: "20"
+  mem_dim: "gb"
+  env: "xdoc"
+  partition:
+  scratch:
+  machine:
+  chunks:
+doc_r:
+  time: "150"
+  nodes: "1"
+  cpus: "4"
+  mem: "20"
+  mem_dim: "gb"
+  env: "xdoc"
+  partition:
+  scratch:
+  machine:
+  chunks:
+
+mmvec:
+  time: "48"
+  nodes: "1"
+  cpus: "1"
+  mem: "20"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+mmvec_paired_imports:
+  time: "12"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+mmvec_single_imports:
+  time: "12"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+songbird_baselines:
+  time: "48"
+  nodes: "1"
+  cpus: "1"
+  mem: "20"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+songbird_filter:
+  time: "48"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+songbird:
+  time: "48"
+  nodes: "1"
+  cpus: "1"
+  mem: "20"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+songbird_imports:
+  time: "12"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+qurro:
+  time: "24"
+  nodes: "1"
+  cpus: "1"
+  mem: "5"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:
+mmbird:
+  time: "2"
+  nodes: "1"
+  cpus: "1"
+  mem: "8"
+  mem_dim: "gb"
+  env: "qiime2-2021.11"
+  partition:
+  scratch:
+  machine:
+  chunks:

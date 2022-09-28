@@ -16,95 +16,11 @@ import pkg_resources
 import pandas as pd
 
 from os.path import basename, isfile, isdir, splitext
-from microbiome_analyzer._cmds import run_export
+from microbiome_analyzer.core.commands import run_export
+from microbiome_analyzer._scratch import to_do, rep
 
 RESOURCES = pkg_resources.resource_filename(
     "microbiome_analyzer", "resources/wol")
-
-
-def read_yaml_file(file_path: str) -> dict:
-    """Simply reads a yaml and return
-    its contents in a dictionary structure.
-
-    Parameters
-    ----------
-    file_path: str
-        Path to a yaml file.
-
-    Returns
-    -------
-    yaml_dict : dict
-        Dictionary object returned
-        by reading the yaml file.
-        (could be an empty dict)
-    """
-    yaml_dict = {}
-    if file_path and isfile(file_path):
-        with open(file_path) as yaml_handle:
-            try:
-                yaml_dict = yaml.load(
-                    yaml_handle, Loader=yaml.FullLoader)
-            except AttributeError:
-                yaml_dict = yaml.load(yaml_handle)
-    return yaml_dict
-
-
-def read_meta_pd(
-        meta_tab: str,
-        rep_col: str = 'sample_name') -> pd.DataFrame:
-    """Read metadata with first column as index.
-
-    Parameters
-    ----------
-    meta_tab : str
-        Path to the data table file
-    rep_col : str
-        Columns to use for index name
-
-    Returns
-    -------
-    meta_tab_pd : pd.DataFrame
-        Metadata table
-    """
-    meta_tab_sam_col = get_feature_sample_col(meta_tab)
-    meta_tab_pd = pd.read_csv(
-        meta_tab,
-        header=0,
-        sep='\t',
-        dtype={meta_tab_sam_col: str},
-        low_memory=False
-    )
-    meta_tab_pd.rename(
-        columns={meta_tab_sam_col: rep_col},
-        inplace=True
-    )
-    return meta_tab_pd
-
-
-def get_feature_sample_col(meta_tab: str) -> str:
-    """Get the first column of the metadata file.
-
-    Parameters
-    ----------
-    meta_tab : str
-        Data of metadata file path
-
-    Returns
-    -------
-    first_column : str
-        name of the first column in the table
-    """
-    n = 0
-    with open(meta_tab) as f:
-        for line in f:
-            n += 1
-            break
-    if n:
-        first_column = line.split('\t')[0]
-        return first_column
-    else:
-        print('Empty now: %s (possibly being written elsewhere..)' % meta_tab)
-        sys.exit(0)
 
 
 def convert_to_biom(data_pd: pd.DataFrame) -> biom.Table:
@@ -182,20 +98,6 @@ def check_if_not_dna(
     return dna
 
 
-def get_output(folder, analysis):
-    """
-    Get the output folder name.
-
-    :param folder: Path to the folder containing the data/metadata subfolders.
-    :param analysis: name of the qiime2 analysis (e.g. beta).
-    :return: output folder name.
-    """
-    odir = '%s/%s' % (folder, analysis)
-    if not isdir(odir):
-        os.makedirs(odir)
-    return odir
-
-
 def get_cohort(analysis: str, group: str, vals: list, data,
                test: str = None) -> str:
     cohort = 'ALL'
@@ -258,8 +160,8 @@ def add_q2_type(meta_pd: pd.DataFrame, meta: str, cv: str, tests: list,
         cv_pd['variable'] = test
         cvs.append(cv_pd)
     cv_pd = pd.concat(cvs)
-    cv_pd.to_csv(cv, index=False, sep='\t', header=False)
-    meta_pd.fillna('NA').to_csv(meta, index=False, sep='\t')
+    cv_pd.to_csv(rep(cv), index=False, sep='\t', header=False)
+    meta_pd.fillna('NA').to_csv(rep(meta), index=False, sep='\t')
     return False
 
 
@@ -280,32 +182,26 @@ def subset_meta(
     return new_meta_pd[(['sample_name'] + list(cols))]
 
 
-def get_wol_tree(wol_tree: str) -> str:
+def get_wol_tree(wol_tree: str) -> tuple:
     """
-    :param wol_tree: passed path to a tree.
-    :return: path to a verified tree .nwk file.
     """
     if wol_tree == 'resources/wol_tree.nwk':
-        return '%s/wol_tree.nwk' % RESOURCES
-    if not isfile(wol_tree):
-        print('%s does not exist\nExiting...' % wol_tree)
-        sys.exit(0)
+        wol_tree_fp = '%s/wol_tree.nwk' % RESOURCES
+        return wol_tree_fp, ''
+    if wol_tree:
+        sys.exit('"%s" does not exist\nExiting...' % wol_tree)
     if not wol_tree.endswith('.nwk'):
         if wol_tree.endswith('qza'):
             wol_tree_nwk = '%s.nwk' % splitext(wol_tree)[0]
             if isfile(wol_tree_nwk):
-                print('Warning: about to overwrite %s\nExiting' % wol_tree_nwk)
-                sys.exit(0)
-            run_export(wol_tree, wol_tree_nwk, 'phylogeny')
-            return wol_tree_nwk
+                print('"%s" found (export of "%s"?)' % (wol_tree_nwk, wol_tree))
+            cmd = run_export(wol_tree, wol_tree_nwk, 'phylogeny')
+            return wol_tree_nwk, cmd
         else:
-            # need more formal checks (sniff in skbio /
-            # stdout in "qiime tools peek")
-            print('%s is not a .nwk (tree) file or not a'
-                  ' qiime2 Phylogeny artefact\nExiting...' % wol_tree)
-            sys.exit(0)
+            sys.exit('"%s" is not a .nwk (tree) file or not a'
+                     ' qiime2 Phylogeny artefact\nExiting...' % wol_tree)
     else:
-        return wol_tree
+        return wol_tree, ''
 
 
 def get_sepp_tree(sepp_tree: str) -> str:
@@ -316,21 +212,20 @@ def get_sepp_tree(sepp_tree: str) -> str:
     :return: path of the reference database for SEPP.
     """
     if not sepp_tree or not isfile(sepp_tree):
-        print('%s does not exist\nExiting...' % sepp_tree)
-        sys.exit(0)
+        sys.exit('"%s" does not exist\nExiting...' % sepp_tree)
     if not sepp_tree.endswith('qza'):
-        print('%s is not a qiime2 Phylogeny artefact\nExiting...' % sepp_tree)
-        sys.exit(0)
+        sys.exit('"%s" is not a qiime2 Phylogeny\nExiting...' % sepp_tree)
     if basename(sepp_tree) in ['sepp-refs-silva-128.qza',
                                'sepp-refs-gg-13-8.qza']:
         return sepp_tree
     else:
-        print('%s is not:\n'
-              '- "sepp-refs-silva-128.qza"\n'
-              '- "sepp-refs-gg-13-8.qza"\n'
-              'Download: https://docs.qiime2.org/2019.10/data-resources/\n'
-              'Exiting...' % sepp_tree)
-        sys.exit(0)
+        message = (
+                '%s is not:\n'
+                '- "sepp-refs-silva-128.qza"\n'
+                '- "sepp-refs-gg-13-8.qza"\n'
+                'Download: https://docs.qiime2.org/<YYYY.MM>/data-resources/\n' 
+                'Exiting...' % sepp_tree)
+        sys.exit(mes)
 
 
 def get_taxonomy_classifier(classifier: str) -> str:
@@ -402,4 +297,3 @@ def write_filtered_tsv(tsv_out: str, tsv_pd: pd.DataFrame) -> None:
     tsv_pd = tsv_pd.reset_index().rename(
         columns={tsv_sams_col: 'Feature ID'}).set_index('Feature ID')
     tsv_pd.reset_index().to_csv(tsv_out, index=False, sep='\t')
-

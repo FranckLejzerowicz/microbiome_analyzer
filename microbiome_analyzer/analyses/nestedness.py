@@ -13,10 +13,13 @@ import pandas as pd
 import pkg_resources
 
 from os.path import basename, isdir, isfile, splitext
-from microbiome_analyzer.datasets import Datasets
-from microbiome_analyzer.analysis import AnalysisPrep
-from microbiome_analyzer._cmds import write_filter, run_export, run_add_metadata
-from microbiome_analyzer._io import get_cohort, subset_meta
+from microbiome_analyzer.core.datasets import Datasets
+from microbiome_analyzer.core.analysis import AnalysisPrep
+from microbiome_analyzer.core.commands import (
+    write_filter, run_export, run_add_metadata)
+from microbiome_analyzer._io_utils import get_cohort, subset_meta
+from microbiome_analyzer._scratch import io_update, to_do, rep
+
 
 RESOURCES = pkg_resources.resource_filename(
     "microbiome_analyzer", "resources/python_scripts")
@@ -27,7 +30,11 @@ class Nestedness(object):
     def __init__(self, config, project):
         self.config = config
         self.project = project
+        self.dir = project.dir
+        self.dirs = project.dirs
+        self.out = ''
         self.analysis = 'nestedness'
+        self.ios = {}
         self.cmds = {}
         self.subsets = {'ALL': [[]]}
         self.nodfs = []
@@ -47,12 +54,17 @@ class Nestedness(object):
         AnalysisPrep.analyses_nestedness = self.res_pd
 
     def get_output(self, dat, cohort):
-        out = '%s/qiime/%s/%s' % (self.config.folder, self.analysis, dat)
+        self.out = '%s/%s/%s' % (self.dir, self.analysis, dat)
         if cohort:
-            out = (out + '/' + cohort).rstrip('/')
-        if not isdir(out):
-            os.makedirs(out)
-        return out
+            self.out = (self.out + '/' + cohort).rstrip('/')
+        self.dirs.add(self.out)
+
+    def get_path(self, path_):
+        path = path_
+        params = self.config.run_params[self.analysis]
+        if not self.config.jobs or not params['scratch']:
+            path = rep(path_)
+        return path
 
     def get_config(self):
         conf = self.read_config()
@@ -113,7 +125,7 @@ class Nestedness(object):
         meta_pd = meta_pd[(['sample_name'] + sorted(cols))]
         meta_pd.columns = ['#SampleID'] + sorted(cols)
         meta_pd = meta_pd.loc[~meta_pd[self.nodfs_vars].isna().any(axis=1)]
-        meta_pd.to_csv(meta, index=False, sep='\t')
+        meta_pd.to_csv(rep(meta), index=False, sep='\t')
 
     def write_fields(self, o_dir, raref):
         fields = '%s/fields%s.txt' % (o_dir, raref)
@@ -127,16 +139,16 @@ class Nestedness(object):
         https://github.com/jladau/Nestedness
         """
         cmd = ''
-        if not isfile(graph):
-            cmd += 'java -cp %s \\\n' % self.binary
-            cmd += 'edu.ucsf.Nestedness.Grapher.GrapherLauncher \\\n'
-            cmd += '--sBIOMPath=%s \\\n' % biom
-            cmd += '--bCheckRarefied=false \\\n'
-            cmd += '--bNormalize=true \\\n'
-            cmd += '--bPresenceAbsence=false \\\n'
-            cmd += '--sTaxonRank=otu \\\n'
-            cmd += '--sOutputPath=%s \\\n' % graph
-            cmd += '--rgsSampleMetadataFields=%s\n' % ','.join(self.nodfs_vars)
+        if to_do(graph):
+            cmd += 'java -cp %s' % self.binary
+            cmd += 'edu.ucsf.Nestedness.Grapher.GrapherLauncher'
+            cmd += ' --sBIOMPath=%s' % biom
+            cmd += ' --bCheckRarefied=false'
+            cmd += ' --bNormalize=true'
+            cmd += ' --bPresenceAbsence=false'
+            cmd += ' --sTaxonRank=otu'
+            cmd += ' --sOutputPath=%s' % graph
+            cmd += ' --rgsSampleMetadataFields=%s\n' % ','.join(self.nodfs_vars)
         return cmd
 
     def write_comparisons(self, biom: str, comp: str,
@@ -145,21 +157,21 @@ class Nestedness(object):
         https://github.com/jladau/Nestedness
         """
         cmd = ''
-        if self.config.force or not isfile(comp):
-            cmd += 'java -Xmx5g -cp %s \\\n' % self.binary
-            cmd += 'edu.ucsf.Nestedness.ComparisonSelector.ComparisonSelectorLauncher \\\n'
-            cmd += '--sBIOMPath=%s \\\n' % biom
-            cmd += '--sOutputPath=%s \\\n' % comp
-            cmd += '--bCheckRarefied=false \\\n'
-            cmd += '--bNormalize=true \\\n'
-            cmd += '--bPresenceAbsence=false \\\n'
-            cmd += '--sTaxonRank=otu \\\n'
+        if self.config.force or to_do(comp):
+            cmd += 'java -Xmx5g -cp %s' % self.binary
+            cmd += 'edu.ucsf.Nestedness.ComparisonSelector.ComparisonSelectorLauncher'
+            cmd += ' --sBIOMPath=%s' % biom
+            cmd += ' --sOutputPath=%s' % comp
+            cmd += ' --bCheckRarefied=false'
+            cmd += ' --bNormalize=true'
+            cmd += ' --bPresenceAbsence=false'
+            cmd += ' --sTaxonRank=otu'
             if mode in ["betweeneachpairoftypes", "withineachtype"]:
-                cmd += '--sMetadataField=%s \\\n' % nodf
-            cmd += '--iRandomSeed=1234 \\\n'
-            cmd += '--sComparisonMode=%s \\\n' % mode
-            cmd += '--iNestednessPairs=1000 \\\n'
-            cmd += '--sNestednessAxis=sample\n'
+                cmd += ' --sMetadataField=%s' % nodf
+            cmd += ' --iRandomSeed=1234'
+            cmd += ' --sComparisonMode=%s' % mode
+            cmd += ' --iNestednessPairs=1000'
+            cmd += ' --sNestednessAxis=sample\n'
         return cmd
 
     def write_simulations(self, biom: str, simul: str,
@@ -168,22 +180,22 @@ class Nestedness(object):
         https://github.com/jladau/Nestedness
         """
         cmd = ''
-        if self.config.force or not isfile(simul):
-            cmd += 'java -cp %s \\\n' % self.binary
-            cmd += 'edu.ucsf.Nestedness.Calculator.CalculatorLauncher \\\n'
-            cmd += '--sBIOMPath=%s \\\n' % biom
-            cmd += '--sOutputPath=%s \\\n' % simul
-            cmd += '--bCheckRarefied=false \\\n'
-            cmd += '--bNormalize=true \\\n'
-            cmd += '--bPresenceAbsence=false \\\n'
-            cmd += '--sTaxonRank=otu \\\n'
-            cmd += '--sComparisonsPath=%s \\\n' % comp
-            cmd += '--iNullModelIterations=%s \\\n' % str(
+        if self.config.force or to_do(simul):
+            cmd += 'java -cp %s' % self.binary
+            cmd += 'edu.ucsf.Nestedness.Calculator.CalculatorLauncher'
+            cmd += ' --sBIOMPath=%s' % biom
+            cmd += ' --sOutputPath=%s' % simul
+            cmd += ' --bCheckRarefied=false'
+            cmd += ' --bNormalize=true'
+            cmd += ' --bPresenceAbsence=false'
+            cmd += ' --sTaxonRank=otu'
+            cmd += ' --sComparisonsPath=%s' % comp
+            cmd += ' --iNullModelIterations=%s' % str(
                 self.params['iterations'])
-            cmd += '--bOrderedNODF=false \\\n'
-            cmd += '--sNestednessAxis=sample \\\n'
-            cmd += '--sNestednessNullModel=%s \\\n' % null
-            cmd += '--bSimulate=true\n'
+            cmd += ' --bOrderedNODF=false'
+            cmd += ' --sNestednessAxis=sample'
+            cmd += ' --sNestednessNullModel=%s' % null
+            cmd += ' --bSimulate=true\n'
         return cmd
 
     def merge_outputs(self, mode_dir: str, level: str,
@@ -191,7 +203,7 @@ class Nestedness(object):
         com_sta_pds = []
         mode = mode_dir.split('/')[-1].replace('output_', '')
         for sim_fp in glob.glob('%s/simulations_*%s.csv' % (
-                mode_dir, raref)):
+                rep(mode_dir), raref)):
             sim_pd = pd.read_csv(sim_fp)
             null = splitext(basename(sim_fp))[0].split('_')[-1]
             sim_pd['NULL'] = null
@@ -227,42 +239,70 @@ class Nestedness(object):
             com_sta_pds.append(nodf_pd)
         if com_sta_pds:
             com_sta_pd = pd.concat(com_sta_pds)
-            com_sta_pd.to_csv(nodfs, index=False, sep='\t')
+            com_sta_pd.to_csv(rep(nodfs), index=False, sep='\t')
 
-    def init_cmds(self, cur_dir: str, meta: str, data, raref: str):
-        qza = '%s/tab%s.qza' % (cur_dir, raref)
+    def init_cmds(self, meta: str, data, raref: str):
+        qza = '%s/tab%s.qza' % (self.out, raref)
         biom_ = '%s.biom' % splitext(qza)[0]
         tsv = '%s.tsv' % splitext(qza)[0]
         biom = '%s_w-md.biom' % splitext(qza)[0]
         cmd = ''
-        if not isfile(biom_):
+        if to_do(biom_):
             cmd += write_filter(data.qza[raref], qza, meta)
             cmd += run_export(qza, tsv, 'FeatureTable')
             cmd += 'rm %s %s\n' % (qza, tsv)
-        if not isfile(biom):
+            io_update(self, i_f=[data.qza[raref], meta], o_f=biom_,
+                      key=data.dat)
+        else:
+            io_update(self, i_f=biom_, key=data.dat)
+
+        if to_do(biom):
             cmd += run_add_metadata(biom_, biom, meta)
             cmd += 'rm %s\n' % biom_
+            io_update(self, i_f=biom_, o_f=biom, key=data.dat)
+        else:
+            io_update(self, i_f=biom, key=data.dat)
+
         return cmd, biom
 
-    def write_graph(self, o_dir, data, meta_pd, raref) -> (str, str):
-        graph = '%s/graphs%s.csv' % (o_dir, raref)
+    def write_graph(self, data, meta_pd, raref) -> (str, str):
+        graph = '%s/graphs%s.csv' % (self.out, raref)
         cmd = ''
-        if self.config.force or not isfile(graph):
-            meta = '%s/meta.tsv' % o_dir
+        if self.config.force or to_do(graph):
+            meta = '%s/meta.tsv' % self.out
             self.write_meta(meta, data.metadata, meta_pd, self.nodfs)
-            cmd, biom = self.init_cmds(o_dir, meta, data, raref)
+            cmd, biom = self.init_cmds(meta, data, raref)
             cmd += self.write_nestedness_graph(biom, graph)
         return cmd, graph
 
-    def scripts(self, o_dir: str, meta_pd: pd.DataFrame, data, raref: str,
-                level: str, cohort: str):
+    def scripts(
+            self,
+            meta_pd: pd.DataFrame,
+            data,
+            raref: str,
+            level: str,
+            cohort: str
+    ):
+        """
+
+        Parameters
+        ----------
+        meta_pd
+        data
+        raref
+        level
+        cohort
+
+        Returns
+        -------
+
+        """
         dat = Datasets.coll_raw.get(data.dat, data.dat)
-        cmd, graph = self.write_graph(o_dir, data, meta_pd, raref)
+        cmd, graph = self.write_graph(data, meta_pd, raref)
         self.graphs.append([dat, data.dat, cohort, raref, graph])
         for mode in self.modes:
-            m_dir = '%s/output_%s%s' % (o_dir, mode, raref.replace('_', '/'))
-            if not isdir(m_dir):
-                os.makedirs(m_dir)
+            m_dir = '%s/output_%s%s' % (self.out, mode, raref.replace('_', '/'))
+            self.dirs.add(m_dir)
             nodfs_fp = '%s/nodfs.tsv' % m_dir
             if mode == 'overall':
                 nodfs = ['sample_name']
@@ -274,11 +314,18 @@ class Nestedness(object):
             for ndx, nodf_var in enumerate(self.nodfs_vars):
                 comp = '%s/comparisons_%s.csv' % (m_dir, nodf_var)
                 nest_cmd += self.write_comparisons(biom, comp, mode, nodf_var)
+                io_update(self, i_f=biom, o_f=comp, key=data.dat)
                 for null in self.nulls:
                     simul = '%s/simulations_%s_%s.csv' % (m_dir, nodf_var, null)
                     nest_cmd += self.write_simulations(biom, simul, comp, null)
+                    i_f = []
+                    if not to_do(biom):
+                        i_f.append(biom)
+                    if not to_do(comp):
+                        i_f.append(comp)
+                    io_update(self, i_f=i_f, o_f=simul, key=data.dat)
             self.merge_outputs(m_dir, level, data, raref, cohort, nodfs_fp)
-            self.res.append([dat, nodfs_fp, cohort, o_dir])
+            self.res.append([dat, nodfs_fp, cohort, self.out])
             if nest_cmd:
                 self.write_meta(meta, data.metadata, meta_pd, nodfs)
                 cmd += init_cmd + nest_cmd
@@ -295,24 +342,28 @@ class Nestedness(object):
             dat_pd = self.res_pd.loc[self.res_pd.dat == dat]
             o_dir = dat_pd.loc[dat_pd['cohort'] == 'ALL'].o_dir.values[0]
             pdf, py = '%s/nodfs.pdf' % o_dir, '%s/nodfs.py' % o_dir
-            if self.config.force or not isfile(pdf):
+            if self.config.force or to_do(pdf):
                 cmd = 'python3 %s\n' % py
                 self.cmds.setdefault(dat, []).append(cmd)
-                with open(py, 'w') as o, open(nodfs_py) as f:
+                io_update(self, i_f=([py] + dat_pd['nodfs_fps']),
+                          o_d=o_dir, key=dat)
+                with open(rep(py), 'w') as o, open(rep(nodfs_py)) as f:
                     for line in f:
                         line_edit = line
                         if '<DAT>' in line:
                             line_edit = line_edit.replace('<DAT>', dat)
                         if '<ODIR>' in line:
-                            line_edit = line_edit.replace('<ODIR>', o_dir)
-                        if '<NODFS>' in line:
                             line_edit = line_edit.replace(
-                                "'<NODFS>'", str(dat_pd['nodfs_fps'].tolist()))
+                                '<ODIR>', self.get_path(o_dir))
+                        if '<NODFS>' in line:
+                            ns = [self.get_path(x) for x in dat_pd['nodfs_fps']]
+                            line_edit = line_edit.replace(
+                                "'<NODFS>'", str(ns))
                         if '<COLLAPSED>' in line:
                             line_edit = line_edit.replace(
                                 "'<COLLAPSED>'", str(data.collapsed))
                         o.write(line_edit)
-        self.register_command()
+        self.register_io_command()
 
     def figure_graphs(self):
         self.analysis = 'nestedness_graphs'
@@ -325,23 +376,27 @@ class Nestedness(object):
             dat_pd = graphs_pd.loc[
                 graphs_pd.dat == dat, ['dat', 'cohort', 'raref', 'graph']]
             for (dat_notax, cohort, raref, graph_fp) in dat_pd.values:
-                if not isfile(graph_fp):
+                if to_do(graph_fp):
                     continue
                 pdf = '%s.pdf' % splitext(graph_fp)[0]
                 txt = '%s.txt' % splitext(graph_fp)[0]
                 py = '%s.py' % splitext(graph_fp)[0]
-                if self.config.force or not isfile(pdf) and not isfile(txt):
+                if self.config.force or to_do(pdf) and to_do(txt):
                     cmd = 'python3 %s\n' % py
                     self.cmds.setdefault(dat, []).append(cmd)
-                    with open(py, 'w') as o, open(graphs_py) as f:
+                    io_update(self, i_f=[data.tsv[raref], data.meta, graph_fp],
+                              o_f=[pdf, txt], key=dat)
+                    with open(rep(py), 'w') as o, open(rep(graphs_py)) as f:
                         for line in f:
                             o.write(line.replace(
                                 '<DAT>', dat).replace(
                                 # '<RAREF>', data.rarefs[idx]).replace(
-                                # '<TAB_FP>', data.tsv[idx]).replace(
-                                '<RAREF>', raref).replace(
-                                '<TAB_FP>', data.tsv[raref]).replace(
-                                '<META_FP>', data.meta).replace(
+                                '<RAREF>', raref
+                            ).replace(
+                                '<TAB_FP>', self.get_path(data.tsv[raref])
+                            ).replace(
+                                '<META_FP>', self.get_path(data.meta)
+                            ).replace(
                                 "'<COL_SAMPLE>'", str(self.colors['sample'])
                             ).replace(
                                 "'<COL_FEATURE>'", str(self.colors['feature'])
@@ -350,9 +405,10 @@ class Nestedness(object):
                                 '<TAXA_FP>', tax).replace(
                                 '<LEVEL>', level).replace(
                                 '<COHORT>', cohort).replace(
-                                "'<COLL>'", str(data.collapsed)).replace(
-                                '<GRAPH_FP>', graph_fp))
-        self.register_command()
+                                "'<COLL>'", str(data.collapsed)
+                            ).replace(
+                                '<GRAPH_FP>', self.get_path(graph_fp)))
+        self.register_io_command()
 
     def run(self):
         self.get_config()
@@ -364,13 +420,15 @@ class Nestedness(object):
                         cohort = get_cohort('nestedness', group, vals, data)
                         if not cohort:
                             continue
-                        o_dir = self.get_output(data.path, cohort)
+                        self.get_output(data.path, cohort)
                         meta_pd = subset_meta(data.metadata, group, vals)
                         if meta_pd.shape[0] < 10:
                             continue
-                        self.scripts(o_dir, meta_pd, data, raref, level, cohort)
-        self.register_command()
+                        self.scripts(meta_pd, data, raref, level, cohort)
+        self.register_io_command()
 
-    def register_command(self):
+    def register_io_command(self):
+        AnalysisPrep.analyses_ios[self.analysis] = dict(self.ios)
         AnalysisPrep.analyses_commands[self.analysis] = dict(self.cmds)
+        self.ios = {}
         self.cmds = {}
