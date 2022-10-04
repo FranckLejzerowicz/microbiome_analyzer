@@ -20,7 +20,7 @@ from microbiome_analyzer.analyses.paired_data import PairedData
 # from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
 
 
-def microbiome_analyzer(**kwargs):
+def runner(**kwargs):
     """
     Main qiime2 functions writer.
     """
