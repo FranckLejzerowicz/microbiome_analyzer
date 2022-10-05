@@ -1019,7 +1019,8 @@ class PrepConfig(object):
                         o.write('  - %s\n' % inp)
 
     def prep_sourcetracking(self):
-        pass
+        with open(self.config_fp, 'w') as o:
+            print('NOT AVAILABLE YET :(')
 
     def prep_doc(self):
         with open(self.config_fp, 'w') as o:
