@@ -84,6 +84,9 @@ from microbiome_analyzer import __version__
 @click.option(
     "--filt3d/--no-filt3d", default=False,
     help="Prepare a template configuration file for `--filt3d`")
+@click.option(
+    "--all-datasets/--no-all-datasets", default=False,
+    help="Setup all template configuration files once for all datasets")
 @click.version_option(__version__, prog_name="microbiome_analyzer")
 
 def config(
@@ -110,6 +113,7 @@ def config(
         mmvec_pairs,
         diff_models,
         filt3d,
+        all_datasets
 ):
     """Write template config files for different analyses."""
     configure(
@@ -135,5 +139,6 @@ def config(
         mmvec_highlights=mmvec_highlights,
         mmvec_pairs=mmvec_pairs,
         diff_models=diff_models,
-        filt3d=filt3d
+        filt3d=filt3d,
+        all_datasets=all_datasets
     )

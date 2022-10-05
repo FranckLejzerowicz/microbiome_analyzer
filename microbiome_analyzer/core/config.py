@@ -465,8 +465,10 @@ class PrepConfig(object):
     def prep_filtering(self):
         with open(self.config_fp, 'w') as o:
             for dat in self.datasets:
+                if self.all_datasets:
+                    dat = 'All datasets'
+                writer = '%s:\n' % dat
                 sams = set(self.meta[dat].sample_name)
-                o.write('%s:\n' % dat)
 
                 names = set()
                 mess = '%s(%s) Samples to remove: ' % (self.prep, dat)
@@ -479,50 +481,70 @@ class PrepConfig(object):
                         names.add(inp)
                     inp = input(mess)
                 if names:
-                    o.write('  names:\n')
+                    writer += '  names:\n'
                     for sam in names:
-                        o.write('  - "%s"\n' % sam)
+                        writer += '  - "%s"\n' % sam
 
                 inp = input('%s(%s) Feature threshold: ' % (self.prep, dat))
                 if inp:
                     self.check_user_input(inp, True, True)
-                    o.write('  features: %s\n' % inp)
+                    writer += '  features: %s\n' % inp
 
                 inp = input('%s(%s) Sample threshold: ' % (self.prep, dat))
                 if inp:
                     self.check_user_input(inp, True, True)
-                    o.write('  samples: %s\n' % inp)
+                    writer += '  samples: %s\n' % inp
+
+                if self.all_datasets:
+                    self.write_all_datasets(writer, o)
+                    break
+                else:
+                    o.write(writer)
 
     def prep_rarefations(self):
         with open(self.config_fp, 'w') as o:
             for dat in self.datasets:
-                o.write('%s:\n' % dat)
+                if self.all_datasets:
+                    dat = 'All datasets'
+                writer = '%s:\n' % dat
                 mess = '%s(%s) Enter rarefaction depth: ' % (self.prep, dat)
                 inp = input(mess)
                 while inp:
                     if inp == 'min':
-                        o.write('  - "min"\n')
+                        writer += '  - "min"\n'
                     else:
                         self.check_user_input(inp, True)
-                        o.write('  - "%s"\n' % inp)
+                        writer += '  - "%s"\n' % inp
                     inp = input(mess)
+
+                if self.all_datasets:
+                    self.write_all_datasets(writer, o)
+                    break
+                else:
+                    o.write(writer)
 
     def prep_feature_subsets(self):
         with open(self.config_fp, 'w') as o:
             for dat in self.datasets:
-                o.write('%s:\n' % dat)
+                writer = '%s:\n' % dat
                 mess = '%s(%s) Enter subset name: ' % (self.prep, dat)
                 inp = input(mess)
                 while inp:
                     self.check_user_input(inp)
-                    o.write('  %s:\n' % inp)
+                    writer += '  %s:\n' % inp
                     mess2 = '%s(%s) Feature name/regex: ' % (self.prep, dat)
                     inp2 = input(mess2)
                     while input(inp2):
                         self.check_user_input(inp2)
-                        o.write('    - %s\n' % inp2)
+                        writer += '    - %s\n' % inp2
                         inp2 = input(mess2)
                     inp = input(mess)
+
+                if self.all_datasets:
+                    self.write_all_datasets(writer, o)
+                    break
+                else:
+                    o.write(writer)
 
     def get_str_bool_vals(self, inp, vals):
         groups = []
@@ -591,29 +613,49 @@ class PrepConfig(object):
                 for inp, groups in subsets.items():
                     o.write('%s:\n%s\n' % (inp, '\n'.join(groups)))
 
+    def write_all_datasets(self, writer, o, head=''):
+        if head:
+            o.write(head)
+        for dat in self.datasets:
+            o.write(write.replace('All datasets', dat))
+
     def prep_adonis(self):
         with open(self.config_fp, 'w') as o:
-            o.write('models:\n')
             stratas = {}
-            for dat in self.datasets:
+            for ddx, dat in enumerate(self.datasets):
+                if self.all_datasets:
+                    dat = 'All datasets'
                 h = '%s(%s) ' % (self.prep, dat)
-                o.write('  %s:\n' % dat)
-                models = set()
+                writer = '  %s:\n' % dat
                 print('%s* Defining models:' % h)
                 i = input('%sModel name: ' % h)
                 while i:
                     self.check_user_input(i)
                     form = input('%s> Formula: ' % h)
                     if form:
-                        o.write('    %s: "%s"\n' % (i, form))
+                        writer += '    %s: "%s"\n' % (i, form)
                     else:
-                        o.write('    %s: "FORMULA_NEEDED_HERE"\n' % i)
-                    models.add(i)
+                        write += '    %s: "FORMULA_NEEDED_HERE"\n' % i
+                    if dat not in stratas:
+                        stratas[dat] = {}
+                    stratas[dat][model] = set()
                     i = input('%sModel name: ' % h)
 
+                if self.all_datasets:
+                    write_all_datasets(self, writer, o, 'models:\n')
+                    break
+                else:
+                    if not ddx:
+                        o.write('models:\n' + writer)
+                    o.write(writer)
+
+            for dat in self.datasets:
+                if self.all_datasets:
+                    dat = 'All datasets'
+                h = '%s(%s) ' % (self.prep, dat)
                 mess = '%s\n%s* Define models stratas: '% (h, h)
                 print(mess)
-                for model in models:
+                for model in stratas[dat]:
                     i = input('%sModel "%s":\n%s> Metadata variable: ' % (
                         h, model, h))
                     while i:
@@ -621,11 +663,12 @@ class PrepConfig(object):
                         if i not in self.vars:
                             print('No variable "%s" in metadata files' % i)
                         else:
-                            if dat not in stratas:
-                                stratas[dat] = {}
                             stratas[dat].setdefault(model, set()).add(i)
                         i = input('%s> Metadata variable: ' % h)
+                if self.all_datasets:
+                    break
 
+            global_strata = ''
             i = input('%s Global strata? (all datasets/models)\n%s > Metadata '
                       'variable: ' % (self.prep, self.prep))
             while i:
@@ -633,20 +676,31 @@ class PrepConfig(object):
                 if i not in self.vars:
                     print('No variable "%s" in metadata files (ignored)' % i)
                 else:
-                    stratas[''] = i
+                    global_strata = i
                     break
                 i = input('%s> Metadata variable: ' % h)
 
             if stratas:
-                o.write('strata:\n')
-                if stratas.get(''):
-                    o.write('  global: "%s"\n' % stratas.get(''))
-                for dat in self.datasets:
+                for ddx, dat in enumerate(self.datasets):
+                    if self.all_datasets:
+                        dat = 'All datasets'
                     if stratas.get(dat):
-                        o.write('  %s:\n' % dat)
+                        writer = '  %s:\n' % dat
                         for model, vs in stratas[dat].items():
                             for v in vs:
-                                o.write('    %s: "%s"\n' % (model, v))
+                                writer += '    %s: "%s"\n' % (model, v)
+                        if self.all_datasets:
+                            self.write_all_datasets(writer, o, 'strata:\n')
+                            if global_strata:
+                                o.write('  global: "%s"\n' % global_strata)
+                            break
+                        else:
+                            if not ddx:
+                                o.write('strata:\n')
+                            o.write(writer)
+
+            if not self.all_datasets and global_strata:
+                o.write('  global: "%s"\n' % global_strata)
 
     def prep_nestedness(self):
         with open(self.config_fp, 'w') as o:
@@ -844,6 +898,8 @@ class PrepConfig(object):
     def prep_collapse(self):
         with open(self.config_fp, 'w') as o:
             for dat in self.datasets:
+                if self.all_datasets:
+                    dat = 'All datasets'
                 h = '%s(%s) ' % (self.prep, dat)
                 mess = '%sEnter a collapse name: ' % h
                 collapses = {}
@@ -859,14 +915,22 @@ class PrepConfig(object):
                             name = input('%sNickname for this pair: ' % h)
                     inp = input(mess)
                 if collapses:
-                    o.write('%s:\n' % dat)
+                    writer = '%s:\n' % dat
                     for i, j in collapses.items():
-                        o.write('  %s: "%s"\n' % (i, j))
+                        writer += '  %s: "%s"\n' % (i, j)
+
+                    if self.all_datasets:
+                        self.write_all_datasets(writer, o)
+                        break
+                    else:
+                        o.write(writer)
 
     def prep_train_test(self):
         with open(self.config_fp, 'w') as o:
             trains = {}
             for dat in self.datasets:
+                if self.all_datasets:
+                    dat = 'All datasets'
                 h = '%s(%s) ' % (self.prep, dat)
                 print('%s* Set training/testing splits:' % h)
                 i = input('%s  Enter name of a split: ' % h)
@@ -883,14 +947,23 @@ class PrepConfig(object):
                             trains[dat].setdefault(i, set()).add(inp)
                         inp = input('%s  Metadata variable: ' % h)
                     i = input('%s  Enter name of a split: ' % h)
+                if self.all_datasets:
+                    break
+
             if trains:
-                o.write('datasets:\n')
-                for dat in trains:
-                    o.write('  %s:\n' % dat)
+                for ddx, dat in enumerate(trains):
+                    writer += '  %s:\n' % dat
                     for k, vs in trains[dat].items():
-                        o.write('    %s:\n' % k)
+                        writer += '    %s:\n' % k
                         for v in vs:
-                            o.write('    - "%s"\n' % v)
+                            writer += '    - "%s"\n' % v
+                    if self.all_datasets:
+                        self.write_all_datasets(writer, o, 'datasets:\n')
+                        break
+                    else:
+                        if not ddx:
+                            o.write('datasets:\n')
+                        o.write(writer)
 
             inp = input('%s* Fraction for training (default=0.7): ' % h)
             try:
@@ -1010,30 +1083,38 @@ class PrepConfig(object):
 
     def prep_diff_models(self):
         with open(self.config_fp, 'w') as o:
-            o.write('models:\n')
             baselines = {}
             for dat in self.datasets:
+                if self.all_datasets:
+                    dat = 'All datasets'
                 h = '%s(%s) ' % (self.prep, dat)
-                o.write('  %s:\n' % dat)
-                models = set()
+                writer = '  %s:\n' % dat
                 print('%s* Defining models:' % h)
                 i = input('%sModel name: ' % h)
                 while i:
                     self.check_user_input(i)
                     form = input('%s> Formula: ' % h)
                     if form:
-                        o.write('    %s: "%s"\n' % (i, form))
+                        writer += '    %s: "%s"\n' % (i, form)
                     else:
-                        o.write('    %s: "FORMULA_HERE"\n' % i)
-                    models.add(i)
+                        writer += '    %s: "FORMULA_HERE"\n' % i
                     if dat not in baselines:
                         baselines[dat] = {}
                     baselines[dat][i] = {}
                     i = input('%sModel name: ' % h)
 
+                if self.all_datasets:
+                    write_all_datasets(self, writer, o, 'models:\n')
+                    break
+                else:
+                    if not ddx:
+                        o.write('models:\n' + writer)
+                    o.write(writer)
+
+            for ddx, dat in enumerate(baselines):
                 mess = '%s\n%s* Define models baselines: '% (h, h)
                 print(mess)
-                for model in sorted(models):
+                for model in sorted(baselines[dat]):
                     print('%s  - Model "%s":' % (h, model))
                     name = input('%s    > Baseline name: ' % h)
                     while name:
@@ -1047,13 +1128,19 @@ class PrepConfig(object):
                         name = input('%s    > Baseline name: ' % h)
 
             if baselines:
-                o.write('baselines:\n')
-                for dat in baselines:
-                    o.write('  %s:\n' % dat)
+                for ddx, dat in enumerate(baselines):
+                    writer = '  %s:\n' % dat
                     for model in baselines[dat]:
-                        o.write('    %s:\n' % model)
+                        writer += '    %s:\n' % model
                         for k, v in baselines[dat][model].items():
-                            o.write('      %s: "%s"\n' % (k, v))
+                            writer += '      %s: "%s"\n' % (k, v)
+
+                        if self.all_datasets:
+                            self.write_all_datasets(writer, o, 'baselines:\n')
+                        else:
+                            if not ddx:
+                                o.write('baselines:\n')
+                            o.write(writer)
 
             o.write('params:\n')
             for p, v in {'batches': '20', 'epochs': "2000",
