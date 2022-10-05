@@ -506,7 +506,7 @@ class PrepConfig(object):
                 else:
                     o.write(writer)
 
-    def prep_rarefations(self):
+    def prep_rarefactions(self):
         with open(self.config_fp, 'w') as o:
             for dat in self.datasets:
                 if self.all_datasets:
