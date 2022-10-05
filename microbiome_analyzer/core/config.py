@@ -622,7 +622,7 @@ class PrepConfig(object):
         if head:
             o.write(head)
         for dat in self.datasets:
-            o.write(write.replace('All datasets', dat))
+            o.write(writer.replace('All datasets', dat))
 
     def prep_adonis(self):
         with open(self.config_fp, 'w') as o:
