@@ -898,7 +898,8 @@ class PrepConfig(object):
                     o.write('  %s: %s\n' % (p, v))
 
     def prep_geo_decay(self):
-        print('NOT AVAILABLE YET :(')
+        with open(self.config_fp, 'w') as o:
+            print('NOT AVAILABLE YET :(')
 
     def prep_collapse(self):
         with open(self.config_fp, 'w') as o:
