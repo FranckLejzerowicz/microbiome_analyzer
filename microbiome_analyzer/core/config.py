@@ -643,7 +643,7 @@ class PrepConfig(object):
                         write += '    %s: "FORMULA_NEEDED_HERE"\n' % i
                     if dat not in stratas:
                         stratas[dat] = {}
-                    stratas[dat][model] = set()
+                    stratas[dat][i] = set()
                     i = input('%sModel name: ' % h)
 
                 if self.all_datasets:
