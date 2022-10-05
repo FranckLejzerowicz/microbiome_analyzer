@@ -1081,13 +1081,16 @@ class PrepConfig(object):
             self.empty = False
 
     def prep_xmmvec(self):
-        pass
+        with open(self.config_fp, 'w') as o:
+            print('NOT AVAILABLE YET :(')
 
     def prep_mmvec_highlights(self):
-        pass
+        with open(self.config_fp, 'w') as o:
+            print('NOT AVAILABLE YET :(')
 
     def prep_mmvec_pairs(self):
-        pass
+        with open(self.config_fp, 'w') as o:
+            print('NOT AVAILABLE YET :(')
 
     def prep_diff_models(self):
         with open(self.config_fp, 'w') as o:
