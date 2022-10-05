@@ -907,9 +907,8 @@ class PrepConfig(object):
                 if self.all_datasets:
                     dat = 'All datasets'
                 h = '%s(%s) ' % (self.prep, dat)
-                mess = '%sEnter a collapse name: ' % h
                 collapses = {}
-                inp = input(mess)
+                inp = input('%sEnter a collapse name: ' % h)
                 while inp:
                     if inp:
                         self.check_user_input(inp)
@@ -919,7 +918,7 @@ class PrepConfig(object):
                                 collapses[inp] = name
                                 break
                             name = input('%sNickname for this pair: ' % h)
-                    inp = input(mess)
+                    inp = input('%sEnter a collapse name: ' % h)
                 if collapses:
                     writer = '%s:\n' % dat
                     for i, j in collapses.items():
@@ -930,6 +929,8 @@ class PrepConfig(object):
                         break
                     else:
                         o.write(writer)
+                elif self.all_datasets:
+                    break
 
     def prep_train_test(self):
         with open(self.config_fp, 'w') as o:
