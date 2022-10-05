@@ -647,7 +647,7 @@ class PrepConfig(object):
                     i = input('%sModel name: ' % h)
 
                 if self.all_datasets:
-                    self.write_all_datasets(self, writer, o, 'models:\n')
+                    self.write_all_datasets(writer, o, 'models:\n')
                     break
                 else:
                     if not ddx:
@@ -1109,7 +1109,7 @@ class PrepConfig(object):
                     i = input('%sModel name: ' % h)
 
                 if self.all_datasets:
-                    self.write_all_datasets(self, writer, o, 'models:\n')
+                    self.write_all_datasets(writer, o, 'models:\n')
                     break
                 else:
                     if not ddx:
