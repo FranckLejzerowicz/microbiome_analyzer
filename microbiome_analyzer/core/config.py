@@ -959,7 +959,7 @@ class PrepConfig(object):
 
             if trains:
                 for ddx, dat in enumerate(trains):
-                    writer += '  %s:\n' % dat
+                    writer = '  %s:\n' % dat
                     for k, vs in trains[dat].items():
                         writer += '    %s:\n' % k
                         for v in vs:
