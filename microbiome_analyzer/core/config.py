@@ -364,6 +364,7 @@ class PrepConfig(object):
         self.empty = True
         self.meta = {}
         self.vars = {}
+        self.sams = set()
         self.configs = {}
         self.config = ''
         self.config_fp = ''
@@ -417,6 +418,7 @@ class PrepConfig(object):
     def collect_vars(self):
         vars = {}
         for dat, meta in self.meta.items():
+            self.sams.update(set(meta['sample_name']))
             for var, vals in meta.apply(lambda x: x.unique).to_dict().items():
                 if str(vals().dtype).startswith('int'):
                     self.vars[var] = (int, set(sorted(vals())))
@@ -467,8 +469,11 @@ class PrepConfig(object):
             for dat in self.datasets:
                 if self.all_datasets:
                     dat = 'All datasets'
+                    sams = self.sams
+                else:
+                    sams = set(self.meta[dat].sample_name)
+
                 writer = '%s:\n' % dat
-                sams = set(self.meta[dat].sample_name)
 
                 names = set()
                 mess = '%s(%s) Samples to remove: ' % (self.prep, dat)
