@@ -37,8 +37,7 @@ class DiffModels(object):
         self.dirs = project.dirs
         self.out = ''
         if config.diff_models:
-            (self.songbird_models, self.filtering,
-             self.params, self.models_baselines,
+            (self.songbird_models, self.filtering, self.params, self.baselines,
              self.songbird_subsets) = self.get_songbird_dicts()
             self.models, self.models_issues = {}, {}
             self.songbirds = pd.DataFrame(dtype='object', columns=[
@@ -108,7 +107,8 @@ class DiffModels(object):
         filtering = {
             '0_0': dict((is_mb[dat], ['0', '0']) for dat in models.keys())}
         if 'filtering' not in self.config.diff_models:
-            print('No filtering thresholds in %s\n:' % self.config.diff_models)
+            pass
+            # print('No filtering config in %s\n:' % self.config.diff_models)
         else:
             if 'global' in self.config.diff_models['filtering']:
                 for fname, p_a in self.config.diff_models[
@@ -668,6 +668,7 @@ class DiffModels(object):
     def check_metadata_models(self, meta_fp, meta_pd, songbird_models):
         models = {}
         for model, formula_ in songbird_models.items():
+            print(model, formula_)
             drop = {}
             levels = {}
             variables = set()
@@ -806,9 +807,8 @@ class DiffModels(object):
                         pair_dir, filt, subset, filt_list, params_list, model)
                     nsams = self.write_new_meta(
                         meta_pd, new_meta, meta_vars, drop, params)
-                    if dat in self.models_baselines and model in \
-                            self.models_baselines[dat]:
-                        model_baselines = self.models_baselines[dat][model]
+                    if dat in self.baselines and model in self.baselines[dat]:
+                        model_baselines = self.baselines[dat][model]
                     for model_base in model_baselines:
                         b_formula = model_baselines[model_base]
                         self.get_output('%s/b-%s' % (dat_dir, model_base))
