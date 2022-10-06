@@ -141,9 +141,9 @@ class AnalysisPrep(object):
         for dat, data in self.project.datasets.items():
             if dat not in self.config.filter:
                 continue
-            names = self.config.filter[dat]['names']
-            thresh_sam = self.config.filter[dat]['samples']
-            thresh_feat = self.config.filter[dat]['features']
+            names = self.config.filter[dat].get('names', [])
+            thresh_sam = self.config.filter[dat].get('samples', 0)
+            thresh_feat = self.config.filter[dat].get('features', 0)
             if no_filtering(dat, thresh_sam, thresh_feat):
                 continue
             dat_filt = get_dat_filt(dat, names, thresh_sam, thresh_feat)

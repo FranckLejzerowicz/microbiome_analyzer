@@ -202,7 +202,7 @@ def filtering_thresholds(
         names: list,
         thresh_sam: int,
         thresh_feat: int,
-        biom: biom.Table) -> tuple:
+        biom_table: biom.Table) -> tuple:
     """
 
     Parameters
@@ -213,7 +213,7 @@ def filtering_thresholds(
         Samples threshold
     thresh_feat : int
         Features threshold
-    biom : biom.Table
+    biom_table : biom.Table
         BIOM table
 
     Returns
@@ -224,7 +224,7 @@ def filtering_thresholds(
         Command used to filter
     """
     filt_cmds = ''
-    biom_filt = biom.copy()
+    biom_filt = biom_table.copy()
     filt_cmds += filtering_names(names, biom_filt)
     filt_cmds += filtering_samples(thresh_sam, biom_filt)
     filt_cmd, biom_filt = filtering_features(thresh_feat, biom_filt)
