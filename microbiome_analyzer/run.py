@@ -35,7 +35,7 @@ def runner(**kwargs):
     if config.filt3d:
         analysis.explore_filtering()
     analysis.filter()
-    if config.rarefactions:
+    if config.rarefy:
         analysis.rarefy()
 
     # if config.qemistree and 'qemistree' not in config.skip:
