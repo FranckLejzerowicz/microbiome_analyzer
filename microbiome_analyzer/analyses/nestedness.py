@@ -57,7 +57,9 @@ class Nestedness(object):
         self.out = '%s/%s/%s' % (self.dir, self.analysis, dat)
         if cohort:
             self.out = (self.out + '/' + cohort).rstrip('/')
-        self.dirs.add(self.out)
+        self.out = self.out.replace(' ', '_')
+        if not isdir(self.out):
+            os.makedirs(self.out)
 
     def get_path(self, path_):
         path = path_
