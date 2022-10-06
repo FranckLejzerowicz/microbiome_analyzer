@@ -304,7 +304,8 @@ class Nestedness(object):
         self.graphs.append([dat, data.dat, cohort, raref, graph])
         for mode in self.modes:
             m_dir = '%s/output_%s%s' % (self.out, mode, raref.replace('_', '/'))
-            self.dirs.add(m_dir)
+            if not isdir(m_dir):
+                os.makedirs(m_dir)
             nodfs_fp = '%s/nodfs.tsv' % m_dir
             if mode == 'overall':
                 nodfs = ['sample_name']
