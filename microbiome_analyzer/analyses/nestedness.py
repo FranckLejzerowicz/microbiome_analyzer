@@ -58,8 +58,8 @@ class Nestedness(object):
         if cohort:
             self.out = (self.out + '/' + cohort).rstrip('/')
         self.out = self.out.replace(' ', '_')
-        if not isdir(self.out):
-            os.makedirs(self.out)
+        if not isdir(self.out.replace('${SCRATCH_FOLDER}', '')):
+            os.makedirs(self.out.replace('${SCRATCH_FOLDER}', ''))
 
     def get_path(self, path_):
         path = path_
@@ -243,8 +243,8 @@ class Nestedness(object):
             com_sta_pd = pd.concat(com_sta_pds)
             com_sta_pd.to_csv(rep(nodfs), index=False, sep='\t')
 
-    def init_cmds(self, meta: str, data, raref: str):
-        qza = '%s/tab%s.qza' % (self.out, raref)
+    def init_cmds(self, out_dir, meta: str, data, raref: str):
+        qza = '%s/tab%s.qza' % (out_dir, raref)
         biom_ = '%s.biom' % splitext(qza)[0]
         tsv = '%s.tsv' % splitext(qza)[0]
         biom = '%s_w-md.biom' % splitext(qza)[0]
@@ -273,7 +273,7 @@ class Nestedness(object):
         if self.config.force or to_do(graph):
             meta = '%s/meta.tsv' % self.out
             self.write_meta(meta, data.metadata, meta_pd, self.nodfs)
-            cmd, biom = self.init_cmds(meta, data, raref)
+            cmd, biom = self.init_cmds(self.out, meta, data, raref)
             cmd += self.write_nestedness_graph(biom, graph)
         return cmd, graph
 
@@ -327,7 +327,7 @@ class Nestedness(object):
                     if not to_do(comp):
                         i_f.append(comp)
                     io_update(self, i_f=i_f, o_f=simul, key=data.dat)
-            self.merge_outputs(m_dir, level, data, raref, cohort, nodfs_fp)
+            self.merge_outputs(m_dir, level, raref, cohort, nodfs_fp)
             self.res.append([dat, nodfs_fp, cohort, self.out])
             if nest_cmd:
                 self.write_meta(meta, data.metadata, meta_pd, nodfs)

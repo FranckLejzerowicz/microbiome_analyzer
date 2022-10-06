@@ -172,9 +172,11 @@ def subset_meta(
     """
     Perform subset.
     """
-    new_meta_pd = meta_pd.loc[meta_pd[col].isin(sams)].copy()
     cols = set()
-    if group != 'ALL':
+    if group == 'ALL':
+        new_meta_pd = meta_pd.copy()
+    else:
+        new_meta_pd = meta_pd.loc[meta_pd[col].isin(sams)].copy()
         cols.add(group)
     if test:
         cols.add(test)
