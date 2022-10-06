@@ -421,7 +421,8 @@ class Nestedness(object):
                         if not cohort:
                             continue
                         self.get_output(data.path, cohort)
-                        meta_pd = subset_meta(data.metadata, group, vals)
+                        meta_pd = subset_meta(
+                            data.metadata, vals, group, col=group)
                         if meta_pd.shape[0] < 10:
                             continue
                         self.scripts(meta_pd, data, raref, level, cohort)

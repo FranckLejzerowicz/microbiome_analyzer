@@ -167,11 +167,12 @@ def add_q2_type(meta_pd: pd.DataFrame, meta: str, cv: str, tests: list,
 
 def subset_meta(
         meta_pd: pd.DataFrame, sams: list, group: str,
-        test: str = '', terms: list = []) -> pd.DataFrame:
+        test: str = '', terms: list = [], col: str='sample_name'
+) -> pd.DataFrame:
     """
     Perform subset.
     """
-    new_meta_pd = meta_pd.loc[meta_pd.sample_name.isin(sams)].copy()
+    new_meta_pd = meta_pd.loc[meta_pd[col].isin(sams)].copy()
     cols = set()
     if group != 'ALL':
         cols.add(group)
