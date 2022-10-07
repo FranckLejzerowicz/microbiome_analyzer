@@ -6,8 +6,10 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import os
 import biom
 import pandas as pd
+from os.path import isdir
 
 from microbiome_analyzer._inputs import read_meta_pd
 from microbiome_analyzer._io_utils import (
@@ -269,7 +271,8 @@ def run_taxonomy_amplicon(self, dat: str, data) -> str:
         odir_seqs = '%s/sequences/%s' % (self.dir, dat)
         seqs_fasta = '%s/%s.fasta' % (odir_seqs, dat)
         seqs_qza = '%s/%s.qza' % (odir_seqs, dat)
-        self.dirs.add(odir_seqs)
+        if not isdir(rep(odir_seqs)):
+            os.makedirs(rep(odir_seqs))
         if self.config.force or to_do(seqs_qza):
             cmd += write_fasta(seqs_fasta, seqs_qza, data.data[''])
             io_update(self, i_f=seqs_fasta, o_f=seqs_qza, key=dat)

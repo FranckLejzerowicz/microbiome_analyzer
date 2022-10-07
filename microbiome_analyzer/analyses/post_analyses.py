@@ -6,11 +6,12 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import os
 import glob
 import pandas as pd
 import pkg_resources
 from scipy.stats import spearmanr
-from os.path import dirname, isfile, splitext
+from os.path import dirname, isdir, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
 from microbiome_analyzer.core.analysis import AnalysisPrep
@@ -46,8 +47,9 @@ class PostAnalysis(object):
         out = '%s/%s' % (self.dir, self.analysis)
         if dat:
             out += '/%s' % dat
-        self.dirs.add(out)
         self.out = out
+        if not isdir(rep(self.out)):
+            os.makedirs(rep(self.out))
         return out
 
     def get_path(self, path_):

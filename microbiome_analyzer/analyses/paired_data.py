@@ -535,7 +535,8 @@ class PairedData(object):
         mod_nul_stt : str
         """
         mod_nul_dir = '%s/%s' % (self.out, model_null)
-        self.dirs.add(mod_nul_dir)
+        if not isdir(rep(mod_nul_dir)):
+            os.makedirs(rep(mod_nul_dir))
         mod_nul_rnk = '%s/ranks.tsv' % mod_nul_dir
         mod_nul_ord = '%s/ordination.txt' % mod_nul_dir
         mod_nul_stt = '%s/stats.qza' % mod_nul_dir

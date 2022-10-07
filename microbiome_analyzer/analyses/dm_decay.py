@@ -48,7 +48,8 @@ class DmDecay(object):
 
     def get_output(self, dat):
         self.out = '%s/%s/%s' % (self.dir, self.analysis, dat)
-        self.dirs.add(self.out)
+        if not isdir(rep(self.out)):
+            os.makedirs(rep(self.out))
 
     def get_config(self):
         dm_decay_config = self.config.dm_decay
