@@ -67,6 +67,7 @@ class AnalysisPrep(object):
         self.out = '%s/%s/%s' % (self.dir, self.analysis, dat)
         if cohort:
             self.out = (self.out + '/' + cohort).rstrip('/')
+        self.out = self.out.replace(' ', '_')
         if not isdir(rep(self.out)):
             os.makedirs(rep(self.out))
 
