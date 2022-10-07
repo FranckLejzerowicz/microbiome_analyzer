@@ -102,6 +102,10 @@ class CreateScripts(object):
     def get_chunks(self):
         self.chunks = {}
         n_chunks = self.params['chunks']
+        print("n_chunks")
+        print(n_chunks)
+        print("len(self.cmds)")
+        print(len(self.cmds))
         if n_chunks and len(self.cmds) >= n_chunks:
             cmds_d = dict(enumerate(self.cmds))
             chunks = [list(x) for x in np.array_split(list(cmds_d), n_chunks)]

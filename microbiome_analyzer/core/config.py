@@ -174,7 +174,6 @@ class AnalysesConfig(object):
                 self.run_params[analysis]['scratch'] = 'userscratch'
 
     def set_global_chunks(self):
-        print(self.__dict__.keys())
         for (_, analysis) in self.analyses:
             if self.chunks:
                 self.run_params[analysis]['chunks'] = self.chunks
