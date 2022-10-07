@@ -529,7 +529,7 @@ class AnalysisPrep(object):
                                       data.tree, metric)
                     if not cmd:
                         continue
-                    alphas.append([qza_out, qza, metric])
+                    alphas.append([qza_o, qza, metric])
                     if self.config.force or to_do(tsv_o):
                         cmd += run_export(qza_o, tsv_o, '')
                         io_update(self, i_f=qza, o_f=[tsv_o, qza_o], key=dat)
