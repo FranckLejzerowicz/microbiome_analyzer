@@ -58,8 +58,8 @@ class Nestedness(object):
         if cohort:
             self.out = (self.out + '/' + cohort).rstrip('/')
         self.out = self.out.replace(' ', '_')
-        if not isdir(self.out.replace('${SCRATCH_FOLDER}', '')):
-            os.makedirs(self.out.replace('${SCRATCH_FOLDER}', ''))
+        if not isdir(rep(self.out)):
+            os.makedirs(rep(self.out))
 
     def get_path(self, path_):
         path = path_
@@ -304,8 +304,8 @@ class Nestedness(object):
         self.graphs.append([dat, data.dat, cohort, raref, graph])
         for mode in self.modes:
             m_dir = '%s/output_%s%s' % (self.out, mode, raref.replace('_', '/'))
-            if not isdir(m_dir.replace('${SCRATCH_FOLDER}', '')):
-                os.makedirs(m_dir.replace('${SCRATCH_FOLDER}', ''))
+            if not isdir(rep(m_dir)):
+                os.makedirs(rep(m_dir))
             nodfs_fp = '%s/nodfs.tsv' % m_dir
             if mode == 'overall':
                 nodfs = ['sample_name']

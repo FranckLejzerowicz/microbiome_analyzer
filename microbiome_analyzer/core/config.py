@@ -410,10 +410,6 @@ class PrepConfig(object):
                     self.vars[var] = (int, set(sorted(vals)))
                 else:
                     self.vars[var] = (float, set(sorted(vals)))
-        # for idx, (i, j) in enumerate(self.vars.items()):
-        #     if idx == 4:
-        #         break
-        #     print(j[0], sorted(j[1])[:4])
 
     def collect_vars(self):
         vars = {}
@@ -1140,14 +1136,18 @@ class PrepConfig(object):
 
             if baselines:
                 for ddx, dat in enumerate(baselines):
+                    vs = False
                     writer = '  %s:\n' % dat
                     for model in baselines[dat]:
                         writer += '    %s:\n' % model
                         for k, v in baselines[dat][model].items():
-                            writer += '      %s: "%s"\n' % (k, v)
-
+                            if v:
+                                vs = True
+                                writer += '      %s: "%s"\n' % (k, v)
+                    if vs:
                         if self.all_datasets:
                             self.write_all_datasets(writer, o, 'baselines:\n')
+                            break
                         else:
                             if not ddx:
                                 o.write('baselines:\n')

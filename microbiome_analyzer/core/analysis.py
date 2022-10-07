@@ -84,7 +84,7 @@ class AnalysisPrep(object):
     def import_datasets(self):
         self.analysis = 'import'
         for dat, data in self.project.datasets.items():
-            qza = '%s/%s.qza' % (self.dir, dat)
+            qza = '%s/data/%s.qza' % (self.dir, dat)
             tsv = data.tsv['']
             data.qza[''] = qza
             data.biom[''] = '%s.biom' % splitext(qza)[0]

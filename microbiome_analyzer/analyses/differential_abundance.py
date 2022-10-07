@@ -668,7 +668,6 @@ class DiffModels(object):
     def check_metadata_models(self, meta_fp, meta_pd, songbird_models):
         models = {}
         for model, formula_ in songbird_models.items():
-            print(model, formula_)
             drop = {}
             levels = {}
             variables = set()
@@ -808,7 +807,8 @@ class DiffModels(object):
                     nsams = self.write_new_meta(
                         meta_pd, new_meta, meta_vars, drop, params)
                     if dat in self.baselines and model in self.baselines[dat]:
-                        model_baselines = self.baselines[dat][model]
+                        if self.baselines[dat][model]:
+                            model_baselines = self.baselines[dat][model]
                     for model_base in model_baselines:
                         b_formula = model_baselines[model_base]
                         self.get_output('%s/b-%s' % (dat_dir, model_base))
