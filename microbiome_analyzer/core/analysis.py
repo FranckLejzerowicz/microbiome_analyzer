@@ -522,17 +522,17 @@ class AnalysisPrep(object):
                 alphas = []
                 self.get_output(data.path)
                 for metric in metrics:
-                    qza_out = '%s/alpha%s_%s.qza' % (self.out, raref, metric)
-                    tsv_out = '%s.tsv' % splitext(qza_out)[0]
-                    cmd = write_alpha(self, dat, qza, qza_out, data.phylo,
+                    qza_o = '%s/alpha%s_%s.qza' % (self.out, raref, metric)
+                    tsv_o = '%s.tsv' % splitext(qza_o)[0]
+                    cmd = write_alpha(self, dat, qza, qza_o, data.phylo,
                                       data.tree, metric)
                     if not cmd:
                         continue
                     alphas.append([qza_out, qza, metric])
-                    if self.config.force or to_do(tsv_out):
-                        cmd += run_export(qza_out, tsv_out, '')
-                        io_update(self, i_f=qza_out, o_f=tsv_out, key=dat)
-                        self.register_provenance(dat, (qza_out, tsv_out,), cmd)
+                    if self.config.force or to_do(tsv_o):
+                        cmd += run_export(qza_o, tsv_o, '')
+                        io_update(self, i_f=qza, o_f=[tsv_o, qza_o], key=dat)
+                        self.register_provenance(dat, (qza_o, tsv_o,), cmd)
                         self.cmds.setdefault(dat, []).append(cmd)
                 data.alpha[raref] = alphas
         self.register_io_command()
