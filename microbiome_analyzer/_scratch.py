@@ -78,6 +78,9 @@ def inputs_to_scratch(io) -> list:
     if ('O', 'd') in io:
         for folder in io[('O', 'd')]:
             mkdirs.add('mkdir -p %s' % folder.rstrip('/'))
+    if ('O', 'f') in io:
+        for fil in io[('O', 'f')]:
+            mkdirs.add('mkdir -p %s' % dirname(fil))
     # files
     if ('I', 'f') in io:
         for file in io[('I', 'f')]:
