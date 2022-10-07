@@ -88,8 +88,8 @@ class AnalysisPrep(object):
             tsv = data.tsv['']
             data.qza[''] = qza
             data.biom[''] = '%s.biom' % splitext(qza)[0]
+            cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
             if self.config.force or to_do(qza):
-                cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
                 self.cmds.setdefault(dat, []).append(cmd)
                 io_update(self, i_f=tsv, o_f=qza, key=dat)
             self.register_provenance(dat, (qza,), cmd)
@@ -235,18 +235,18 @@ class AnalysisPrep(object):
                 cmd += get_edit_taxonomy_command(self, dat, data)
             if cmd:
                 self.cmds.setdefault(dat, []).append(cmd)
-                self.register_provenance(dat, (data.tax[1], data.tax[2],), cmd)
+            self.register_provenance(dat, (data.tax[1], data.tax[2],), cmd)
         self.register_io_command()
 
     def import_trees(self):
         self.analysis = 'import_trees'
         for dat, data in self.project.datasets.items():
             _, qza, nwk = data.tree
+            cmd = run_import(nwk, qza, 'Phylogeny[Rooted]')
             if nwk and (self.config.force or not isfile(qza)):
-                cmd = run_import(nwk, qza, 'Phylogeny[Rooted]')
                 self.cmds.setdefault(dat, []).append(cmd)
                 io_update(self, i_f=nwk, o_f=qza, key=dat)
-                self.register_provenance(dat, (qza,), cmd)
+            self.register_provenance(dat, (qza,), cmd)
         self.register_io_command()
 
     def shear_tree(self):
