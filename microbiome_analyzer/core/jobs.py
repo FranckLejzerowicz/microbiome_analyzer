@@ -71,11 +71,6 @@ class CreateScripts(object):
         if self.nlss == '':
             self.nlss = self.analysis
 
-    # def print_status(self, m, sdx, analysis, cmds):
-    #     gap = (m - len(analysis) - len(str(sdx))) + 1
-    #     print('\t%s [%s] %s%s' % (sdx, analysis, ('.'*gap), ('.'*8)), end=' ')
-    #     print_status_table(cmds)
-
     def scratch(self, dat, cmds):
         key = (dat,)
         if isinstance(dat, tuple):
@@ -120,6 +115,10 @@ class CreateScripts(object):
 
     def write_chunks(self, chunk_keys):
         with open(self.sh, 'w') as sh:
+            cleanup = 'cleanup rm -rf ${TMPDIR}'
+            if self.params['scratch'] and self.config.jobs:
+                cleanup += ' ${SCRATCH_FOLDER}/*'
+            sh.write('%s\n' % cleanup)
             for chunk_key in chunk_keys:
                 for cmd in self.cmds[chunk_key]:
                     sh.write('%s\n' % cmd)
@@ -207,21 +206,15 @@ class CreateScripts(object):
     def writing(self, prep):
         m = max(len(x) for x in prep.analyses_commands.keys()) + 1
         for sdx, (analysis, cmds) in enumerate(prep.analyses_commands.items()):
-            # status = prep.analyses_status[analysis]
-            # self.print_status(m, sdx, analysis, cmds)
             if not len(cmds):
                 continue
             self.analysis = analysis
             self.params = self.config.run_params[analysis]
             self.ios = prep.analyses_ios[analysis]
-            # self.get_links(soft)
-            # self.get_modules(analysis)
             self.get_cmds(cmds)
             self.get_chunks()
             self.write_jobs()
             self.write_main()
-            # self.write_provenance(analysis, soft)
-            # self.write_bash(analysis, soft)
 
     def display(self):
         print()
@@ -232,86 +225,3 @@ class CreateScripts(object):
             main_print = '>%s\nsh %s' % (name, main)
             print(main_print)
             self.scripts.append(main_print)
-
-    # def do_chunks(self, job_folder, to_chunk, nlss, params, main_o):
-    #     chunks = {}
-    #     if len(to_chunk) > self.config.chunks:
-    #         array_split = np.array_split(to_chunk, self.config.chunks)
-    #         for idx, keys in enumerate(array_split):
-    #             head_sh = '%s_%s_chunk%s.sh' % (
-    #                 job_folder, self.config.prjct_nm, idx)
-    #             chunks[(head_sh, idx)] = sorted(keys)
-    #     else:
-    #         chunks = dict((('%s_%s_chunk%s.sh' % (
-    #             job_folder, self.config.prjct_nm, idx), idx), [x])
-    #                       for idx, x in enumerate(to_chunk))
-    #
-    #     for (sh, idx), commands in chunks.items():
-    #         if commands:
-    #             with open(sh, 'w') as o:
-    #                 for command in commands:
-    #                     o.write(command)
-    #             if self.config.torque:
-    #                 pbs_slm = '%s.pbs' % splitext(sh)[0]
-    #                 launcher = 'qsub'
-    #             else:
-    #                 pbs_slm = '%s.slm' % splitext(sh)[0]
-    #                 launcher = 'sbatch'
-    #             if self.config.jobs:
-    #                 self.run_xpbs(sh, pbs_slm, nlss, params, 'chnk', str(idx))
-    #                 if os.getcwd().startswith('/panfs'):
-    #                     pbs_slm = pbs_slm.replace(os.getcwd(), '')
-    #                 main_o.write('%s %s\n' % (launcher, pbs_slm))
-    #             else:
-    #                 main_o.write('sh %s\n' % sh)
-    #
-    # def write_scripts(self, analyses_commands):
-    #     self.get_jobs_folders(analyses_commands)
-    #     self.get_shs(analyses_commands)
-    #     for analysis, shs in self.shs.items():
-    #         nlss = self.get_nlss_nm(analysis)
-    #         params = self.config.run_params.get(
-    #             'import', self.config.run_params['default'])
-    #         main_sh = self.jobs_folders[analysis][0]
-    #         with open(main_sh, 'w') as main_o:
-    #             if not self.config.chunks:
-    #                 for sh, dats_commands in shs.items():
-    #                     with open(sh, 'w') as o:
-    #                         for dat, cmd in dats_commands:
-    #                             # o.write('echo "%s"\n' % cmd.replace('"', ''))
-    #                             o.write('%s\n' % cmd)
-    #                     if self.config.torque:
-    #                         pbs_slm = '%s.pbs' % splitext(sh)[0]
-    #                     else:
-    #                         pbs_slm = '%s.slm' % splitext(sh)[0]
-    #                     self.run_xpbs(sh, pbs_slm, nlss, params,
-    #                                   dat, 'None', True, main_o)
-    #             else:
-    #                 job_folder = self.jobs_folders[analysis][1]
-    #                 to_chunk = self.to_chunk[analysis]
-    #                 self.do_chunks(job_folder, to_chunk, nlss, params, main_o)
-    #         self.print_message(analysis, 'sh', main_sh)
-    #
-    # def get_shs(self, analyses_commands):
-    #     for analysis, dats_commands in analyses_commands.items():
-    #         job_folder = self.jobs_folders[analysis][1]
-    #         for dat, commands in dats_commands.items():
-    #             sh = '%s_%s.sh' % (job_folder, dat)
-    #             for idx, command in enumerate(commands):
-    #                 if analysis not in self.shs:
-    #                     self.shs[analysis] = {}
-    #                     self.to_chunk[analysis] = []
-    #                 self.shs[analysis].setdefault(sh, []).append((dat, command))
-    #                 self.to_chunk[analysis].append(command)
-    #
-    # def get_jobs_folders(self, analyses_commands):
-    #     for analysis in analyses_commands:
-    #         analysis_dir = '%s/%s' % (self.dir, analysis)
-    #         main_sh = '%s/run_%s%s.sh' % (analysis_dir, self.config.prjct_nm,
-    #                                       self.config.filt_raref)
-    #         jobs_dir = '%s/jobs' % analysis_dir
-    #         if not isdir(jobs_dir):
-    #             os.makedirs(jobs_dir)
-    #         job_chunk = '%s/chunks_%s%s' % (jobs_dir, self.config.prjct_nm,
-    #                                         self.config.filt_raref)
-    #         self.jobs_folders[analysis] = [main_sh, job_chunk]
