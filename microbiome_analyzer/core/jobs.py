@@ -23,6 +23,7 @@ class CreateScripts(object):
         self.job_fps = []
         self.job_name = None
         self.jobs_dir = None
+        self.tmp_dir = None
         self.analysis = None
         self.nlss = None
         self.main = None
@@ -110,11 +111,15 @@ class CreateScripts(object):
 
     def get_jobs_dir(self):
         self.jobs_dir = '%s/%s/jobs' % (rep(self.dir), self.analysis)
+        self.tmp_dir = '%s/%s/jobs/tmp' % (rep(self.dir), self.analysis)
         if not isdir(self.jobs_dir):
             os.makedirs(self.jobs_dir)
+        if not isdir(self.tmp_dir):
+            os.makedirs(self.tmp_dir)
 
     def write_chunks(self, chunk_keys):
         with open(self.sh, 'w') as sh:
+            sh.write('TMPDIR=%s\n' % self.tmp_dir)
             cleanup = 'cleanup rm -rf ${TMPDIR}'
             if self.params['scratch'] and self.config.jobs:
                 cleanup += ' ${SCRATCH_FOLDER}/*'
