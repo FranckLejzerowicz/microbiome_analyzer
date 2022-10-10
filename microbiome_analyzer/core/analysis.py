@@ -853,7 +853,7 @@ class AnalysisPrep(object):
                             meta_pd = subset_meta(data.metadata, sams, group)
                             meta_pd.to_csv(rep(meta_met), index=False, sep='\t')
                             cmd = write_tsne(self, dat, dm, dm_filt, meta,
-                                             meta_met, group, tsne)
+                                             meta_met, group, tsne, tsne_tsv)
                             self.register_provenance(dat, (tsne, dm,), cmd)
                             self.cmds.setdefault(dat, []).append(cmd)
                 data.tsne[raref] = tsnes
@@ -880,7 +880,7 @@ class AnalysisPrep(object):
                             meta_pd = subset_meta(data.metadata, sams, group)
                             meta_pd.to_csv(rep(meta_met), index=False, sep='\t')
                             cmd = write_umap(self, dat, dm, dm_filt, meta,
-                                             meta_met, group, umap)
+                                             meta_met, group, umap, umap_tsv)
                             self.register_provenance(dat, (umap, dm,), cmd)
                             self.cmds.setdefault(dat, []).append(cmd)
                 data.umap[raref] = umaps
