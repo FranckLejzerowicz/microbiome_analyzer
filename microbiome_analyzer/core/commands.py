@@ -1229,7 +1229,8 @@ def write_tsne(
         meta: str,
         meta_met: str,
         group: str,
-        tsne: str
+        tsne: str,
+        tsne_tsv: str
 ) -> str:
     """
 
@@ -1243,6 +1244,7 @@ def write_tsne(
     meta_met
     group
     tsne
+    tsne_tsv
 
     Returns
     -------
@@ -1284,7 +1286,8 @@ def write_umap(
         meta: str,
         meta_met: str,
         group: str,
-        umap: str
+        umap: str,
+        umap_tsv: str
 ) -> str:
     """
 
@@ -1298,6 +1301,7 @@ def write_umap(
     meta_met
     group
     umap
+    umap_tsv
 
     Returns
     -------
