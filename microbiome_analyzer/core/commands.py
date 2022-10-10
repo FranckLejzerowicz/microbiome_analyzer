@@ -1118,7 +1118,7 @@ def write_permanova_permdisp(
         cmd += ' --i-distance-matrix %s' % dm
         cmd += ' --m-metadata-file %s' % meta
         cmd += ' --o-filtered-distance-matrix %s\n\n' % dm_filt
-        io_update(self, i_f=[dm, meta], i_o=dm_filt, key=dat)
+        io_update(self, i_f=[dm, meta], o_f=dm_filt, key=dat)
     else:
         io_update(self, i_f=dm_filt, key=dat)
 
@@ -1134,7 +1134,7 @@ def write_permanova_permdisp(
         i_f = [meta]
         if isfile(dm_filt):
             i_f.append(dm_filt)
-        io_update(self, i_f=i_f, i_o=[qzv, html], key=dat)
+        io_update(self, i_f=i_f, o_f=[qzv, html], key=dat)
 
     return cmd
 
