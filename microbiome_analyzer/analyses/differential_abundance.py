@@ -46,6 +46,21 @@ class DiffModels(object):
                 'train', 'batches', 'learns', 'epochs', 'diff_priors',
                 'thresh_feats', 'thresh_samples', 'summary_interval']
             self.q2s_pd = pd.DataFrame()
+            print()
+            print("self.songbird_models")
+            print(self.songbird_models)
+            print()
+            print("self.filtering")
+            print(self.filtering)
+            print()
+            print("self.params")
+            print(self.params)
+            print()
+            print("self.baselines")
+            print(self.baselines)
+            print()
+            print("self.songbird_subsets")
+            print(self.songbird_subsets)
         self.songbird_pd = pd.DataFrame()
 
     def get_output(self, dat: str = '') -> str:
@@ -184,12 +199,10 @@ class DiffModels(object):
             mmvecs.append([dat2, filt, prev2, abun2, subset, pair,
                            omic1_common_qza, omic2_common_qza, meta_common_fp])
         if mmvecs and self.songbirds.shape[0]:
-            self.songbirds.drop(
-                columns=['is_mb', 'variable', 'factors'],
-                inplace=True)
-            self.songbirds = pd.concat([
-                self.songbirds,
-                pd.DataFrame(mmvecs, columns=self.songbirds.columns)])
+            self.songbirds.drop(columns=['is_mb', 'variable', 'factors'],
+                                inplace=True)
+            mmvecs_pd = pd.DataFrame(mmvecs, columns=self.songbirds.columns)
+            self.songbirds = pd.concat([self.songbirds, mmvecs_pd])
 
     def make_datasets_paths(self):
         self.get_datasets_paths()
@@ -206,7 +219,6 @@ class DiffModels(object):
                 meta_pd.to_csv(rep(meta), index=False, sep='\t')
                 if not self.config.force and not to_do(tsv) and not to_do(qza):
                     continue
-                # tsv_pd = data.data[0].to_dataframe(dense=True)[
                 tsv_pd = data.data[''].to_dataframe(dense=True)[
                     meta_pd.sample_name.tolist()]
                 preval, abund = row_d['prevalence'], row_d['abundance']
@@ -232,7 +244,7 @@ class DiffModels(object):
                 dataset = row['dataset']
                 filter_ = row['filter']
                 subset = row['subset']
-                for analysis in ['mmvec', 'songbird']:
+                for analysis in ['songbird']:
                     self.analysis = analysis
                     self.get_output('datasets/%s/%s' % (dataset, subset))
                     rad = '%s_%s' % (dataset, filter_)

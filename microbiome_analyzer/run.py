@@ -77,7 +77,6 @@ def runner(**kwargs):
             # make a python script to fill with groups to test
             pass
 
-    paired_datasets = PairedData(config, project)
     project.get_meta_subsets()
 
     if config.phate and 'phate' not in config.skip:
@@ -125,6 +124,10 @@ def runner(**kwargs):
     # if config.sourcetracking and 'sourcetracking' not in config.skip:
     #     Sourcetracking(config, project)
 
+    paired_datasets = PairedData(config, project)
+    print()
+    print("paired_datasets.mmvec_pd")
+    print(paired_datasets.mmvec_pd)
     if config.mmvec_pairs and 'mmvec' not in config.skip:
         paired_datasets.make_train_test()
         paired_datasets.mmvec()

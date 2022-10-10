@@ -355,7 +355,7 @@ class PairedData(object):
             filter_ = row['filter']
             subset = row['subset']
             self.get_output('datasets/%s/%s' % (dataset, subset))
-            rad = '%s_%s_%s' % (dataset, filter_, subset)
+            rad = '%s_%s' % (dataset, filter_)
             tsv = '%s/tab_%s.tsv' % (self.out, rad)
             qza = '%s.qza' % splitext(tsv)[0]
             meta = '%s/meta_%s.tsv' % (self.out, rad)
