@@ -802,7 +802,8 @@ def write_pcoa(
         meta: str,
         meta_met: str,
         group: str,
-        pcoa: str
+        pcoa: str,
+        pcoa_tsv: str
 ) -> str:
     """
     Apply principal coordinate analysis.
@@ -818,6 +819,7 @@ def write_pcoa(
     meta_met
     group
     pcoa
+    pcoa_tsv
 
     Returns
     -------

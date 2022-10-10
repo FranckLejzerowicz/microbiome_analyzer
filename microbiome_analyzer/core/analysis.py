@@ -907,7 +907,7 @@ class AnalysisPrep(object):
                             meta_pd = subset_meta(data.metadata, sams, group)
                             meta_pd.to_csv(rep(meta_met), index=False, sep='\t')
                             cmd = write_pcoa(self, dat, dm, dm_filt, meta,
-                                             meta_met, group, pcoa)
+                                             meta_met, group, pcoa, pcoa_tsv)
                             self.register_provenance(dat, (pcoa, dm,), cmd)
                             self.cmds.setdefault(dat, []).append(cmd)
                 data.pcoa[raref] = pcoas
