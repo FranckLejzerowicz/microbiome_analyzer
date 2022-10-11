@@ -32,49 +32,51 @@ class Data(object):
     def __init__(self, dataset):
         self.dat = dataset
         Data.names.append(dataset)
-        self.tsv = {}
-        self.biom = {}
-        self.qza = {}
-        self.meta = ''
-        self.data = {}
-        self.metadata = pd.DataFrame()
-        self.feat_meta = []
-        self.sb = None
-        self.phylo = ('', 0)
-        self.features = {}
-        self.rarefs = ['']
-        self.raref_depths = []
-        self.tax = None
-        self.taxa = None
-        self.tree = ('', '', '')
-        self.seqs = None
-        self.collapsed = {}
+        self.adonis = {}
         self.alpha = {}
         self.alphas = []
-        self.subsets = {}
-        self.sample_subsets = {}
-        self.rpca = {}
         self.beta = {}
-        self.perms = {}
-        self.adonis = {}
-        self.r2 = {}
-        self.pcoa = {}
-        self.tsne = {}
-        self.umap = {}
-        self.phate = {}
-        self.sourcetracking = {}
+        self.biom = {}
         self.biplot = {}
+        self.collapsed = {}
+        self.data = {}
         self.doc = {}
-        self.filts = None
+        self.feat_meta = []
+        self.features = {}
         self.filt = None
-        self.taxon = None
+        self.filts = None
+        self.meta = ''
+        self.metadata = pd.DataFrame()
+        self.pcoa = {}
+        self.path = None
+        self.perms = {}
+        self.phate = {}
+        self.phylo = ('', 0)
+        self.qza = {}
+        self.r2 = {}
+        self.rarefs = ['']
+        self.raref_depths = []
+        self.rpca = {}
+        self.sample_subsets = {}
+        self.sourcetracking = {}
+        self.sb = None
+        self.samples = set()
+        self.seqs = None
         self.source = dataset
         self.subset = ''
-        self.path = None
+        self.subsets = {}
+        self.tax = None
+        self.taxa = None
+        self.taxon = None
+        self.tree = ('', '', '')
+        self.tsne = {}
+        self.tsv = {}
+        self.umap = {}
 
     def read_biom(self, index=''):
         biom = load_table(rep(self.biom[index]))
         biom.remove_empty(axis='whole', inplace=True)
+        self.samples = set(biom.ids(axis='sample'))
         if biom.shape[0] >= 10:
             self.data[index] = biom
 
@@ -87,10 +89,12 @@ class Data(object):
                 self.dat, set(empty.loc[empty].index)))
             data_pd = data_pd.loc[:, (data_pd.sum() > 0)]
             data_pd = data_pd.loc[(data_pd.sum(1) > 0), :]
+        self.samples = set(data_pd.columns)
         self.data[''] = data_pd
 
     def read_meta_pd(self):
         meta_pd = read_meta_pd(rep(self.meta), 'sample_name')
+        meta_pd = meta_pd.loc[meta_pd['sample_name'].isin(self.samples)]
         self.metadata = meta_pd
 
     def check_gid_or_dna(self):
