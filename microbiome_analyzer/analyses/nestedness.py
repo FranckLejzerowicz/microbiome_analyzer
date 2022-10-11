@@ -83,6 +83,9 @@ class Nestedness(object):
                 self.nulls = conf['nulls']
             if 'modes' in conf:
                 self.modes = conf['modes']
+                if 'overall' in self.modes:
+                    self.modes = [
+                        x for x in self.modes if x != 'overall'] + ['overall']
             if 'params' in conf:
                 self.params.update(conf['params'])
 
@@ -110,9 +113,6 @@ class Nestedness(object):
     def write_meta(self, meta, full_meta_pd, meta_pd, nodfs):
         meta_pd = full_meta_pd.loc[full_meta_pd.sample_name.isin(
             meta_pd.sample_name)]
-        print()
-        print(meta)
-        print(meta_pd.iloc[:4, :4])
         lat_lon_date = ['latitude', 'longitude', 'datetime']
         cols = set()
         self.nodfs_vars = []
@@ -130,7 +130,6 @@ class Nestedness(object):
         meta_pd = meta_pd[(['sample_name'] + sorted(cols))]
         meta_pd.columns = ['#SampleID'] + sorted(cols)
         meta_pd = meta_pd.loc[~meta_pd[self.nodfs_vars].isna().any(axis=1)]
-        print(meta_pd.iloc[:4, :4])
         meta_pd.to_csv(rep(meta), index=False, sep='\t')
 
     def write_fields(self, o_dir, raref):
@@ -309,7 +308,7 @@ class Nestedness(object):
         dat = Datasets.coll_raw.get(data.dat, data.dat)
         cmd, graph = self.write_graph(data, meta_pd, raref)
         self.graphs.append([dat, data.dat, cohort, raref, graph])
-        for mode in self.modes:
+        for mdx, mode in enumerate(self.modes):
             m_dir = '%s/output_%s%s' % (self.out, mode, raref.replace('_', '/'))
             if not isdir(rep(m_dir)):
                 os.makedirs(rep(m_dir))
