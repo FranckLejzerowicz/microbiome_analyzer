@@ -261,7 +261,10 @@ class Nestedness(object):
         if to_do(biom):
             cmd += run_add_metadata(biom_, biom, meta)
             cmd += 'rm %s\n' % biom_
-            io_update(self, i_f=biom_, o_f=biom, key=data.dat)
+            if to_do(biom_):
+                io_update(self, o_f=biom, key=data.dat)
+            else:
+                io_update(self, i_f=biom_, o_f=biom, key=data.dat)
         else:
             io_update(self, i_f=biom, key=data.dat)
 
@@ -317,7 +320,10 @@ class Nestedness(object):
             for ndx, nodf_var in enumerate(self.nodfs_vars):
                 comp = '%s/comparisons_%s.csv' % (m_dir, nodf_var)
                 nest_cmd += self.write_comparisons(biom, comp, mode, nodf_var)
-                io_update(self, i_f=biom, o_f=comp, key=data.dat)
+                if not to_do(biom):
+                    io_update(self, i_f=biom, o_f=comp, key=data.dat)
+                else:
+                    io_update(self, o_f=comp, key=data.dat)
                 for null in self.nulls:
                     simul = '%s/simulations_%s_%s.csv' % (m_dir, nodf_var, null)
                     nest_cmd += self.write_simulations(biom, simul, comp, null)
