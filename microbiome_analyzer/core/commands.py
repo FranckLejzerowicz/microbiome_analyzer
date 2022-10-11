@@ -45,10 +45,15 @@ def run_import(
             cmd += ' -o %s' % infile
             cmd += ' --table-type="OTU table"'
             cmd += ' --to-hdf5\n'
+        output_path_tmp = '%s.tmp.qza' % output_path
         cmd += 'qiime tools import'
         cmd += ' --input-path %s' % infile
-        cmd += ' --output-path %s' % output_path
+        cmd += ' --output-path %s' % output_path_tmp
         cmd += ' --type "FeatureTable[Frequency]"\n'
+        cmd += 'qiime feature-table filter-samples'
+        cmd += ' --i-table %s' % output_path_tmp
+        cmd += ' --o-filtered-table %s\n' % output_path
+        cmd += 'rm %s\n' % output_path_tmp
     else:
         cmd += 'qiime tools import'
         cmd += ' --input-path %s' % infile
