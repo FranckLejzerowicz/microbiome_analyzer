@@ -110,6 +110,9 @@ class Nestedness(object):
     def write_meta(self, meta, full_meta_pd, meta_pd, nodfs):
         meta_pd = full_meta_pd.loc[full_meta_pd.sample_name.isin(
             meta_pd.sample_name)]
+        print()
+        print(meta)
+        print(meta_pd.iloc[:4, :4])
         lat_lon_date = ['latitude', 'longitude', 'datetime']
         cols = set()
         self.nodfs_vars = []
@@ -127,6 +130,7 @@ class Nestedness(object):
         meta_pd = meta_pd[(['sample_name'] + sorted(cols))]
         meta_pd.columns = ['#SampleID'] + sorted(cols)
         meta_pd = meta_pd.loc[~meta_pd[self.nodfs_vars].isna().any(axis=1)]
+        print(meta_pd.iloc[:4, :4])
         meta_pd.to_csv(rep(meta), index=False, sep='\t')
 
     def write_fields(self, o_dir, raref):
