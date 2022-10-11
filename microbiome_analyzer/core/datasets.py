@@ -81,8 +81,10 @@ class Data(object):
     def read_tsv(self):
         data_pd = read_meta_pd(rep(self.tsv['']), 'Feature ID')
         data_pd = data_pd.set_index('Feature ID')
-        data_empty = (data_pd.sum() == 0)
-        if sum(data_empty):
+        empty = (data_pd.sum() == 0)
+        if sum(empty):
+            print('Warning: empty samples in "%s": %s' % (
+                self.dat, set(empty.index)))
             data_pd = data_pd.loc[:, (data_pd.sum() > 0)]
             data_pd = data_pd.loc[(data_pd.sum(1) > 0), :]
         self.data[''] = data_pd
