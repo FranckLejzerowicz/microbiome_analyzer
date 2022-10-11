@@ -74,12 +74,17 @@ class Data(object):
 
     def read_biom(self, index=''):
         biom = load_table(rep(self.biom[index]))
+        biom.remove_empty(axis='whole', inplace=True)
         if biom.shape[0] >= 10:
             self.data[index] = biom
 
     def read_tsv(self):
         data_pd = read_meta_pd(rep(self.tsv['']), 'Feature ID')
         data_pd = data_pd.set_index('Feature ID')
+        data_empty = (data_pd.sum() == 0)
+        if sum(data_empty):
+            data_pd = data_pd.loc[:, (data_pd.sum() > 0)]
+            data_pd = data_pd.loc[(data_pd.sum(1) > 0), :]
         self.data[''] = data_pd
 
     def read_meta_pd(self):
