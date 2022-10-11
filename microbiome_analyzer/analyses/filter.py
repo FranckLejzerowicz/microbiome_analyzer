@@ -352,15 +352,6 @@ def filter_3d(dat, pv, ab, defaults, biom_, targeted, out_dir):
         #         preval, abund, tsv_pd, True)
         # else:
 
-        if float(preval) < 1:
-            pv_ = 'fraction'
-        else:
-            pv_ = 'count'
-        if float(abund) < 1:
-            ab_ = 'fraction'
-        else:
-            ab_ = 'count'
-
         tsv_pd, cur_res = filter_non_mb_table(preval, abund, tab_pd, True)
         if (preval, abund) in targeted.get('global', []):
             cur_res.append(1)
@@ -380,6 +371,15 @@ def filter_3d(dat, pv, ab, defaults, biom_, targeted, out_dir):
     y = res_pd.abund_filt.unique()
     X, Y = np.meshgrid(x, y)
     Z = res_pd.features.values.reshape(X.shape, order='f')
+
+    if pv == 'percent':
+        pv_ = 'fraction'
+    else:
+        pv_ = 'count'
+    if ab == 'percent':
+        ab_ = 'fraction'
+    else:
+        ab_ = 'count'
 
     layout = go.Layout(
         scene=dict(
