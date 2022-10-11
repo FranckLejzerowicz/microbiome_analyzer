@@ -82,6 +82,8 @@ class DOC(object):
         if to_do(new_tsv):
             cmd += '\nqiime feature-table filter-samples'
             cmd += ' --i-table %s' % qza
+            cmd += ' --p-min-frequency 1'
+            cmd += ' --p-filter-empty-features'
             cmd += ' --m-metadata-file %s' % new_meta
             cmd += ' --o-filtered-table %s\n' % new_qza
             cmd += run_export(new_qza, new_tsv, 'FeatureTable')

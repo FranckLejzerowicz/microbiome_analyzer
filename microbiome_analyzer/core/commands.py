@@ -769,6 +769,8 @@ def write_deicode(
     if to_do(new_qza):
         cmd += 'qiime feature-table filter-samples'
         cmd += ' --i-table %s' % qza
+        cmd += ' --p-min-frequency 1'
+        cmd += ' --p-filter-empty-features'
         cmd += ' --m-metadata-file %s' % meta
         cmd += ' --o-filtered-table %s\n\n' % new_qza
         io_update(self, i_f=[qza, meta], o_f=new_qza, key=dat)
@@ -923,6 +925,8 @@ def write_biplot(
     cmd += ' --o-relative-frequency-table %s\n\n' % tab_rel_qza_tmp
     cmd += '\nqiime feature-table filter-samples'
     cmd += ' --i-table %s' % tab_rel_qza_tmp
+    cmd += ' --p-min-frequency 1'
+    cmd += ' --p-filter-empty-features'
     cmd += ' --m-metadata-file %s.tsv' % meta
     cmd += ' --o-filtered-table %s\n\n' % tab_rel_qza
 
