@@ -23,7 +23,7 @@ class CreateScripts(object):
         self.job_fps = []
         self.job_name = None
         self.jobs_dir = None
-        self.tmp_dir = None
+        self.tmpdir = None
         self.analysis = None
         self.nlss = None
         self.main = None
@@ -111,21 +111,22 @@ class CreateScripts(object):
 
     def get_jobs_dir(self):
         self.jobs_dir = '%s/%s/jobs' % (rep(self.dir), self.analysis)
-        self.tmp_dir = '%s/%s/jobs/tmp' % (rep(self.dir), self.analysis)
+        self.tmpdir = '%s/%s/jobs/tmp' % (rep(self.dir), self.analysis)
         if not isdir(self.jobs_dir):
             os.makedirs(self.jobs_dir)
-        if not isdir(self.tmp_dir):
-            os.makedirs(self.tmp_dir)
+        if not isdir(self.tmpdir):
+            os.makedirs(self.tmpdir)
 
     def write_chunks(self, chunk_keys):
         with open(self.sh, 'w') as sh:
-            sh.write('TMPDIR=%s\n' % self.tmp_dir)
+            sh.write('TMPDIR=%s\n' % self.tmpdir)
             cleanup = 'cleanup rm -rf ${TMPDIR}'
             if self.params['scratch'] and self.config.jobs:
                 cleanup += ' ${SCRATCH_FOLDER}/*'
             sh.write('%s\n' % cleanup)
-            for chunk_key in chunk_keys:
-                for cmd in self.cmds[chunk_key]:
+            for key in chunk_keys:
+                sh.write('TMPDIR=%s/%s\n' % (self.tmpdir, key.replace(' ', '')))
+                for cmd in self.cmds[key]:
                     sh.write('%s\n' % cmd)
 
     def get_job_name(self, chunk: str):
