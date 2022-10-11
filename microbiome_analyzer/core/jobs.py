@@ -126,7 +126,8 @@ class CreateScripts(object):
                     cleanup += ' ${SCRATCH_FOLDER}/*'
                 sh.write('%s\n' % cleanup)
             for key in chunk_keys:
-                sh.write('TMPDIR=%s/%s\n' % (self.tmpdir, key.replace(' ', '')))
+                k = '_'.join(map(str, key)).replace(' ', '')
+                sh.write('TMPDIR=%s/%s\n' % (self.tmpdir, k))
                 for cmd in self.cmds[key]:
                     sh.write('%s\n' % cmd)
 
