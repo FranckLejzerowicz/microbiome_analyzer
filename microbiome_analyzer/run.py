@@ -125,9 +125,6 @@ def runner(**kwargs):
     #     Sourcetracking(config, project)
 
     paired_datasets = PairedData(config, project)
-    print()
-    print("paired_datasets.mmvec_pd")
-    print(paired_datasets.mmvec_pd)
     if config.mmvec_pairs and 'mmvec' not in config.skip:
         paired_datasets.make_train_test()
         paired_datasets.mmvec()
