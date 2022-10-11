@@ -52,6 +52,8 @@ def run_import(
         cmd += ' --type "FeatureTable[Frequency]"\n'
         cmd += 'qiime feature-table filter-samples'
         cmd += ' --i-table %s' % output_path_tmp
+        cmd += ' --p-min-frequency 1'
+        cmd += ' --p-filter-empty-features'
         cmd += ' --o-filtered-table %s\n' % output_path
         cmd += 'rm %s\n' % output_path_tmp
     else:
