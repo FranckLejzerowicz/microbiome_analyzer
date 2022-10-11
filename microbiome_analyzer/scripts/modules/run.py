@@ -226,6 +226,9 @@ from microbiome_analyzer import __version__
     "--move-back/--no-move-back", default=True, show_default=True,
     help="Do not move back from scratch (makes sense only for --userscratch)")
 @click.option(
+    "--cleanup/--no-cleanup", default=False, show_default=True,
+    help="Whether to cleanup the TMPDIR and SCRATCH_FOLDER (specific to NRIS)")
+@click.option(
     "-x", "--chunks", required=False, show_default=False,
     type=int, default=None,
     help="Maximum number of jobs at which extra jobs will be added in chunks")
@@ -280,6 +283,7 @@ def run(
         scratch,
         userscratch,
         move_back,
+        cleanup,
         chunks
 ):
     """Write jobs for your pipeline configuration."""
@@ -332,5 +336,6 @@ def run(
         scratch=scratch,
         userscratch=userscratch,
         move_back=move_back,
+        cleanup=cleanup,
         chunks=chunks
     )
