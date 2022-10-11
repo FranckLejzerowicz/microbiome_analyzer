@@ -303,15 +303,22 @@ def filter_non_mb_table(preval: str, abund: str, tsv_pd: pd.DataFrame,
         n_perc = preval
     # abundance filter in terms of min reads counts
     if abund < 1:
+        # change counts to percent per sample
         tsv_pd_perc = tsv_filt_pd / tsv_filt_pd.sum()
+        # get percent of features across sample
         tsv_pd_perc_sum = tsv_filt_pd.sum(1) / tsv_filt_pd.sum(1).sum()
     else:
+        # do not change counts
         tsv_pd_perc = tsv_filt_pd.copy()
+        # get sum of features counts across samples
         tsv_pd_perc_sum = tsv_filt_pd.sum(1)
     abund_mode = 'sample'
-    # remove features from feature table that are not present
-    # in enough samples with the minimum number/percent of reads in these samples
     if abund_mode == 'sample':
+        # remove features from feature table that are not present in enough
+        # samples with the minimum number/percent of reads in these samples
+        # - get the table's cells which percent value is > [0-1] of "abund"
+        # - counts the number of sample occurrences for these cells
+        # - only keep the features§ rows that have > "n_perc" such occurrences
         tsv_filt_pd = tsv_filt_pd.loc[(tsv_pd_perc > abund).sum(1) > n_perc, :]
     elif abund_mode == 'dataset':
         tsv_filt_pd = tsv_filt_pd.loc[tsv_pd_perc_sum > abund, :]
@@ -324,6 +331,7 @@ def filter_non_mb_table(preval: str, abund: str, tsv_pd: pd.DataFrame,
         tsv_filt_pd = tsv_filt_pd.loc[fil_pd_perc_sum > abund, :]
     else:
         raise Exception('"%s" mode not recognized' % abund_mode)
+    # - remove empty rows and empty columns
     tsv_filt_pd = tsv_filt_pd.loc[tsv_filt_pd.sum(1) > 0,
                                   tsv_filt_pd.sum(0) > 0]
     if do_res:
@@ -334,6 +342,7 @@ def filter_non_mb_table(preval: str, abund: str, tsv_pd: pd.DataFrame,
 def filter_3d(dat, pv, ab, defaults, biom_, targeted, out_dir):
     prevals = defaults['preval'][pv]
     abunds = defaults['abund'][ab]
+
     tab_pd = biom_.to_dataframe(dense=True)
     res = []
     for (preval, abund) in itertools.product(*[sorted(prevals),
@@ -342,6 +351,16 @@ def filter_3d(dat, pv, ab, defaults, biom_, targeted, out_dir):
         #     tsv_pd, cur_res = filter_mb_table(
         #         preval, abund, tsv_pd, True)
         # else:
+
+        if float(preval) < 1:
+            pv_ = 'fraction'
+        else:
+            pv_ = 'count'
+        if float(abund) < 1:
+            ab_ = 'fraction'
+        else:
+            ab_ = 'count'
+
         tsv_pd, cur_res = filter_non_mb_table(preval, abund, tab_pd, True)
         if (preval, abund) in targeted.get('global', []):
             cur_res.append(1)
@@ -364,12 +383,12 @@ def filter_3d(dat, pv, ab, defaults, biom_, targeted, out_dir):
 
     layout = go.Layout(
         scene=dict(
-            xaxis=dict(title='Abundance (%s)' % ab),
-            yaxis=dict(title='Prevalence (%s)' % pv),
+            xaxis=dict(title='Min abundance (%s)' % ab_),
+            yaxis=dict(title='Min prevalence (%s)' % pv_),
             zaxis=dict(title='log10(features)')),
         autosize=True,
         width=700, height=700,
-        title="Filtering process",
+        title="Filtering process: %s" % dat,
         margin=dict(l=65, r=50, b=65, t=90))
 
     fig = go.Figure(
@@ -391,6 +410,6 @@ def filter_3d(dat, pv, ab, defaults, biom_, targeted, out_dir):
     fig.add_scatter3d(
         y=X.flatten(), x=Y.flatten(), z=Z.flatten(),
         mode='markers', marker=dict(size=6, color='red'))
-    html_fo = '%s/prevalence-as-%s_abundance-as-%s.html' % (out_dir, pv, ab)
+    html_fo = '%s/prevalence-as-%s_abundance-as-%s.html' % (out_dir, pv_, ab_)
     print(' -> Written:', html_fo)
     plotly.offline.plot(fig, filename=html_fo, auto_open=False)
