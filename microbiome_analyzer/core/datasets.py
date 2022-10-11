@@ -84,7 +84,7 @@ class Data(object):
         empty = (data_pd.sum() == 0)
         if sum(empty):
             print('Warning: empty samples in "%s": %s' % (
-                self.dat, set(empty.index)))
+                self.dat, set(empty.loc[empty].index)))
             data_pd = data_pd.loc[:, (data_pd.sum() > 0)]
             data_pd = data_pd.loc[(data_pd.sum(1) > 0), :]
         self.data[''] = data_pd
