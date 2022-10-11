@@ -46,21 +46,6 @@ class DiffModels(object):
                 'train', 'batches', 'learns', 'epochs', 'diff_priors',
                 'thresh_feats', 'thresh_samples', 'summary_interval']
             self.q2s_pd = pd.DataFrame()
-            print()
-            print("self.songbird_models")
-            print(self.songbird_models)
-            print()
-            print("self.filtering")
-            print(self.filtering)
-            print()
-            print("self.params")
-            print(self.params)
-            print()
-            print("self.baselines")
-            print(self.baselines)
-            print()
-            print("self.songbird_subsets")
-            print(self.songbird_subsets)
         self.songbird_pd = pd.DataFrame()
 
     def get_output(self, dat: str = '') -> str:
