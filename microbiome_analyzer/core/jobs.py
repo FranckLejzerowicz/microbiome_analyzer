@@ -9,6 +9,7 @@
 import os
 import subprocess
 import numpy as np
+from datetime import datetime as dt
 from os.path import dirname, isdir, splitext
 from microbiome_analyzer._scratch import get_roundtrip, rep
 
@@ -119,8 +120,9 @@ class CreateScripts(object):
 
     def write_chunks(self, chunk_keys):
         with open(self.sh, 'w') as sh:
-            sh.write('TMPDIR=%s\n' % self.tmpdir)
-            sh.write('chmod 777 $TMPDIR\n')
+            # sh.write('TMPDIR=tmp\n' % self.tmpdir)
+            sh.write('TMPDIR=tmp_%s\n' % dt.now().strftime("%d%m%Y%H%M%S"))
+            sh.write('mkdir $TMPDIR\n')
             if self.config.cleanup:
                 cleanup = 'cleanup rm -rf ${TMPDIR}'
                 if self.params['scratch'] and self.config.jobs:
