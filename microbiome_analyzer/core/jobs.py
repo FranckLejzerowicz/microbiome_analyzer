@@ -121,8 +121,9 @@ class CreateScripts(object):
     def write_chunks(self, chunk_keys):
         with open(self.sh, 'w') as sh:
             # sh.write('TMPDIR=tmp\n' % self.tmpdir)
-            sh.write('TMPDIR=tmp_%s\n' % dt.now().strftime("%d%m%Y%H%M%S"))
-            sh.write('mkdir $TMPDIR\n')
+            if self.params['scratch'] and self.config.jobs:
+                sh.write('TMPDIR=tmp_%s\n' % dt.now().strftime("%d%m%Y%H%M%S"))
+                sh.write('mkdir $TMPDIR\n')
             if self.config.cleanup:
                 cleanup = 'cleanup rm -rf ${TMPDIR}'
                 if self.params['scratch'] and self.config.jobs:
@@ -133,7 +134,8 @@ class CreateScripts(object):
                 # sh.write('TMPDIR=%s/%s\n' % (self.tmpdir, k))
                 for cmd in self.cmds[key]:
                     sh.write('%s\n' % cmd)
-            sh.write('rm -rf $TMPDIR\n')
+            if self.params['scratch'] and self.config.jobs:
+                sh.write('rm -rf $TMPDIR\n')
 
     def get_job_name(self, chunk: str):
         self.job_name = self.nlss + '.' + self.config.prjct_nm
