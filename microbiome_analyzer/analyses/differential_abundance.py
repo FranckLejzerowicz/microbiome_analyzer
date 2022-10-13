@@ -620,7 +620,7 @@ class DiffModels(object):
                 'songbird_filter', 'parameters', 'baseline', 'differentials',
                 'Pseudo_Q_squared'])
             q2s_fp = '%s/songbird_q2.tsv' % songbird
-            self.q2s_pd.to_csv(q2s_fp, index=False, sep='\t')
+            self.q2s_pd.to_csv(rep(q2s_fp), index=False, sep='\t')
             print('Written -> %s' % q2s_fp)
 
     def create_songbird_feature_metadata(self):
