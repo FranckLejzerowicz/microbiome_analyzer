@@ -855,4 +855,5 @@ class DiffModels(object):
                    for x, y in self.ios.items())
         AnalysisPrep.analyses_ios[self.analysis] = ios
         self.ios = {}
-        self.cmds = {}
+        if self.analysis not in ['songbird_baselines', 'songbird_filter']:
+            self.cmds = {}
