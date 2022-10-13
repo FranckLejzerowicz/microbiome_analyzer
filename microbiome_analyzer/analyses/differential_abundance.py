@@ -605,6 +605,7 @@ class DiffModels(object):
                     path = root + '/' + fil
                     diff = '%s/differentials.tsv' % dirname(root)
                     root_split = root.split('%s/' % songbird)[-1].split('/')
+                    print(root_split)
                     d, pr, fr, sb, sr, ps, ml, be = root_split
                     with open(rep(path)) as f:
                         for line in f:
