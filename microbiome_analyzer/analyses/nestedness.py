@@ -311,10 +311,10 @@ class Nestedness(object):
         cmd, graph = self.write_graph(data, meta_pd, raref)
         self.graphs.append([dat, data.dat, cohort, raref, graph])
         for mdx, mode in enumerate(self.modes):
-            # print()
-            # print()
-            # print()
-            # print('mode: [',  mdx, ']', mode)
+            print()
+            print()
+            print()
+            print('mode: [',  mdx, ']', mode)
             m_dir = '%s/output_%s%s' % (self.out, mode, raref.replace('_', '/'))
             if not isdir(rep(m_dir)):
                 os.makedirs(rep(m_dir))
@@ -326,11 +326,11 @@ class Nestedness(object):
             meta = '%s/meta.tsv' % m_dir
             init_cmd, biom = self.init_cmds(m_dir, meta, data, raref)
             nest_cmd = ''
-            # print('len(self.nodfs_vars):', len(self.nodfs_vars))
+            print('len(self.nodfs_vars):', len(self.nodfs_vars))
             for ndx, nodf_var in enumerate(self.nodfs_vars):
-                # print()
-                # print()
-                # print('nodf_var: [', ndx, ']', nodf_var)
+                print()
+                print()
+                print('nodf_var: [', ndx, ']', nodf_var)
                 comp = '%s/comparisons_%s.csv' % (m_dir, nodf_var)
                 nest_cmd += self.write_comparisons(biom, comp, mode, nodf_var)
                 if not to_do(biom):
@@ -348,8 +348,8 @@ class Nestedness(object):
                     io_update(self, i_f=i_f, o_f=simul, key=data.dat)
             self.merge_outputs(m_dir, level, raref, cohort, nodfs_fp)
             self.res.append([dat, nodfs_fp, cohort, self.out])
-            # print()
-            # print('len(nest_cmd)', len(nest_cmd))
+            print()
+            print('len(nest_cmd)', len(nest_cmd))
             if nest_cmd:
                 self.write_meta(meta, data.metadata, meta_pd, nodfs)
                 cmd += init_cmd + nest_cmd
