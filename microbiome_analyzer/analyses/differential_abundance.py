@@ -604,9 +604,8 @@ class DiffModels(object):
                 if fil == 'tensorboard.html':
                     path = root + '/' + fil
                     diff = '%s/differentials.tsv' % dirname(root)
-                    root_split = root.split('%s/' % songbird)[-1].split('/')
-                    print(root_split)
-                    d, pr, fr, sb, sr, ps, ml, be = root_split
+                    root_s = root.split('%s/' % rep(songbird))[-1].split('/')
+                    d, pr, fr, sb, sr, ps, ml, be = root_s
                     with open(rep(path)) as f:
                         for line in f:
                             if 'Pseudo Q-squared' in line:
