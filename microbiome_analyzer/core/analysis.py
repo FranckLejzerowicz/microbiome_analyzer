@@ -1013,7 +1013,7 @@ class AnalysisPrep(object):
                         bip = '%s/biplot%s_%s.qza' % (self.out, raref, metric)
                         biplots.setdefault(cohort, []).append(
                             (bip, bip_tax, metric))
-                        if self.config.force or to_do(biplot):
+                        if self.config.force or to_do(bip):
                             cmd = write_biplot(self, dat, tsv, qza, meta, pcoa,
                                                tax, bip, bi_tax)
                             self.register_provenance(dat, (qza, pcoa,), cmd)
