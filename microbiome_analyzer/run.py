@@ -86,6 +86,8 @@ def runner(**kwargs):
 
     if 'beta' not in config.skip:
         analysis.beta()
+        if 'rpca' not in config.skip:
+            analysis.rpca()
         if 'deicode' not in config.skip:
             analysis.deicode()
         if 'pcoa' not in config.skip:
