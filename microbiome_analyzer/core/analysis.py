@@ -828,7 +828,7 @@ class AnalysisPrep(object):
                         new_qza = '%s/tab%s.qza' % (self.out, raref)
                         cmd = write_rpca(
                             self, dat, qza, meta, new_qza, ordi, dist, tree,
-                            table, taxon, data, qzv1, qzv2)
+                            table, taxon, qzv1, qzv2, data)
                         self.register_provenance(dat, (ordi, qza,), cmd)
                         self.cmds.setdefault(dat, []).append(cmd)
                 data.rpca[raref] = rpcas
