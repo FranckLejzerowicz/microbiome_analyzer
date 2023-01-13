@@ -698,7 +698,6 @@ def write_beta(
     -------
 
     """
-
     phylo = data.phylo
     tree = data.tree
 
@@ -730,6 +729,120 @@ def write_beta(
             cmd += ' --p-n-jobs %s' % (int(nodes) * int(cpus))
         cmd += ' --o-distance-matrix %s\n' % dm_qza
         io_update(self, i_f=i_f, o_f=dm_qza, key=dat)
+    return cmd
+
+
+def write_rpca(
+        self,
+        dat: str,
+        qza: str,
+        meta: str,
+        new_qza: str,
+        ordi: str,
+        dist: str,
+        tree_qza: str,
+        table: str,
+        taxon: str,
+        qzv1: str,
+        qzv2: str,
+        data
+) -> str:
+    """
+    Performs Phylogenetic Robust Aitchison PCA.
+    https://github.com/biocore/gemelli
+
+    Parameters
+    ----------
+    self
+    dat : str
+    qza : str
+    meta : str
+    new_qza : str
+    ordi : str
+    dist : str
+    tree_qza : str
+    table : str
+    taxon : str
+    qzv1 : str
+    qzv2 : str
+    data
+
+    Returns
+    -------
+    cmd : str
+    """
+    phylo = data.phylo
+    tree = data.tree
+    tax = data.tax
+
+    i_f, o_f = [], []
+    cmd = ''
+    if to_do(new_qza):
+        cmd += 'qiime feature-table filter-samples'
+        cmd += ' --i-table %s' % qza
+        cmd += ' --p-min-frequency 1'
+        cmd += ' --p-filter-empty-features'
+        cmd += ' --m-metadata-file %s' % meta
+        cmd += ' --o-filtered-table %s\n\n' % new_qza
+        io_update(self, i_f=[qza, meta], o_f=new_qza, key=dat)
+
+    is_phylo = False
+    if phylo[0] and tree[1] and not to_do(tree[1]):
+        is_phylo = True
+        cmd += 'qiime gemelli phylogenetic-rpca-with-taxonomy'
+        if tree[0]:
+            cmd += ' --i-table %s' % tree[0]
+            i_f.append(tree[0])
+        else:
+            cmd += ' --i-table %s' % qza
+            i_f.append(qza)
+        cmd += ' --i-phylogeny %s' % tree[1]
+        cmd += ' --m-taxonomy-file %s' % tax[1]
+        cmd += ' --o-counts-by-node-tree %s' % tree_qza
+        cmd += ' --o-counts-by-node %s' % table
+        cmd += ' --o-t2t-taxonomy %s' % taxon
+        i_f.extend([tree[1], tax[1]])
+        o_f.extend([tree_qza, table, taxon])
+    else:
+        cmd += 'qiime gemelli auto-rpca'
+        cmd += ' --i-table %s' % qza
+        i_f.append(qza)
+    if to_do(ordi):
+        cmd += ' --p-min-feature-count 10'
+        cmd += ' --p-min-sample-count 500'
+        cmd += ' --o-biplot %s' % ordi
+        cmd += ' --o-distance-matrix %s\n' % dist
+        o_f.extend([ordi, dist])
+        io_update(self, i_f=i_f, o_f=o_f, key=dat)
+    else:
+        io_update(self, i_f=[], o_f=o_f, key=dat)
+        cmd = ''
+
+    cmd += 'rm %s %s\n\n' % (meta, new_qza)
+    ordi_tsv = ordi.replace('.qza', '.txt')
+    cmd += run_export(ordi, ordi_tsv, 'pcoa')
+
+    if is_phylo:
+        cmd += 'qiime empress community-plot'
+        cmd += ' --i-tree %s' % tree_qza
+        cmd += ' --i-feature-table %s' % table
+        cmd += ' --i-pcoa %s' % ordi
+        cmd += ' --m-sample-metadata-file %s' % meta
+        cmd += ' --m-feature-metadata-file %s' % taxon
+        cmd += ' --p-filter-missing-features'
+        cmd += ' --o-visualization %s' % qzv1
+        cmd += ' --p-number-of-features 50\n\n'
+    else:
+        cmd += 'qiime emperor biplot'
+        cmd += ' --i-biplot %s' % ordi
+        cmd += ' --m-sample-metadata-file %s' % meta
+        cmd += ' --m-feature-metadata-file %s' % tax[1]
+        cmd += ' --o-visualization %s' % qzv1
+        cmd += ' --p-number-of-features 15\n\n'
+    if to_do(ordi):
+        io_update(self, i_f=meta, o_f=[qzv1, qzv2, ordi_tsv], key=dat)
+    else:
+        io_update(self, i_f=[ordi, meta], o_f=[qzv1, qzv2, ordi_tsv], key=dat)
     return cmd
 
 
@@ -795,10 +908,10 @@ def write_deicode(
     cmd += ' --p-number-of-features 10\n\n'
     cmd += 'rm %s %s\n\n' % (meta, new_qza)
     cmd += run_export(ordi, ordi_tsv, 'pcoa')
-    if not to_do(ordi):
-        io_update(self, i_f=[ordi, meta], o_f=[qzv, ordi_tsv], key=dat)
-    else:
+    if to_do(ordi):
         io_update(self, i_f=meta, o_f=[qzv, ordi_tsv], key=dat)
+    else:
+        io_update(self, i_f=[ordi, meta], o_f=[qzv, ordi_tsv], key=dat)
 
     return cmd
 
