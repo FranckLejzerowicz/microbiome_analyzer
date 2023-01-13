@@ -251,6 +251,17 @@ deicode:
   scratch:
   machine:
   chunks:
+rpca:
+  time: "4"
+  nodes: "1"
+  cpus: "1"
+  mem: "20"
+  mem_dim: "gb"
+  env: "qiime2-2021.2"
+  partition:
+  scratch:
+  machine:
+  chunks:
 pcoa:
   time: "10"
   nodes: "1"
