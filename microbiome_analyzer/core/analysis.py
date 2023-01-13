@@ -18,13 +18,12 @@ import itertools as its
 from microbiome_analyzer.core.datasets import Datasets, Data
 from microbiome_analyzer.core.commands import (
     run_import, run_export, write_rarefy, write_fasta, write_collapse,
-    write_sepp, write_alpha, write_filter,
-    write_barplots, write_tabulate, write_alpha_correlation,
-    write_alpha_rarefaction, write_volatility, write_beta, write_deicode,
-    write_pcoa, write_biplot, write_emperor, write_emperor_biplot,
-    write_empress, write_permanova_permdisp, write_adonis,
-    write_tsne, write_umap, write_procrustes, write_mantel, write_phate,
-    write_sourcetracking)
+    write_sepp, write_alpha, write_filter, write_barplots, write_tabulate,
+    write_alpha_correlation, write_alpha_rarefaction, write_volatility,
+    write_beta, write_rpca, write_deicode, write_pcoa, write_biplot,
+    write_emperor, write_emperor_biplot, write_empress,
+    write_permanova_permdisp, write_adonis, write_tsne, write_umap,
+    write_procrustes, write_mantel, write_phate, write_sourcetracking)
 from microbiome_analyzer.analyses.filter import (
     no_filtering, get_dat_filt, filtering_thresholds,
     harsh_filtering, filter_3d)
@@ -805,8 +804,8 @@ class AnalysisPrep(object):
                 data.r2[raref] = r2s
         self.register_io_command()
 
-    def deicode(self):
-        self.analysis = 'deicode'
+    def rpca(self):
+        self.analysis = 'rpca'
         for dat, data in self.project.datasets.items():
             for raref, qza in data.qza.items():
                 rpcas = {}
@@ -814,10 +813,40 @@ class AnalysisPrep(object):
                     continue
                 for cohort, (sams, group) in data.subsets[raref].items():
                     self.get_output(data.path, cohort)
+                    ordi = '%s/ordination%s.qza' % (self.out, raref)
+                    qzv1 = '%s/ordination%s.qzv' % (self.out, raref)
+                    qzv2 = '%s/ordination%s_wtree.qzv' % (self.out, raref)
+                    dist = '%s/distance%s.qza' % (self.out, raref)
+                    tree = '%s/phylo-tree%s.qza' % (self.out, raref)
+                    table = '%s/phylo-table%s.qza' % (self.out, raref)
+                    taxon = '%s/phylo-taxonomy%s.qza' % (self.out, raref)
+                    rpcas[cohort] = [ordi, dist, tree, table, taxon]
+                    if self.config.force or to_do(qzv1) or to_do(qzv2):
+                        meta_pd = subset_meta(data.metadata, sams, group)
+                        meta = '%s/meta%s.tsv' % (self.out, raref)
+                        meta_pd.to_csv(rep(meta), index=False, sep='\t')
+                        new_qza = '%s/tab%s.qza' % (self.out, raref)
+                        cmd = write_rpca(
+                            self, dat, qza, meta, new_qza, ordi, dist, tree,
+                            table, taxon, data, qzv1, qzv2)
+                        self.register_provenance(dat, (ordi, qza,), cmd)
+                        self.cmds.setdefault(dat, []).append(cmd)
+                data.rpca[raref] = rpcas
+        self.register_io_command()
+
+    def deicode(self):
+        self.analysis = 'deicode'
+        for dat, data in self.project.datasets.items():
+            for raref, qza in data.qza.items():
+                # rpcas = {}
+                if to_do(qza):
+                    continue
+                for cohort, (sams, group) in data.subsets[raref].items():
+                    self.get_output(data.path, cohort)
                     qzv = '%s/biplot%s.qzv' % (self.out, raref)
                     ordi = '%s/ordination%s.qza' % (self.out, raref)
                     ordi_tsv = '%s.tsv' % splitext(ordi)[0]
-                    rpcas[cohort] = ordi_tsv
+                    # rpcas[cohort] = ordi_tsv
                     if self.config.force or to_do(qzv):
                         meta_pd = subset_meta(data.metadata, sams, group)
                         meta = '%s/meta%s.tsv' % (self.out, raref)
@@ -829,7 +858,7 @@ class AnalysisPrep(object):
                             dm_qza, qzv)
                         self.register_provenance(dat, (ordi, qza,), cmd)
                         self.cmds.setdefault(dat, []).append(cmd)
-                data.rpca[raref] = rpcas
+                # data.rpca[raref] = rpcas
         self.register_io_command()
 
     def tsne(self):
