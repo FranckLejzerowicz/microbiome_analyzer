@@ -4,10 +4,10 @@ default:
   cpus: "1"
   mem: "1"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 import:
   time: "4"
@@ -15,10 +15,10 @@ import:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 import_trees:
   time: "4"
@@ -26,10 +26,10 @@ import_trees:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 filter3d:
   time: "4"
@@ -37,10 +37,10 @@ filter3d:
   cpus: "1"
   mem: "1"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 filter:
   time: "4"
@@ -48,10 +48,10 @@ filter:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 rarefy:
   time: "4"
@@ -59,10 +59,10 @@ rarefy:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 qemistree:
   time: "1"
@@ -70,10 +70,10 @@ qemistree:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 taxonomy:
   time: "8"
@@ -81,10 +81,10 @@ taxonomy:
   cpus: "1"
   mem: "50"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 barplot:
   time: "1"
@@ -92,10 +92,10 @@ barplot:
   cpus: "1"
   mem: "500"
   mem_dim: "mb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 wol:
   time: "1"
@@ -103,10 +103,10 @@ wol:
   cpus: "1"
   mem: "2"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 sepp:
   time: "100"
@@ -114,10 +114,10 @@ sepp:
   cpus: "12"
   mem: "150"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 pies:
   time: "10"
@@ -125,10 +125,10 @@ pies:
   cpus: "1"
   mem: "1"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 collapse:
   time: "1"
@@ -136,10 +136,10 @@ collapse:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 feature_subsets:
   time: "1"
@@ -150,7 +150,7 @@ feature_subsets:
   env: "qiime2-2020.6"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 alpha:
   time: "4"
@@ -158,10 +158,10 @@ alpha:
   cpus: "1"
   mem: "4"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 alpha_merge:
   time: "1"
@@ -169,10 +169,10 @@ alpha_merge:
   cpus: "1"
   mem: "500"
   mem_dim: "mb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 alpha_rarefaction:
   time: "10"
@@ -180,10 +180,10 @@ alpha_rarefaction:
   cpus: "1"
   mem: "5"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 alpha_correlations:
   time: "10"
@@ -191,10 +191,10 @@ alpha_correlations:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 alpha_group_significance:
   time: "2"
@@ -202,10 +202,10 @@ alpha_group_significance:
   cpus: "1"
   mem: "15"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 volatility:
   time: "2"
@@ -213,10 +213,10 @@ volatility:
   cpus: "1"
   mem: "200"
   mem_dim: "mb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 phate:
   time: "72"
@@ -224,10 +224,10 @@ phate:
   cpus: "4"
   mem: "10"
   mem_dim: "gb"
-  env: "phate"
+  env: "metagenomics"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 beta:
   time: "24"
@@ -235,10 +235,10 @@ beta:
   cpus: "8"
   mem: "30"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 deicode:
   time: "4"
@@ -246,10 +246,10 @@ deicode:
   cpus: "1"
   mem: "20"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 rpca:
   time: "4"
@@ -260,7 +260,7 @@ rpca:
   env: "qiime2-2021.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 pcoa:
   time: "10"
@@ -268,10 +268,10 @@ pcoa:
   cpus: "2"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 umap:
   time: "10"
@@ -279,10 +279,10 @@ umap:
   cpus: "2"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 tsne:
   time: "10"
@@ -290,10 +290,10 @@ tsne:
   cpus: "2"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 emperor:
   time: "10"
@@ -301,10 +301,10 @@ emperor:
   cpus: "1"
   mem: "5"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 empress:
   time: "10"
@@ -312,10 +312,10 @@ empress:
   cpus: "1"
   mem: "5"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 biplot:
   time: "10"
@@ -323,10 +323,10 @@ biplot:
   cpus: "2"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 emperor_biplot:
   time: "10"
@@ -334,10 +334,10 @@ emperor_biplot:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 empress_biplot:
   time: "10"
@@ -345,10 +345,10 @@ empress_biplot:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 permanova:
   time: "48"
@@ -356,10 +356,10 @@ permanova:
   cpus: "1"
   mem: "40"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 adonis:
   time: "6"
@@ -367,10 +367,10 @@ adonis:
   cpus: "1"
   mem: "20"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 
 procrustes:
@@ -379,10 +379,10 @@ procrustes:
   cpus: "1"
   mem: "20"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 procrustes_r:
   time: "120"
@@ -393,7 +393,7 @@ procrustes_r:
   env: "renv"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 mantel:
   time: "72"
@@ -401,10 +401,10 @@ mantel:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 
 nestedness:
@@ -413,10 +413,10 @@ nestedness:
   cpus: "1"
   mem: "20"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 nestedness_nodfs:
   time: "72"
@@ -424,10 +424,10 @@ nestedness_nodfs:
   cpus: "1"
   mem: "4"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 nestedness_graphs:
   time: "72"
@@ -435,10 +435,10 @@ nestedness_graphs:
   cpus: "1"
   mem: "4"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 dm_decay:
   time: "72"
@@ -446,10 +446,10 @@ dm_decay:
   cpus: "4"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 dm_decay_plot:
   time: "4"
@@ -457,10 +457,10 @@ dm_decay_plot:
   cpus: "1"
   mem: "1"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 geo_decay:
   time: "72"
@@ -468,10 +468,10 @@ geo_decay:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 
 sourcetracking:
@@ -482,7 +482,7 @@ sourcetracking:
   mem_dim: "gb"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 doc:
   time: "150"
@@ -490,10 +490,10 @@ doc:
   cpus: "4"
   mem: "20"
   mem_dim: "gb"
-  env: "xdoc"
+  env: "metagenomics"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 doc_r:
   time: "150"
@@ -501,10 +501,10 @@ doc_r:
   cpus: "4"
   mem: "20"
   mem_dim: "gb"
-  env: "xdoc"
+  env: "metagenomics"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 
 mmvec:
@@ -513,10 +513,10 @@ mmvec:
   cpus: "1"
   mem: "20"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 mmvec_paired_imports:
   time: "12"
@@ -524,10 +524,10 @@ mmvec_paired_imports:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 mmvec_single_imports:
   time: "12"
@@ -535,10 +535,10 @@ mmvec_single_imports:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 songbird_baselines:
   time: "48"
@@ -546,10 +546,10 @@ songbird_baselines:
   cpus: "1"
   mem: "20"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2021.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 songbird_filter:
   time: "48"
@@ -557,10 +557,10 @@ songbird_filter:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2021.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 songbird:
   time: "48"
@@ -568,10 +568,10 @@ songbird:
   cpus: "1"
   mem: "20"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2021.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 songbird_imports:
   time: "12"
@@ -579,10 +579,10 @@ songbird_imports:
   cpus: "1"
   mem: "10"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2021.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 qurro:
   time: "24"
@@ -590,10 +590,10 @@ qurro:
   cpus: "1"
   mem: "5"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
 mmbird:
   time: "2"
@@ -601,8 +601,8 @@ mmbird:
   cpus: "1"
   mem: "8"
   mem_dim: "gb"
-  env: "qiime2-2021.11"
+  env: "qiime2-2022.2"
   partition:
   scratch:
-  machine:
+  machine: saga
   chunks:
