@@ -779,17 +779,15 @@ def write_rpca(
     cmd = ''
     is_phylo = False
     qza_in = qza
-    # if phylo[0] and tree[1] and not to_do(tree[1]):
-    if 1:
+    if phylo[0] and tree[1] and not to_do(tree[1]):
         is_phylo = True
         cmd += 'qiime gemelli phylogenetic-rpca-with-taxonomy'
         if tree[0]:
             qza_in = tree[0]
-            cmd += ' --i-table %s' % tree[0]
             i_f.append(tree[0])
         else:
-            cmd += ' --i-table %s' % qza
             i_f.append(qza)
+        cmd += ' --i-table %s' % new_qza
         cmd += ' --i-phylogeny %s' % tree[1]
         cmd += ' --m-taxonomy-file %s' % tax[1]
         cmd += ' --o-counts-by-node-tree %s' % tree_qza
@@ -799,7 +797,7 @@ def write_rpca(
         o_f.extend([tree_qza, table, taxon])
     else:
         cmd += 'qiime gemelli auto-rpca'
-        cmd += ' --i-table %s' % qza
+        cmd += ' --i-table %s' % new_qza
         i_f.append(qza)
     if to_do(ordi):
         cmd += ' --p-min-feature-count 10'
