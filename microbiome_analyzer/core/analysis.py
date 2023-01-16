@@ -1044,7 +1044,7 @@ class AnalysisPrep(object):
                             (bip, bip_tax, metric))
                         if self.config.force or to_do(bip):
                             cmd = write_biplot(self, dat, tsv, qza, meta, pcoa,
-                                               tax, bip, bi_tax)
+                                               tax, bip, bip_tax)
                             self.register_provenance(dat, (qza, pcoa,), cmd)
                             self.cmds.setdefault(dat, []).append(cmd)
                 data.biplot[raref] = biplots
