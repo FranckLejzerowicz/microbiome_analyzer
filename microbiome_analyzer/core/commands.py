@@ -847,7 +847,7 @@ def write_rpca(
     cmd_final += cmd
     io_update(self, i_f=[qza_in, meta], key=dat)
 
-    return cmd
+    return cmd_final
 
 
 def write_deicode(
