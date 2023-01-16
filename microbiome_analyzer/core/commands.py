@@ -777,20 +777,14 @@ def write_rpca(
 
     i_f, o_f = [], []
     cmd = ''
-    if to_do(new_qza):
-        cmd += 'qiime feature-table filter-samples'
-        cmd += ' --i-table %s' % qza
-        cmd += ' --p-min-frequency 1'
-        cmd += ' --p-filter-empty-features'
-        cmd += ' --m-metadata-file %s' % meta
-        cmd += ' --o-filtered-table %s\n\n' % new_qza
-        io_update(self, i_f=[qza, meta], o_f=new_qza, key=dat)
-
     is_phylo = False
-    if phylo[0] and tree[1] and not to_do(tree[1]):
+    qza_in = qza
+    # if phylo[0] and tree[1] and not to_do(tree[1]):
+    if 1:
         is_phylo = True
         cmd += 'qiime gemelli phylogenetic-rpca-with-taxonomy'
         if tree[0]:
+            qza_in = tree[0]
             cmd += ' --i-table %s' % tree[0]
             i_f.append(tree[0])
         else:
@@ -831,7 +825,7 @@ def write_rpca(
         cmd += ' --m-feature-metadata-file %s' % taxon
         cmd += ' --p-filter-missing-features'
         cmd += ' --o-visualization %s' % qzv1
-        cmd += ' --p-number-of-features 50\n\n'
+        cmd += ' --p-number-of-features 30\n\n'
     else:
         cmd += 'qiime emperor biplot'
         cmd += ' --i-biplot %s' % ordi
@@ -843,6 +837,16 @@ def write_rpca(
         io_update(self, i_f=meta, o_f=[qzv1, qzv2, ordi_tsv], key=dat)
     else:
         io_update(self, i_f=[ordi, meta], o_f=[qzv1, qzv2, ordi_tsv], key=dat)
+
+    cmd_final = 'qiime feature-table filter-samples'
+    cmd_final += ' --i-table %s' % qza_in
+    cmd_final += ' --p-min-frequency 1'
+    cmd_final += ' --p-filter-empty-features'
+    cmd_final += ' --m-metadata-file %s' % meta
+    cmd_final += ' --o-filtered-table %s\n\n' % new_qza
+    cmd_final += cmd
+    io_update(self, i_f=[qza_in, meta], o_f=new_qza, key=dat)
+
     return cmd
 
 
