@@ -809,7 +809,7 @@ def write_rpca(
         o_f.extend([ordi, dist])
         io_update(self, i_f=i_f, o_f=o_f, key=dat)
     else:
-        io_update(self, i_f=[], o_f=o_f, key=dat)
+        io_update(self, i_f=i_f, o_f=o_f, key=dat)
         cmd = ''
 
     cmd += 'rm %s %s\n\n' % (meta, new_qza)
@@ -845,7 +845,7 @@ def write_rpca(
     cmd_final += ' --m-metadata-file %s' % meta
     cmd_final += ' --o-filtered-table %s\n\n' % new_qza
     cmd_final += cmd
-    io_update(self, i_f=[qza_in, meta], o_f=new_qza, key=dat)
+    io_update(self, i_f=[qza_in, meta], key=dat)
 
     return cmd
 
