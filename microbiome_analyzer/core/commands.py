@@ -836,7 +836,8 @@ def write_rpca(
     else:
         io_update(self, i_f=[ordi, meta], o_f=[qzv1, qzv2, ordi_tsv], key=dat)
 
-    cmd_final = 'qiime feature-table filter-samples'
+    cmd_final = 'rm -rf $TMPDIR\n'
+    cmd_final += 'qiime feature-table filter-samples'
     cmd_final += ' --i-table %s' % qza_in
     cmd_final += ' --p-min-frequency 1'
     cmd_final += ' --p-filter-empty-features'
