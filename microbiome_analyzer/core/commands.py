@@ -841,7 +841,7 @@ def write_rpca(
     cmd_final += ' --i-table %s' % qza_in
     cmd_final += ' --p-min-frequency 1'
     cmd_final += ' --p-filter-empty-features'
-    cmd_final += ' --m-metadata-file %s' % meta
+    cmd_final += ' --m-metadata-file %s' % data.meta
     cmd_final += ' --o-filtered-table %s\n\n' % new_qza
     cmd_final += cmd
     io_update(self, i_f=[qza_in, meta], key=dat)
