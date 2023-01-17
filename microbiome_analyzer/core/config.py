@@ -1090,7 +1090,7 @@ class PrepConfig(object):
     def prep_diff_models(self):
         with open(self.config_fp, 'w') as o:
             baselines = {}
-            for dat in self.datasets:
+            for ddx, dat in enumerate(self.datasets):
                 if self.all_datasets:
                     dat = 'All datasets'
                 h = '%s(%s) ' % (self.prep, dat)
