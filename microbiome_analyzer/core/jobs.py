@@ -122,8 +122,8 @@ class CreateScripts(object):
         with open(self.sh, 'w') as sh:
             # sh.write('TMPDIR=tmp\n' % self.tmpdir)
             if self.params['scratch'] and self.config.jobs:
-                sh.write('TMPDIR=tmp_%s\n' % dt.now().strftime("%d%m%Y%H%M%S"))
-                sh.write('mkdir $TMPDIR\n')
+                # sh.write('TMPDIR=tmp_%s\n' % dt.now().strftime("%d%m%Y%H%M%S"))
+                sh.write('rm -rf $TMPDIR\n')
             if self.config.cleanup:
                 cleanup = 'cleanup rm -rf ${TMPDIR}'
                 if self.params['scratch'] and self.config.jobs:
