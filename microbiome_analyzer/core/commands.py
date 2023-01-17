@@ -819,7 +819,7 @@ def write_rpca(
         cmd += ' --i-tree %s' % tree_qza
         cmd += ' --i-feature-table %s' % table
         cmd += ' --i-pcoa %s' % ordi
-        cmd += ' --m-sample-metadata-file %s' % meta
+        cmd += ' --m-sample-metadata-file %s' % data.meta
         cmd += ' --m-feature-metadata-file %s' % taxon
         cmd += ' --p-filter-missing-features'
         cmd += ' --o-visualization %s' % qzv1
@@ -827,7 +827,7 @@ def write_rpca(
     else:
         cmd += 'qiime emperor biplot'
         cmd += ' --i-biplot %s' % ordi
-        cmd += ' --m-sample-metadata-file %s' % meta
+        cmd += ' --m-sample-metadata-file %s' % data.meta
         cmd += ' --m-feature-metadata-file %s' % tax[1]
         cmd += ' --o-visualization %s' % qzv1
         cmd += ' --p-number-of-features 15\n\n'
@@ -841,7 +841,7 @@ def write_rpca(
     cmd_final += ' --i-table %s' % qza_in
     cmd_final += ' --p-min-frequency 1'
     cmd_final += ' --p-filter-empty-features'
-    cmd_final += ' --m-metadata-file %s' % data.meta
+    cmd_final += ' --m-metadata-file %s' % meta
     cmd_final += ' --o-filtered-table %s\n\n' % new_qza
     cmd_final += cmd
     io_update(self, i_f=[qza_in, meta], key=dat)
