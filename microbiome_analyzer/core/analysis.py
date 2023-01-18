@@ -823,6 +823,7 @@ class AnalysisPrep(object):
                 if to_do(qza):
                     continue
                 print(raref)
+                print(dict(data.subsets[raref].items()))
                 for cohort, (sams, group) in data.subsets[raref].items():
                     print(cohort)
                     self.get_output(data.path, cohort)
