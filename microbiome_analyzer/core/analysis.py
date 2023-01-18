@@ -34,7 +34,7 @@ from microbiome_analyzer.analyses.taxonomy import (
 
 from microbiome_analyzer._scratch import io_update, to_do, rep
 from microbiome_analyzer._io_utils import (
-    add_q2_type, subset_meta, get_wol_tree, get_sepp_tree)
+    add_q2_type, subset_meta, subset_dm, get_wol_tree, get_sepp_tree)
 
 RESOURCES = pkg_resources.resource_filename(
     "microbiome_analyzer", "resources")
@@ -993,12 +993,13 @@ class AnalysisPrep(object):
                     sams = list(set(sams1) & set(sams2))
                     if len(sams) < 10:
                         continue
-                    meta = subset_meta(data1.metadata, sams, group)
+                    # meta = subset_meta(data1.metadata, sams, group)
                     path = p1.replace(dat1, dat1 + r1 + '__' + dat2 + r2)
                     self.get_output((pair + '/' + path), cohort)
-                    for (d1, _, m1), (d2, _, m2) in its.product(*[b1, b2]):
+                    for (d1, t1, m1), (d2, t2, m2) in its.product(*[b1, b2]):
                         if to_do(d1) or to_do(d2):
                             continue
+                        meta = subset_dm(data1.metadata, t1, t2)
                         meta_fp = '%s/meta' % self.out
                         meta_me = '%s_%s-%s.tsv' % (meta_fp, m1, m2)
                         d1f = '%s/dm1_%s-%s.qza' % (self.out, m1, m2)

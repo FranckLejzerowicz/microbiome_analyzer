@@ -165,6 +165,23 @@ def add_q2_type(meta_pd: pd.DataFrame, meta: str, cv: str, tests: list,
     return False
 
 
+def subset_dm(meta_pd: pd.DataFrame, t1: str, t2: str, col: str='sample_name'):
+    """
+    Subset the netadata to the sample in the two dms
+    """
+    with open(t1) as f:
+        for line in f:
+            s1 = set(line.strip().split('\t'))
+            break
+    with open(t2) as f:
+        for line in f:
+            s2 = set(line.strip().split('\t'))
+            break
+    sams = list(s1 & s2)
+    new_meta_pd = meta_pd.loc[meta_pd[col].isin(sams)].copy()
+    return new_meta_pd[['sample_name']]
+
+
 def subset_meta(
         meta_pd: pd.DataFrame, sams: list, group: str,
         test: str = '', terms: list = [], col: str='sample_name'

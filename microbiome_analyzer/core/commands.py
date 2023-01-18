@@ -1584,6 +1584,7 @@ def write_mantel(
     cmd += '\nqiime diversity mantel'
     cmd += ' --i-dm1 %s' % d1f
     cmd += ' --i-dm2 %s' % d2f
+    cmd += ' --p-intersect-ids'
     cmd += ' --p-label1 %s' % (dat1 + r1)
     cmd += ' --p-label2 %s' % (dat2 + r2)
     cmd += ' --o-visualization %s\n' % qzv
