@@ -815,7 +815,9 @@ class AnalysisPrep(object):
     def rpca(self):
         self.analysis = 'rpca'
         for dat, data in self.project.datasets.items():
+            print()
             print(dat)
+            print(dict(data.qza.items()))
             for raref, qza in data.qza.items():
                 rpcas = {}
                 if to_do(qza):
