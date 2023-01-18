@@ -236,6 +236,9 @@ def run_taxonomy_wol(self, dat, data) -> str:
         g2lineage = parse_g2lineage()
         feats_rev = dict((y, x) for x, y in feats.items())
         if to_do(out_tsv):
+            readme = out_tsv.replace('taxonomy.tsv', 'readme.txt')
+            with open(rep(readme), 'w') as o:
+                o.write('Taxonomy file based on WOL reference taxonomy\n')
             with open(rep(out_tsv), 'w') as o:
                 o.write('Feature ID\tTaxon\n')
                 for feat in data.data[''].ids(axis='observation'):
@@ -263,11 +266,14 @@ def run_taxonomy_amplicon(self, dat: str, data) -> str:
     """
     cmd = ''
     out_qza, out_tsv = data.tax[1], data.tax[2]
+    classifier_qza = get_taxonomy_classifier(self.config.classifier)
+    readme = out_tsv.replace('taxonomy.tsv', 'readme.txt')
+    with open(rep(readme), 'w') as o:
+        o.write('Taxonomy created using "%s"\n' % classifier_qza)
     if not to_do(out_tsv) and to_do(out_qza):
         cmd += run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
         io_update(self, i_f=out_tsv, o_f=out_qza, key=dat)
     else:
-        classifier_qza = get_taxonomy_classifier(self.config.classifier)
         odir_seqs = '%s/sequences/%s' % (self.dir, dat)
         seqs_fasta = '%s/%s.fasta' % (odir_seqs, dat)
         seqs_qza = '%s/%s.qza' % (odir_seqs, dat)
@@ -307,6 +313,9 @@ def run_taxonomy_others(
     out_qza, out_tsv = data.tax[1], data.tax[2]
     if self.config.force or to_do(out_qza):
         if to_do(out_tsv):
+            readme = out_tsv.replace('taxonomy.tsv', 'readme.txt')
+            with open(rep(readme), 'w') as o:
+                o.write('Taxonomy created by copying features names\n')
             with open(rep(out_tsv), 'w') as o:
                 o.write('Feature ID\tTaxon\n')
                 for feat in data.data[''].ids(axis='observation'):
@@ -494,5 +503,6 @@ def find_matching_features(data, subset_regex) -> list:
                 tax_pd[0].Taxon.str.contains(str(regex)),
                 'Feature ID']
     to_keep_feats_pd = pd.DataFrame(to_keep_feats)
+    print(to_keep_feats_pd)
     to_keep_feats = to_keep_feats_pd.loc[to_keep_feats_pd.any(axis=1)]
     return to_keep_feats.index.tolist()
