@@ -134,11 +134,13 @@ class Datasets(object):
     def collect_datasets(self):
         for dat in self.config.datasets:
             data = Data(dat)
+            # tsv = '%s/data/%s/data.tsv' % (self.dir, dat)
             tsv = '%s/data/%s.tsv' % (self.dir, dat)
             biom = '%s.biom' % splitext(tsv)[0]
             if to_do(biom) and to_do(tsv):
                 print('[skipping] Not tsv/biom table for %s' % dat)
                 continue
+            # meta = '%s/metadata/%s/metadata.tsv' % (self.dir, dat)
             meta = '%s/metadata/%s.tsv' % (self.dir, dat)
             if to_do(meta):
                 print('[skipping] Not metadata table for %s' % dat)
@@ -177,6 +179,7 @@ class Datasets(object):
             if not data.raref_depths:
                 continue
             for depth_ in data.raref_depths[1]:
+                # depth = '/raref%s' % get_digit_depth(
                 depth = '_raref%s' % get_digit_depth(
                     depth_, data.data[''].sum(axis='sample'))
                 data.rarefs.append(depth)
@@ -198,6 +201,7 @@ class Datasets(object):
         for dataset_, data in self.datasets.items():
             dataset = self._get_filt_raw(dataset_)
             self.set_key_dir('taxonomy', dataset)
+            # tax_tsv = '%s/taxonomy.tsv' % self.key_dir
             if data.phylo and data.phylo[0] == 'amplicon':
                 tax_tsv = '%s/%s_%s.tsv' % (self.key_dir, dataset, method)
                 meth = method
@@ -216,6 +220,7 @@ class Datasets(object):
                 continue
             if data.phylo:
                 self.set_key_dir('phylogeny', dataset)
+                # tree_nwk = '%s/tree.nwk' % self.key_dir
                 tree_nwk = '%s/%s.nwk' % (self.key_dir, dataset)
                 tree_qza = '%s.qza' % splitext(tree_nwk)[0]
                 if data.phylo[0] == 'amplicon':
@@ -229,6 +234,7 @@ class Datasets(object):
             if data.phylo and data.phylo[0] == 'amplicon':
                 self.set_key_dir('sequences', dataset)
                 seqs_fas = '%s/%s.fasta' % (self.key_dir, dataset)
+                # seqs_fas = '%s/sequences.fasta' % self.key_dir
                 seqs_qza = '%s.qza' % splitext(seqs_fas)[0]
                 data.seqs = (seqs_qza, seqs_fas)
 
@@ -245,6 +251,7 @@ class Datasets(object):
             dataset = self._get_filt_raw(dataset_)
             self.set_key_dir('taxonomy', dataset)
             tax_qza = '%s/%s_%s.qza' % (self.key_dir, dataset, method)
+            # tax_qza = '%s/taxonomy.qza' % self.key_dir
             tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
             if not to_do(tax_tsv) and not to_do(tax_qza):
                 data.tax = ['', tax_qza, tax_tsv]
@@ -258,6 +265,7 @@ class Datasets(object):
             dataset = self._get_filt_raw(dataset_)
             self.set_key_dir('phylogeny', dataset)
             tree_qza = '%s/%s.qza' % (self.key_dir, dataset)
+            # tree_qza = '%s/tree.qza' % self.key_dir
             tree_nwk = '%s.nwk' % splitext(tree_qza)[0]
             if not to_do(tree_nwk):
                 data.tree = ('', tree_qza, tree_nwk)
