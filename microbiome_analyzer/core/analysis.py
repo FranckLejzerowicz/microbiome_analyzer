@@ -163,10 +163,10 @@ class AnalysisPrep(object):
             data_filt.tsv = {'': tsv_filt}
             data_filt.biom = {'': biom_filt}
             data_filt.qza = {'': qza_filt}
-            data_filt.meta = data.meta.replace(dat, dat_filt)
+            data_filt.meta = data.meta
             data_filt.filts = dat
             data_filt.filt = dat_filt.split('%s_' % dat)[-1]
-            data_filt.metadata = data.metadata
+            data_filt.metadata = data.metadata.copy()
             data_filt.source = data.source
             qza_to_do = to_do(qza)
             meta_to_do = to_do(data_filt.meta)
