@@ -65,6 +65,8 @@ class AnalysisPrep(object):
     def get_output(self, dat, cohort=''):
         self.out = '%s/%s/%s' % (self.dir, self.analysis, dat)
         if cohort:
+            cohort = cohort.replace('(', '').replace(')', '').replace(
+                ' ', '_').replace(',', '_')
             self.out = (self.out + '/' + cohort).rstrip('/')
         self.out = self.out.replace(' ', '_')
         if not isdir(rep(self.out)):
@@ -163,7 +165,7 @@ class AnalysisPrep(object):
             data_filt.tsv = {'': tsv_filt}
             data_filt.biom = {'': biom_filt}
             data_filt.qza = {'': qza_filt}
-            data_filt.meta = data.meta
+            data_filt.meta = data.meta#.replace(dat, dat_filt)
             data_filt.filts = dat
             data_filt.filt = dat_filt.split('%s_' % dat)[-1]
             data_filt.metadata = data.metadata.copy()
@@ -815,18 +817,18 @@ class AnalysisPrep(object):
     def rpca(self):
         self.analysis = 'rpca'
         for dat, data in self.project.datasets.items():
-            print()
-            print(dat)
-            print(dict(data.qza.items()))
+            # print()
+            # print(dat)
+            # print(dict(data.qza.items()))
             for raref, qza in data.qza.items():
                 rpcas = {}
                 if to_do(qza):
                     continue
-                print(raref)
-                print(dict(data.subsets[raref].items()))
+                # print(raref)
+                # print(dict(data.subsets[raref].items()))
                 for cohort, (sams, group) in data.subsets[raref].items():
-                    print(cohort)
                     self.get_output(data.path, cohort)
+                    # print(self.out)
                     ordi = '%s/ordination%s.qza' % (self.out, raref)
                     qzv1 = '%s/ordination%s.qzv' % (self.out, raref)
                     qzv2 = '%s/ordination%s_wtree.qzv' % (self.out, raref)
