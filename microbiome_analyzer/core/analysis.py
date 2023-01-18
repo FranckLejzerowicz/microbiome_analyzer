@@ -176,25 +176,25 @@ class AnalysisPrep(object):
             cmd = ''
             if meta_to_do:
                 cmd += 'ln -s %s %s\n' % (rep(data.meta), rep(data_filt.meta))
-            if not self.config.force and not qza_to_do and not meta_to_do:
-                data_filt.read_biom()
-                data_filt.read_meta_pd()
-            else:
-                data_filt_biom, flt_cmds = filtering_thresholds(
-                    names, thresh_sam, thresh_feat, data.data[''])
-                if harsh_filtering(dat_filt, data_filt_biom):
-                    continue
-                data_filt_pd = data_filt_biom.to_dataframe(dense=True)
-                data_filt_pd.index.name = 'Feature ID'
-                data_filt_pd.to_csv(rep(tsv_filt), index=True, sep='\t')
-                data_filt.data[''] = data_filt_biom
-                cmd += run_import(tsv_filt, qza_filt, 'FeatureTable[Frequency]')
-                flt_cmds += cmd
-                self.register_provenance(dat, (tsv_filt, qza_filt), flt_cmds)
-                if not isfile(qza_filt):
-                    io_update(self, i_f=tsv_filt, o_f=[biom_filt, qza_filt],
-                              key=dat_filt)
-                    self.cmds.setdefault(dat_filt, []).append(cmd)
+            # if not self.config.force and not qza_to_do and not meta_to_do:
+            #     data_filt.read_biom()
+            #     data_filt.read_meta_pd()
+            # else:
+            data_filt_biom, flt_cmds = filtering_thresholds(
+                names, thresh_sam, thresh_feat, data.data[''])
+            if harsh_filtering(dat_filt, data_filt_biom):
+                continue
+            data_filt_pd = data_filt_biom.to_dataframe(dense=True)
+            data_filt_pd.index.name = 'Feature ID'
+            data_filt_pd.to_csv(rep(tsv_filt), index=True, sep='\t')
+            data_filt.data[''] = data_filt_biom
+            cmd += run_import(tsv_filt, qza_filt, 'FeatureTable[Frequency]')
+            flt_cmds += cmd
+            self.register_provenance(dat, (tsv_filt, qza_filt), flt_cmds)
+            if not isfile(qza_filt):
+                io_update(self, i_f=tsv_filt, o_f=[biom_filt, qza_filt],
+                          key=dat_filt)
+                self.cmds.setdefault(dat_filt, []).append(cmd)
             data_filt.phylo = data.phylo
             data_filt.features = get_gids(data.features, data_filt.data[''])
             project_filt[dat_filt] = data_filt
