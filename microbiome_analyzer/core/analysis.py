@@ -172,6 +172,9 @@ class AnalysisPrep(object):
             data_filt.source = data.source
             qza_to_do = to_do(qza)
             meta_to_do = to_do(data_filt.meta)
+            cmd = ''
+            if meta_to_do:
+                cmd += 'ln -s %s %s\n' % (data.meta, data_filt.meta)
             if not self.config.force and not qza_to_do and not meta_to_do:
                 data_filt.read_biom()
                 data_filt.read_meta_pd()
@@ -184,7 +187,7 @@ class AnalysisPrep(object):
                 data_filt_pd.index.name = 'Feature ID'
                 data_filt_pd.to_csv(rep(tsv_filt), index=True, sep='\t')
                 data_filt.data[''] = data_filt_biom
-                cmd = run_import(tsv_filt, qza_filt, 'FeatureTable[Frequency]')
+                cmd += run_import(tsv_filt, qza_filt, 'FeatureTable[Frequency]')
                 flt_cmds += cmd
                 self.register_provenance(dat, (tsv_filt, qza_filt), flt_cmds)
                 if not isfile(qza_filt):
