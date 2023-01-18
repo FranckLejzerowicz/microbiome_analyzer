@@ -48,20 +48,18 @@ class AnalysesConfig(object):
             self.check_xpbs_install()  # Xpbs must be installed to prepare jobs
 
     def parse_yamls(self):
+        self.subsets['ALL'] = [[]]
         for arg in list(self.__dict__):
             if arg.endswith('_fp'):
                 yaml = read_yaml_file(self.__dict__[arg])
-                if 'subsets' in yaml:
-                    yaml['subsets']['ALL'] = [[]]
                 setattr(self, arg[:-3], yaml)
-
-                for var, vals in yaml.get('subsets', {}).items():
-                    vals_set = set(map(tuple, vals))
-                    if var in self.subsets:
-                        self.subsets[var].update(vals_set)
-                    else:
-                        self.subsets[var] = vals_set
-        self.subsets['ALL'] = [[]]
+                if arg == 'sample_subsets_fp':
+                    for var, vals in yaml.items():
+                        vals_set = set(map(tuple, vals))
+                        if var in self.subsets:
+                            self.subsets[var].update(vals_set)
+                        else:
+                            self.subsets[var] = vals_set
 
     def check_input(self):
         """Check that the main input folder exists and that it is indeed a
