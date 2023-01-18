@@ -87,13 +87,14 @@ class AnalysisPrep(object):
         self.analysis = 'import'
         for dat, data in self.project.datasets.items():
             qza = '%s/data/%s.qza' % (self.dir, dat)
+            biom = '%s.biom' % splitext(qza)[0]
             tsv = data.tsv['']
             data.qza[''] = qza
-            data.biom[''] = '%s.biom' % splitext(qza)[0]
+            data.biom[''] = biom
             cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
-            if self.config.force or to_do(qza):
+            if self.config.force or to_do(qza) or to_do(biom):
                 self.cmds.setdefault(dat, []).append(cmd)
-                io_update(self, i_f=tsv, o_f=qza, key=dat)
+                io_update(self, i_f=tsv, o_f=[biom, qza], key=dat)
             self.register_provenance(dat, (qza,), cmd)
         self.register_io_command()
 
@@ -176,7 +177,7 @@ class AnalysisPrep(object):
             if meta_to_do:
                 cmd += 'ln -s %s %s\n' % (rep(data.meta), rep(data_filt.meta))
             if not self.config.force and not qza_to_do and not meta_to_do:
-                data_filt.read_tsv()
+                data_filt.read_biom()
                 data_filt.read_meta_pd()
             else:
                 data_filt_biom, flt_cmds = filtering_thresholds(
@@ -191,7 +192,8 @@ class AnalysisPrep(object):
                 flt_cmds += cmd
                 self.register_provenance(dat, (tsv_filt, qza_filt), flt_cmds)
                 if not isfile(qza_filt):
-                    io_update(self, i_f=tsv_filt, o_f=qza_filt, key=dat_filt)
+                    io_update(self, i_f=tsv_filt, o_f=[biom_filt, qza_filt],
+                              key=dat_filt)
                     self.cmds.setdefault(dat_filt, []).append(cmd)
             data_filt.phylo = data.phylo
             data_filt.features = get_gids(data.features, data_filt.data[''])
@@ -219,8 +221,9 @@ class AnalysisPrep(object):
                 cmd = write_rarefy(data.qza[''], qza, depth)
                 cmd += run_export(qza, tsv, 'FeatureTable[Frequency]')
                 self.register_provenance(dat, (qza,), cmd)
-                if self.config.force or to_do(tsv):
-                    io_update(self, i_f=data.qza[''], o_f=[qza, tsv], key=dat)
+                if self.config.force or to_do(tsv) or to_do(biom):
+                    io_update(
+                        self, i_f=data.qza[''], o_f=[qza, biom, tsv], key=dat)
                     self.cmds.setdefault(dat, []).append(cmd)
                 # print(tsv)
                 # print(biom)
