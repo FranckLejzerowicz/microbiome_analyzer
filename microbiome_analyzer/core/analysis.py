@@ -174,7 +174,7 @@ class AnalysisPrep(object):
             meta_to_do = to_do(data_filt.meta)
             cmd = ''
             if meta_to_do:
-                cmd += 'ln -s %s %s\n' % (data.meta, data_filt.meta)
+                cmd += 'ln -s %s %s\n' % (rep(data.meta), rep(data_filt.meta))
             if not self.config.force and not qza_to_do and not meta_to_do:
                 data_filt.read_biom()
                 data_filt.read_meta_pd()
