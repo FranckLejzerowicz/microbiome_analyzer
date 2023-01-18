@@ -118,12 +118,15 @@ def get_depths(
             depths.append(depth)
     if not depths:
         print('[%s] Min. proposed rarefaction depths would leave <10 samples: '
-              '%s (not rarefaction)' % (dat, ', '.join(depths_yml)))
+              '%s: %s samples (not rarefaction)' % (dat, len(depths),
+                                                    ', '.join(depths_yml)))
         skip = True
     elif len(depths) != len(depths_yml):
-        print('[%s] Proposed rarefaction depths would leave <10 samples: %s ('
-              'not rarefied)' % (dat, ', '.join([x for x in depths_yml
-                                                 if x not in depths])))
+        print('[%s] Proposed rarefaction depths would leave <10 samples: '
+              '%s: %s samples (not rarefied)' % (
+            dat, len(depths), ', '.join(
+                [x for x in depths_yml if x not in depths]
+            )))
     return skip, depths
 
 
