@@ -170,13 +170,13 @@ class AnalysisPrep(object):
             data_filt.filt = dat_filt.split('%s_' % dat)[-1]
             data_filt.metadata = data.metadata.copy()
             data_filt.source = data.source
-            qza_to_do = to_do(qza)
+            qza_to_do = to_do(qza_filt)
             meta_to_do = to_do(data_filt.meta)
             cmd = ''
             if meta_to_do:
                 cmd += 'ln -s %s %s\n' % (rep(data.meta), rep(data_filt.meta))
             if not self.config.force and not qza_to_do and not meta_to_do:
-                data_filt.read_biom()
+                data_filt.read_tsv()
                 data_filt.read_meta_pd()
             else:
                 data_filt_biom, flt_cmds = filtering_thresholds(
