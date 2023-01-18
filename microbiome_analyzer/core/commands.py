@@ -1645,7 +1645,7 @@ def write_phate(
     i_f = [meta]
     if not to_do(new_tsv):
         i_f.append(new_tsv)
-    io_update(self, i_f=i_f, o_f=[html], key=dat)
+    io_update(self, i_f=i_f, o_d=dirname(html), key=dat)
     return cmd
 
 
