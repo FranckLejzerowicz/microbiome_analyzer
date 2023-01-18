@@ -224,7 +224,7 @@ phate:
   cpus: "4"
   mem: "10"
   mem_dim: "gb"
-  env: "metagenomics"
+  env: "qiime2-2022.2"
   partition:
   scratch:
   machine: saga
