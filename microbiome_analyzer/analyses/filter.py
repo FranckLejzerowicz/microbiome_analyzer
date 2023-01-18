@@ -92,6 +92,7 @@ def get_dat_filt(
         else:
             dat_filt.append('minFeat%s' % str(thresh_feat).replace('.', ''))
     dat_filt = '%s_%s' % (dat, '-'.join(dat_filt))
+    # dat_filt = '%s/%s' % (dat, '-'.join(dat_filt))
     return dat_filt
 
 
