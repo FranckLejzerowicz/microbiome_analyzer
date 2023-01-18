@@ -327,10 +327,11 @@ class Nestedness(object):
             init_cmd, biom = self.init_cmds(m_dir, meta, data, raref)
             nest_cmd = ''
             print('len(self.nodfs_vars):', len(self.nodfs_vars))
+            print("    self.nodfs_vars :", self.nodfs_vars)
             for ndx, nodf_var in enumerate(self.nodfs_vars):
                 print()
                 print()
-                print('nodf_var: [', ndx, ']', nodf_var)
+                print('         nodf_var   : [', ndx, ']', nodf_var)
                 comp = '%s/comparisons_%s.csv' % (m_dir, nodf_var)
                 nest_cmd += self.write_comparisons(biom, comp, mode, nodf_var)
                 if not to_do(biom):
@@ -459,7 +460,7 @@ class Nestedness(object):
                         print('vals:', vals)
                         print('meta_pd.shape:', meta_pd.shape)
                         print('- - - - - - - - - - - - - - - - - - - - - - ')
-                        print('meta_pd.nunique():', meta_pd.nunique())
+                        print('meta_pd.nunique():\n', meta_pd.nunique())
                         print('- - - - - - - - - - - - - - - - - - - - - - ')
                         print('========================')
                         self.scripts(meta_pd, data, raref, level, cohort)

@@ -58,6 +58,8 @@ class DOC(object):
     def get_output(self, dat, cohort=''):
         self.out = '%s/doc/%s' % (self.dir, dat)
         if cohort:
+            cohort = cohort.replace('(', '').replace(')', '').replace(
+                ' ', '_').replace(',', '_')
             self.out = (self.out + '/' + cohort).rstrip('/')
         if not isdir(rep(self.out)):
             os.makedirs(rep(self.out))
