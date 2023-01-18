@@ -815,17 +815,17 @@ class AnalysisPrep(object):
     def rpca(self):
         self.analysis = 'rpca'
         for dat, data in self.project.datasets.items():
-            # print()
-            # print(dat)
-            # print(dict(data.qza.items()))
+            print()
+            print(dat)
+            print(dict(data.qza.items()))
             for raref, qza in data.qza.items():
                 rpcas = {}
                 if to_do(qza):
                     continue
-                # print(raref)
-                # print(dict(data.subsets[raref].items()))
+                print(raref)
+                print(dict(data.subsets[raref].items()))
                 for cohort, (sams, group) in data.subsets[raref].items():
-                    # print(cohort)
+                    print(cohort)
                     self.get_output(data.path, cohort)
                     ordi = '%s/ordination%s.qza' % (self.out, raref)
                     qzv1 = '%s/ordination%s.qzv' % (self.out, raref)
