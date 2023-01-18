@@ -353,7 +353,7 @@ class Datasets(object):
                             continue
                         s = sams & self.meta_subset(
                             data.metadata, group, vals)
-                        if len(s) < 10:
+                        if len(s) < 4:
                             continue
                         subsets[cohort] = (list(s), group)
                 data.subsets[raref] = subsets
