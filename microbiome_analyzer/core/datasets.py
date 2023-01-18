@@ -341,8 +341,8 @@ class Datasets(object):
         for dat, data in self.datasets.items():
             for raref, tab in data.biom.items():
                 subsets = {}
-                if raref not in data.data:
-                    data.subsets[raref] = {}
+                # if raref not in data.data:
+                #     data.subsets[raref] = {}
                 # else:
                 tab = data.data[raref]
                 sams = set(pd.Series(tab.ids(axis='sample')))
