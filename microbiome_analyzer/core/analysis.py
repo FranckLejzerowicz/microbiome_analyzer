@@ -147,6 +147,7 @@ class AnalysisPrep(object):
             if no_filtering(dat, thresh_sam, thresh_feat):
                 continue
             dat_filt = get_dat_filt(dat, names, thresh_sam, thresh_feat)
+            # print(dat_filt)
             Datasets.filt_raw[dat_filt] = dat
             Datasets.raw_filt[dat] = dat_filt
             # register the filtered dataset as an additional dataset
@@ -157,6 +158,8 @@ class AnalysisPrep(object):
             tsv_filt = tsv.replace(dat, dat_filt)
             biom_filt = biom.replace(dat, dat_filt)
             qza_filt = qza.replace(dat, dat_filt)
+            # if not isdir(rep(dirname(tsv_filt))):
+            #     os.makedirs(rep(dirname(tsv_filt)))
             data_filt.tsv = {'': tsv_filt}
             data_filt.biom = {'': biom_filt}
             data_filt.qza = {'': qza_filt}
@@ -214,12 +217,15 @@ class AnalysisPrep(object):
                 if self.config.force or to_do(tsv):
                     io_update(self, i_f=data.qza[''], o_f=[qza, tsv], key=dat)
                     self.cmds.setdefault(dat, []).append(cmd)
+                # print(tsv)
+                # print(biom)
                 if not to_do(tsv) and not to_do(biom):
                     data.biom[raref] = biom
                     data.tsv[raref] = tsv
                     data.qza[raref] = qza
                     data.read_biom(raref)
         self.register_io_command()
+        # print(tsvfds)
 
     def taxonomy(self):
         method = 'sklearn'
@@ -436,6 +442,8 @@ class AnalysisPrep(object):
             subset_pd = pd.DataFrame({
                 'Feature ID': feats,
                 'Subset': ['tmpsubsetting'] * len(feats)})
+            print(subset_pd)
+            print(subset_pddsa)
             subset_pd.to_csv(rep(meta_subset), index=False, sep='\t')
 
             cmd = write_filter(data.qza[raref], qza_subset, meta_subset)
