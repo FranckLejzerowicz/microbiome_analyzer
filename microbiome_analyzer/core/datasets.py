@@ -343,17 +343,17 @@ class Datasets(object):
                 subsets = {}
                 if raref not in data.data:
                     data.subsets[raref] = {}
-                else:
-                    tab = data.data[raref]
-                    sams = set(pd.Series(tab.ids(axis='sample')))
-                    for group, group_vals in data.sample_subsets.items():
-                        for vals in group_vals:
-                            cohort = get_cohort('subsetting', group, vals, data)
-                            if not cohort:
-                                continue
-                            s = sams & self.meta_subset(
-                                data.metadata, group, vals)
-                            if len(s) < 10:
-                                continue
-                            subsets[cohort] = (list(s), group)
-                    data.subsets[raref] = subsets
+                # else:
+                tab = data.data[raref]
+                sams = set(pd.Series(tab.ids(axis='sample')))
+                for group, group_vals in data.sample_subsets.items():
+                    for vals in group_vals:
+                        cohort = get_cohort('subsetting', group, vals, data)
+                        if not cohort:
+                            continue
+                        s = sams & self.meta_subset(
+                            data.metadata, group, vals)
+                        if len(s) < 10:
+                            continue
+                        subsets[cohort] = (list(s), group)
+                data.subsets[raref] = subsets
