@@ -114,7 +114,7 @@ def get_depths(
     skip = False
     depths = []
     for depth in depths_yml:
-        if depth == 'min' or sum(sam_sum >= int(depth)) > 10:
+        if depth == 'min' or sum(sam_sum >= int(depth)) > 4:
             depths.append(depth)
     if not depths:
         print('[%s] Min. proposed rarefaction depths would leave <10 samples: '
