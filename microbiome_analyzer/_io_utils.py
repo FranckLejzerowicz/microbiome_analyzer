@@ -169,11 +169,11 @@ def subset_dm(meta_pd: pd.DataFrame, t1: str, t2: str, col: str='sample_name'):
     """
     Subset the netadata to the sample in the two dms
     """
-    with open(t1) as f:
+    with open(rep(t1)) as f:
         for line in f:
             s1 = set(line.strip().split('\t'))
             break
-    with open(t2) as f:
+    with open(rep(t2)) as f:
         for line in f:
             s2 = set(line.strip().split('\t'))
             break
