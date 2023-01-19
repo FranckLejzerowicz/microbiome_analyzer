@@ -1017,8 +1017,6 @@ class AnalysisPrep(object):
                         d2f = '%s/dm2_%s-%s.qza' % (self.out, m1, m2)
                         qzv = '%s/%s-%s.qzv' % (self.out, m1, m2)
                         dis = '%s/m2_%s-%s.qza' % (self.out, m1, m2)
-                        print(self.out)
-                        print(selffdsout)
                         if analysis == 'mantel':
                             out = '%s.html' % splitext(qzv)[0]
                         else:
