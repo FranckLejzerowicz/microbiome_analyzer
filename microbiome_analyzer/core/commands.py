@@ -825,6 +825,7 @@ def write_rpca(
         cmd += ' --i-biplot %s' % ordi
         cmd += ' --m-feature-metadata-file %s' % tax[1]
         cmd += ' --p-number-of-features 15'
+    print(data.feat_meta)
     if data.feat_meta:
         for feat_meta in data.feat_meta:
             cmd += ' --m-feature-metadata-file %s' % feat_meta
