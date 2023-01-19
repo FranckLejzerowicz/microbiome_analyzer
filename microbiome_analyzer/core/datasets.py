@@ -155,11 +155,11 @@ class Datasets(object):
                 data.data[''] = convert_to_biom(data.data[''])
             data.read_meta_pd()
             data.check_gid_or_dna()
-            data.feat_meta = self.get_feat_meta()
+            data.feat_meta = self.get_feat_meta(dat)
             self.datasets[dat] = data
 
-    def get_feat_meta(self):
-        paths = glob.glob('%s/feature_metadata/*' % rep(self.dir))
+    def get_feat_meta(self, dat):
+        paths = glob.glob('%s/feature_metadata/%s/*' % (rep(self.dir), dat))
         paths = ['${SCRATCH_FOLDER}%s' % x for x in paths]
         return paths
 
