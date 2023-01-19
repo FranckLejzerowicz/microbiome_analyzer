@@ -817,18 +817,20 @@ def write_rpca(
         cmd += ' --i-tree %s' % tree_qza
         cmd += ' --i-feature-table %s' % table
         cmd += ' --i-pcoa %s' % ordi
-        cmd += ' --m-sample-metadata-file %s' % data.meta
         cmd += ' --m-feature-metadata-file %s' % taxon
         cmd += ' --p-filter-missing-features'
-        cmd += ' --o-visualization %s' % qzv
-        cmd += ' --p-number-of-features 30\n\n'
+        cmd += ' --p-number-of-features 30'
     else:
         cmd += 'qiime emperor biplot'
         cmd += ' --i-biplot %s' % ordi
-        cmd += ' --m-sample-metadata-file %s' % data.meta
         cmd += ' --m-feature-metadata-file %s' % tax[1]
-        cmd += ' --o-visualization %s' % qzv
-        cmd += ' --p-number-of-features 15\n\n'
+        cmd += ' --p-number-of-features 15'
+    if data.feat_meta:
+        for feat_meta in data.feat_meta:
+            cmd += ' --m-feature-metadata-file %s' % feat_meta
+    cmd += ' --m-sample-metadata-file %s' % data.meta
+    cmd += ' --o-visualization %s\n\n' % qzv
+
     if to_do(ordi):
         io_update(self, i_f=meta, o_f=[qzv, ordi_tsv], key=dat)
     else:
