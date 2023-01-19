@@ -257,7 +257,7 @@ rpca:
   cpus: "1"
   mem: "20"
   mem_dim: "gb"
-  env: "qiime2-2021.2"
+  env: "qiime2-2022.2"
   partition:
   scratch:
   machine: saga
