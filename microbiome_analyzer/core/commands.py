@@ -830,9 +830,9 @@ def write_rpca(
         cmd += ' --o-visualization %s' % qzv
         cmd += ' --p-number-of-features 15\n\n'
     if to_do(ordi):
-        io_update(self, i_f=meta, o_f=[qzv1, qzv2, ordi_tsv], key=dat)
+        io_update(self, i_f=meta, o_f=[qzv1, qzv, ordi_tsv], key=dat)
     else:
-        io_update(self, i_f=[ordi, meta], o_f=[qzv1, qzv2, ordi_tsv], key=dat)
+        io_update(self, i_f=[ordi, meta], o_f=[qzv, ordi_tsv], key=dat)
 
     cmd_final = 'rm -rf $TMPDIR\n'
     cmd_final += 'qiime feature-table filter-samples'
