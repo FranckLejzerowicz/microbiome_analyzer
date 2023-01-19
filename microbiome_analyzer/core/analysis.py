@@ -826,8 +826,12 @@ class AnalysisPrep(object):
             # print()
             # print(dat)
             # print(dict(data.qza.items()))
+            is_phylo = False
+            if data.phylo[0] and data.tree[1] and not to_do(data.tree[1]):
+                is_phylo = True
             for raref, qza in data.qza.items():
                 rpcas = {}
+                betas = []
                 if to_do(qza):
                     continue
                 # print(raref)
@@ -836,24 +840,31 @@ class AnalysisPrep(object):
                     self.get_output(data.path, cohort)
                     # print(self.out)
                     ordi = '%s/ordination%s.qza' % (self.out, raref)
-                    qzv1 = '%s/ordination%s.qzv' % (self.out, raref)
-                    qzv2 = '%s/ordination%s_wtree.qzv' % (self.out, raref)
-                    dist = '%s/distance%s.qza' % (self.out, raref)
+                    qzv = '%s/ordination%s.qzv' % (self.out, raref)
+                    metric = 'auto_aitchison'
+                    if is_phylo:
+                        metric = 'phylo_aitchison'
+                        qzv = '%s/ordination%s_wtree.qzv' % (self.out, raref)
+                    dm = '%s/dm_%s%s.qza' % (self.out, metric, raref)
+                    dm_tsv = '%s.tsv' % splitext(dm)[0]
+                    if cohort == 'ALL':
+                        betas.append([dm, dm_tsv, metric])
                     tree = '%s/phylo-tree%s.qza' % (self.out, raref)
                     table = '%s/phylo-table%s.qza' % (self.out, raref)
                     taxon = '%s/phylo-taxonomy%s.qza' % (self.out, raref)
-                    rpcas[cohort] = [ordi, dist, tree, table, taxon]
-                    if self.config.force or to_do(qzv1) or to_do(qzv2):
+                    rpcas[cohort] = [ordi, dm, tree, table, taxon]
+                    if self.config.force or to_do(qzv):
                         meta_pd = subset_meta(data.metadata, sams, group)
                         meta = '%s/meta%s.tsv' % (self.out, raref)
                         meta_pd.to_csv(rep(meta), index=False, sep='\t')
                         new_qza = '%s/tab%s.qza' % (self.out, raref)
                         cmd = write_rpca(
-                            self, dat, qza, meta, new_qza, ordi, dist, tree,
-                            table, taxon, qzv1, qzv2, data)
+                            self, dat, qza, meta, new_qza, ordi, dm, tree,
+                            table, taxon, qzv, data)
                         self.register_provenance(dat, (ordi, qza,), cmd)
                         self.cmds.setdefault(dat, []).append(cmd)
                 data.rpca[raref] = rpcas
+                data.beta[raref].extend(betas)
         self.register_io_command()
 
     def deicode(self):
@@ -1004,8 +1015,10 @@ class AnalysisPrep(object):
                         meta_me = '%s_%s-%s.tsv' % (meta_fp, m1, m2)
                         d1f = '%s/dm1_%s-%s.qza' % (self.out, m1, m2)
                         d2f = '%s/dm2_%s-%s.qza' % (self.out, m1, m2)
-                        qzv = '%s/%s_%s-%s.qzv' % (analysis, self.out, m1, m2)
+                        qzv = '%s/%s-%s.qzv' % (self.out, m1, m2)
                         dis = '%s/m2_%s-%s.qza' % (self.out, m1, m2)
+                        print(self.out)
+                        print(selffdsout)
                         if analysis == 'mantel':
                             out = '%s.html' % splitext(qzv)[0]
                         else:

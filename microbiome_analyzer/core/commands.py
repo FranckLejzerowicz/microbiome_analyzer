@@ -743,8 +743,7 @@ def write_rpca(
         tree_qza: str,
         table: str,
         taxon: str,
-        qzv1: str,
-        qzv2: str,
+        qzv: str,
         data
 ) -> str:
     """
@@ -763,8 +762,7 @@ def write_rpca(
     tree_qza : str
     table : str
     taxon : str
-    qzv1 : str
-    qzv2 : str
+    qzv : str
     data
 
     Returns
@@ -822,14 +820,14 @@ def write_rpca(
         cmd += ' --m-sample-metadata-file %s' % data.meta
         cmd += ' --m-feature-metadata-file %s' % taxon
         cmd += ' --p-filter-missing-features'
-        cmd += ' --o-visualization %s' % qzv1
+        cmd += ' --o-visualization %s' % qzv
         cmd += ' --p-number-of-features 30\n\n'
     else:
         cmd += 'qiime emperor biplot'
         cmd += ' --i-biplot %s' % ordi
         cmd += ' --m-sample-metadata-file %s' % data.meta
         cmd += ' --m-feature-metadata-file %s' % tax[1]
-        cmd += ' --o-visualization %s' % qzv1
+        cmd += ' --o-visualization %s' % qzv
         cmd += ' --p-number-of-features 15\n\n'
     if to_do(ordi):
         io_update(self, i_f=meta, o_f=[qzv1, qzv2, ordi_tsv], key=dat)
