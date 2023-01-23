@@ -147,7 +147,7 @@ feature_subsets:
   cpus: "1"
   mem: "1"
   mem_dim: "gb"
-  env: "qiime2-2020.6"
+  env: "qiime2-2022.2"
   partition:
   scratch:
   machine: saga
@@ -490,7 +490,7 @@ doc:
   cpus: "4"
   mem: "20"
   mem_dim: "gb"
-  env: "metagenomics"
+  env: "qiime2-2021.8"
   partition:
   scratch:
   machine: saga
@@ -501,7 +501,7 @@ doc_r:
   cpus: "4"
   mem: "20"
   mem_dim: "gb"
-  env: "metagenomics"
+  env: "qiime2-2021.8"
   partition:
   scratch:
   machine: saga
@@ -513,7 +513,7 @@ mmvec:
   cpus: "1"
   mem: "20"
   mem_dim: "gb"
-  env: "qiime2-2022.2"
+  env: "qiime2-2022.2§"
   partition:
   scratch:
   machine: saga
