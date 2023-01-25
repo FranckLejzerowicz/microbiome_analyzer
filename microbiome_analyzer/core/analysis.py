@@ -712,8 +712,13 @@ class AnalysisPrep(object):
                 continue
             print()
             print("meta_vc")
+            print("* 1")
             print(meta_vc)
             meta_vc = meta_vc[meta_vc >= 10]
+            print("* 2")
+            print(meta_vc)
+            print("meta_vc.size")
+            print(meta_vc.size)
             if not meta_vc.size >= 2:
                 self.messages.add(
                     '[%s] %s "%s" has <2 factors with 10 samples' % (
