@@ -710,18 +710,10 @@ class AnalysisPrep(object):
                     self.messages.add('[%s] %s "%s" has 1 factor' % (
                         self.analysis, data.source, test))
                 continue
-            print()
-            print("meta_vc")
-            print("* 1")
-            print(meta_vc)
-            meta_vc = meta_vc[meta_vc >= 10]
-            print("* 2")
-            print(meta_vc)
-            print("meta_vc.size")
-            print(meta_vc.size)
+            meta_vc = meta_vc[meta_vc >= 8]
             if not meta_vc.size >= 2:
                 self.messages.add(
-                    '[%s] %s "%s" has <2 factors with 10 samples' % (
+                    '[%s] %s "%s" has <2 factors with 8 samples' % (
                         self.analysis, data.source, test))
                 continue
             tests.append(test)
@@ -733,15 +725,10 @@ class AnalysisPrep(object):
             for raref, dms_metrics in data.beta.items():
                 perms = {}
                 for cohort, (sams, group) in data.subsets[raref].items():
-                    self.get_output(data.path, cohort)
-                    print()
-                    print()
-                    print("dat:", dat)
-                    print("raref:", raref)
-                    print("cohort:", cohort)
-                    print("sams:", sams)
-                    print("group:", group)
-                    for test in self.check_testing(data, cohort, sams):
+                    tests = self.check_testing(data, cohort, sams)
+                    if tests:
+                        self.get_output(data.path, cohort)
+                    for test in tests:
                         cv = '%s/cv%s_%s.tsv' % (self.out, raref, test)
                         meta = '%s/meta%s_%s.tsv' % (self.out, raref, test)
                         meta_pd = subset_meta(data.metadata, sams, group, test)
