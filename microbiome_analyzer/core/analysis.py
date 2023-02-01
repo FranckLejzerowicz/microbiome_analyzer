@@ -843,9 +843,9 @@ class AnalysisPrep(object):
                     # print(self.out)
                     ordi = '%s/ordination%s.qza' % (self.out, raref)
                     qzv = '%s/ordination%s.qzv' % (self.out, raref)
-                    metric = 'auto_aitchison'
+                    metric = 'auto_rpca'
                     if is_phylo:
-                        metric = 'phylo_aitchison'
+                        metric = 'phylo_rpca'
                         qzv = '%s/ordination%s_wtree.qzv' % (self.out, raref)
                     dm = '%s/dm_%s%s.qza' % (self.out, metric, raref)
                     dm_tsv = '%s.tsv' % splitext(dm)[0]
@@ -861,8 +861,8 @@ class AnalysisPrep(object):
                         meta_pd.to_csv(rep(meta), index=False, sep='\t')
                         new_qza = '%s/tab%s.qza' % (self.out, raref)
                         cmd = write_rpca(
-                            self, dat, qza, meta, new_qza, ordi, dm, tree,
-                            table, taxon, qzv, data)
+                            self, dat, qza, meta, new_qza, ordi, dm,
+                            tree, table, taxon, qzv, data)
                         self.register_provenance(dat, (ordi, qza,), cmd)
                         self.cmds.setdefault(dat, []).append(cmd)
                 data.rpca[raref] = rpcas
