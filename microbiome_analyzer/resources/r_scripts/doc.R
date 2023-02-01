@@ -13,7 +13,7 @@ otu <- read.table('<TAB_TSV>', header=T, sep='\t', comment.char='', check.names=
 index_name <- colnames(otu)[1]
 otu <- read.table('<TAB_TSV>', header=T, sep='\t', comment.char='', check.names=F, row.names=index_name)
 
-if (file.exists("<DOC_TSV>")) {
+if (file.exists("<DOC_TSV>") == FALSE) {
 
     if (dim(otu)[1] > 100) {
         res <- DOC(otu)
