@@ -67,7 +67,7 @@ def run_import(
 def run_export(
         input_path: str,
         output_path: str,
-        typ: str
+        typ: str = ''
 ) -> str:
     """
     Return the export qiime2 command.
