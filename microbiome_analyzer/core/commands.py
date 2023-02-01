@@ -809,6 +809,10 @@ def write_rpca(
         cmd = ''
 
     cmd += 'rm %s %s\n\n' % (meta, new_qza)
+    # export distance matrix
+    dist_tsv = ordi.replace('.qza', '.tsv')
+    cmd += run_export(dist, dist_tsv)
+    # export ordination
     ordi_tsv = ordi.replace('.qza', '.txt')
     cmd += run_export(ordi, ordi_tsv, 'pcoa')
 
