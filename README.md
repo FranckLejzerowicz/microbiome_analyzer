@@ -42,9 +42,10 @@ pip install --upgrade git+https://github.com/FranckLejzerowicz/microbiome_analyz
 
 ### Depencency
 
-- [Xpbs](https://github.com/FranckLejzerowicz/Xpbs): allows automatic preparation of HPC scripts from the basic qiime2 bash scripts
+- [Xhpc](https://github.com/FranckLejzerowicz/Xhpc): allows automatic 
+  preparation of HPC scripts from the basic qiime2 bash scripts
 written here. For Xpbs to work, it is necessary that the user provide edit the config.txt file of this tool (simply adding 
-the email address for job completion [as explained here](https://github.com/FranckLejzerowicz/Xpbs#requisite)).  
+the email address for job completion [as explained here](https://github.com/FranckLejzerowicz/Xhpc#requisite)).  
 
 ## Input
 
