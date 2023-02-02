@@ -48,31 +48,36 @@ the email address for job completion [as explained here](https://github.com/Fran
 
 ## Input
 
-The input is strict (so that it runs well):
-- path to a main folder containing at least two sub-folder named `data` and `metadata` (option `-i`):
-  - sub-folder `data` must contain one or more feature table(s):
-    - starting with `tab_` and ending either with:
-      - `.tsv` (for tables that are tab-separated plain text with samples as columns and features as rows)
-      - samples are columns; features are rows; first column is for the "`#OTU ID`"
-      - `.biom` (for biom tables possibly generated from these .tsv tables or fetched using e.g. [redbiom](https://github.com/biocore/redbiom))
-  - sub-folder `metadata` must contain as many metadata table(s):
-    - starting with `meta_` and ending with `.tsv`
-    - samples are row; variables are columns; first column is for the "`sample_name`"
-- name of the dataset(s) that appear _internally_ in these folder's file names (options `-d`).
-There must be a perfect matching of this _internal_ name in the features/metadata file pairs, e.g.
+The input is strict:
+- path to a folder containing at least two sub-folder named `data` and 
+  `metadata` (option `-i`):
+  - `<-i>/data` must contain one or more feature table(s) ending 
+    either with:
+      - `.tsv` (tab-separated plain text with samples as columns and 
+        features as rows)
+      - `.biom` (possibly generated from these .tsv tables or fetched using 
+        e.g. [redbiom](https://github.com/biocore/redbiom))
+  - `<-i>/metadata` must contain as many metadata table(s), ending with `.tsv`
+    - samples are row; variables are columns; first column is for the 
+      "`sample_name`"
+- name of the dataset(s) that appear _internally_ in these folders file 
+  names (options `-d`). There must be a perfect matching of this _internal_ 
+  name in the features/metadata file pairs, e.g.
     ```
     datasets_folder
     ├── metadata
-    │   └── meta_dataset_number_1.tsv
-    │   └── meta_dataset_number_2.tsv
+    │   └── dataset_number_1.tsv
+    │   └── dataset_number_2.tsv
     ├── data
-    │   └── tab_dataset_number_1.tsv
-    │   └── tab_dataset_number_2.tsv
+    │   └── dataset_number_1.tsv
+    │   └── dataset_number_2.tsv
     ```
-    In this case, the matching _internal_ names are `dataset_number_1` and `dataset_number_2`. Note that a found `data` 
-    .tsv/.biom files that do not have a matching `metadata` .tsv path will be ignored.
+    In this case, the matching _internal_ names are `dataset_number_1` and 
+  `dataset_number_2`. Any `data` .tsv/.biom files that do not have a matching
+  `metadata` .tsv path will be ignored.
 
     **The analysis is performed as follows:**
+
     - If both datasets are to be processed:
     ```
     microbiome_analyzer -i datasets_folder -d dataset_number_1 -d dataset_number_2 -n jobs_name -e qiime2-2019.10
@@ -81,9 +86,11 @@ There must be a perfect matching of this _internal_ name in the features/metadat
     ```
     microbiome_analyzer -i datasets_folder -d dataset_number_2 -n jobs_name -e qiime2-2019.10
     ```
-In fact, the tool simply generates scripts files that need to be started manually, and which
-output should be scrutinized manually (**highly recommended**). This just a way to help you
-obtain the standard qiime2 command lines pre-written for Torque/Slurm and ready to be run on a HPC!
+  
+In fact, the tool simply generates scripts files that need to be started 
+manually, and which output should be scrutinized manually (**highly 
+recommended**). This just a way to help you obtain the standard qiime2 
+command lines pre-written for Torque/Slurm and ready to be run on a HPC!
 
 ## Outputs
 
@@ -96,29 +103,28 @@ and _folders_ in the `qiime` folder (locations for qiime2 outputs).
 ```
 .
 ├── data
-│   ├── tab_dataset_number_1.tsv
-│   └── tab_dataset_number_2.tsv
+│   ├── dataset_number_1.tsv
+│   └── dataset_number_2.tsv
 ├── jobs
-│   ├── alpha
-│   ├── alpha_correlations
-│   ├── beta
-│   ├── emperor
-│   ├── import_tables
-│   └── pcoa
+│   ├── alpha
+│   ├── alpha_correlations
+│   ├── beta
+│   ├── emperor
+│   ├── import_tables
+│   └── pcoa
 ├── metadata
-│   ├── meta_dataset_number_1.tsv
-│   └── meta_dataset_number_2.tsv
-└── qiime
-    ├── alpha
-    │   └── dataset_number_1
-    ├── alpha_correlations
-    │   └── dataset_number_1
-    ├── beta
-    │   └── dataset_number_1
-    ├── emperor
-    │   └── dataset_number_1
-    └── pcoa
-        └── dataset_number_1
+│   ├── dataset_number_1.tsv
+│   └── dataset_number_2.tsv
+├── alpha
+│   └── dataset_number_1
+├── alpha_correlations
+│   └── dataset_number_1
+├── beta
+│   └── dataset_number_1
+├── emperor
+│   └── dataset_number_1
+└── pcoa
+    └── dataset_number_1
 ```
 
 Here's the stdout for the simple command above:
@@ -727,163 +733,278 @@ Use a `*` character after the dataset name to indicate if it is a metabolomics d
 ## Usage
 
 ```
-microbiome_analyzer -i <input_folder_path> -d <dataset_name> -n <project_name> -e <qiime2_env> [OPTIONS]
+Usage: microbiome_analyzer [OPTIONS] COMMAND [ARGS]...
+
+  microbiome_analyzer commands
+
+Options:
+  --version  Show the version and exit.
+  --help     Show this message and exit.
+
+Commands:
+  config  Write template config files for different analyses.
+  run     Write jobs for your pipeline configuration.
+(analyzer) 
 ```
 
-### Optional arguments
+### Config
 
-``` 
-  -i, --i-datasets-folder TEXT    Path to the folder containing the sub-
-                                  folders 'data' and 'metadata'.  [required]
+```
+Usage: microbiome_analyzer config [OPTIONS]
 
-  -d, --i-datasets TEXT           Dataset(s) identifier(s). Multiple is
+  Write template config files for different analyses.
+
+Options:
+  -i, --analysis-folder TEXT      Path to the folder containing the data and
+                                  metadata sub-folders  [required]
+
+  -o, --configs-folder TEXT       Path to the folder to contain the config
+                                  files  [required]
+
+  -d, --datasets TEXT             Dataset(s) identifier(s). Multiple is
                                   possible: e.g. -d dataset_number_1 and -d
                                   dataset_number_2 for
                                   'tab_dataset_number_1.tsv' and
-                                  tab_dataset_number_2.tsv'.  [required]
+                                  tab_dataset_number_2.tsv'  [required]
 
-  -n, --p-project-name TEXT       Nick name for your project.  [required]
-  -e, --p-qiime2-env TEXT         name of your qiime2 conda environment (e.g.
-                                  qiime2-2021.11).  [required]
+  --filter / --no-filter          Prepare a template configuration file for
+                                  `--filter`
 
-  -w, --i-wol-tree TEXT           path to the tree containing the genome IDs
-                                  (will check if exist in features names) (On
-                                  barnacle, it is there: /projects/wol/profili
-                                  ng/dbs/wol/phylogeny/tree.nwk).  [default:
-                                  resources/wol_tree.nwk]
+  --rarefy / --no-rarefy          Prepare a template configuration file for
+                                  `--rarefy`
 
-  -x, --i-sepp-tree TEXT          Qiime2 SEPP reference database to use for
+  --feature-subsets / --no-feature-subsets
+                                  Prepare a template configuration file for
+                                  `--feature-subsets`
+
+  --sample-subsets / --no-sample-subsets
+                                  Prepare a template configuration file for
+                                  `--sample-subsets`
+
+  --adonis / --no-adonis          Prepare a template configuration file for
+                                  `--adonis`
+
+  --nestedness / --no-nestedness  Prepare a template configuration file for
+                                  `--nestedness`
+
+  --procrustes / --no-procrustes  Prepare a template configuration file for
+                                  `--procrustes`
+
+  --mantel / --no-mantel          Prepare a template configuration file for
+                                  `--mantel`
+
+  --dm-decay / --no-dm-decay      Prepare a template configuration file for
+                                  `--dm-decay`
+
+  --geo-decay / --no-geo-decay    Prepare a template configuration file for
+                                  `--geo-decay`
+
+  --collapse / --no-collapse      Prepare a template configuration file for
+                                  `--collapse`
+
+  --train-test / --notrain-test-  Prepare a template configuration file for
+                                  `--train-test`
+
+  --phate / --no-phate            Prepare a template configuration file for
+                                  `--phate`
+
+  --sourcetracking / --no-sourcetracking
+                                  Prepare a template configuration file for
+                                  `--sourcetracking`
+
+  --doc / --no-doc                Prepare a template configuration file for
+                                  `--doc`
+
+  --xmmvec / --no-xmmvec          Prepare a template configuration file for
+                                  `--xmmvec`
+
+  --mmvec-highlights / --no-mmvec-highlights
+                                  Prepare a template configuration file for
+                                  `--mmvec-highlights`
+
+  --mmvec-pairs / --no-mmvec-pairs
+                                  Prepare a template configuration file for
+                                  `--mmvec-pairs`
+
+  --diff-models / --no-diff-models
+                                  Prepare a template configuration file for
+                                  `--diff-models`
+
+  --filt3d / --no-filt3d          Prepare a template configuration file for
+                                  `--filt3d`
+
+  --version                       Show the version and exit.
+  --help                          Show this message and exit.
+```
+
+### Run
+
+```
+Usage: microbiome_analyzer run [OPTIONS]
+
+  Write jobs for your pipeline configuration.
+
+Options:
+  -i, --analysis-folder TEXT      Path to the folder containing the data and
+                                  metadata sub-folders  [required]
+
+  -d, --datasets TEXT             Dataset(s) identifier(s). Multiple is
+                                  possible: e.g. -d dataset_number_1 and -d
+                                  dataset_number_2 for
+                                  'tab_dataset_number_1.tsv' and
+                                  tab_dataset_number_2.tsv'  [required]
+
+  -n, --project-name TEXT         Nick name for your project  [required]
+  -f, --filter TEXT               Samples to remove, min. read abundance and
+                                  feature prevalence (>1 = based on absolute
+                                  reads, 0-1 = based on relative reads). (yaml
+                                  file)  [default: False]
+
+  -r, --rarefactions TEXT         rarefaction depth per dataset (yaml file)
+  -e, --qiime2-env TEXT           name of your qiime2 conda environment (e.g.
+                                  qiime2-2021.11)  [required]
+
+  -v, --sepp-tree TEXT            Qiime2 SEPP reference database to use for
                                   16S reads placement:
                                   https://docs.qiime2.org/2019.10/data-
                                   resources/#sepp-reference-databases (auto
                                   detection of datasets' tables with sequences
-                                  as features).
+                                  as features)
 
-  -q, --i-qemistree TEXT          Path to a folder containing Qemistree's
+  -w, --wol-tree TEXT             path to the tree containing the genome IDs
+                                  (will check if exist in features names) (On
+                                  barnacle, it is there: /projects/wol/profili
+                                  ng/dbs/wol/phylogeny/tree.nwk)  [default:
+                                  resources/wol_tree.nwk]
+
+  -q, --qemistree TEXT            Path to a folder containing Qemistree's
                                   feature data (named 'feature-
                                   data_<dataset_identifier>.qza'), and tree
                                   for each metabolomics dataset (named
-                                  'qemistree_<dataset_identifier>.qza').
+                                  'qemistree_<dataset_identifier>.qza')
 
-  -z, --i-classifier TEXT         Qiime2 reference taxonomic classifier
+  -z, --classifier TEXT           Qiime2 reference taxonomic classifier
                                   database to use for 16Sreads assignment:
                                   https://docs.qiime2.org/2020.2/data-
                                   resources/#taxonomy-classifiers-for-use-
-                                  with-q2-feature-classifier.
+                                  with-q2-feature-classifier
 
-  -u, --p-run-params TEXT         server run parameters.
-  -k, --p-feature-subsets TEXT    Regex to use for subsetting features (yml
-                                  file).
+  -u, --run-params TEXT           server run parameters
+  -k, --feature-subsets TEXT      Regex to use for subsetting features (yml
+                                  file)
 
-  -t, --p-test TEXT               Groups to tests between in each PERMANOVA
+  -g, --sample-subsets TEXT       Subsets for DMs, PCoAs, PERMANOVAs, etc (yml
+                                  file)  [default: False]
+
+  -t, --test TEXT                 Groups to tests between in each PERMANOVA
                                   subset (multiple values possible, e.g. '-d
-                                  sex -d age_cat').  [default: False]
+                                  sex -d age_cat')  [default: False]
 
-  -g, --p-sample-subsets TEXT     Subsets for DMs, PCoAs, PERMANOVAs, etc (yml
-                                  file).  [default: False]
+  -a, --adonis TEXT               Formula for Adonis tests for each PERMANOVA
+                                  subset (yaml file)  [default: False]
 
-  -nstd, --p-nestedness TEXT      Nestedness analysis config  (yml file).
+  -nstd, --nestedness TEXT        Nestedness analysis config  (yml file)
                                   [default: False]
 
-  -bt, --p-beta-type [permanova|anosim|permdisp]
+  -bt, --beta-type [permanova|anosim|permdisp]
                                   Type of beta group significance
-  -prc, --p-procrustes TEXT       Pairs and subsets for procrustes/protests
-                                  (yaml file).  [default: False]
+  -prc, --procrustes TEXT         Pairs and subsets for procrustes/protests
+                                  (yaml file)  [default: False]
 
-  -mtl, --p-mantel TEXT           Pairs and subsets for mantel test (yaml
-                                  file).  [default: False]
+  -mtl, --mantel TEXT             Pairs and subsets for mantel test (yaml
+                                  file)  [default: False]
 
-  -ddecay, --p-dm-decay TEXT      Parameters for (not geographic) distance
-                                  decay analysis (yaml file).  [default:
-                                  False]
+  -ddecay, --dm-decay TEXT        Parameters for (not geographic) distance
+                                  decay analysis (yaml file)  [default: False]
 
-  -gdecay, --p-geo-decay TEXT     Parameters for geographic distance decay
-                                  analysis (yml file).  [default: False]
+  -gdecay, --geo-decay TEXT       Parameters for geographic distance decay
+                                  analysis (yml file)  [default: False]
 
-  -c, --p-collapse TEXT           Nominative or rank-based taxonmic collapse
-                                  per dataset (yaml file).  [default: False]
+  -c, --collapse TEXT             Nominative or rank-based taxonmic collapse
+                                  per dataset (yaml file)  [default: False]
 
-  -tt, --p-train-test TEXT        Train test split per dataset (yaml file).
+  -tt, --train-test TEXT          Train test split per dataset (yaml file)
                                   [default: False]
 
-  -a, --p-adonis TEXT             Formula for Adonis tests for each PERMANOVA
-                                  subset (yaml file).  [default: False]
-
-  -phate, --p-phate TEXT          Filters, subsets, parameters and
+  -phate, --phate TEXT            Filters, subsets, parameters and
                                   stratifications for the PHATE latent space
-                                  analysis (yaml file).  [default: False]
+                                  analysis (yaml file)  [default: False]
 
-  -st, --p-sourcetracking TEXT    Filters, subsets, parameters and
-                                  sink/sources for sourcetracking (yaml file).
+  -st, --sourcetracking TEXT      Filters, subsets, parameters and
+                                  sink/sources for sourcetracking (yaml file)
                                   [default: False]
 
-  -doc, --p-doc TEXT              Filters and subsets for the dissimilarity
-                                  overlap curves analyses  (yaml file).
+  -doc, --doc TEXT                Filters and subsets for the dissimilarity
+                                  overlap curves analyses  (yaml file)
                                   [default: False]
 
-  -s, --p-diff-models TEXT        Formulas for multinomial regression-based
+  -s, --diff-models TEXT          Formulas for multinomial regression-based
                                   differential abundance ranking (songbird)
-                                  (yaml file).  [default: False]
+                                  (yaml file)  [default: False]
 
-  -m, --p-mmvec-pairs TEXT        Pairs of datasets for which to compute co-
+  -m, --mmvec-pairs TEXT          Pairs of datasets for which to compute co-
                                   occurrences probabilities (mmvec) (yaml
-                                  file).  [default: False]
+                                  file)  [default: False]
 
-  -hlg, --p-mmvec-highlights TEXT
-                                  Features to highlights on mmvec biplot (per
-                                  dataset) (yaml file).  [default: False]
+  -hlg, --mmvec-highlights TEXT   Features to highlights on mmvec biplot (per
+                                  dataset) (yaml file)  [default: False]
 
-  -mm, --p-xmmvec TEXT            Config for Xmmvec (yaml file).  [default:
+  -mm, --xmmvec TEXT              Config for Xmmvec (yaml file)  [default:
                                   False]
 
-  -l, --p-longi-column TEXT       If data is longitudinal; provide the time
-                                  metadata columnfor volatility analysis.
+  -lon, --longi-column TEXT       If data is longitudinal; provide the time
+                                  metadata columnfor volatility analysis
                                   [default: False]
 
-  -f, --p-filter TEXT             Samples to remove, min. read abundance and
-                                  feature prevalence (>1 = based on absolute
-                                  reads, 0-1 = based on relative reads). (yaml
-                                  file).  [default: False]
+  -chmod, --chmod TEXT            Change output files permission (default =
+                                  664 [= -rw-rw-r--])
 
-  -r, --p-rarefs TEXT             rarefaction depth per dataset (yaml file).
-  -chmod, --p-chmod TEXT          Change output files permission (default =
-                                  664 [= -rw-rw-r--]).  [default: 664]
-
-  -skip, --p-skip [alpha|merge_alpha|export_alpha|alpha_correlations|alpha_group_significance|wol|taxonomy|barplot|volatility|beta|export_beta|pcoa|biplot|emperor|emperor_biplot|empress|empress_biplot|phate|doc|deicode|sepp|do_pies|alpha_kw|permanova|procrustes|mantel|decay|nestedness|adonis|songbird|mmvec|mmbird]
+  -skip, --skip [taxonomy|barplot|wol|sepp|pies|collapse|feature_subsets|alpha|alpha_merge|alpha_rarefactions|alpha_correlations|alpha_group_significance|volatility|phate|beta|deicode|pcoa|umap|tsne|emperor|empress|biplot|emperor_biplot|empress_biplot|permanova|adonis|doc|procrustes|mantel|nestedness|dm_decay|geo_decay|sourcetracking|doc|mmvec|songbird|mmbird]
                                   Steps to skip (e.g. if already done or not
-                                  necessary).
+                                  necessary)
 
-  -As, --p-alphas TEXT            Alpha diversity indices to use.
-  -Bs, --p-betas TEXT             Beta diversity metrics to use.
+  -As, --alphas TEXT              Alpha diversity indices to use
+  -Bs, --betas TEXT               Beta diversity metrics to use
+  -acc, --account TEXT            Account name
   --biplot / --no-biplot          Whether to do the PCoA biplots or not
                                   [default: False]
 
   --force / --no-force            Force the re-writing of scripts for all
                                   commands(default is to not re-run if output
-                                  file exists).  [default: False]
+                                  file exists)  [default: False]
 
-  --gpu / --no-gpu                Use GPUs instead of CPUs for MMVEC.
+  --gpu / --no-gpu                Use GPUs instead of CPUs for MMVEC
                                   [default: False]
 
-  --raref / --no-raref            Whether to rarefy and only perform the
-                                  routine analyses on the rarefied dataset(s).
+  --rarefy / --no-rarefy          Whether to rarefy and only perform the
+                                  routine analyses on the rarefied dataset(s)
                                   [default: False]
-
-  --loc / --no-loc                whether to do compute on scratch.  [default:
-                                  True]
 
   --filt-only / --no-filt-only    Only process the filtered version (and not
-                                  also the raw) version of each dataset.
+                                  also the raw) version of each dataset
                                   [default: False]
 
-  -filt3d, --p-filt3d TEXT        Levels for the exploration of filtering.
-                                  Must be a yaml file.
+  -filt3d, --filt3d TEXT          Levels for the exploration of filtering.
+                                  Must be a yaml file
 
-  --jobs / --no-jobs              Whether to prepare Torque jobs from scripts.
+  --jobs / --no-jobs              Whether to prepare Torque jobs from scripts
                                   [default: True]
 
-  --slurm / --no-slurm            Whether to prepare Slurm and not Torque
-                                  jobs.  [default: False]
+  --torque / --no-torque          Whether to prepare Torque and not Slurm jobs
+                                  [default: False]
+
+  -l, --localscratch INTEGER      Use localscratch with the provided memory
+                                  amount (in GB)
+
+  --scratch / --no-scratch        Use the scratch folder to move files and
+                                  compute  [default: False]
+
+  --userscratch / --no-userscratch
+                                  Use the userscratch folder to move files and
+                                  compute  [default: False]
+
+  --move-back / --no-move-back    Do not move back from scratch (makes sense
+                                  only for --userscratch)  [default: True]
 
   -x, --chunks INTEGER            Maximum number of jobs at which extra jobs
                                   will be added in chunks
