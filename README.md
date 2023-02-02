@@ -81,11 +81,11 @@ The input is strict:
 
     - If both datasets are to be processed:
     ```
-    microbiome_analyzer -i datasets_folder -d dataset_number_1 -d dataset_number_2 -n jobs_name -e qiime2-2019.10
+    microbiome_analyzer run -i datasets_folder -d dataset_number_1 -d dataset_number_2 -n jobs_name -e qiime2-2019.10
     ```
     - If only the `dataset_number_2` dataset is to be processed:
     ```
-    microbiome_analyzer -i datasets_folder -d dataset_number_2 -n jobs_name -e qiime2-2019.10
+    microbiome_analyzer run -i datasets_folder -d dataset_number_2 -n jobs_name -e qiime2-2019.10
     ```
   
 In fact, the tool simply generates scripts files that need to be started 
@@ -97,10 +97,10 @@ command lines pre-written for Torque/Slurm and ready to be run on a HPC!
 
 After running this command (you can try):
 ```
-microbiome_analyzer -i ./microbiome_analyzer/tests/files -d dataset_number_1 -n jobs_name -e qiime2-2021.11
+microbiome_analyzer run -i ./microbiome_analyzer/tests/files -d dataset_number_1 -n jobs_name -e qiime2-2021.11
 ```
 You would obtain _files_ in the `jobs` folders (scripts to check and run),
-and _folders_ in the `qiime` folder (locations for qiime2 outputs).
+and _folders_ in the `<analysis_name>` folder (locations for qiime2 outputs).
 ```
 .
 ├── data
@@ -131,9 +131,9 @@ and _folders_ in the `qiime` folder (locations for qiime2 outputs).
 Here's the stdout for the simple command above:
 ```
 # import
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jbs_nm.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/run.sh
 # taxonomy
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/taxonomy/jbs_nm.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/run.sh
 ```
 
 These prints are jobs to run, i.e. these `sh` commands only need to be copy-pasted on the
@@ -141,13 +141,18 @@ HPC terminal to actually run the `.pbs` (for Torque) or `.slm` (for Slurm, use o
 scripts within. For example, the first `.sh` file contains:
 
 ```
-$ cat /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jbs_nm.sh
-qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_1.pbs
+$ cat /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/run.sh
+mkdir -p /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/jobs
+cd /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/jobs
+sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/jobs/run_0.pbs
+sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/jobs/run_1.pbs
+sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/jobs/run_2.pbs
+...
 ```
 
 * Note: If you where to prepare scripts for 5 datasets:
   ```
-  microbiome_analyzer -i ./microbiome_analyzer/tests/files \
+  microbiome_analyzer run -i ./microbiome_analyzer/tests/files \
       -d dataset_number_1 \
       -d dataset_number_2 \
       -d dataset_number_3 \
@@ -157,12 +162,14 @@ qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_data
   ```
   Then this first `.sh` file would contain:
   ```
-  $ cat /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jbs_nm.sh
-  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_1.pbs
-  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_2.pbs
-  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_3.pbs
-  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_4.pbs
-  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_dataset_number_5.pbs
+  $ cat /abs/path/to/microbiome_analyzer/tests/files/jobs/import/run.sh
+  mkdir -p /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs
+  cd /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs
+  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_dataset_number_1.pbs
+  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_dataset_number_2.pbs
+  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_dataset_number_3.pbs
+  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_dataset_number_4.pbs
+  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_dataset_number_5.pbs
   ```
   * *Trick here*: using the option `-x <int>` (or `--chunks <int>`) to group 
     the commands into less jobs. This can be useful if you have say 50 
@@ -170,7 +177,7 @@ qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_data
     this would send probably too many jobs to the scheduler. Let's see what 
     it does to make For our 5 datasets:
   ```
-  microbiome_analyzer -i ./microbiome_analyzer/tests/files \
+  microbiome_analyzer run -i ./microbiome_analyzer/tests/files \
       -d dataset_number_1 \
       -d dataset_number_2 \
       -d dataset_number_3 \
@@ -181,9 +188,11 @@ qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_data
   The `.sh` file would now contain only two jobs:
   ```
   $ cat /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jbs_nm.sh
-  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_jbs_nm_chunk0.pbs
-  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_jbs_nm_chunk1.pbs
-  qsub /abs/path/to/microbiome_analyzer/tests/files/jobs/import/chunks/jbs_nm_jbs_nm_chunk2.pbs
+  mkdir -p /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs
+  cd /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs
+  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_0.pbs
+  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_1.pbs
+  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_2.pbs
   ```
 
 Only `import` and `taxonomy` are showing up because the former one needs to be run first before most other
@@ -198,13 +207,13 @@ After running these two jobs, if you re-run the same, simple command above, you 
 
 ```
 # alpha
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha/jbs_nm.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha/run.sh
 # tabulate
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/tabulate/jbs_nm.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/tabulate/run.sh
 # barplot
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/barplot/jbs_nm.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/barplot/run.sh
 # beta
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/beta/jbs_nm.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/beta/run.sh
 ```
 That's more work ready to start, because now the data table was imported to qiime2:
 
@@ -1019,7 +1028,7 @@ Options:
 Once all data files imported and using the `--force` option, you can
 run the following (using the files in the `tests/files` folder): 
 ```
-microbiome_analyzer \
+microbiome_analyzer run \
   -i ./microbiome_analyzer/tests/files \
   -e qiime2-2021.11 \
   -n test \
@@ -1051,63 +1060,63 @@ The standard output shows you the scripts that have been written, i.e.,
 pretty much all the analyses available here so far: 
 ```
 # import
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/import/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/import/run.sh
 # rarefy
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/rarefy/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/rarefy/run.sh
 # taxonomy
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/taxonomy/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/taxonomy/run.sh
 # import_trees
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/import_trees/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/import_trees/run.sh
 # subsets
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/subsets/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/subsets/run.sh
 # alpha
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha/run.sh
 # alpha_correlations
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha_correlations/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha_correlations/run.sh
 # tabulate
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/tabulate/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/tabulate/run.sh
 # alpha_rarefaction
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha_rarefaction/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha_rarefaction/run.sh
 # volatility
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/volatility/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/volatility/run.sh
 # mmvec_single_imports
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/mmvec_single_imports/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/mmvec_single_imports/run.sh
 # mmvec_paired_imports
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/mmvec_paired_imports/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/mmvec_paired_imports/run.sh
 # phate
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/phate/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/phate/run.sh
 # barplot
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/barplot/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/barplot/run.sh
 # beta
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/beta/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/beta/run.sh
 # deicode
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/deicode/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/deicode/run.sh
 # pcoa
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/pcoa/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/pcoa/run.sh
 # tsne
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/tsne/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/tsne/run.sh
 # umap
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/umap/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/umap/run.sh
 # permanova
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/permanova/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/permanova/run.sh
 # adonis
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/adonis/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/adonis/run.sh
 # dm_decay
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/dm_decay/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/dm_decay/run.sh
 # dm_decay_plot
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/dm_decay_plot/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/dm_decay_plot/run.sh
 # doc_R
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/doc_R/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/doc_R/run.sh
 # songbird_imports
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird_imports/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird_imports/run.sh
 # songbird_filter
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird_filter/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird_filter/run.sh
 # songbird_baselines
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird_baselines/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird_baselines/run.sh
 # songbird
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird/run.sh
 # qurro
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/qurro/tst_flt_rrf.sh
+sh /abs/path/to/microbiome_analyzer/tests/files/jobs/qurro/run.sh
 ```
 
 
