@@ -60,7 +60,6 @@ setup(
         "scipy",
         "pyyaml",
         "plotly==4.8.2",
-        "phate",
         "biom-format",
         "seaborn",
         "Xhpc==2.8"
