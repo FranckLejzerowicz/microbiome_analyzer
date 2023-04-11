@@ -120,13 +120,14 @@ class CreateScripts(object):
 
     def write_chunks(self, chunk_keys):
         with open(self.sh, 'w') as sh:
-            sh.write('rm -rf $TMPDIR\n')
+            if self.config.jobs:
+                sh.write('rm -rf $TMPDIR\n')
             # sh.write('TMPDIR=tmp\n' % self.tmpdir)
             # if self.params['scratch'] and self.config.jobs:
                 # sh.write('TMPDIR=tmp_%s\n' % dt.now().strftime("%d%m%Y%H%M%S"))
-            if self.config.cleanup:
+            if self.config.cleanup and self.config.jobs:
                 cleanup = 'cleanup rm -rf ${TMPDIR}'
-                if self.params['scratch'] and self.config.jobs:
+                if self.params['scratch']:
                     cleanup += ' ${SCRATCH_FOLDER}/*'
                 sh.write('%s\n' % cleanup)
             for key in chunk_keys:
