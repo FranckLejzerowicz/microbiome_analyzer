@@ -808,7 +808,8 @@ def write_rpca(
         io_update(self, i_f=i_f, o_f=o_f, key=dat)
         cmd = ''
 
-    cmd += 'rm %s %s\n\n' % (meta, new_qza)
+    if self.config.jobs:
+        cmd += 'rm %s %s\n\n' % (meta, new_qza)
     # export distance matrix
     dist_tsv = dist.replace('.qza', '.tsv')
     cmd += run_export(dist, dist_tsv)
@@ -823,13 +824,14 @@ def write_rpca(
         cmd += ' --i-pcoa %s' % ordi
         cmd += ' --m-feature-metadata-file %s' % taxon
         cmd += ' --p-filter-missing-features'
+        cmd += ' --p-ignore-missing-samples'
         cmd += ' --p-number-of-features 30'
     else:
         cmd += 'qiime emperor biplot'
         cmd += ' --i-biplot %s' % ordi
         cmd += ' --m-feature-metadata-file %s' % tax[1]
         cmd += ' --p-number-of-features 15'
-    print(data.feat_meta)
+
     if data.feat_meta:
         for feat_meta in data.feat_meta:
             cmd += ' --m-feature-metadata-file %s' % feat_meta
@@ -841,7 +843,8 @@ def write_rpca(
     else:
         io_update(self, i_f=[ordi, meta], o_f=[qzv, ordi_tsv], key=dat)
 
-    cmd_final = 'rm -rf $TMPDIR\n'
+    if self.config.jobs:
+        cmd_final = 'rm -rf $TMPDIR\n'
     cmd_final += 'qiime feature-table filter-samples'
     cmd_final += ' --i-table %s' % qza_in
     cmd_final += ' --p-min-frequency 1'
