@@ -843,8 +843,9 @@ def write_rpca(
     else:
         io_update(self, i_f=[ordi, meta], o_f=[qzv, ordi_tsv], key=dat)
 
+    cmd_final = ''
     if self.config.jobs:
-        cmd_final = 'rm -rf $TMPDIR\n'
+        cmd_final += 'rm -rf $TMPDIR\n'
     cmd_final += 'qiime feature-table filter-samples'
     cmd_final += ' --i-table %s' % qza_in
     cmd_final += ' --p-min-frequency 1'
