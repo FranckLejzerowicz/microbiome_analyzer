@@ -18,10 +18,10 @@ import itertools as its
 from microbiome_analyzer.core.datasets import Datasets, Data
 from microbiome_analyzer.core.commands import (
     run_import, run_export, write_rarefy, write_fasta, write_collapse,
-    write_sepp, write_alpha, write_filter, write_barplots, write_tabulate,
-    write_alpha_correlation, write_alpha_rarefaction, write_volatility,
-    write_beta, write_rpca, write_deicode, write_pcoa, write_biplot,
-    write_emperor, write_emperor_biplot, write_empress,
+    write_sepp, write_alpha, write_feat_filter, write_barplots, write_krona,
+    write_tabulate, write_alpha_correlation, write_alpha_rarefaction,
+    write_volatility, write_beta, write_rpca, write_deicode, write_pcoa,
+    write_biplot, write_emperor, write_emperor_biplot, write_empress,
     write_permanova_permdisp, write_adonis, write_tsne, write_umap,
     write_procrustes, write_mantel, write_phate, write_sourcetracking)
 from microbiome_analyzer.analyses.filter import (
@@ -454,7 +454,7 @@ class AnalysisPrep(object):
             print(subset_pddsa)
             subset_pd.to_csv(rep(meta_subset), index=False, sep='\t')
 
-            cmd = write_filter(data.qza[raref], qza_subset, meta_subset)
+            cmd = write_feat_filter(data.qza[raref], qza_subset, meta_subset)
             cmd += run_export(qza_subset, tsv_subset, 'FeatureTable')
             cmd += '\nrm %s\n\n' % meta_subset
             io_update(self, i_f=[data.qza[raref], meta_subset],
@@ -522,6 +522,24 @@ class AnalysisPrep(object):
                 qzv = '%s/bar%s.qzv' % (self.out, raref)
                 if self.config.force or to_do(qzv):
                     cmd = write_barplots(qza, data.tax[1], data.meta, qzv)
+                    io_update(self, i_f=[qza, data.tax[1], data.meta],
+                              o_f=qzv, key=dat)
+                    self.cmds.setdefault(dat, []).append(cmd)
+                    self.register_provenance(dat, (qzv, qza, data.tax[1],), cmd)
+        self.register_io_command()
+
+    def krona(self):
+        self.analysis = 'krona'
+        for dat, data in self.project.datasets.items():
+            if not data.taxa:
+                continue
+            self.get_output(data.path)
+            for raref, qza in data.qza.items():
+                if to_do(qza):
+                    continue
+                qzv = '%s/krona%s.qzv' % (self.out, raref)
+                if self.config.force or to_do(qzv):
+                    cmd = write_krona(qza, data.tax[1], data.meta, qzv)
                     io_update(self, i_f=[qza, data.tax[1], data.meta],
                               o_f=qzv, key=dat)
                     self.cmds.setdefault(dat, []).append(cmd)
@@ -694,27 +712,24 @@ class AnalysisPrep(object):
         meta = data.metadata.copy()
         meta = meta.loc[meta.sample_name.isin(sams)]
         columns = set(meta.columns)
+        message = '[%s] %s (subset "%s")' % (self.analysis, data.source, cohort)
         for test in self.config.tests:
             if test not in columns:
-                self.messages.add('[%s] %s has no variable %s' % (
-                    self.analysis, data.source, test))
+                self.messages.add('%s has no variable %s' % (message, test))
                 continue
             meta_vc = meta[test].value_counts()
             if meta_vc.size > (meta.shape[0] * .8):
-                self.messages.add(
-                    '[%s] %s "%s" has too many (%s) factors' % (
-                        self.analysis, data.source, test, meta_vc.size))
+                self.messages.add('%s "%s" has too many (%s) factors' % (
+                    message, test, meta_vc.size))
                 continue
             if meta_vc.size == 1:
                 if 'var-%s' % test not in cohort:
-                    self.messages.add('[%s] %s "%s" has 1 factor' % (
-                        self.analysis, data.source, test))
+                    self.messages.add('%s "%s" has 1 factor' % (message, test))
                 continue
             meta_vc = meta_vc[meta_vc >= 8]
             if not meta_vc.size >= 2:
-                self.messages.add(
-                    '[%s] %s "%s" has <2 factors with 8 samples' % (
-                        self.analysis, data.source, test))
+                self.messages.add('%s "%s" has <2 factors with 8 samples' % (
+                    message, test))
                 continue
             tests.append(test)
         return tests
@@ -724,14 +739,15 @@ class AnalysisPrep(object):
         for dat, data in self.project.datasets.items():
             for raref, dms_metrics in data.beta.items():
                 perms = {}
-                for cohort, (sams, group) in data.subsets[raref].items():
+                for cohort, (sams, variables) in data.subsets[raref].items():
                     tests = self.check_testing(data, cohort, sams)
                     if tests:
                         self.get_output(data.path, cohort)
                     for test in tests:
                         cv = '%s/cv%s_%s.tsv' % (self.out, raref, test)
                         meta = '%s/meta%s_%s.tsv' % (self.out, raref, test)
-                        meta_pd = subset_meta(data.metadata, sams, group, test)
+                        meta_pd = subset_meta(data.metadata, sams,
+                                              variables, test)
                         if add_q2_type(meta_pd, meta, cv, [test]):
                             continue
                         for ddx, (dm, _, me) in enumerate(dms_metrics):
@@ -791,7 +807,7 @@ class AnalysisPrep(object):
                 if not dms_metrics:
                     continue
                 r2s = {}
-                for cohort, (sams, group) in data.subsets[raref].items():
+                for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(data.path, cohort)
                     out = '%s/r2%s.txt' % (self.out, raref)
                     if self.config.force or to_do(out):
@@ -800,7 +816,7 @@ class AnalysisPrep(object):
                             variables = re.split('[*/+-]', formula)
                             terms = list(set(variables + stratas))
                             meta_pd = subset_meta(
-                                data.metadata, sams, group, '', terms)
+                                data.metadata, sams, variables, '', terms)
                             cv = '%s/cv_%s%s.tsv' % (self.out, model, raref)
                             meta = '%s/meta_%s%s.tsv' % (self.out, model, raref)
                             if add_q2_type(meta_pd, meta, cv, terms, False):
@@ -838,7 +854,7 @@ class AnalysisPrep(object):
                     continue
                 # print(raref)
                 # print(dict(data.subsets[raref].items()))
-                for cohort, (sams, group) in data.subsets[raref].items():
+                for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(data.path, cohort)
                     # print(self.out)
                     ordi = '%s/ordination%s.qza' % (self.out, raref)
@@ -856,7 +872,7 @@ class AnalysisPrep(object):
                     taxon = '%s/phylo-taxonomy%s.qza' % (self.out, raref)
                     rpcas[cohort] = [ordi, dm, tree, table, taxon]
                     if self.config.force or to_do(qzv):
-                        meta_pd = subset_meta(data.metadata, sams, group)
+                        meta_pd = subset_meta(data.metadata, sams, variables)
                         meta = '%s/meta%s.tsv' % (self.out, raref)
                         meta_pd.to_csv(rep(meta), index=False, sep='\t')
                         new_qza = '%s/tab%s.qza' % (self.out, raref)
@@ -876,14 +892,14 @@ class AnalysisPrep(object):
                 # rpcas = {}
                 if to_do(qza):
                     continue
-                for cohort, (sams, group) in data.subsets[raref].items():
+                for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(data.path, cohort)
                     qzv = '%s/biplot%s.qzv' % (self.out, raref)
                     ordi = '%s/ordination%s.qza' % (self.out, raref)
                     ordi_tsv = '%s.tsv' % splitext(ordi)[0]
                     # rpcas[cohort] = ordi_tsv
                     if self.config.force or to_do(qzv):
-                        meta_pd = subset_meta(data.metadata, sams, group)
+                        meta_pd = subset_meta(data.metadata, sams, variables)
                         meta = '%s/meta%s.tsv' % (self.out, raref)
                         meta_pd.to_csv(rep(meta), index=False, sep='\t')
                         dm_qza = '%s/dm%s.qza' % (self.out, raref)
@@ -901,23 +917,24 @@ class AnalysisPrep(object):
         for dat, data in self.project.datasets.items():
             for raref, dms_metrics in data.beta.items():
                 tsnes = {}
-                for cohort, (sams, group) in data.subsets[raref].items():
+                for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(data.path, cohort)
                     for ddx, (dm, _, metric) in enumerate(dms_metrics):
                         if to_do(dm):
                             continue
-                        meta = '%s/meta%s' % (self.out, raref)
-                        meta_met = '%s_%s.tsv' % (meta, metric)
+                        meta_rad = '%s/meta%s' % (self.out, raref)
+                        meta_met = '%s_%s.tsv' % (meta_rad, metric)
                         dm_filt = '%s/dm%s_%s.qza' % (self.out, raref, metric)
                         tsne = '%s/tsne%s_%s.qza' % (self.out, raref, metric)
                         tsne_tsv = '%s.tsv' % splitext(tsne)[0]
                         tsnes.setdefault(cohort, []).append(
-                            (tsne, meta, metric))
+                            (tsne, meta_rad, metric))
                         if self.config.force or to_do(tsne_tsv):
-                            meta_pd = subset_meta(data.metadata, sams, group)
-                            meta_pd.to_csv(rep(meta_met), index=False, sep='\t')
-                            cmd = write_tsne(self, dat, dm, dm_filt, meta,
-                                             meta_met, group, tsne, tsne_tsv)
+                            meta = subset_meta(data.metadata, sams, variables)
+                            meta.to_csv(rep(meta_met), index=False, sep='\t')
+                            cmd = write_tsne(
+                                self, dat, dm, dm_filt, meta_rad, meta_met,
+                                variables, tsne, tsne_tsv)
                             self.register_provenance(dat, (tsne, dm,), cmd)
                             self.cmds.setdefault(dat, []).append(cmd)
                 data.tsne[raref] = tsnes
@@ -928,23 +945,24 @@ class AnalysisPrep(object):
         for dat, data in self.project.datasets.items():
             for raref, dms_metrics in data.beta.items():
                 umaps = {}
-                for cohort, (sams, group) in data.subsets[raref].items():
+                for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(data.path, cohort)
                     for ddx, (dm, _, metric) in enumerate(dms_metrics):
                         if to_do(dm):
                             continue
-                        meta = '%s/meta%s' % (self.out, raref)
-                        meta_met = '%s_%s.tsv' % (meta, metric)
+                        meta_rad = '%s/meta%s' % (self.out, raref)
+                        meta_met = '%s_%s.tsv' % (meta_rad, metric)
                         dm_filt = '%s/dm%s_%s.qza' % (self.out, raref, metric)
                         umap = '%s/umap%s_%s.qza' % (self.out, raref, metric)
                         umap_tsv = '%s.tsv' % splitext(umap)[0]
                         umaps.setdefault(cohort, []).append(
-                            (umap, meta, metric))
+                            (umap, meta_rad, metric))
                         if self.config.force or to_do(umap_tsv):
-                            meta_pd = subset_meta(data.metadata, sams, group)
-                            meta_pd.to_csv(rep(meta_met), index=False, sep='\t')
-                            cmd = write_umap(self, dat, dm, dm_filt, meta,
-                                             meta_met, group, umap, umap_tsv)
+                            meta = subset_meta(data.metadata, sams, variables)
+                            meta.to_csv(rep(meta_met), index=False, sep='\t')
+                            cmd = write_umap(
+                                self, dat, dm, dm_filt, meta_rad, meta_met,
+                                variables, umap, umap_tsv)
                             self.register_provenance(dat, (umap, dm,), cmd)
                             self.cmds.setdefault(dat, []).append(cmd)
                 data.umap[raref] = umaps
@@ -955,23 +973,24 @@ class AnalysisPrep(object):
         for dat, data in self.project.datasets.items():
             for raref, dms_metrics in data.beta.items():
                 pcoas = {}
-                for cohort, (sams, group) in data.subsets[raref].items():
+                for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(data.path, cohort)
                     for ddx, (dm, _, metric) in enumerate(dms_metrics):
                         if to_do(dm):
                             continue
-                        meta = '%s/meta%s' % (self.out, raref)
-                        meta_met = '%s_%s.tsv' % (meta, metric)
+                        meta_rad = '%s/meta%s' % (self.out, raref)
+                        meta_met = '%s_%s.tsv' % (meta_rad, metric)
                         dm_filt = '%s/dm%s_%s.qza' % (self.out, raref, metric)
                         pcoa = '%s/pcoa%s_%s.qza' % (self.out, raref, metric)
                         pcoa_tsv = '%s.tsv' % splitext(pcoa)[0]
                         pcoas.setdefault(cohort, []).append(
-                            (pcoa, meta, metric))
+                            (pcoa, meta_rad, metric))
                         if self.config.force or to_do(pcoa_tsv):
-                            meta_pd = subset_meta(data.metadata, sams, group)
-                            meta_pd.to_csv(rep(meta_met), index=False, sep='\t')
-                            cmd = write_pcoa(self, dat, dm, dm_filt, meta,
-                                             meta_met, group, pcoa, pcoa_tsv)
+                            meta = subset_meta(data.metadata, sams, variables)
+                            meta.to_csv(rep(meta_met), index=False, sep='\t')
+                            cmd = write_pcoa(
+                                self, dat, dm, dm_filt, meta_rad, meta_met,
+                                variables, pcoa, pcoa_tsv)
                             self.register_provenance(dat, (pcoa, dm,), cmd)
                             self.cmds.setdefault(dat, []).append(cmd)
                 data.pcoa[raref] = pcoas
@@ -999,20 +1018,19 @@ class AnalysisPrep(object):
             for r1, r2 in its.product(*[data1.beta, data2.beta]):
                 p1, p2 = data1.path, data2.path
                 b1, b2 = data1.beta[r1], data2.beta[r2]
-                for cohort, (sams1, group) in data1.subsets[r1].items():
+                for cohort, (sams1, variables) in data1.subsets[r1].items():
                     if cohort not in data2.subsets[r2]:
                         continue
                     sams2 = data2.subsets[r2][cohort][0]
                     sams = list(set(sams1) & set(sams2))
-                    if len(sams) < 10:
+                    if len(sams) < 8:
                         continue
-                    # meta = subset_meta(data1.metadata, sams, group)
                     path = p1.replace(dat1, dat1 + r1 + '__' + dat2 + r2)
                     self.get_output((pair + '/' + path), cohort)
                     for (d1, t1, m1), (d2, t2, m2) in its.product(*[b1, b2]):
                         if to_do(d1) or to_do(d2):
                             continue
-                        meta = subset_dm(data1.metadata, t1, t2)
+                        meta = subset_dm(data1.metadata, sams, t1, t2)
                         meta_fp = '%s/meta' % self.out
                         meta_me = '%s_%s-%s.tsv' % (meta_fp, m1, m2)
                         d1f = '%s/dm1_%s-%s.qza' % (self.out, m1, m2)
@@ -1025,8 +1043,8 @@ class AnalysisPrep(object):
                             out = '%s.tsv' % splitext(dis)[0]
                         AnalysisPrep.analyses_procrustes.setdefault(
                             (path, m1, m2), []).append((qzv, out))
+                        meta.to_csv(rep(meta_me), index=False, sep='\t')
                         if self.config.force or to_do(out):
-                            meta.to_csv(rep(meta_me), index=False, sep='\t')
                             if analysis == 'mantel':
                                 cmd = write_mantel(
                                     self, dat1, r1, dat2, r2, meta_fp,
@@ -1182,7 +1200,7 @@ class AnalysisPrep(object):
             for raref, qza in data.qza.items():
                 phates = {}
                 subsets_update = {}
-                for cohort, (sams, group) in data.subsets[raref].items():
+                for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(data.path, cohort)
                     meta_tsv = '%s/meta%s.tsv' % (self.out, raref)
                     new_qza = '%s/tab%s.qza' % (self.out, raref)
@@ -1194,7 +1212,8 @@ class AnalysisPrep(object):
                         continue
                     phates.setdefault(cohort, []).append((html, txt))
                     if self.config.force or to_do(txt):
-                        meta_pd = subset_meta(meta, sams, group, '', list(labs))
+                        meta_pd = subset_meta(
+                            meta, sams, variables, '', list(labs))
                         if to_do(vc_tsv):
                             self.make_vc(meta_pd, labs, vc_tsv)
                         meta_pd.to_csv(rep(meta_tsv), index=False, sep='\t')
@@ -1212,23 +1231,24 @@ class AnalysisPrep(object):
         for dat, data in self.project.datasets.items():
             for raref, dms_metrics in data.beta.items():
                 sourcetrackings = {}
-                for cohort, (sams, group) in data.subsets[raref].items():
+                for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(data.path, cohort)
                     for ddx, (dm, _, metric) in enumerate(dms_metrics):
                         if not isfile(dm):
                             continue
-                        meta = '%s/meta%s' % (self.out, raref)
-                        meta_met = '%s_%s.tsv' % (meta, metric)
+                        meta_rad = '%s/meta%s' % (self.out, raref)
+                        meta_met = '%s_%s.tsv' % (meta_rad, metric)
                         dm_filt = '%s/dm%s_%s.qza' % (self.out, raref, metric)
                         pcoa = '%s/pcoa%s_%s.qza' % (self.out, raref, metric)
                         pcoa_tsv = '%s.tsv' % splitext(pcoa)[0]
                         sourcetrackings.setdefault(cohort, []).append(
-                            (pcoa, meta, metric))
+                            (pcoa, meta_rad, metric))
                         if self.config.force or not isfile(pcoa_tsv):
-                            meta_pd = subset_meta(data.metadata, sams, group)
-                            meta_pd.to_csv(meta_met, index=False, sep='\t')
+                            meta = subset_meta(data.metadata, sams, variables)
+                            meta.to_csv(meta_met, index=False, sep='\t')
                             cmd = write_sourcetracking(
-                                dm, dm_filt, meta, meta_met, group, pcoa)
+                                dm, dm_filt, meta_rad, meta_met, variables, pcoa
+                            )
                             self.register_provenance(dat, (pcoa, dm,), cmd)
                             self.cmds.setdefault(dat, []).append(cmd)
                 data.sourcetracking[raref] = sourcetrackings
