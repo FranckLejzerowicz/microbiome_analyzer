@@ -25,16 +25,13 @@ def read_yaml_file(file_path: str) -> dict:
     Returns
     -------
     yaml_dict : dict
-        Dictionary object returned
-        by reading the yaml file.
-        (could be an empty dict)
+        Read yaml file (could be an empty dict)
     """
     yaml_dict = {}
     if file_path and isfile(file_path):
         with open(file_path) as yaml_handle:
             try:
-                yaml_dict = yaml.load(
-                    yaml_handle, Loader=yaml.FullLoader)
+                yaml_dict = yaml.load(yaml_handle, Loader=yaml.FullLoader)
             except AttributeError:
                 yaml_dict = yaml.load(yaml_handle)
     return yaml_dict
