@@ -98,37 +98,33 @@ def check_if_not_dna(
     return dna
 
 
-def get_cohort(analysis: str, group: str, vals: list, data,
-               test: str = None) -> str:
-    cohort = 'ALL'
-    if group != 'ALL':
-        if check_vals(data, analysis, group, vals, test):
-            return ''
-        cohort = 'var-%s/fac-%s' % (group, '-'.join(vals))
-    return cohort
-
-
-def check_vals(data, analysis: str, group: str, vals: list, test: str = None):
-    meta = data.metadata
-    meta_pd_vars = set(meta.columns.tolist())
-    if group not in meta_pd_vars:
-        print('[%s] no variable %s in "%s"' % (analysis, group, data.dat))
+def check_vals(
+        meta_pd: pd.DataFrame,
+        dat: str,
+        analysis: str,
+        var: str,
+        vals: list,
+        test: str=None
+):
+    meta_pd_vars = set(meta_pd.columns.tolist())
+    if var not in meta_pd_vars:
+        print('[%s] no variable %s in "%s"' % (analysis, var, data.dat))
         return True
     else:
-        factors = meta[group].unique()
-        if vals[0][0] in ['>', '<'] and str(meta[group].dtype) == 'object':
+        factors = meta_pd[var].unique()
+        if vals[0][0] in ['>', '<'] and str(meta_pd[var].dtype) == 'object':
             return True
         factors_common = set(vals) & set(factors.astype(str).tolist())
-        if group == test and factors_common == 1:
+        if var == test and factors_common == 1:
             print('[%s] subset to %s==["%s"] leave only one category' % (
-                analysis, group, '", "'.join(vals)))
+                analysis, var, '", "'.join(vals)))
             return True
         if sorted(factors_common) != sorted(vals):
             vals_print = ', '.join([val for val in vals[:5]])
             if len(vals) > 5:
                 vals_print = '%s, ...' % vals_print
             print('[%s] factors of %s not found (%s)' % (
-                analysis, group, vals_print))
+                analysis, var, vals_print))
             if len([x for x in vals if len(x) == 1]) == len(vals):
                 print(' -> check nested list in yaml file.')
             return True
@@ -165,9 +161,33 @@ def add_q2_type(meta_pd: pd.DataFrame, meta: str, cv: str, tests: list,
     return False
 
 
-def subset_dm(meta_pd: pd.DataFrame, t1: str, t2: str, col: str='sample_name'):
+def subset_dm(
+        meta_pd: pd.DataFrame,
+        sams: list,
+        t1: str,
+        t2: str,
+        col: str='sample_name'
+) -> pd.DataFrame:
     """
-    Subset the netadata to the sample in the two dms
+    Subset the metadata to the samples in two input distance matrices.
+
+    Parameters
+    ----------
+    meta_pd : pd.DataFrame
+        Metadata table
+    sams : list
+        All possible samples
+    t1 : str
+        First distance matrix
+    t2 : str
+        Second distance matrix
+    col : str
+        Name of the sample name column (default to 'sample_name')
+
+    Returns
+    -------
+    new_meta_pd : pd.DataFrame
+        Metadata table subset
     """
     with open(rep(t1)) as f:
         for line in f:
@@ -177,29 +197,53 @@ def subset_dm(meta_pd: pd.DataFrame, t1: str, t2: str, col: str='sample_name'):
         for line in f:
             s2 = set(line.strip().split('\t'))
             break
-    sams = list(s1 & s2)
+    sams = list(s1 & s2 & set(sams))
     new_meta_pd = meta_pd.loc[meta_pd[col].isin(sams)].copy()
-    return new_meta_pd[['sample_name']]
+    return new_meta_pd
 
 
 def subset_meta(
-        meta_pd: pd.DataFrame, sams: list, group: str,
-        test: str = '', terms: list = [], col: str='sample_name'
+        meta_pd: pd.DataFrame,
+        sams: list,
+        variables: list,
+        test: str = '',
+        terms: list = [],
+        col: str='sample_name'
 ) -> pd.DataFrame:
     """
-    Perform subset.
+    Perform metadata subset.
+
+    Parameters
+    ----------
+    meta_pd : pd.DataFrame
+        Metadata table
+    sams : list
+    variables : list
+    test : str = ''
+    terms : list = []
+    col : str
+
+    Returns
+    -------
+    new_meta_pd : pd.DataFrame
+        Metadata table subset
     """
-    cols = set()
-    if group == 'ALL':
-        new_meta_pd = meta_pd.copy()
-    else:
-        new_meta_pd = meta_pd.loc[meta_pd[col].isin(sams)].copy()
-        cols.add(group)
+    # init new metadata as being a copy of the input, and a columns names set
+    new_meta_pd, cols = meta_pd.copy(), set()
+    # first subset to the selected samples for the column with sample names
+    if variables:
+        new_meta_pd = new_meta_pd.loc[new_meta_pd[col].isin(sams)]
+        # if variables are given for subset, also keep these in the metadata
+        cols.update(variables)
     if test:
+        # if a stat test is to be done, also keep the values in the metadata
         cols.add(test)
     if terms:
+        # if varibales are terms in models, also keep them in the metadata
         cols.update(terms)
-    return new_meta_pd[(['sample_name'] + list(cols))]
+    # subset the metadata variables to all useful columns
+    new_meta_pd = new_meta_pd[(['sample_name'] + list(cols))]
+    return new_meta_pd
 
 
 def get_wol_tree(wol_tree: str) -> tuple:
