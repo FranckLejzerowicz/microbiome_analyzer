@@ -453,13 +453,48 @@ def write_alpha(
     return cmd
 
 
-def write_filter(
+def write_sample_filter(
         qza: str,
         qza_subset: str,
         meta_subset: str
 ) -> str:
     """
-    filter-features: Filter features from table¶
+    filter-samples: Filter samples from table
+    https://docs.qiime2.org/2023.2/plugins/available/feature-table/filter-samples/
+
+    Filter samples from table based on frequency and/or metadata. Any features
+    with a frequency of zero after sample filtering will also be removed. See
+    the filtering tutorial on https://docs.qiime2.org for additional details.
+
+
+    Parameters
+    ----------
+    qza : str
+        Path to the raw data table
+    qza_subset : str
+        Path to the filtered data table
+    meta_subset : str
+        Metadata table used for sample filering
+
+    Returns
+    -------
+    cmd : str
+        Sample filering command line
+    """
+    cmd = 'qiime feature-table filter-samples'
+    cmd += ' --i-table %s' % qza
+    cmd += ' --m-metadata-file %s' % meta_subset
+    cmd += ' --o-filtered-table %s\n\n' % qza_subset
+    return cmd
+
+
+def write_feat_filter(
+        qza: str,
+        qza_subset: str,
+        meta_subset: str
+) -> str:
+    """
+    filter-features: Filter features from table
     https://docs.qiime2.org/2020.2/plugins/available/feature-table/filter-features/
 
     Filter features from table based on frequency and/or metadata. Any samples
@@ -491,7 +526,7 @@ def write_barplots(
         qzv: str
 ) -> str:
     """
-    Visualize taxonomy with an interactive bar plot¶
+    Visualize taxonomy with an interactive bar plot
     https://docs.qiime2.org/2020.2/plugins/available/taxa/barplot/
 
     This visualizer produces an interactive barplot visualization of
@@ -514,6 +549,43 @@ def write_barplots(
     cmd += ' --i-taxonomy %s' % tax_qza
     cmd += ' --m-metadata-file %s' % meta
     cmd += ' --o-visualization %s' % qzv
+    return cmd
+
+
+def write_krona(
+        qza: str,
+        tax_qza: str,
+        meta: str,
+        qzv: str
+) -> str:
+    """
+    Plugin for creating Krona plots
+    https://library.qiime2.org/plugins/q2-krona/39/
+
+    q2-krona is developed to make is easy to generate Krona plots, because
+    the tool needs some rearrangement on FeatureTable[Frequency] to be able
+    to work.
+
+    Parameters
+    ----------
+    qza : str
+        Path to the input data qza file
+    tax_qza : str
+        Path to the input taxonomy qza file
+    meta : str
+        Path to the metadata
+    qzv : str
+        Path to the krona plot qzv
+
+    Returns
+    -------
+    cmd : str
+        Command line to generate the krona plot
+    """
+    cmd = 'qiime krona collapse-and-plot'
+    cmd += ' --i-table %s' % qza
+    cmd += ' --i-taxonomy %s' % tax_qza
+    cmd += ' --o-krona-plot %s' % qzv
     return cmd
 
 
@@ -772,7 +844,6 @@ def write_rpca(
     phylo = data.phylo
     tree = data.tree
     tax = data.tax
-
     i_f, o_f = [], []
     cmd = ''
     is_phylo = False
@@ -798,8 +869,10 @@ def write_rpca(
         cmd += ' --i-table %s' % new_qza
         i_f.append(qza)
     if to_do(ordi):
-        cmd += ' --p-min-feature-count 10'
-        cmd += ' --p-min-sample-count 500'
+        cmd += ' --p-min-feature-count %s' % self.config.run_params['rpca'][
+            'min_feature_count']
+        cmd += ' --p-min-sample-count %s' % self.config.run_params['rpca'][
+            'min_sample_count']
         cmd += ' --o-biplot %s' % ordi
         cmd += ' --o-distance-matrix %s\n' % dist
         o_f.extend([ordi, dist])
@@ -810,6 +883,7 @@ def write_rpca(
 
     if self.config.jobs:
         cmd += 'rm %s %s\n\n' % (meta, new_qza)
+
     # export distance matrix
     dist_tsv = dist.replace('.qza', '.tsv')
     cmd += run_export(dist, dist_tsv)
@@ -825,12 +899,12 @@ def write_rpca(
         cmd += ' --m-feature-metadata-file %s' % taxon
         cmd += ' --p-filter-missing-features'
         cmd += ' --p-ignore-missing-samples'
-        cmd += ' --p-number-of-features 30'
     else:
         cmd += 'qiime emperor biplot'
         cmd += ' --i-biplot %s' % ordi
         cmd += ' --m-feature-metadata-file %s' % tax[1]
-        cmd += ' --p-number-of-features 15'
+    cmd += ' --p-number-of-features %s' % self.config.run_params['rpca'][
+        'number_of_features']
 
     if data.feat_meta:
         for feat_meta in data.feat_meta:
@@ -1536,9 +1610,13 @@ def write_procrustes(
     meta_out = '%s.tsv' % meta_fp
     cmd += 'mv %s %s\n' % (meta_me, meta_out)
     cmd += run_export(dis, tsv, '')
-    cmd += 'rm %s %s %s %s %s %s %s\n' % (
-        pcoa_out1, pcoa_out2, ref_pcoa, oth_pcoa, d1f, d2f, dis)
-
+    cmd += 'rm %s\n' % pcoa_out1
+    cmd += 'rm %s\n' % pcoa_out2
+    cmd += 'rm %s\n' % ref_pcoa
+    cmd += 'rm %s\n' % oth_pcoa
+    cmd += 'rm %s\n' % d1f
+    cmd += 'rm %s\n' % d2f
+    cmd += 'rm %s\n' % dis
     dat = '%s__%s' % (dat1, dat2)
     io_update(self, i_f=[meta_me, d1, d2], o_f=[meta_out, qzv, tsv], key=dat)
 
@@ -1969,11 +2047,11 @@ def write_songbird(
 
     cmd = ''
     force = self.config.force
+    stat = out_paths['stat']
     diff_qza = out_paths['diff_qza']
     if force or to_do(diff_qza):
 
         diff_tsv = out_paths['diff']
-        stat = out_paths['stat']
         stat_tsv = '%s.txt' % splitext(stat)[0]
         plot = out_paths['plot']
 
