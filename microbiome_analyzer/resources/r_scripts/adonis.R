@@ -11,7 +11,7 @@ library(readr)
 library(data.table)
 
 meta_fp <- 'META_FP'
-meta_pd <- read.table(meta_fp, header = TRUE, check.names = FALSE, colClasses = c("sample_name"="character"))
+meta_pd <- read.table(meta_fp, header = TRUE, check.names = FALSE, sep='\t', colClasses = c("sample_name"="character"))
 row.names(meta_pd) <- meta_pd[,'sample_name']
 meta_pd <- meta_pd[,-1]
 
