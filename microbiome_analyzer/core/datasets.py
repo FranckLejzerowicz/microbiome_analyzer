@@ -13,10 +13,13 @@ from os.path import isdir, splitext
 import pandas as pd
 from biom import load_table
 
+from microbiome_analyzer.core.metadata import get_sample_subset
 from microbiome_analyzer._inputs import read_meta_pd
 from microbiome_analyzer._scratch import to_do, rep
 from microbiome_analyzer._io_utils import (
-    convert_to_biom, check_features, get_cohort)
+    convert_to_biom,
+    check_features,
+)
 from microbiome_analyzer.analyses.rarefy import get_dat_depths, get_digit_depth
 from microbiome_analyzer.analyses.taxonomy import (
     get_tax_tables, parse_split_taxonomy, edit_split_taxonomy)
@@ -301,14 +304,17 @@ class Datasets(object):
         for dat, data in self.datasets.items():
             if data.source != dat:
                 continue
-            for var, vals in self.config.subsets.items():
-                if var != 'ALL' and var not in set(data.metadata.columns):
-                    sample_subsets_issues.setdefault(var, []).append(dat)
-                    continue
-                data.sample_subsets[var] = list((map(list, vals)))
+            meta_cols = set(data.metadata.columns)
+            for name, vars_vals in self.config.subsets.items():
+                data.sample_subsets[name] = {}
+                for var, vals in vars_vals.items():
+                    if var not in meta_cols:
+                        sample_subsets_issues.setdefault(var, []).append(dat)
+                        continue
+                    data.sample_subsets[name][var] = vals
 
         if sample_subsets_issues:
-            print('Issues with sample groups set using option `-g`')
+            print('[sample_subsets] Issues with sample groups set using option')
             for subset, dats in sample_subsets_issues.items():
                 print(' - %s:\n\t* %s' % (subset, '\n\t* '.join(dats)))
 
@@ -318,42 +324,22 @@ class Datasets(object):
                 data.sample_subsets = dict(
                     self.datasets[data.source].sample_subsets)
 
-    def meta_subset(self, meta_pd: pd.DataFrame, group: str, vals: list) -> set:
-        new_meta_pd = meta_pd.copy()
-        if 'ALL' in group:
-            pass
-        elif len([x for x in vals if x[0] == '>' or x[0] == '<']):
-            for case_val in vals:
-                if case_val[0] == '>':
-                    new_meta_pd = new_meta_pd[
-                        new_meta_pd[group].astype(float) >= float(case_val[1:])
-                    ].copy()
-                elif case_val[0] == '<':
-                    new_meta_pd = new_meta_pd[
-                        new_meta_pd[group].astype(float) <= float(case_val[1:])
-                    ].copy()
-        else:
-            new_meta_pd = meta_pd[meta_pd[group].isin(vals)].copy()
-        return set(new_meta_pd.sample_name)
-
     def get_meta_subsets(self):
         self.set_sample_subsets()
         for dat, data in self.datasets.items():
             for raref, tab in data.biom.items():
                 subsets = {}
-                # if raref not in data.data:
-                #     data.subsets[raref] = {}
-                # else:
                 tab = data.data[raref]
-                sams = set(pd.Series(tab.ids(axis='sample')))
-                for group, group_vals in data.sample_subsets.items():
-                    for vals in group_vals:
-                        cohort = get_cohort('subsetting', group, vals, data)
-                        if not cohort:
-                            continue
-                        s = sams & self.meta_subset(
-                            data.metadata, group, vals)
-                        if len(s) < 4:
-                            continue
-                        subsets[cohort] = (list(s), group)
+                tab_sams = set(pd.Series(tab.ids(axis='sample')))
+                for name, vars_vals in data.sample_subsets.items():
+                    if name == 'ALL':
+                        sams = tab_sams
+                    else:
+                        vars_sams = get_sample_subset(
+                            data.metadata, dat, vars_vals)
+                        sams = tab_sams & set.intersection(*vars_sams)
+
+                    if len(sams) < 4:
+                        continue
+                    subsets[name] = (list(sams), list(vars_vals))
                 data.subsets[raref] = subsets
