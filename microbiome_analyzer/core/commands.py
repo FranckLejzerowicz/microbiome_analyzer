@@ -1124,7 +1124,6 @@ def write_biplot(
     cmd += ' --o-relative-frequency-table %s\n\n' % tab_rel_qza_tmp
     cmd += '\nqiime feature-table filter-samples'
     cmd += ' --i-table %s' % tab_rel_qza_tmp
-    cmd += ' --p-min-frequency 1'
     cmd += ' --p-filter-empty-features'
     cmd += ' --m-metadata-file %s.tsv' % meta
     cmd += ' --o-filtered-table %s\n\n' % tab_rel_qza
@@ -1358,7 +1357,6 @@ def write_adonis(
         stratas: list,
         dms_metrics: list,
         out: str,
-        template: list
 ) -> list:
     """
 
@@ -1372,63 +1370,63 @@ def write_adonis(
     stratas
     dms_metrics
     out
-    template
 
     Returns
     -------
-
+    r : list
+        R scripts line
     """
+    def adonis_collector(n, s, me, r):
+        r.append("res[[%s]]$strata <- '%s'" % (n, s))
+        r.append("res[[%s]]$metric <- '%s'" % (n, me))
+        r.append("res[[%s]]$factors <- row.names(res[[%s]])" % (n, n))
+        r.append("row.names(res[[%s]]) <- NULL" % n)
+
     i_f = [meta]
+    if not self.config.jobs:
+        dms_metrics = [(rep(x), y, z) for x, y, z in dms_metrics]
+        meta = rep(meta)
+        out = rep(out)
+
     n_perm = '499'
-    r_script = []
-    for line in template:
-        l = line
-        if 'NAME_METRIC' in line:
-            for (dm, _, me) in dms_metrics:
-                if to_do(dm):
-                    continue
-                if stratas:
-                    for strata in stratas:
-                        if 'PERMUTATIONS' in line:
-                            l = block_line.replace(
-                                'BLOCK', strata).replace(
-                                'NAME', strata)
-                        l = l.replace('FORMULA', formula)
-                        l = l.replace(
-                            'NAME', strata).replace(
-                            'METRIC', me).replace(
-                            'DM', me).replace(
-                            'STRATA', strata).replace(
-                            'VARS',
-                            '", "'.join((variables + [strata]))).replace(
-                            'PERMUTATIONS', ', permutations = perm')
-                else:
-                    l = l.replace(
-                        'FORMULA', formula).replace(
-                        'METRIC', me).replace(
-                        'NAME', 'no_strata').replace(
-                        'STRATA', 'no_strata').replace(
-                        'VARS', '", "'.join(variables)).replace(
-                        'PERMUTATIONS', '')
-        elif 'METRIC' in line:
-            for (dm, _, me) in dms_metrics:
-                if to_do(dm):
-                    continue
-                l = l.replace(
-                    'METRIC', me).replace(
-                    'DM_FP', '%s.tsv' % splitext(dm)[0])
-                i_f.append('%s.tsv' % splitext(dm)[0])
-        elif 'META_FP' in line:
-            l = l.replace('META_FP', meta)
-        elif 'NPERM' in line:
-            l = l.replace('NPERM', n_perm)
-        elif 'BLOCK' in line:
-            block_line = line
-        elif 'OUT' in line:
-            l = l.replace('OUT', out)
-        r_script.append(l)
+    r = ["library(vegan)", "library(readr)", "library(data.table)"]
+    r.append("res <- list()")
+    r.append("meta_fp <- '%s'" % meta)
+    r.append("meta <- read.table(meta_fp, header=TRUE, check.names=FALSE, "
+             "sep='\\t', colClasses=c('sample_name'='character'))")
+    r.append("row.names(meta) <- meta[,'sample_name']")
+    r.append("meta <- meta[,-1]")
+    meta = "meta <- meta[, c('%s'" % "', '".join(variables)
+    if stratas:
+        meta += ", '%s')]" % "', '".join(stratas)
+    else:
+        meta += ")]"
+    r.append("meta <- %s" % meta)
+    r.append("meta <- na.omit(meta)")
+    r.append("perm <- how(nperm = %s)" % n_perm)
+    for (dm, _, me) in dms_metrics:
+        if to_do(dm):
+            continue
+        r.append("dm_fp <- '%s.tsv'" % splitext(dm)[0])
+        r.append("dm <- read.table(dm_fp, check.names = FALSE)")
+        i_f.append('%s.tsv' % splitext(dm)[0])
+        r.append("sdm <- dm[row.names(meta), row.names(meta)]")
+        a2 = "as.data.frame(adonis2(sdm ~ %s, data=meta" % (formula)
+        if stratas:
+            for s in stratas:
+                n = "'%s_%s'" % (s, me)
+                r.append("setBlocks(perm) <- with(meta, meta[,'%s'])" % s)
+                r.append("res[[%s]] <- %s, permutations = perm))" % (n, a2))
+                adonis_collector(n, s, me, r)
+        else:
+            n = "'no_strata_%s'" % me
+            r.append("res[[%s]] <- %s))" % (n, a2))
+            adonis_collector(n, 'no_strata', me, r)
+    r.append("out_fp <- '%s'" % out)
+    r.append("write.table(x=rbindlist(res), file=out_fp, quote=FALSE, "
+             "sep='\\t', row.names=FALSE)")
     io_update(self, i_f=i_f, o_f=out, key=dat)
-    return r_script
+    return r
 
 
 def write_tsne(
@@ -2187,16 +2185,16 @@ def get_xmmvec_commands(
             cmd += ' --p-omic1-max 50'
         if ncols > 50:
             cmd += ' --p-omic2-max 50'
-        if xmmvecs and pair in xmmvecs:
+        if self.xmmvecs and pair in self.xmmvecs:
             cmd += ' --p-omic1-metadata %s' % meta1_fp
             cmd += ' --p-omic2-metadata %s' % meta2_fp
             if omic1 in self.xmmvecs[pair]:
-                if 'color_variable' in xmmvecs[pair][omic1]:
-                    cmd += ' --p-omic1-column %s' % xmmvecs[
+                if 'color_variable' in self.xmmvecs[pair][omic1]:
+                    cmd += ' --p-omic1-column %s' % self.xmmvecs[
                         pair][omic1]['color_variable']
             if omic2 in self.xmmvecs[pair]:
-                if 'color_variable' in xmmvecs[pair][omic2]:
-                    cmd += ' --p-omic2-column %s' % xmmvecs[
+                if 'color_variable' in self.xmmvecs[pair][omic2]:
+                    cmd += ' --p-omic2-column %s' % self.xmmvecs[
                         pair][omic2]['color_variable']
         cmd += '\n'
         io_update(self, i_f=[ranks_fp, meta1_fp, meta2_fp], o_f=ranks_html,
