@@ -103,7 +103,7 @@ class PostAnalysis(object):
         return songbird_pd
 
     def get_tax_fp(self, omic):
-        if isfile(self.project.datasets[omic].tax[-1]):
+        if isfile(rep(self.project.datasets[omic].tax[-1])):
             omic_tax_fp = self.project.datasets[omic].tax[-1]
         else:
             omic_tax_fp = ''
@@ -113,7 +113,7 @@ class PostAnalysis(object):
         for omicn in ['1', '2']:
             for omic in self.mmvec_songbird_pd['omic%s' % omicn].unique():
                 omic_tax_fp = self.get_tax_fp(omic)
-                if isfile(omic_tax_fp):
+                if isfile(rep(omic_tax_fp)):
                     omic_tax_pd = pd.read_csv(
                         rep(omic_tax_fp), header=0, sep='\t', dtype=str)
                     omic_tax_pd.rename(
@@ -145,11 +145,13 @@ class PostAnalysis(object):
                     omic_ = omic1
                     filt = filt2
                     filt_ = filt1
+                omic_diff_list = []
                 feats_diff_cols = []
                 self.get_output('metadata/%s/%s' % (pair, subset))
-                omic_diff_list = []
                 if len(sb_head_diff_fp):
                     for sb_head, diff_fp in sb_head_diff_fp.items():
+                        if str(diff_fp) == 'nan':
+                            continue
                         model = sb_head.replace(
                             '_omic%s_songbird_common_fp' % omicn, '')
                         if str(rep(diff_fp)) != 'nan' and not to_do(diff_fp):
@@ -186,8 +188,8 @@ class PostAnalysis(object):
                                          for b, q in q2s.items()])
                                 ) for x in diff_pd.columns]
                                 diff_pd.columns = diff_cols
-                                feats_diff_cols.extend(diff_cols)
                                 omic_diff_list.append(diff_pd)
+                                feats_diff_cols.extend(diff_cols)
                 if len(omic_diff_list):
                     omic_songbird_ranks = pd.concat(
                         omic_diff_list, axis=1, sort=False).reset_index()
@@ -330,16 +332,13 @@ class PostAnalysis(object):
         # for ech row of the main table that also
         # contain the mmvec output folders
         for r, row in self.mmvec_songbird_pd.iterrows():
-            pair = row['pair']
-            subset = row['subset']
-            omic1 = row['omic1']
-            omic2 = row['omic2']
-            filt1 = row['filter1']
-            filt2 = row['filter2']
-            omic1_common_fp = row['omic1_common_fp']
-            if str(omic1_common_fp) == 'nan':
+            pair, subset = row['pair'], row['subset']
+            omic1, omic2 = row['omic1'], row['omic2']
+            filt1, filt2 = row['filter1'], row['filter2']
+            common1_fp = row['omic1_common_fp']
+            if str(common1_fp) == 'nan':
                 continue
-            omic2_common_fp = row['omic2_common_fp']
+            common2_fp = row['omic2_common_fp']
             n_common = row['n_common']
             meta_fp = row['meta_common_fp']
             # for each mmvec-parameters result
@@ -363,7 +362,7 @@ class PostAnalysis(object):
                     (pair, subset, omic1, omic2, filt1, filt2, n_common,
                      mmvec_out_col.replace('mmvec_out__', ''))
                 ] = [mmvec_out_ranks, mmvec_out_ordi, meta_fp,
-                     omic1_common_fp, omic2_common_fp]
+                     common1_fp, common2_fp]
 
     @staticmethod
     def get_order_omics(omic1, omic2, filt1, filt2, case, omics_pairs):
