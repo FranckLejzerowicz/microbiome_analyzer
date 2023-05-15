@@ -161,7 +161,7 @@ class DOC(object):
         for dat, data in self.project.datasets.items():
             for raref, qza in data.qza.items():
                 docs = {}
-                for cohort, (sams, group) in data.subsets[raref].items():
+                for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(data.path, cohort)
                     meta = '%s/meta.tsv' % self.out
                     new_qza = '%s/tab.qza' % self.out
@@ -171,7 +171,7 @@ class DOC(object):
                     mp_tsv = '%s/tab.tsv' % mp_dir
                     docs.setdefault(cohort, []).append((self.out,))
                     if self.config.force or to_do('%s/DO.tsv' % self.out):
-                        meta_pd = subset_meta(data.metadata, sams, group)
+                        meta_pd = subset_meta(data.metadata, sams, variables)
                         meta_pd.to_csv(rep(meta), index=False, sep='\t')
                         cmd = self.write_tsv(dat, qza, meta, new_qza, new_tsv)
                         cmd += self.write_doc_python(
@@ -183,7 +183,7 @@ class DOC(object):
         for dat, data in self.project.datasets.items():
             for raref, qza in data.qza.items():
                 docs = {}
-                for cohort, (sams, group) in data.subsets[raref].items():
+                for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(data.path, (cohort + '/R'))
                     meta = '%s/meta.tsv' % self.out
                     new_qza = '%s/tab.qza' % self.out
@@ -193,7 +193,7 @@ class DOC(object):
                     do = '%s/DO.tsv' % self.out
                     docs.setdefault(cohort, []).append((self.out,))
                     if self.config.force or to_do(pdf):
-                        meta_pd = subset_meta(data.metadata, sams, group)
+                        meta_pd = subset_meta(data.metadata, sams, variables)
                         meta_pd.to_csv(rep(meta), index=False, sep='\t')
                         r = self.write_doc_r(new_tsv, do, pdf)
                         script = '%s/doc.R' % self.out
