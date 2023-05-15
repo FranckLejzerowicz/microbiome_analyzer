@@ -13,9 +13,9 @@ import pandas as pd
 from os.path import isdir, isfile, splitext
 from microbiome_analyzer.core.analysis import AnalysisPrep
 from microbiome_analyzer.core.commands import (
-    run_import, run_export, write_filter, write_mmvec)
+    run_import, run_export, write_sample_filter, write_mmvec)
 from microbiome_analyzer.core.metadata import (
-    get_subset, get_subset_pd, get_train_perc_from_numeric, get_meta_subset,
+    get_subset_pd, get_train_perc_from_numeric, get_meta_subset,
     get_cat_vars_and_vc, make_train_test_from_cat, rename_duplicate_columns)
 from microbiome_analyzer.analyses.filter import (
     filter_mb_table, filter_non_mb_table)
@@ -33,11 +33,8 @@ class PairedData(object):
             self.dir = project.dir
             self.dirs = project.dirs
             self.out = ''
-            paired_config = self.get_mmvec_dicts()
-            self.pairs = paired_config[0]
-            self.filtering = paired_config[1]
-            self.params = paired_config[2]
-            self.subsets = paired_config[3]
+            (self.pairs, self.filtering, self.params,
+             self.subsets) = self.get_mmvec_dicts()
             self.mmvecs = pd.DataFrame()
             self.ios = {}
             self.cmds = {}
@@ -98,27 +95,28 @@ class PairedData(object):
         if 'filtering' not in self.config.mmvec_pairs:
             print('No filtering thresholds set in '
                   '%s\n:' % self.config.mmvec_pairs_fp)
-        if 'global' in self.config.mmvec_pairs['filtering']:
-            for filt_name, prev_abund in self.config.mmvec_pairs[
-                    'filtering']['global'].items():
-                for pair, dats_pair in mmvec_pairs.items():
-                    if pair not in filtering:
-                        filtering[pair] = {}
-                    if filt_name not in filtering[pair]:
-                        filtering[pair][filt_name] = {}
-                    for dat in dats_pair:
-                        dats.append(dat)
-                        filtering[pair][filt_name][dat] = prev_abund
-        for pair, pair_d in self.config.mmvec_pairs['filtering'].items():
-            if pair == 'global':
-                continue
-            filtering[pair] = {}
-            for filt_name, dats_d in pair_d.items():
-                filtering[pair][filt_name] = {}
-                for dat_, prev_abund in dats_d.items():
-                    dat = self.get_dat_mb_or_not(dat_)
-                    if dat in dats:
-                        filtering[pair][filt_name][dat] = prev_abund
+        if self.config.mmvec_pairs.get('filtering'):
+            if 'global' in self.config.mmvec_pairs['filtering']:
+                for filt_name, prev_abund in self.config.mmvec_pairs[
+                        'filtering']['global'].items():
+                    for pair, dats_pair in mmvec_pairs.items():
+                        if pair not in filtering:
+                            filtering[pair] = {}
+                        if filt_name not in filtering[pair]:
+                            filtering[pair][filt_name] = {}
+                        for dat in dats_pair:
+                            dats.append(dat)
+                            filtering[pair][filt_name][dat] = prev_abund
+            for pair, pair_d in self.config.mmvec_pairs['filtering'].items():
+                if pair == 'global':
+                    continue
+                filtering[pair] = {}
+                for filt_name, dats_d in pair_d.items():
+                    filtering[pair][filt_name] = {}
+                    for dat_, prev_abund in dats_d.items():
+                        dat = self.get_dat_mb_or_not(dat_)
+                        if dat in dats:
+                            filtering[pair][filt_name][dat] = prev_abund
         return filtering
 
     def get_mmvec_params(self) -> dict:
@@ -151,7 +149,7 @@ class PairedData(object):
         return params
 
     def get_subsets(self) -> dict:
-        subsets = {'ALL': [[]]}
+        subsets = {'ALL': {}}
         if 'subsets' in self.config.mmvec_pairs:
             subsets.update(self.config.mmvec_pairs['subsets'])
         return subsets
@@ -170,9 +168,7 @@ class PairedData(object):
         mmvecs_us = self.mmvecs.set_index(
             ['pair', 'filter', 'subset', 'omic']
         ).unstack().reset_index()
-        mmvecs_us = mmvecs_us.drop(columns=[('variable', 1), ('factors', 1)])
-        mmvecs_us.columns = ['%s%s' % (x, y) if x not in ['variable', 'factors']
-                             else x for x, y in mmvecs_us.columns]
+        mmvecs_us.columns = ['%s%s' % (x, y) for x, y in mmvecs_us.columns]
         self.mmvecs = mmvecs_us
 
     def get_dataset_path(self, dat, filter_, subset):
@@ -229,7 +225,7 @@ class PairedData(object):
         new_qza2 = '%s.qza' % splitext(new_tsv2)[0]
         cmd = ''
         if self.config.force or to_do(new_qza1):
-            cmd += write_filter(qza1, new_qza1, meta_fp)
+            cmd += write_sample_filter(qza1, new_qza1, meta_fp)
             io_update(self, i_f=[qza1, meta_fp], o_f=new_qza1, key='import')
         if self.config.force or to_do(new_tsv1):
             cmd += run_export(new_qza1, new_tsv1, 'FeatureTable')
@@ -237,7 +233,7 @@ class PairedData(object):
             if isfile(new_qza1):
                 io_update(self, i_f=new_qza1, key='import')
         if self.config.force or to_do(new_qza2):
-            cmd += write_filter(qza2, new_qza2, meta_fp)
+            cmd += write_sample_filter(qza2, new_qza2, meta_fp)
             io_update(self, i_f=[qza2, meta_fp], o_f=new_qza2, key='import')
         if self.config.force or to_do(new_tsv2):
             cmd += run_export(new_qza2, new_tsv2, 'FeatureTable')
@@ -266,7 +262,7 @@ class PairedData(object):
             meta1_pd = read_meta_pd(rep(meta1))
             meta2_pd = read_meta_pd(rep(meta2))
             sams = set(meta1_pd.sample_name) & set(meta2_pd.sample_name)
-            if len(sams) < 10:
+            if len(sams) < 9:
                 print('- Too few samples (%s) for "%s": %s (%s) vs %s (%s)' % (
                     pair, len(sams),
                     mmvec_d['dataset1'], meta1_pd.shape[0],
@@ -320,10 +316,11 @@ class PairedData(object):
             if not to_do(tsv) and not to_do(qza) and not to_do(meta):
                 continue
             data = project.datasets[dat]
-            variable, factors = row_d['variable'], row_d['factors']
-            meta_pd = get_subset_pd(data.metadata, subset, variable, factors)
+            subsets = row_d['subsets']
+            meta_pd = get_subset_pd(data.metadata, dat, subset, subsets)
             tsv_pd = data.data[''].to_dataframe(dense=True)
-            tsv_pd = tsv_pd[meta_pd.sample_name.tolist()]
+            sams = list(set(meta_pd.sample_name) & set(tsv_pd.columns))
+            tsv_pd = tsv_pd[sams]
             preval, abund = row_d['prevalence'], row_d['abundance']
             if row_d['is_mb']:
                 tsv_pd, _ = filter_mb_table(preval, abund, tsv_pd)
@@ -401,14 +398,12 @@ class PairedData(object):
             self.mmvecs['abundance'] = '0'
 
     def merge_subsets_apply(self):
-        subsets_fp = [
-            [pair, var, subset, get_subset(subset, var)]
-            for var, subsets in self.subsets.items()
-            for subset in subsets
-            for pair in self.mmvecs.pair.unique()]
+        subsets_fp = [[pair, subset, subsets]
+                      for subset, subsets in self.subsets.items()
+                      for pair in self.mmvecs.pair.unique()]
         if subsets_fp:
             subsets = pd.DataFrame(
-                subsets_fp, columns=['pair', 'variable', 'factors', 'subset'])
+                subsets_fp, columns=['pair', 'subset', 'subsets'])
             self.mmvecs = self.mmvecs.merge(subsets, on=['pair'], how='outer')
 
     def get_paired_unique_datasets(self, project):
