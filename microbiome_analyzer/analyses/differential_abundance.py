@@ -143,15 +143,12 @@ class DiffModels(object):
         return models, filtering, params, baselines, subsets
 
     def merge_subsets_apply(self):
-        subsets_fp = [
-            [dataset, var, subset, get_subset(subset, var), '']
-            for var, subsets in self.songbird_subsets.items()
-            for subset in subsets
-            for dataset in self.songbirds.dataset.unique()]
+        subsets_fp = [[dataset, name, subsets, '']
+                      for name, subsets in self.songbird_subsets.items()
+                      for dataset in self.songbirds.dataset.unique()]
         if subsets_fp:
             subsets = pd.DataFrame(
-                subsets_fp, columns=['dataset', 'variable', 'factors',
-                                     'subset', 'pair'])
+                subsets_fp, columns=['dataset', 'subset', 'subsets', 'pair'])
             self.songbirds = self.songbirds.merge(
                 subsets, on=['dataset'], how='outer')
 
@@ -184,8 +181,7 @@ class DiffModels(object):
             mmvecs.append([dat2, filt, prev2, abun2, subset, pair,
                            omic1_common_qza, omic2_common_qza, meta_common_fp])
         if mmvecs and self.songbirds.shape[0]:
-            self.songbirds.drop(columns=['is_mb', 'variable', 'factors'],
-                                inplace=True)
+            self.songbirds.drop(columns=['is_mb', 'subsets'], inplace=True)
             mmvecs_pd = pd.DataFrame(mmvecs, columns=self.songbirds.columns)
             self.songbirds = pd.concat([self.songbirds, mmvecs_pd])
 
@@ -198,9 +194,8 @@ class DiffModels(object):
                 row_d = row.iloc[0, :].to_dict()
                 tsv, qza, meta = row_d['tsv'], row_d['qza'], row_d['meta']
                 data = self.project.datasets[dat]
-                variable, factors = row_d['variable'], row_d['factors']
-                meta_pd = get_subset_pd(
-                    data.metadata, subset, variable, factors)
+                subsets = row_d['subsets']
+                meta_pd = get_subset_pd(data.metadata, dat, subset, subsets)
                 meta_pd.to_csv(rep(meta), index=False, sep='\t')
                 if not self.config.force and not to_do(tsv) and not to_do(qza):
                     continue
@@ -629,6 +624,8 @@ class DiffModels(object):
             # q2_pd = self.q2s_pd.loc[(self.q2s_pd.pair == 'unpaired') &
             #                         (self.q2s_pd.Pseudo_Q_squared > 0)]
             for dat, dataset_pd in q2_pd.groupby('dataset'):
+                if dat not in self.project.datasets:
+                    continue
                 dataset_sbs = []
                 for r, row in dataset_pd.iterrows():
                     pr = 'pair=%s' % row['pair']
@@ -773,11 +770,11 @@ class DiffModels(object):
         self.register_io_command()
 
     def songbird(self) -> None:
-        """Main script for the creation of songbird jobs.
-        It iterates over the rows of the table created
-        upfront and over each combination of parameters
-        and collect the output info for potential reuse
-        in figure generation and post-analysis.
+        """
+        Main script for the creation of songbird jobs. It iterates over  the
+        rows of the table created upfront and over each combination of
+        parameters and collect the output info for potential reuse in figure
+        generation and post-analysis.
         """
         mess = set()
         songbird = []
