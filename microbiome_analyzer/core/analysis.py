@@ -748,7 +748,7 @@ class AnalysisPrep(object):
                         meta = '%s/meta%s_%s.tsv' % (self.out, raref, test)
                         meta_pd = subset_meta(data.metadata, sams,
                                               variables, test)
-                        if add_q2_type(meta_pd, meta, cv, [test]):
+                        if add_q2_type(meta_pd, meta, cv, [test], True):
                             continue
                         for ddx, (dm, _, me) in enumerate(dms_metrics):
                             if to_do(dm):
@@ -800,10 +800,9 @@ class AnalysisPrep(object):
     def adonis(self):
         self.analysis = 'adonis'
         self.get_models_stratas()
-        template = open('%s/r_scripts/adonis.R' % RESOURCES).readlines()
         for dat, data in self.project.datasets.items():
             for raref, dms_metrics_ in data.beta.items():
-                dms_metrics = [x for x in dms_metrics_ if isfile(x[0])]
+                dms_metrics = [x for x in dms_metrics_ if isfile(rep(x[0]))]
                 if not dms_metrics:
                     continue
                 r2s = {}
@@ -819,18 +818,17 @@ class AnalysisPrep(object):
                                 data.metadata, sams, variables, '', terms)
                             cv = '%s/cv_%s%s.tsv' % (self.out, model, raref)
                             meta = '%s/meta_%s%s.tsv' % (self.out, model, raref)
-                            if add_q2_type(meta_pd, meta, cv, terms, False):
+                            if add_q2_type(meta_pd, meta, cv, terms):
                                 continue
                             r2s.setdefault(cohort, []).append((model, out))
-                            r = write_adonis(
+                            r_scripts.extend(write_adonis(
                                 self, dat, meta, formula, variables, stratas,
-                                dms_metrics, out, template)
-                            r_scripts.extend(r)
+                                dms_metrics, out))
                         if r_scripts:
                             r_fp = '%s.R' % splitext(out)[0]
                             with open(rep(r_fp), 'w') as o:
                                 for line in r_scripts:
-                                    o.write(line)
+                                    o.write('%s\n' % line)
                             cmd = 'R -f %s --vanilla\n\n' % r_fp
                             self.register_provenance(dat, (out,), cmd)
                             self.cmds.setdefault(dat, []).append(cmd)
