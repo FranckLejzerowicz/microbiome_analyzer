@@ -83,6 +83,8 @@ def runner(**kwargs):
         analysis.phate()
     if 'barplot' not in config.skip:
         analysis.barplot()
+    if 'krona' not in config.skip:
+        analysis.krona()
 
     if 'beta' not in config.skip:
         analysis.beta()
@@ -114,8 +116,8 @@ def runner(**kwargs):
             analysis.procrustes_mantel('procrustes')
         if config.mantel and 'mantel' not in config.skip:
             analysis.procrustes_mantel('mantel')
-        if config.nestedness and 'nestedness' not in config.skip:
-            Nestedness(config, project)
+        # if config.nestedness and 'nestedness' not in config.skip:
+        #     Nestedness(config, project)
         if config.dm_decay and 'dm_decay' not in config.skip:
             DmDecay(config, project)
         if config.geo_decay and 'geo_decay' not in config.skip:
@@ -144,7 +146,7 @@ def runner(**kwargs):
     if 'empress_biplot' not in config.skip:
         analysis.empress_biplot()
 
-    elif config.mmvec_pairs and 'mmbird' not in config.skip:
+    if config.mmvec_pairs and 'mmbird' not in config.skip:
         post_analyses = PostAnalysis(config, project)
         post_analyses.mmbird(paired_datasets, differentials)
 
