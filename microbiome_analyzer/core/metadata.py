@@ -12,11 +12,45 @@ import numpy as np
 import pandas as pd
 from os.path import splitext
 from sklearn.model_selection import train_test_split
+from microbiome_analyzer._io_utils import check_vals
 np.set_printoptions(precision=2, suppress=True)
 
 
+# def get_subset(
+#         case_vals: list,
+#         case_var: str,
+#         form: str = None
+# ) -> str:
+#     """
+#     Get the current subset, which is the concatenation of:
+#      - diversity metric.
+#      - metadata variable.
+#      - metadata variable's values.
+#      - formula.
+#
+#     Parameters
+#     ----------
+#     case_vals
+#     case_var
+#     form
+#
+#     Returns
+#     -------
+#
+#     """
+#     if len(case_vals):
+#         case = '%s_%s' % (case_var, '-'.join(
+#             [x.replace('<', 'below').replace('>', 'above') for x in case_vals]
+#         ))
+#     else:
+#         case = case_var
+#     if form:
+#         case = '%s_%s' % (case, form)
+#     case = re.sub('[ /()]', '', case.replace('__', '_'))
+#     return case
+
+
 def get_subset(
-        case_vals: list,
         case_var: str,
         form: str = None
 ) -> str:
@@ -29,7 +63,6 @@ def get_subset(
 
     Parameters
     ----------
-    case_vals
     case_var
     form
 
@@ -37,53 +70,153 @@ def get_subset(
     -------
 
     """
-    if len(case_vals):
-        case = '%s_%s' % (case_var, '-'.join(
-            [x.replace('<', 'below').replace('>', 'above') for x in case_vals]))
-    else:
-        case = case_var
+    case = case_var
     if form:
         case = '%s_%s' % (case, form)
     case = re.sub('[ /()]', '', case.replace('__', '_'))
     return case
 
 
+# def get_subset_pd(
+#         meta_pd: pd.DataFrame,
+#         subset: str,
+#         variable: str,
+#         factors: list
+# ) -> pd.DataFrame:
+#     """
+#     Perform subset.
+#
+#     Parameters
+#     ----------
+#     meta_pd
+#     subset
+#     variable
+#     factors
+#
+#     Returns
+#     -------
+#
+#     """
+#     if 'ALL' in subset:
+#         new_meta_pd = meta_pd.copy()
+#     elif len([x for x in factors if x[0] == '>' or x[0] == '<']):
+#         new_meta_pd = meta_pd.copy()
+#         for case_val in factors:
+#             if case_val[0] == '>':
+#                 new_meta_pd = new_meta_pd[
+#                     new_meta_pd[variable].astype(float) >= float(case_val[1:])
+#                 ].copy()
+#             elif case_val[0] == '<':
+#                 new_meta_pd = new_meta_pd[
+#                     new_meta_pd[variable].astype(float) <= float(case_val[1:])
+#                 ].copy()
+#     else:
+#         new_meta_pd = meta_pd[meta_pd[variable].isin(factors)].copy()
+#     return new_meta_pd
+
+
 def get_subset_pd(
         meta_pd: pd.DataFrame,
+        dat: str,
         subset: str,
-        variable: str,
-        factors: list
+        subsets: dict
 ) -> pd.DataFrame:
     """
     Perform subset.
 
     Parameters
     ----------
-    meta_pd
-    subset
-    variable
-    factors
+    meta_pd : pd.DataFrame
+        Metadata table in full
+    dat : str
+        Name of the dataset
+    subset : str
+        Name of the samples subset
+    subsets : dict
+        Conditions for the samples subset
 
     Returns
     -------
-
+    new_meta_pd : pd.DataFrame
+        Metadata table reduced to the samples
     """
     if 'ALL' in subset:
         new_meta_pd = meta_pd.copy()
-    elif len([x for x in factors if x[0] == '>' or x[0] == '<']):
-        new_meta_pd = meta_pd.copy()
-        for case_val in factors:
+    else:
+        vars_sams = get_sample_subset(meta_pd, dat, subsets)
+        sams = list(set.intersection(*vars_sams))
+        new_meta_pd = meta_pd[meta_pd['sample_name'].isin(sams)].copy()
+    return new_meta_pd
+
+
+def meta_subset(
+        meta_pd: pd.DataFrame,
+        var: str,
+        vals: list
+) -> set:
+    """Collect the set of samples matching the given variable's factors.
+
+    Parameters
+    ----------
+    meta_pd : pd.DataFrame
+        Metadata table
+    var : str
+        Name of a metadata variable
+    vals : tuple
+        Metadata factors for the current variable
+
+    Returns
+    -------
+    sams : str
+        Set of samples for the current metadata variable and factors
+    """
+    new_meta_pd = meta_pd.copy()
+    if 'ALL' in var:
+        pass
+    elif len([x for x in vals if x[0] == '>' or x[0] == '<']):
+        for case_val in vals:
             if case_val[0] == '>':
                 new_meta_pd = new_meta_pd[
-                    new_meta_pd[variable].astype(float) >= float(case_val[1:])
+                    new_meta_pd[var].astype(float) >= float(case_val[1:])
                 ].copy()
             elif case_val[0] == '<':
                 new_meta_pd = new_meta_pd[
-                    new_meta_pd[variable].astype(float) <= float(case_val[1:])
+                    new_meta_pd[var].astype(float) <= float(case_val[1:])
                 ].copy()
     else:
-        new_meta_pd = meta_pd[meta_pd[variable].isin(factors)].copy()
-    return new_meta_pd
+        new_meta_pd = meta_pd[meta_pd[var].isin(vals)].copy()
+    sams = set(new_meta_pd.sample_name)
+    return sams
+
+
+def get_sample_subset(
+        meta_pd: pd.DataFrame,
+        dat: str,
+        vars_vals: dict,
+) -> list:
+    """
+
+    Parameters
+    ----------
+    meta_pd : pd.DataFrame
+        Matadata table
+    dat : str
+        Name of the dataset
+    vars_vals : dict
+        Factors per variable to subset for
+        {'var1': ('factor1', 'factor2'), 'var2': ...}
+
+    Returns
+    -------
+    vars_sams : list
+        Samples of the subset
+    """
+    vars_sams = []
+    for var, vals in vars_vals.items():
+        if check_vals(meta_pd, dat, 'subset', var, vals):
+            continue
+        vars_sams.append(meta_subset(meta_pd, var, vals))
+    return vars_sams
 
 
 def get_train_perc_from_numeric(train, new_meta_pd):
@@ -140,12 +273,12 @@ def get_meta_subset(
             columns=dict((c, '%s.copy' % c) for c in diff_cols), inplace=True
         )
     sn = 'sample_name'
-    meta_subset = meta_subset1.merge(
+    meta_subset_pd = meta_subset1.merge(
         meta_subset2, on=([sn] + [c for c in comm_cols if c not in diff_cols])
     )
-    sorting_col = [sn] + [x for x in meta_subset.columns.tolist() if x != sn]
-    meta_subset = meta_subset[sorting_col]
-    return meta_subset
+    sorting_col = [sn] + [x for x in meta_subset_pd.columns.tolist() if x != sn]
+    meta_subset_pd = meta_subset_pd[sorting_col]
+    return meta_subset_pd
 
 
 def get_cat_vars_and_vc(
