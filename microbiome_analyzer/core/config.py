@@ -9,6 +9,7 @@
 import os
 import sys
 import time
+import yaml
 import subprocess
 
 import pandas as pd
@@ -17,6 +18,7 @@ import numpy as np
 from datetime import datetime as dt
 from os.path import abspath, dirname, exists, isfile, isdir
 from microbiome_analyzer._inputs import read_yaml_file, read_meta_pd
+from microbiome_analyzer._formats import check_format
 
 RESOURCES = pkg_resources.resource_filename("microbiome_analyzer", "resources")
 
@@ -48,18 +50,17 @@ class AnalysesConfig(object):
             self.check_xpbs_install()  # Xpbs must be installed to prepare jobs
 
     def parse_yamls(self):
-        self.subsets['ALL'] = [[]]
+        self.subsets['ALL'] = {}
         for arg in list(self.__dict__):
             if arg.endswith('_fp'):
                 yaml = read_yaml_file(self.__dict__[arg])
                 setattr(self, arg[:-3], yaml)
                 if arg == 'sample_subsets_fp':
-                    for var, vals in yaml.items():
-                        vals_set = set(map(tuple, vals))
-                        if var in self.subsets:
-                            self.subsets[var].update(vals_set)
-                        else:
-                            self.subsets[var] = vals_set
+                    check_format(yaml, 'sample_subsets')
+                    for name, var_vals in yaml.items():
+                        self.subsets[name] = {}
+                        for var, vals in var_vals.items():
+                            self.subsets[name][var] = tuple(vals)
 
     def check_input(self):
         """Check that the main input folder exists and that it is indeed a
@@ -117,17 +118,13 @@ class AnalysesConfig(object):
         # check that qiime2 environment exists
         self.check_env()
 
-    def check_run_params(
-            self,
-            run_params_user: dict
-    ):
-        """Verify that the keys/values passed for
-        an analysis are valid.
+    def check_run_params(self, run_params_user: dict):
+        """Verify that the keys/values passed for an analysis are valid.
 
         Parameters
         ----------
         run_params_user : dict
-            Passed run parameters.
+            Set of steps' parameters defined by the user
         """
         mem_dim = ['kb', 'mb', 'gb']
         integer_values = ['time', 'nodes', 'cpus', 'mem']
@@ -163,30 +160,61 @@ class AnalysesConfig(object):
         self.run_params = read_yaml_file(run_params_fp)
 
     def set_global_scratch(self):
+        """For every analysis, set the default scratch space to use to is
+        None, and here it is update to the scatch space tols to be used at
+        command line, in the following order of priority:
+            - localscracth (because it is the most efficient)
+            - scratch (created and erased for each job)
+            - userscratch (not erased at the end of the job)
+        In practice, each analysis' "scratch" key is given as value to name
+        of the scratch location, except for localscratch, which will be a
+        number corresponding to the amount of storage to use on the node.
+        """
+        # for each analysis
+        message = '* Set default scratch location to use to:'
         for (_, analysis) in self.analyses:
+            # prioritize is `--localscratch #` is given
             if self.localscratch:
                 self.run_params[analysis]['scratch'] = self.localscratch
+                print('%s localscratch (with %sG storage)' % message)
+            # or use `--scratch` boolean
             elif self.scratch:
                 self.run_params[analysis]['scratch'] = 'scratch'
+                print('%s scratch' % message)
+            # or use `--userscratch` boolean
             elif self.userscratch:
                 self.run_params[analysis]['scratch'] = 'userscratch'
+                print('%s userscratch' % message)
 
     def set_global_chunks(self):
+        """For every analysis, collect the number of chunks (will be the
+        number of jobs) to make for the command lines of this analyis,
+        if more than zero chunk is given in command or in the user-params.
+        """
+        # for each analysis
         for (_, analysis) in self.analyses:
+            # if at least one chunk is told to be used
             if self.chunks:
+                # then collect this number of chunks/jobs for the key "chunks"
+                print('* Set default number of jobs: %s per step' % self.chunks)
                 self.run_params[analysis]['chunks'] = self.chunks
 
     def set_user_params(self):
+        """If the user defined alternative paramters for one of more analysis
+        steps, the corresponding yaml file contaiing these parameters is read
+        and the parameters are used to update the default parameters
+        previously loaded.
+        """
         # update these run parameters is file is passed
         if self.run_params_fp and isfile(self.run_params_fp):
-            print('* Updating with user-defined parameters', self.run_params_fp)
+            print('* Updating parameters form user config:', self.run_params_fp)
             run_params_update = read_yaml_file(self.run_params_fp)
             # update these run parameters is file is passed
             self.check_run_params(run_params_update)
 
     def get_filt_raref_suffix(self):
-        """Create a suffix based on passed config to denote
-         whether the run is for filtered and/or rarefied data.
+        """Create a suffix based on passed config to denote whether the run
+        is for filtered and/or rarefied data.
         """
         self.filt_raref = ''
         if self.filter_fp:
@@ -195,12 +223,18 @@ class AnalysesConfig(object):
             self.filt_raref += '_rrf'
 
     def get_train_test_dict(self):
+        """Set the percent of samples to use for training in ML-based steps."""
+        # default the train-test rates to the train_test (None by default)
         self.train_test_dict = self.train_test
+        # set to 70% of sample for training if
         if 'train' not in self.train_test:
+            # the train-test parameters do not specify a % of training samples
             self.train_test_dict['train'] = 0.7
         elif float(self.train_test['train']) < 0:
+            # the value is below 0
             self.train_test_dict['train'] = 0.7
         elif float(self.train_test['train']) > 1:
+            # the value is higher that 1
             self.train_test_dict['train'] = 0.7
 
     @staticmethod
@@ -546,20 +580,16 @@ class PrepConfig(object):
 
     def get_str_bool_vals(self, inp, vals):
         groups = []
-        vals_idx = {str(x): y for x, y in enumerate(vals)}
-        p = '\n'.join(['%s\t: %s' % (x, y) for x, y in vals_idx.items()])
+        valx = {str(x): y for x, y in enumerate(vals)}
+        p = '\n'.join(['%s\t: %s' % (x, y) for x, y in valx.items()])
         mess = '%s\tFactors to group for "%s":' % (self.prep, inp)
         i = input('%s\n%s\nspace-separated indices: ' % (mess, p))
-        while i:
-            j = set(i.strip().split())
-            off = j.difference(set(vals_idx))
-            if off:
-                sys.exit('%s\tWrong index selection: %s' % (self.prep, off))
-            groups.extend([
-                '  - "%s"' % vals_idx[k] if x else '- - "%s"' % vals_idx[k]
-                for x, k in enumerate(j)])
-            self.empty = False
-            i = input('%s\n%s\nspace-separated indices: ' % (mess, p))
+        j = set(i.strip().split())
+        off = j.difference(set(valx))
+        if off:
+            sys.exit('%s\tWrong index selection: %s' % (self.prep, off))
+        groups.extend([valx[k] if x else valx[k] for x, k in enumerate(j)])
+        self.empty = False
         return groups
 
     def get_int_float_vals(self, inp, vals, typ):
@@ -567,39 +597,44 @@ class PrepConfig(object):
         desc = str(pd.Series(list(vals), dtype=typ).describe()).split('dtyp')[0]
         mess = '%s\tBounding values to make group for "%s":' % (self.prep, inp)
         i = input('%s\n%s\n("<" or ">" + value): ' % (mess, desc))
-        while i:
-            if i[0] not in '<>':
-                sys.exit('%s\tInput must start with ">" or "<"' % self.prep)
-            if ' ' in i:
-                sys.exit('%s\tInput must not contain any space' % self.prep)
-            val = i[1:].strip()
-            try:
-                float(val)
-            except ValueError:
-                if not str(val).isdigit():
-                    sys.exit('%s\tInput must be numeric' % self.prep)
-            groups.append('- - %s' % i)
-            self.empty = False
-            i = input('%s\n%s\n("<" or ">" + value): ' % (mess, desc))
+        if i[0] not in '<>':
+            sys.exit('%s\tInput must start with ">" or "<"' % self.prep)
+        if ' ' in i:
+            sys.exit('%s\tInput must not contain any space' % self.prep)
+        val = i[1:].strip()
+        try:
+            float(val)
+        except ValueError:
+            if not str(val).isdigit():
+                sys.exit('%s\tInput must be numeric' % self.prep)
+        groups.append(i)
+        self.empty = False
         return groups
 
     def get_subsets(self, dat):
-        mess = '%s(%s) Enter metadata variable name: ' % (self.prep, dat)
-        inp = input(mess)
+        mess = '%s(%s) Subset name (free text / no space): ' % (self.prep, dat)
+        name = input(mess)
         subsets = {}
-        while inp:
-            self.check_user_input(inp)
-            if inp not in self.vars:
-                print('No variable "%s" in metadata files' % inp)
-            else:
-                typ, vals = self.vars[inp]
-                if typ in [str, bool]:
-                    groups = self.get_str_bool_vals(inp, vals)
+        while name:
+            self.check_user_input(name)
+            var = '%s(%s) Enter metadata variable name: ' % (self.prep, dat)
+            inp = input(var)
+            subset = {}
+            while inp:
+                self.check_user_input(inp)
+                if inp not in self.vars:
+                    print('Variable "%s" not in metadata files' % inp)
                 else:
-                    groups = self.get_int_float_vals(inp, vals, typ)
-                if groups:
-                    subsets[inp] = groups
-            inp = input(mess)
+                    typ, vals = self.vars[inp]
+                    if typ in [str, bool]:
+                        groups = self.get_str_bool_vals(inp, vals)
+                    else:
+                        groups = self.get_int_float_vals(inp, vals, typ)
+                    if groups:
+                        subset[inp] = groups
+                inp = input(var)
+            subsets[name] = subset
+            name = input(mess)
         return subsets
 
     def prep_sample_subsets(self):
@@ -608,8 +643,7 @@ class PrepConfig(object):
             dat = 'All datasets'
             subsets = self.get_subsets(dat)
             if subsets:
-                for inp, groups in subsets.items():
-                    o.write('%s:\n%s\n' % (inp, '\n'.join(groups)))
+                o.write(yaml.dump(subsets))
 
     def write_all_datasets(self, writer, o, head=''):
         if head:
