@@ -20,6 +20,8 @@ microbiome_analyzer \
   -phate ./microbiome_analyzer/tests/files/phate.yml \
   -doc ./microbiome_analyzer/tests/files/doc.yml \
   -t sex -t group \
+  -l timepoint_months \
   --no-jobs \
   --raref \
-  --biplot
+  --biplot \
+  --force
