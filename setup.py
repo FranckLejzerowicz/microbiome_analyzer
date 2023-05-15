@@ -62,7 +62,7 @@ setup(
         "plotly==4.8.2",
         "biom-format",
         "seaborn",
-        "Xhpc==2.8"
+        "Xhpc==2.9.1"
     ],
     classifiers=classifiers,
     entry_points={'console_scripts': standalone},
@@ -75,7 +75,6 @@ setup(
             'resources/wol/wol_tree.nwk',
             'resources/wol/g2lineage.txt',
             'resources/r_scripts/doc.R',
-            'resources/r_scripts/adonis.R',
             'resources/sh_scripts/nestedness.sh',
             'resources/sh_scripts/spatial_autocorrelation_modeling.sh',
             'resources/python_scripts/nestedness_nodfs.py',
