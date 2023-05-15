@@ -149,12 +149,12 @@ class DmDecay(object):
         self.get_config()
         for dat, data in self.project.datasets.items():
             for raref, dms_metrics in data.beta.items():
-                for cohort, (sams, group) in data.subsets[raref].items():
+                for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(data.path)
                     for ddx, (dm, _, me) in enumerate(dms_metrics):
                         if to_do(dm):
                             continue
-                        meta = subset_meta(data.metadata, sams, group)
+                        meta = subset_meta(data.metadata, sams, variables)
                         if meta.shape[0] < 10:
                             continue
                         self.dm_decay(dat, data.metadata, meta, dm, me, raref)
