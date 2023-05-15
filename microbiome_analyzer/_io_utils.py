@@ -132,7 +132,7 @@ def check_vals(
 
 
 def add_q2_type(meta_pd: pd.DataFrame, meta: str, cv: str, tests: list,
-                add_q2: bool = True) -> bool:
+                add_q2: bool = False) -> bool:
     cvs = []
     for test in tests:
         meta_pd = meta_pd.replace({test: dict(
@@ -140,13 +140,13 @@ def add_q2_type(meta_pd: pd.DataFrame, meta: str, cv: str, tests: list,
             for x in meta_pd[test].astype(str).unique() if str(x) != 'nan'
             and x != x.replace('(', '').replace(')', '').replace('/', ''))})
         cv_pd = meta_pd[test].fillna('NA').value_counts()
-        cv_pd = cv_pd[cv_pd >= 8]
+        cv_pd = cv_pd[cv_pd >= 6]
+        if cv_pd.size == 1:
+            return True
+        if sum(cv_pd) < 16:
+            return True
+        meta_pd = meta_pd.loc[meta_pd[test].isin(cv_pd.index)]
         if add_q2:
-            if cv_pd.size == 1:
-                return True
-            if sum(cv_pd) < 16:
-                return True
-            meta_pd = meta_pd.loc[meta_pd[test].isin(cv_pd.index)]
             q2types = pd.DataFrame(
                 [(['#q2:types'] + ['categorical'] * (meta_pd.shape[1] - 1))],
                 columns=meta_pd.columns.tolist())
