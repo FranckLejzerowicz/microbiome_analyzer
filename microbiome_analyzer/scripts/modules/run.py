@@ -153,6 +153,8 @@ from microbiome_analyzer import __version__
         'alpha_group_significance',
         'volatility',
         'phate',
+        'krona',
+        'rpca',
         'beta',
         'deicode',
         'pcoa',
