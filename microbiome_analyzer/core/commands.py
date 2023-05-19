@@ -1364,7 +1364,7 @@ def write_adonis(
     ----------
     self
     dat
-    meta
+    meta_fp
     formula
     variables
     stratas
@@ -1382,16 +1382,16 @@ def write_adonis(
         r.append("res[[%s]]$factors <- row.names(res[[%s]])" % (n, n))
         r.append("row.names(res[[%s]]) <- NULL" % n)
 
-    i_f = [meta]
+    i_f = [meta_fp]
     if not self.config.jobs:
         dms_metrics = [(rep(x), y, z) for x, y, z in dms_metrics]
-        meta = rep(meta)
+        meta_fp = rep(meta_fp)
         out = rep(out)
 
     n_perm = '499'
     r = ["library(vegan)", "library(readr)", "library(data.table)"]
     r.append("res <- list()")
-    r.append("meta_fp <- '%s'" % meta)
+    r.append("meta_fp <- '%s'" % meta_fp)
     r.append("meta <- read.table(meta_fp, header=TRUE, check.names=FALSE, "
              "sep='\\t', colClasses=c('sample_name'='character'))")
     r.append("row.names(meta) <- meta[,'sample_name']")
