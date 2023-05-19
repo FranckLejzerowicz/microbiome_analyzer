@@ -1398,10 +1398,10 @@ def write_adonis(
     # r.append("meta <- meta[,-1]")
     meta = "meta[, c('%s'" % "', '".join(variables)
     if stratas:
-        meta += ", '%s')]" % "', '".join(stratas)
+        meta += ", '%s')" % "', '".join(stratas)
     else:
-        meta += ")]"
-    r.append("meta <- %s" % meta)
+        meta += ")"
+    r.append("meta <- %s, drop=FALSE]" % meta)
     r.append("meta <- na.omit(meta)")
     r.append("perm <- how(nperm = %s)" % n_perm)
     for (dm, _, me) in dms_metrics:
