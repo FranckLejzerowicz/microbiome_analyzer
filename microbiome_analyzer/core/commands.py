@@ -1395,7 +1395,7 @@ def write_adonis(
     r.append("meta <- read.table(meta_fp, header=TRUE, check.names=FALSE, "
              "sep='\\t', colClasses=c('sample_name'='character'))")
     r.append("row.names(meta) <- meta[,'sample_name']")
-    r.append("meta <- meta[,-1]")
+    # r.append("meta <- meta[,-1]")
     meta = "meta <- meta[, c('%s'" % "', '".join(variables)
     if stratas:
         meta += ", '%s')]" % "', '".join(stratas)
