@@ -1351,7 +1351,7 @@ def write_permanova_permdisp(
 def write_adonis(
         self,
         dat: str,
-        meta: str,
+        meta_fp: str,
         formula: str,
         variables: list,
         stratas: list,
