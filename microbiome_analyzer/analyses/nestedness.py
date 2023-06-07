@@ -15,9 +15,10 @@ import pkg_resources
 from os.path import basename, isdir, isfile, splitext
 from microbiome_analyzer.core.datasets import Datasets
 from microbiome_analyzer.core.analysis import AnalysisPrep
+from microbiome_analyzer.core.metadata import get_sample_subset
 from microbiome_analyzer.core.commands import (
-    write_filter, run_export, run_add_metadata)
-from microbiome_analyzer._io_utils import get_cohort, subset_meta
+    write_sample_filter, write_feat_filter, run_export, run_add_metadata)
+from microbiome_analyzer._io_utils import check_vals, subset_meta
 from microbiome_analyzer._scratch import io_update, to_do, rep
 
 
@@ -253,7 +254,7 @@ class Nestedness(object):
         biom = '%s_w-md.biom' % splitext(qza)[0]
         cmd = ''
         if to_do(biom_):
-            cmd += write_filter(data.qza[raref], qza, meta)
+            cmd += write_sample_filter(data.qza[raref], qza, meta)
             cmd += run_export(qza, tsv, 'FeatureTable')
             cmd += 'rm %s %s\n' % (qza, tsv)
             i_f = []
@@ -440,30 +441,53 @@ class Nestedness(object):
         for dat, data in self.project.datasets.items():
             level = self.get_taxo_level(dat, data)
             for raref, qza in data.qza.items():
-                for group, group_vals in data.sample_subsets.items():
-                    for vals in group_vals:
-                        cohort = get_cohort('nestedness', group, vals, data)
-                        if not cohort:
-                            continue
-                        self.get_output(data.path, cohort)
-                        meta_pd = subset_meta(
-                            data.metadata, vals, group, col=group)
-                        if meta_pd.shape[0] < 10:
-                            continue
-                        print()
-                        print()
-                        print('========================')
-                        print('dat:', dat)
-                        print('level:', level)
-                        print('raref:', raref)
-                        print('group:', group)
-                        print('vals:', vals)
-                        print('meta_pd.shape:', meta_pd.shape)
-                        print('- - - - - - - - - - - - - - - - - - - - - - ')
-                        print('meta_pd.nunique():\n', meta_pd.nunique())
-                        print('- - - - - - - - - - - - - - - - - - - - - - ')
-                        print('========================')
-                        self.scripts(meta_pd, data, raref, level, cohort)
+                tab = data.data[raref]
+                tab_sams = set(pd.Series(tab.ids(axis='sample')))
+
+                for name, vars_vals in data.sample_subsets.items():
+                    if name == 'ALL':
+                        sams = tab_sams
+                    else:
+                        vars_sams = get_sample_subset(
+                            data.metadata, dat, vars_vals)
+                        sams = tab_sams & set.intersection(*vars_sams)
+
+                    if len(sams) < 4:
+                        continue
+                    subsets[name] = (list(sams), list(vars_vals))
+                    self.get_output(data.path, cohort)
+
+                # for group, group_vals in data.sample_subsets.items():
+                #     for vals in group_vals:
+                #         cohort = get_cohort('nestedness', group, vals, data)
+                #         if not cohort:
+                #             continue
+                #         self.get_output(data.path, cohort)
+
+                    ## ---------------------------------------------
+                    ## USE THE SAME SUBSET AS FOR THE OTHER TOOL !!!
+                    ## ---------------------------------------------
+                # ------>
+                # for cohort, (sams, variables) in data.subsets[raref].items():
+                    # ------>
+
+                    meta_pd = subset_meta(
+                        data.metadata, vals, group, col=group)
+                    if meta_pd.shape[0] < 10:
+                        continue
+                    print()
+                    print()
+                    print('========================')
+                    print('dat:', dat)
+                    print('level:', level)
+                    print('raref:', raref)
+                    print('name:', name)
+                    print('meta_pd.shape:', meta_pd.shape)
+                    print('- - - - - - - - - - - - - - - - - - - - - - ')
+                    print('meta_pd.nunique():\n', meta_pd.nunique())
+                    print('- - - - - - - - - - - - - - - - - - - - - - ')
+                    print('========================')
+                    self.scripts(meta_pd, data, raref, level, cohort)
         self.register_io_command()
 
     def register_io_command(self):
