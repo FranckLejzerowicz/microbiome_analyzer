@@ -275,7 +275,7 @@ rpca:
   chunks:
   min_feature_count: 10
   min_sample_count: 500
-  number_of_features: 100
+  number_of_features: 25
 pcoa:
   time: "10"
   nodes: "1"
