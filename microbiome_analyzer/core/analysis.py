@@ -513,7 +513,7 @@ class AnalysisPrep(object):
     def barplot(self):
         self.analysis = 'barplot'
         for dat, data in self.project.datasets.items():
-            if not data.taxa:
+            if data.taxon or not data.taxa:
                 continue
             self.get_output(data.path)
             for raref, qza in data.qza.items():
@@ -531,7 +531,7 @@ class AnalysisPrep(object):
     def krona(self):
         self.analysis = 'krona'
         for dat, data in self.project.datasets.items():
-            if not data.taxa:
+            if data.taxon or not data.taxa:
                 continue
             self.get_output(data.path)
             for raref, qza in data.qza.items():
