@@ -816,6 +816,7 @@ def write_rpca(
         table: str,
         taxon: str,
         qzv: str,
+        qurro: str,
         data
 ) -> str:
     """
@@ -835,6 +836,7 @@ def write_rpca(
     table : str
     taxon : str
     qzv : str
+    qurro : str
     data
 
     Returns
@@ -891,6 +893,16 @@ def write_rpca(
     ordi_tsv = ordi.replace('.qza', '.txt')
     cmd += run_export(ordi, ordi_tsv, 'pcoa')
 
+
+    rm_cmd, feat_cmd = '', ''
+    if data.feat_meta:
+        nid_tsv = ordi_tsv + '.nID.txt'
+        cmd += 'grep "^n[0-9]*\\t" %s | cut -f1 > %s\n' % (ordi_tsv, nid_tsv)
+        for feat_meta in data.feat_meta:
+            cmd += 'cat %s %s > %s.nID.tsv\n' % (feat_meta, nid_tsv, feat_meta)
+            rm_cmd += 'rm %s.nID.tsv\n' % feat_meta
+            feat_cmd += ' --m-feature-metadata-file %s.nID.tsv' % feat_meta
+
     if is_phylo:
         cmd += 'qiime empress community-plot'
         cmd += ' --i-tree %s' % tree_qza
@@ -903,12 +915,10 @@ def write_rpca(
         cmd += 'qiime emperor biplot'
         cmd += ' --i-biplot %s' % ordi
         cmd += ' --m-feature-metadata-file %s' % tax[1]
+    if data.feat_meta:
+        cmd += feat_cmd
     cmd += ' --p-number-of-features %s' % self.config.run_params['rpca'][
         'number_of_features']
-
-    if data.feat_meta:
-        for feat_meta in data.feat_meta:
-            cmd += ' --m-feature-metadata-file %s' % feat_meta
     cmd += ' --m-sample-metadata-file %s' % data.meta
     cmd += ' --o-visualization %s\n\n' % qzv
 
@@ -926,8 +936,20 @@ def write_rpca(
     cmd_final += ' --p-filter-empty-features'
     cmd_final += ' --m-metadata-file %s' % meta
     cmd_final += ' --o-filtered-table %s\n\n' % new_qza
-    cmd_final += cmd
-    io_update(self, i_f=[qza_in, meta], key=dat)
+    cmd_final += cmd + rm_cmd
+
+    cmd_final += 'qiime qurro loading-plot'
+    cmd_final += ' --i-ranks %s' % ordi
+    if phylo[0] and tree[1] and not to_do(tree[1]):
+        cmd_final += ' --i-table %s' % table
+        cmd_final += ' --m-feature-metadata-file %s' % taxon
+    else:
+        cmd_final += ' --i-table %s' % new_qza
+        cmd_final += ' --m-feature-metadata-file %s' % tax[1]
+    cmd_final += ' --m-sample-metadata-file %s' % meta
+    cmd_final += ' --o-visualization %s\n' % qurro
+
+    io_update(self, i_f=[qza_in, meta], o_f=qurro, key=dat)
 
     return cmd_final
 
@@ -1101,6 +1123,8 @@ def write_biplot(
                     tax_dict[line_split[0]] = new
                     o_tax.write('%s\t%s\t%s\n' % (new, new, line_split[0]))
                     n += 1
+        print(tax_dict)
+        print(tax_dictds)
         tab_tsv = '%s_table.tsv' % splitext(biplot)[0]
         with open(rep(tsv)) as f, open(rep(tab_tsv), 'w') as o_tab:
             for ldx, line in enumerate(f):
