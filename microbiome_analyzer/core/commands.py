@@ -1123,8 +1123,7 @@ def write_biplot(
                     tax_dict[line_split[0]] = new
                     o_tax.write('%s\t%s\t%s\n' % (new, new, line_split[0]))
                     n += 1
-        print(tax_dict)
-        print(tax_dictds)
+
         tab_tsv = '%s_table.tsv' % splitext(biplot)[0]
         with open(rep(tsv)) as f, open(rep(tab_tsv), 'w') as o_tab:
             for ldx, line in enumerate(f):
