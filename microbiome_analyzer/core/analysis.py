@@ -843,9 +843,6 @@ class AnalysisPrep(object):
     def rpca(self):
         self.analysis = 'rpca'
         for dat, data in self.project.datasets.items():
-            # print()
-            # print(dat)
-            # print(dict(data.qza.items()))
             is_phylo = False
             if data.phylo[0] and data.tree[1] and not to_do(data.tree[1]):
                 is_phylo = True
@@ -854,11 +851,8 @@ class AnalysisPrep(object):
                 betas = []
                 if to_do(qza):
                     continue
-                # print(raref)
-                # print(dict(data.subsets[raref].items()))
                 for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(data.path, cohort)
-                    # print(self.out)
                     ordi = '%s/ordination%s.qza' % (self.out, raref)
                     qzv = '%s/ordination%s.qzv' % (self.out, raref)
                     qurro = '%s/qurro%s.qzv' % (self.out, raref)
