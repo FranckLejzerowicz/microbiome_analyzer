@@ -333,15 +333,19 @@ class AnalysisPrep(object):
                         self.cmds.setdefault(dat, []).append(cmd_sepp)
         self.register_io_command()
 
-    def set_taxa(self, dat, tax, data_tax, data, level):
-        taxa_pd = data.taxa[1].iloc[:, :level]
-        tax_pd = taxa_pd.apply(lambda x: '; '.join(x), axis=1).reset_index()
-        tax_pd.columns = ['Feature ID', 'Taxon']
-        tax_tsv = data.tax[2].replace(data.dat, '%s_tx-%s' % (data.dat, tax))
+    def set_taxa(self, dat, tax, data_tax, data, lvl):
+        tx_pd = data.taxa[1].loc[:,data.taxa[1].columns[:lvl]].drop_duplicates()
+        tx_pd.index = tx_pd.apply(lambda x: ';'.join(x), axis=1)
+        tx_pd = tx_pd.iloc[:,:-1]
+        tax_pd = pd.DataFrame({
+            'Taxon': tx_pd.apply(lambda x: '; '.join(x), axis=1)})
+        tax_pd.index.name = 'Feature ID'
+        tax_pd = tax_pd.reset_index()
+        tax_tsv = data.tax[2].replace(dat, '%s_tx-%s' % (dat, tax))
         tax_qza = '%s.qza' % splitext(tax_tsv)[0]
         tax_split = '%s_splitaxa.txt' % splitext(tax_tsv)[0]
         data_tax.tax = ('', tax_qza, tax_tsv)
-        data_tax.taxa = (tax_pd, taxa_pd, tax_split)
+        data_tax.taxa = (tax_pd, tx_pd, tax_split)
         if to_do(tax_tsv):
             if not isdir(dirname(rep(tax_tsv))):
                 os.makedirs(dirname(rep(tax_tsv)))
@@ -857,6 +861,7 @@ class AnalysisPrep(object):
                     # print(self.out)
                     ordi = '%s/ordination%s.qza' % (self.out, raref)
                     qzv = '%s/ordination%s.qzv' % (self.out, raref)
+                    qurro = '%s/qurro%s.qzv' % (self.out, raref)
                     metric = 'auto_rpca'
                     if is_phylo:
                         metric = 'phylo_rpca'
@@ -869,14 +874,14 @@ class AnalysisPrep(object):
                     table = '%s/phylo-table%s.qza' % (self.out, raref)
                     taxon = '%s/phylo-taxonomy%s.qza' % (self.out, raref)
                     rpcas[cohort] = [ordi, dm, tree, table, taxon]
-                    if self.config.force or to_do(qzv):
+                    if self.config.force or to_do(qzv) or to_do(qurro):
                         meta_pd = subset_meta(data.metadata, sams, variables)
                         meta = '%s/meta%s.tsv' % (self.out, raref)
                         meta_pd.to_csv(rep(meta), index=False, sep='\t')
                         new_qza = '%s/tab%s.qza' % (self.out, raref)
                         cmd = write_rpca(
                             self, dat, qza, meta, new_qza, ordi, dm,
-                            tree, table, taxon, qzv, data)
+                            tree, table, taxon, qzv, qurro, data)
                         self.register_provenance(dat, (ordi, qza,), cmd)
                         self.cmds.setdefault(dat, []).append(cmd)
                 data.rpca[raref] = rpcas
