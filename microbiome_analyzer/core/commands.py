@@ -946,7 +946,7 @@ def write_rpca(
     else:
         cmd_final += ' --i-table %s' % new_qza
         cmd_final += ' --m-feature-metadata-file %s' % tax[1]
-    cmd_final += ' --m-sample-metadata-file %s' % meta
+    cmd_final += ' --m-sample-metadata-file %s' % data.meta
     cmd_final += ' --o-visualization %s\n' % qurro
 
     io_update(self, i_f=[qza_in, meta], o_f=qurro, key=dat)
