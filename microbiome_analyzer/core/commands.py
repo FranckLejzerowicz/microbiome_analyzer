@@ -846,6 +846,7 @@ def write_rpca(
     phylo = data.phylo
     tree = data.tree
     tax = data.tax
+    taxa = data.taxa
     i_f, o_f = [], []
     cmd = ''
     is_phylo = False
@@ -902,7 +903,6 @@ def write_rpca(
             cmd += 'cat %s %s > %s.nID.tsv\n' % (feat_meta, nid_tsv, feat_meta)
             rm_cmd += 'rm %s.nID.tsv\n' % feat_meta
             feat_cmd += ' --m-feature-metadata-file %s.nID.tsv' % feat_meta
-
     if is_phylo:
         cmd += 'qiime empress community-plot'
         cmd += ' --i-tree %s' % tree_qza
@@ -915,6 +915,8 @@ def write_rpca(
         cmd += 'qiime emperor biplot'
         cmd += ' --i-biplot %s' % ordi
         cmd += ' --m-feature-metadata-file %s' % tax[1]
+        cmd += ' --m-feature-metadata-file %s' % taxa[-1]
+
     if data.feat_meta:
         cmd += feat_cmd
     cmd += ' --p-number-of-features %s' % self.config.run_params['rpca'][
@@ -1109,41 +1111,44 @@ def write_biplot(
 
     """
     cmd = ''
-    if not to_do(tax):
-        tax_dict = {}
-        with open(rep(tax)) as f, open(rep(biplot_tax), 'w') as o_tax:
-            o_tax.write('Feature ID\tTaxon\tPrevious ID\n')
-            n = 0
-            for ldx, line in enumerate(f):
-                line_split = line.strip().split('\t')
-                if len(line_split) == 1:
-                    line_split = [line_split[0], line_split[0]]
-                if ldx and not line.startswith('#q2:types'):
-                    new = 'x__%s;%s' % (n, line_split[1])
-                    tax_dict[line_split[0]] = new
-                    o_tax.write('%s\t%s\t%s\n' % (new, new, line_split[0]))
-                    n += 1
+    # if not to_do(tax):
+    #     tax_dict = {}
+    #     with open(rep(tax)) as f, open(rep(biplot_tax), 'w') as o_tax:
+    #         o_tax.write('Feature ID\tTaxon\tPrevious ID\n')
+    #         n = 0
+    #         for ldx, line in enumerate(f):
+    #             line_split = line.strip().split('\t')
+    #             if len(line_split) == 1:
+    #                 line_split = [line_split[0], line_split[0]]
+    #             if ldx and not line.startswith('#q2:types'):
+    #                 new = 'x__%s;%s' % (n, line_split[1])
+    #                 tax_dict[line_split[0]] = new
+    #                 o_tax.write('%s\t%s\t%s\n' % (new, new, line_split[0]))
+    #                 n += 1
+    #
+    #     tab_tsv = '%s_table.tsv' % splitext(biplot)[0]
+    #     with open(rep(tsv)) as f, open(rep(tab_tsv), 'w') as o_tab:
+    #         for ldx, line in enumerate(f):
+    #             t = line.strip().split('\t')
+    #             if t[0] in tax_dict:
+    #                 o_tab.write('%s\t%s\n' % (tax_dict[t[0]], '\t'.join(t[1:])))
+    #             else:
+    #                 o_tab.write(line)
+    #     tab_qza = '%s.qza' % splitext(tab_tsv)[0]
+    #     cmd += run_import(tab_tsv, tab_qza, 'FeatureTable[Frequency]')
+    #     io_update(self, i_f=tab_tsv, key=dat)
+    # else:
+    #     tab_qza = qza
+    #     io_update(self, i_f=qza, key=dat)
 
-        tab_tsv = '%s_table.tsv' % splitext(biplot)[0]
-        with open(rep(tsv)) as f, open(rep(tab_tsv), 'w') as o_tab:
-            for ldx, line in enumerate(f):
-                t = line.strip().split('\t')
-                if t[0] in tax_dict:
-                    o_tab.write('%s\t%s\n' % (tax_dict[t[0]], '\t'.join(t[1:])))
-                else:
-                    o_tab.write(line)
-        tab_qza = '%s.qza' % splitext(tab_tsv)[0]
-        cmd += run_import(tab_tsv, tab_qza, 'FeatureTable[Frequency]')
-        io_update(self, i_f=tab_tsv, key=dat)
-    else:
-        tab_qza = qza
-        io_update(self, i_f=qza, key=dat)
-
-    tab_rel_qza_tmp = '%s_rel_tmp.qza' % splitext(tab_qza)[0]
-    tab_rel_qza = '%s_rel.qza' % splitext(tab_qza)[0]
+    tab_rel_qza_tmp = '%s_rel_tmp.qza' % splitext(qza)[0]
+    tab_rel_qza = '%s_rel.qza' % splitext(qza)[0]
+    # tab_rel_qza_tmp = '%s_rel_tmp.qza' % splitext(tab_qza)[0]
+    # tab_rel_qza = '%s_rel.qza' % splitext(tab_qza)[0]
 
     cmd += '\nqiime feature-table relative-frequency'
-    cmd += ' --i-table %s' % tab_qza
+    # cmd += ' --i-table %s' % tab_qza
+    cmd += ' --i-table %s' % qza
     cmd += ' --o-relative-frequency-table %s\n\n' % tab_rel_qza_tmp
     cmd += '\nqiime feature-table filter-samples'
     cmd += ' --i-table %s' % tab_rel_qza_tmp
@@ -1161,7 +1166,8 @@ def write_biplot(
     out_biplot_txt = '%s.txt' % splitext(biplot)[0]
     cmd += run_export(biplot, out_biplot_txt, 'biplot')
 
-    io_update(self, i_f=[meta, pcoa], o_f=[biplot, out_biplot_txt], key=dat)
+    io_update(
+        self, i_f=[meta, qza, pcoa], o_f=[biplot, out_biplot_txt], key=dat)
 
     return cmd
 
