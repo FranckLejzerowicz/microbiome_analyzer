@@ -37,6 +37,7 @@ def get_tax_tables(tax_fp: str) -> tuple:
     # perform taxonomic split on the Taxon list and give the Feature as index
     split_taxa_pd = get_split_taxonomy(tax_pd.Taxon.tolist())
     split_taxa_pd.index = tax_pd['Feature ID'].tolist()
+    split_taxa_pd.index.name = 'Feature ID'
     return tax_pd, split_taxa_pd
 
 
@@ -411,7 +412,7 @@ def get_split_levels(
             tax_edit = tax.replace(str(taxo_name), '').strip('__')
             if str(tax) != 'nan' and len(tax_edit) < 3:
                 empties[taxo_name].add(
-                    '; '.join(split_taxa_pd.iloc[tdx, :split_taxa_index]))
+                    ';'.join(split_taxa_pd.iloc[tdx, :split_taxa_index]))
     return split_levels, empties
 
 
