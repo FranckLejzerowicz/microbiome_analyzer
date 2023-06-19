@@ -10,7 +10,7 @@ import re
 import os
 import glob
 import pandas as pd
-from os.path import dirname, isdir, isfile, splitext
+from os.path import basename, dirname, isdir, isfile, splitext
 from skbio.tree import TreeNode
 import pkg_resources
 import itertools as its
@@ -29,8 +29,9 @@ from microbiome_analyzer.analyses.filter import (
     harsh_filtering, filter_3d)
 from microbiome_analyzer.analyses.rarefy import get_digit_depth
 from microbiome_analyzer.analyses.taxonomy import (
-    get_taxonomy_command, get_edit_taxonomy_command, get_gids,
-    get_split_levels, fix_collapsed_data, find_matching_features)
+    get_taxonomy_command, get_edit_taxonomy_command, get_gids, get_tax_tables,
+    parse_split_taxonomy, edit_split_taxonomy, get_split_levels,
+    fix_collapsed_data, find_matching_features)
 
 from microbiome_analyzer._scratch import io_update, to_do, rep
 from microbiome_analyzer._io_utils import (
@@ -341,7 +342,8 @@ class AnalysisPrep(object):
             'Taxon': tx_pd.apply(lambda x: '; '.join(x), axis=1)})
         tax_pd.index.name = 'Feature ID'
         tax_pd = tax_pd.reset_index()
-        tax_tsv = data.tax[2].replace(dat, '%s_tx-%s' % (dat, tax))
+        tax_tsv = '%s_tx-%s/%s_tx-%s.tsv' % (
+            dirname(data.tax[2]), tax, splitext(basename(data.tax[2]))[0], tax)
         tax_qza = '%s.qza' % splitext(tax_tsv)[0]
         tax_split = '%s_splitaxa.txt' % splitext(tax_tsv)[0]
         data_tax.tax = ('', tax_qza, tax_tsv)
@@ -350,6 +352,14 @@ class AnalysisPrep(object):
             if not isdir(dirname(rep(tax_tsv))):
                 os.makedirs(dirname(rep(tax_tsv)))
             tax_pd.to_csv(rep(tax_tsv), index=False, sep='\t')
+
+        if to_do(tax_split):
+            tax_pd, split_taxa_pd = get_tax_tables(rep(tax_tsv))
+            if split_taxa_pd.shape[1] > 1:
+                ranks = parse_split_taxonomy(split_taxa_pd)
+                split_taxa_pd = edit_split_taxonomy(ranks, split_taxa_pd)
+            split_taxa_pd.to_csv(rep(tax_split), index=True, sep='\t')
+
         cmd = ''
         if to_do(tax_qza):
             cmd = run_import(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
