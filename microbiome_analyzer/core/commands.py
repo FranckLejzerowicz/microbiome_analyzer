@@ -848,7 +848,7 @@ def write_rpca(
     tax = data.tax
     taxa = data.taxa
     i_f, o_f = [], []
-    cmd = ''
+    cmd, cmd_exp = '', ''
     is_phylo = False
     qza_in = qza
     if phylo[0] and tree[1] and not to_do(tree[1]):
@@ -865,8 +865,10 @@ def write_rpca(
         cmd += ' --o-counts-by-node-tree %s' % tree_qza
         cmd += ' --o-counts-by-node %s' % table
         cmd += ' --o-t2t-taxonomy %s' % taxon
+        tree_nwk = '%s.nwk' % splitext(tree_qza)[0]
+        cmd_exp += run_export(tree_qza, tree_nwk, 'phylogeny')
         i_f.extend([tree[1], tax[1]])
-        o_f.extend([tree_qza, table, taxon])
+        o_f.extend([tree_qza, tree_nwk, table, taxon])
     else:
         cmd += 'qiime gemelli auto-rpca'
         cmd += ' --i-table %s' % new_qza
@@ -893,7 +895,8 @@ def write_rpca(
     # export ordination
     ordi_tsv = ordi.replace('.qza', '.txt')
     cmd += run_export(ordi, ordi_tsv, 'pcoa')
-
+    if cmd_exp:
+        cmd += cmd_exp
 
     rm_cmd, feat_cmd = '', ''
     if data.feat_meta:
