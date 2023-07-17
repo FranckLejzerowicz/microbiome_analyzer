@@ -9,14 +9,13 @@
 import os
 import re
 import sys
-import random
 import itertools
 import pandas as pd
 from os.path import dirname, isdir, splitext
 from microbiome_analyzer.core.analysis import AnalysisPrep
 from microbiome_analyzer.core.commands import run_import, write_songbird
 from microbiome_analyzer.core.metadata import (
-    get_subset, get_subset_pd, rename_duplicate_columns,
+    get_subset_pd, rename_duplicate_columns, make_random_train_test,
     get_train_perc_from_numeric, get_cat_vars_and_vc, make_train_test_from_cat)
 from microbiome_analyzer.analyses.filter import (
     filter_mb_table, filter_non_mb_table)
@@ -151,6 +150,8 @@ class DiffModels(object):
                 subsets_fp, columns=['dataset', 'subset', 'subsets', 'pair'])
             self.songbirds = self.songbirds.merge(
                 subsets, on=['dataset'], how='outer')
+            # print(subsets)
+            # print(subsetsd)
 
     def get_songbirds_filts(self):
         filts_df = []
@@ -245,11 +246,10 @@ class DiffModels(object):
             cat_vars, cat_pd, vc, rep_d = get_cat_vars_and_vc(vars_, vars_pd)
             if cat_vars and vc.size < cat_pd.shape[0] * 0.5:
                 train_samples = make_train_test_from_cat(
-                    cat_pd, vc, train_perc, meta_fp, cat_vars, train_col, rep_d)
+                    new_meta_pd, cat_pd, vc, train_perc, meta_fp, cat_vars,
+                    train_col, rep_d)
             else:
-                train_samples = random.sample(
-                    new_meta_pd.index.tolist(),
-                    k=int(train_perc * new_meta_pd.shape[0]))
+                train_samples = make_random_train_test(new_meta_pd, train_perc)
             return train_samples
         return None
 
