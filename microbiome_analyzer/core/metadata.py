@@ -8,6 +8,7 @@
 
 import re
 import sys
+import random
 import numpy as np
 import pandas as pd
 from os.path import splitext
@@ -312,7 +313,29 @@ def get_cat_vars_and_vc(
     return cat_vars, cat_pd, vc, rep_d
 
 
+def make_random_train_test(
+        new_meta_pd: pd.DataFrame,
+        train_perc: float,
+):
+    """
+
+    Parameters
+    ----------
+    new_meta_pd : pd.DataFrame
+    train_perc : float
+
+    Returns
+    -------
+    train_samples
+    """
+    train_samples = random.sample(
+        new_meta_pd.index.tolist(),
+        k=int(train_perc * new_meta_pd.shape[0]))
+    return train_samples
+
+
 def make_train_test_from_cat(
+        new_meta_pd: pd.DataFrame,
         cat_pd: pd.DataFrame,
         vc: pd.Series,
         train_perc: float,
@@ -324,6 +347,7 @@ def make_train_test_from_cat(
 
     Parameters
     ----------
+    new_meta_pd : pd.DataFrame
     cat_pd : pd.DataFrame
     vc : pd.Series
     train_perc : float
@@ -343,15 +367,18 @@ def make_train_test_from_cat(
         cat_pd_in = cat_pd.copy()
     X = np.array(cat_pd_in.values)
     y = cat_pd_in.index.tolist()
-    if cat_pd_in['concat_cols'].unique().size >= 2:
+    train_size = np.floor(cat_pd_in.shape[0] * (1 - train_perc))
+    n_classes = cat_pd_in['concat_cols'].unique().size
+    if (n_classes >= 2) and (train_size >= n_classes):
         _, __, ___, train_samples = train_test_split(
             X, y, test_size=train_perc,
             stratify=cat_pd_in['concat_cols'].tolist()
         )
         write_cross_tab(
             meta_fp, cat_pd, cat_vars, train_samples, train_col, rep_d)
-        return train_samples
-    return None
+    else:
+        train_samples = make_random_train_test(new_meta_pd, train_perc)
+    return train_samples
 
 
 def rename_duplicate_columns(meta_subset):
