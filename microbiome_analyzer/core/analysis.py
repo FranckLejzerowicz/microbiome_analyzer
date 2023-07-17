@@ -721,7 +721,7 @@ class AnalysisPrep(object):
                 data.beta[raref] = betas
         self.register_io_command()
 
-    def check_testing(self, data, cohort, sams) -> list:
+    def check_testing(self, data, cohort, sams, n=4) -> list:
         tests = []
         meta = data.metadata.copy()
         meta = meta.loc[meta.sample_name.isin(sams)]
@@ -740,9 +740,9 @@ class AnalysisPrep(object):
                 if 'var-%s' % test not in cohort:
                     self.messages.add('%s "%s" has 1 factor' % (message, test))
                 continue
-            meta_vc = meta_vc[meta_vc >= 8]
+            meta_vc = meta_vc[meta_vc >= n]
             if not meta_vc.size >= 2:
-                self.messages.add('%s "%s" has <2 factors with 8 samples' % (
+                self.messages.add('%s "%s" has <2 factors with 4 samples' % (
                     message, test))
                 continue
             tests.append(test)
@@ -754,7 +754,7 @@ class AnalysisPrep(object):
             for raref, dms_metrics in data.beta.items():
                 perms = {}
                 for cohort, (sams, variables) in data.subsets[raref].items():
-                    tests = self.check_testing(data, cohort, sams)
+                    tests = self.check_testing(data, cohort, sams, 4)
                     if tests:
                         self.get_output(data.path, cohort)
                     for test in tests:
@@ -762,7 +762,7 @@ class AnalysisPrep(object):
                         meta = '%s/meta%s_%s.tsv' % (self.out, raref, test)
                         meta_pd = subset_meta(data.metadata, sams,
                                               variables, test)
-                        if add_q2_type(meta_pd, meta, cv, [test], True):
+                        if add_q2_type(meta_pd, meta, cv, [test], True, 4):
                             continue
                         for ddx, (dm, _, me) in enumerate(dms_metrics):
                             if to_do(dm):
@@ -1017,14 +1017,22 @@ class AnalysisPrep(object):
     def procrustes_mantel(self, analysis):
         self.analysis = analysis
         pairs = self.get_pairs(self.config.__dict__[self.analysis]['pairs'])
+        metrics = self.config.__dict__[self.analysis].get('metrics', 'same')
         for pair, (dat1, dat2) in pairs.items():
+            print()
+            print(pair)
+            print(dat1, dat2)
             if not {dat1, dat2}.issubset(self.project.datasets):
                 continue
             data1 = self.project.datasets[dat1]
             data2 = self.project.datasets[dat2]
+            print(data1.beta)
+            print(data2.beta)
             for r1, r2 in its.product(*[data1.beta, data2.beta]):
                 p1, p2 = data1.path, data2.path
                 b1, b2 = data1.beta[r1], data2.beta[r2]
+                print(b1)
+                print(b2)
                 for cohort, (sams1, variables) in data1.subsets[r1].items():
                     if cohort not in data2.subsets[r2]:
                         continue
@@ -1035,6 +1043,8 @@ class AnalysisPrep(object):
                     path = p1.replace(dat1, dat1 + r1 + '__' + dat2 + r2)
                     self.get_output((pair + '/' + path), cohort)
                     for (d1, t1, m1), (d2, t2, m2) in its.product(*[b1, b2]):
+                        if metrics == 'same' and (m1 != m2):
+                            continue
                         if to_do(d1) or to_do(d2):
                             continue
                         meta = subset_dm(data1.metadata, sams, t1, t2)
