@@ -165,10 +165,15 @@ class PairedData(object):
         return mmvec_pairs, mmvec_filtering, mmvec_params, mmvec_subsets
 
     def unstack_mmvecs(self):
+        # print(self.mmvecs)
         mmvecs_us = self.mmvecs.set_index(
             ['pair', 'filter', 'subset', 'omic']
         ).unstack().reset_index()
+        # print(1)
+        # print(mmvecs_us)
         mmvecs_us.columns = ['%s%s' % (x, y) for x, y in mmvecs_us.columns]
+        # print(2)
+        # print(mmvecs_us)
         self.mmvecs = mmvecs_us
 
     def get_dataset_path(self, dat, filter_, subset):
@@ -247,8 +252,10 @@ class PairedData(object):
     def get_common_paths(self):
         paths = []
         self.analysis = 'mmvec_paired_imports'
+        # print(self.mmvecs)
         pfs = ['pair', 'filter', 'subset']
         for (pair, filter_, subset), mmvec in self.mmvecs.groupby(pfs):
+            # print(mmvec)
             data_dir = self.get_output('common/data/%s/%s' % (pair, subset))
             meta_dir = self.get_output('common/metadata/%s/%s' % (pair, subset))
             mmvec_d = mmvec.iloc[0, :].to_dict()
@@ -281,6 +288,7 @@ class PairedData(object):
                            'new_qza1', 'new_qza2']))
             self.mmvecs = self.mmvecs.merge(
                 common_paths_pd, on=['pair', 'filter', 'subset'])
+
         self.register_io_command()
 
     def make_train_test(self):
@@ -318,6 +326,8 @@ class PairedData(object):
             data = project.datasets[dat]
             subsets = row_d['subsets']
             meta_pd = get_subset_pd(data.metadata, dat, subset, subsets)
+            if meta_pd is None:
+                continue
             tsv_pd = data.data[''].to_dataframe(dense=True)
             sams = list(set(meta_pd.sample_name) & set(tsv_pd.columns))
             tsv_pd = tsv_pd[sams]
@@ -366,6 +376,7 @@ class PairedData(object):
 
     def get_mmvec_matrix(self, project):
         self.make_mmvec_pairs_table(project)
+        # print(self.mmvecs)
         if self.mmvecs.shape[0]:
             self.merge_filtering_per_pair()
             self.merge_subsets_apply()
@@ -374,9 +385,14 @@ class PairedData(object):
         mmvec_dat_cols = ['pair', 'omic', 'dataset', 'is_mb']
         mmvecs = []
         for pair, paired in self.pairs.items():
+            cur_pair = []
             for omic, dataset in enumerate(paired):
-                if dataset[0] in project.datasets:
-                    mmvecs.append(([pair, (omic+1)] + list(dataset)))
+                if dataset[0] not in project.datasets:
+                    # cur_pair.append(([pair, (omic + 1)] + list(dataset)))
+                    break
+                cur_pair.append(([pair, (omic + 1)] + list(dataset)))
+            else:
+                mmvecs.extend(cur_pair)
         if mmvecs:
             self.mmvecs = pd.DataFrame(mmvecs, columns=mmvec_dat_cols)
 
@@ -599,6 +615,7 @@ class PairedData(object):
                         params['summary_interval'], self.config.gpu,
                         self.config.qiime_env)
                     self.cmds.setdefault(pair, []).append(cmd)
+            print(pair, filter_, subset)
         if mmvec:
             self.get_mmvec_pd(mmvec)
         self.register_io_command()
