@@ -108,7 +108,7 @@ def check_vals(
 ):
     meta_pd_vars = set(meta_pd.columns.tolist())
     if var not in meta_pd_vars:
-        print('[%s] no variable %s in "%s"' % (analysis, var, data.dat))
+        print('[%s][%s] no variable %s in "%s"' % (dat, analysis, var, data.dat))
         return True
     else:
         factors = meta_pd[var].unique()
@@ -116,17 +116,18 @@ def check_vals(
             return True
         factors_common = set(vals) & set(factors.astype(str).tolist())
         if var == test and factors_common == 1:
-            print('[%s] subset to %s==["%s"] leave only one category' % (
-                analysis, var, '", "'.join(vals)))
+            print('[%s][%s] subset to %s==["%s"] leave only one category' % (
+                dat, analysis, var, '", "'.join(vals)))
             return True
-        if sorted(factors_common) != sorted(vals):
+        # if sorted(factors_common) != sorted(vals):
+        if not set(factors_common) & set(vals):
             vals_print = ', '.join([val for val in vals[:5]])
             if len(vals) > 5:
                 vals_print = '%s, ...' % vals_print
-            print('[%s] factors of %s not found (%s)' % (
-                analysis, var, vals_print))
+            print('[%s][%s] factors of %s not found (%s)' % (
+                dat, analysis, var, vals_print))
             if len([x for x in vals if len(x) == 1]) == len(vals):
-                print(' -> check nested list in yaml file.')
+                print('[%s] -> check nested list in yaml file.' % dat)
             return True
     return False
 
