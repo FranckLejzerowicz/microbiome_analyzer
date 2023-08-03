@@ -205,17 +205,17 @@ class Datasets(object):
             dataset = self._get_filt_raw(dataset_)
             self.set_key_dir('taxonomy', dataset)
             # tax_tsv = '%s/taxonomy.tsv' % self.key_dir
-            if data.phylo and data.phylo[0] == 'amplicon':
-                tax_tsv = '%s/%s_%s.tsv' % (self.key_dir, dataset, method)
-                meth = method
-            else:
-                tax_tsv = '%s/%s.tsv' % (self.key_dir, dataset)
+            tax_tsv = '%s/%s.tsv' % (self.key_dir, dataset)
+            if not data.phylo or data.phylo[0] != 'amplicon':
+                # tax_tsv = '%s/%s_%s.tsv' % (self.key_dir, dataset, method)
+            # else:
+                # tax_tsv = '%s/%s.tsv' % (self.key_dir, dataset)
                 if data.phylo and data.phylo[0] == 'wol':
-                    meth = 'wol'
+                    method = 'wol'
                 else:
-                    meth = 'feat'
+                    method = 'feat'
             tax_qza = '%s.qza' % splitext(tax_tsv)[0]
-            data.tax = [meth, tax_qza, tax_tsv]
+            data.tax = [method, tax_qza, tax_tsv]
 
     def set_tree_paths(self):
         for dataset, data in self.datasets.items():
@@ -253,11 +253,11 @@ class Datasets(object):
         for dataset_, data in self.datasets.items():
             dataset = self._get_filt_raw(dataset_)
             self.set_key_dir('taxonomy', dataset)
-            tax_qza = '%s/%s_%s.qza' % (self.key_dir, dataset, method)
-            # tax_qza = '%s/taxonomy.qza' % self.key_dir
-            tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
-            if not to_do(tax_tsv) and not to_do(tax_qza):
-                data.tax = ['', tax_qza, tax_tsv]
+            # tax_qza = '%s/%s_%s.qza' % (self.key_dir, dataset, method)
+            # # tax_qza = '%s/taxonomy.qza' % self.key_dir
+            # tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
+            # if not to_do(tax_tsv) and not to_do(tax_qza):
+            #     data.tax = ['', tax_qza, tax_tsv]
             tax_qza = '%s/%s.qza' % (self.key_dir, dataset)
             tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
             if not to_do(tax_tsv) and not to_do(tax_qza):
@@ -338,7 +338,6 @@ class Datasets(object):
                         vars_sams = get_sample_subset(
                             data.metadata, dat, vars_vals)
                         sams = tab_sams & set.intersection(*vars_sams)
-
                     if len(sams) < 4:
                         continue
                     subsets[name] = (list(sams), list(vars_vals))
