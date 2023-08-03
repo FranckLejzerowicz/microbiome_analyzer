@@ -464,8 +464,6 @@ class AnalysisPrep(object):
             subset_pd = pd.DataFrame({
                 'Feature ID': feats,
                 'Subset': ['tmpsubsetting'] * len(feats)})
-            print(subset_pd)
-            print(subset_pddsa)
             subset_pd.to_csv(rep(meta_subset), index=False, sep='\t')
 
             cmd = write_feat_filter(data.qza[raref], qza_subset, meta_subset)
@@ -1019,20 +1017,13 @@ class AnalysisPrep(object):
         pairs = self.get_pairs(self.config.__dict__[self.analysis]['pairs'])
         metrics = self.config.__dict__[self.analysis].get('metrics', 'same')
         for pair, (dat1, dat2) in pairs.items():
-            print()
-            print(pair)
-            print(dat1, dat2)
             if not {dat1, dat2}.issubset(self.project.datasets):
                 continue
             data1 = self.project.datasets[dat1]
             data2 = self.project.datasets[dat2]
-            print(data1.beta)
-            print(data2.beta)
             for r1, r2 in its.product(*[data1.beta, data2.beta]):
                 p1, p2 = data1.path, data2.path
                 b1, b2 = data1.beta[r1], data2.beta[r2]
-                print(b1)
-                print(b2)
                 for cohort, (sams1, variables) in data1.subsets[r1].items():
                     if cohort not in data2.subsets[r2]:
                         continue
