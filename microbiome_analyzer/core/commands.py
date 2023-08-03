@@ -918,7 +918,7 @@ def write_rpca(
         cmd += 'qiime emperor biplot'
         cmd += ' --i-biplot %s' % ordi
         cmd += ' --m-feature-metadata-file %s' % tax[1]
-        cmd += ' --m-feature-metadata-file %s' % taxa[-1]
+        # cmd += ' --m-feature-metadata-file %s' % taxa[-1]
 
     if data.feat_meta:
         cmd += feat_cmd
