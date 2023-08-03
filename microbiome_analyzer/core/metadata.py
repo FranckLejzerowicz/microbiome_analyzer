@@ -145,6 +145,8 @@ def get_subset_pd(
         new_meta_pd = meta_pd.copy()
     else:
         vars_sams = get_sample_subset(meta_pd, dat, subsets)
+        if not vars_sams:
+            return None
         sams = list(set.intersection(*vars_sams))
         new_meta_pd = meta_pd[meta_pd['sample_name'].isin(sams)].copy()
     return new_meta_pd
