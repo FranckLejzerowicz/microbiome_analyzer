@@ -256,6 +256,8 @@ class AnalysisPrep(object):
     def import_trees(self):
         self.analysis = 'import_trees'
         for dat, data in self.project.datasets.items():
+            if dat in Datasets.filt_raw:
+                continue
             _, qza, nwk = data.tree
             cmd = run_import(nwk, qza, 'Phylogeny[Rooted]')
             if nwk and (self.config.force or not isfile(qza)):
