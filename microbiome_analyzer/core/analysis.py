@@ -386,6 +386,7 @@ class AnalysisPrep(object):
                 dat_tax = '%s_tx-%s' % (dat, tax)
                 data_tax = Data(dat_tax)
                 data_tax.source = data.source
+                data_tax.subset = data.subset
                 data_tax.rarefs = data.rarefs
                 data_tax.taxon = tax
                 data_tax.filt = data.filt
@@ -475,8 +476,7 @@ class AnalysisPrep(object):
                       o_f=[qza_subset, tsv_subset], key=dat_subset)
             self.register_provenance(dat_subset, (qza_subset, tsv_subset,), cmd)
             self.cmds.setdefault(dat_subset, []).append(cmd)
-
-        if isfile(biom_subset):
+        if isfile(rep(biom_subset)):
             data_subset.read_biom(raref)
 
     def subset_features(self):
@@ -507,6 +507,7 @@ class AnalysisPrep(object):
                 for raref, tab in data.data.items():
                     self.get_features_subsets(
                         dat, dat_subset, data, data_subset, feats, raref)
+                # if isfile(rep(data_subset.biom[raref])):
                 feature_subsets[dat_subset] = data_subset
         self.project.datasets.update(feature_subsets)
         self.register_io_command()
