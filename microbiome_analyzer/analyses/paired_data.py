@@ -192,7 +192,8 @@ class PairedData(object):
             cat_vars, cat_pd, vc, rep_d = get_cat_vars_and_vc(vars_, vars_pd)
             if cat_vars and vc.size < cat_pd.shape[0] * 0.5:
                 train_samples = make_train_test_from_cat(
-                    cat_pd, vc, train_perc, meta_fp, cat_vars, train_col, rep_d)
+                    new_meta_pd, cat_pd, vc, train_perc, meta_fp, cat_vars,
+                    train_col, rep_d)
             else:
                 train_samples = random.sample(
                     new_meta_pd.index.tolist(),
