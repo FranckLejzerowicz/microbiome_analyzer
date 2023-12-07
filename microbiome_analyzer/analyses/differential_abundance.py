@@ -643,13 +643,14 @@ class DiffModels(object):
                         q2, x) for x in sb_pd.columns]
                     dataset_sbs.append(sb_pd)
                 if len(dataset_sbs):
-                    dataset_sbs_pd = pd.concat(dataset_sbs, axis=1, sort=False)
+                    sbs_pd = pd.concat(dataset_sbs, axis=1, sort=False)
                     self.get_output(dat)
                     fpo_tsv = '%s/differentials_%s.tsv' % (self.out, dat)
                     self.project.datasets[dat].sb = fpo_tsv
                     fpo_qza = '%s/differentials_%s.qza' % (self.out, dat)
-                    dataset_sbs_pd.index.name = 'Feature ID'
-                    dataset_sbs_pd.to_csv(rep(fpo_tsv), sep='\t')
+                    sbs_pd.index.name = 'Feature ID'
+                    sbs_pd = sbs_pd[sorted(sbs_pd.columns)]
+                    sbs_pd.to_csv(rep(fpo_tsv), sep='\t')
                     run_import(fpo_tsv, fpo_qza, 'FeatureData[Differential]')
                     io_update(self, i_f=fpo_tsv, o_f=fpo_qza, key=(dat, ''))
 
@@ -666,12 +667,24 @@ class DiffModels(object):
             levels = {}
             variables = set()
             formula = formula_.strip('"').strip("'")
+            print()
+            print()
+            print("[1] formula")
+            print(formula)
             if formula.startswith('C('):
                 formula_split = formula.split('C(')[-1].rsplit(')', 1)
                 formula_split_c = formula_split[0].split(',')[0].strip().strip()
+                print("[c(] formula_split:")
+                print(formula_split)
+                print("[c(] formula_split_c:")
+                print(formula_split_c)
                 formula = 'C(%s)' % formula_split[0].replace(
                     formula_split_c, formula_split_c)
+                print("[c(] formula (1):")
+                print(formula)
                 formula += formula_split[1]
+                print("[c(] formula (2):")
+                print(formula)
                 if 'Diff' in formula:
                     levels = {formula_split_c: [
                         x.strip().strip('"').strip("'")
