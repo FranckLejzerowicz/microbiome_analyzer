@@ -667,24 +667,24 @@ class DiffModels(object):
             levels = {}
             variables = set()
             formula = formula_.strip('"').strip("'")
-            print()
-            print()
-            print("[1] formula")
-            print(formula)
+            # print()
+            # print()
+            # print("[1] formula")
+            # print(formula)
             if formula.startswith('C('):
                 formula_split = formula.split('C(')[-1].rsplit(')', 1)
                 formula_split_c = formula_split[0].split(',')[0].strip().strip()
-                print("[c(] formula_split:")
-                print(formula_split)
-                print("[c(] formula_split_c:")
-                print(formula_split_c)
+                # print("[c(] formula_split:")
+                # print(formula_split)
+                # print("[c(] formula_split_c:")
+                # print(formula_split_c)
                 formula = 'C(%s)' % formula_split[0].replace(
                     formula_split_c, formula_split_c)
-                print("[c(] formula (1):")
-                print(formula)
+                # print("[c(] formula (1):")
+                # print(formula)
                 formula += formula_split[1]
-                print("[c(] formula (2):")
-                print(formula)
+                # print("[c(] formula (2):")
+                # print(formula)
                 if 'Diff' in formula:
                     levels = {formula_split_c: [
                         x.strip().strip('"').strip("'")
