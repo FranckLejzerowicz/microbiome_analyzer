@@ -341,12 +341,19 @@ def get_edit_taxonomy_command(self, dat, data):
     """
     cmd = ''
     tax_qza, tax_tsv = data.tax[1], data.tax[2]
-    out_pd = pd.read_csv(rep(tax_tsv), dtype=str, sep='\t')
-    taxo = out_pd['Taxon'].tolist()
-    taxo_edit = get_taxa_edit(taxo)
-    if taxo != taxo_edit:
-        out_pd['Taxon'] = taxo_edit
-        out_pd.to_csv(rep(tax_tsv), index=False, sep='\t')
+    tax_pd, split_taxa_pd = get_tax_tables(rep(tax_tsv))
+    taxa = tax_pd['Taxon'].tolist()
+    taxa_edit = get_taxa_edit(taxa)
+    if split_taxa_pd.shape[1] > 1:
+        ranks = parse_split_taxonomy(split_taxa_pd)
+        split_taxa_pd = edit_split_taxonomy(ranks, split_taxa_pd)
+        split_taxa_pd = split_taxa_pd.fillna('NONE').replace({
+            col: {'NONE': '%s__' % col} for col in split_taxa_pd.columns})
+        taxa_edit = split_taxa_pd.apply(
+            lambda x: ';'.join(x).replace(',', '_'), axis=1).values.tolist()
+    if taxa != taxa_edit:
+        tax_pd['Taxon'] = taxa_edit
+        tax_pd.to_csv(rep(tax_tsv), index=False, sep='\t')
         cmd = run_import(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
         io_update(self, i_f=tax_qza, o_f=tax_tsv, key=dat)
     return cmd
@@ -494,16 +501,16 @@ def find_matching_features(data, subset_regex) -> list:
     of the features to keep.
     """
     feats = data.data[''].ids(axis='observation')
-    tax_pd = data.taxa
+    tax_pd = data.taxa[0]
     to_keep_feats = {}
     for regex in subset_regex:
         to_keep_feats['%s_1' % regex] = pd.Series(
             feats, index=feats).astype(str).str.contains(str(regex))
-        if tax_pd:
-            to_keep_feats['%s_2' % regex] = tax_pd[0].loc[
-                tax_pd[0].Taxon.str.contains(str(regex)),
-                'Feature ID']
+        if tax_pd.shape[0]:
+            tax_pd_regex = tax_pd.copy()
+            tax_pd_regex = tax_pd_regex.set_index('Feature ID')
+            tax_pd_regex = tax_pd_regex['Taxon'].str.contains(str(regex))
+            to_keep_feats['%s_2' % regex] = tax_pd_regex
     to_keep_feats_pd = pd.DataFrame(to_keep_feats)
-    print(to_keep_feats_pd)
     to_keep_feats = to_keep_feats_pd.loc[to_keep_feats_pd.any(axis=1)]
     return to_keep_feats.index.tolist()
