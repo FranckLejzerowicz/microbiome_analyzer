@@ -376,6 +376,7 @@ class AnalysisPrep(object):
             if dat in Datasets.raw_filt))
         project_coll = {}
         for dat, data in self.project.datasets.items():
+            torm = []
             if data.source not in collapse_taxo:
                 continue
             levels = collapse_taxo[data.source]
@@ -403,6 +404,8 @@ class AnalysisPrep(object):
                         data_tax.biom[raref] = tax_biom
                         data_tax.qza[raref] = tax_qza
                         data_tax.read_biom(raref)
+                        if not data_tax.data:
+                            torm.append(dat_tax)
                         if raref not in data_tax.data:
                             data_tax.tsv[raref] = ''
                             data_tax.biom[raref] = ''
@@ -425,6 +428,8 @@ class AnalysisPrep(object):
                     self.cmds.setdefault(dat, []).append(cmd)
                 data_tax.phylo = ('', 0)
                 project_coll[dat_tax] = data_tax
+            if empties:
+                project_coll = {k: v for k, v in project_coll.items() if k not in torm}
         self.project.datasets.update(project_coll)
         self.register_io_command()
 
@@ -476,8 +481,6 @@ class AnalysisPrep(object):
                       o_f=[qza_subset, tsv_subset], key=dat_subset)
             self.register_provenance(dat_subset, (qza_subset, tsv_subset,), cmd)
             self.cmds.setdefault(dat_subset, []).append(cmd)
-        if isfile(rep(biom_subset)):
-            data_subset.read_biom(raref)
 
     def subset_features(self):
         self.analysis = 'feature_subsets'
@@ -507,8 +510,9 @@ class AnalysisPrep(object):
                 for raref, tab in data.data.items():
                     self.get_features_subsets(
                         dat, dat_subset, data, data_subset, feats, raref)
-                # if isfile(rep(data_subset.biom[raref])):
-                feature_subsets[dat_subset] = data_subset
+                    if isfile(rep(data_subset.biom[raref])):
+                        data_subset.read_biom(raref)
+                        feature_subsets[dat_subset] = data_subset
         self.project.datasets.update(feature_subsets)
         self.register_io_command()
 
@@ -632,11 +636,12 @@ class AnalysisPrep(object):
 
     def merge_metadata(self):
         alphas = {}
+        steps = ['filt-', 'tx-', 'sub-']
         for dat, data in self.project.datasets.items():
             for (alpha, raref) in data.alphas:
                 if to_do(alpha):
                     continue
-                pre = [x + str(y) for x, y in self.project.edits[dat].items()]
+                pre = [x+str(self.project.edits[dat].get(x, '')) for x in steps]
                 alpha_pd = pd.read_table(rep(alpha), dtype=str)
                 alpha_pd = alpha_pd.rename(
                     columns={alpha_pd.columns[0]: 'sample_name'})
@@ -654,7 +659,7 @@ class AnalysisPrep(object):
             merged_pd = meta_pd.merge(alpha_pd, on='sample_name', how='left')
             merged_fp = '%s_alphas.tsv' % splitext(data.meta)[0]
             merged_pd.to_csv(rep(merged_fp), sep='\t', index=False)
-            print('Written ->', merged_fp)
+            print('Written ->', rep(merged_fp))
             for data in self.project.datasets.values():
                 if data.source == dat:
                     data.metadata = merged_pd
