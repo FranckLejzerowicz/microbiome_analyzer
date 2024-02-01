@@ -14,6 +14,36 @@ from skbio.stats.ordination import OrdinationResults
 from microbiome_analyzer._scratch import io_update, to_do, rep
 
 
+def run_summary(
+        input_path: str,
+        output_path: str,
+        metadata_path: str=''
+) -> str:
+    """
+    Return the qiime2 summary command.
+
+    Parameters
+    ----------
+    input_path : str
+        Input file to import to qiime2 artefact.
+    output_path : str
+        Output qiime2 visualization.
+    metadata_path : str
+        Facultative metadata file path.
+
+    Returns
+    -------
+    cmd : str
+        Qiime2 command.
+    """
+    cmd = 'qiime feature-table summarize'
+    cmd += ' --i-table %s' % input_path
+    if metadata_path:
+        cmd += ' --m-sample-metadata-file %s' % metadata_path
+    cmd += ' --o-visualization %s\n' % output_path
+    return cmd
+
+
 def run_import(
         input_path: str,
         output_path: str,
@@ -270,6 +300,7 @@ def write_collapse(
         tax_qza: str,
         collapsed_qza: str,
         collapsed_tsv: str,
+        collapsed_qzv: str,
         meta_fp: str,
         collapsed_meta: str,
         level: int,
@@ -285,6 +316,7 @@ def write_collapse(
     tax_qza : str
     collapsed_qza : str
     collapsed_tsv : str
+    collapsed_qzv : str
     meta_fp : str
     collapsed_meta : str
     level : int
@@ -330,6 +362,9 @@ def write_collapse(
     if to_do(collapsed_meta):
         cmd += 'cp %s %s\n' % (meta_fp, collapsed_meta)
         io_update(self, i_f=meta_fp, o_f=collapsed_meta, key=dat)
+
+    if to_do(collapsed_qzv):
+        cmd += run_summary(collapsed_qza, collapsed_qzv, collapsed_meta)
 
     return cmd
 

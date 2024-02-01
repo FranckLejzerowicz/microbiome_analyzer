@@ -16,7 +16,7 @@ from microbiome_analyzer._io_utils import (
     get_taxonomy_classifier, parse_g2lineage)
 from microbiome_analyzer._scratch import io_update, to_do, rep
 from microbiome_analyzer.core.commands import (
-    write_fasta, write_taxonomy_sklearn, run_export, run_import)
+    write_fasta, write_taxonomy_sklearn, run_export, run_import, run_summary)
 
 
 def get_tax_tables(tax_fp: str) -> tuple:
@@ -453,6 +453,7 @@ def fix_collapsed_data(
         coll_biom: biom.Table,
         coll_tsv: str,
         coll_qza: str,
+        coll_qzv: str,
         coll_meta: str,
 ):
     """
@@ -464,6 +465,7 @@ def fix_collapsed_data(
     coll_biom : biom.Table
     coll_tsv : str
     coll_qza : str
+    coll_qzv : str
     coll_meta : str
 
     Returns
@@ -491,6 +493,7 @@ def fix_collapsed_data(
             coll_meta_pd.to_csv(rep(coll_meta), index=False, sep='\t')
     if to_do(coll_qza):
         cmd += run_import(coll_tsv, coll_qza, 'FeatureTable[Frequency]')
+        cmd += run_summary(coll_qza, coll_qzv, coll_meta)
         io_update(self, i_f=coll_tsv, o_f=coll_qza, key=dat)
     return cmd
 

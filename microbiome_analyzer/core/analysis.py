@@ -17,13 +17,14 @@ import itertools as its
 
 from microbiome_analyzer.core.datasets import Datasets, Data
 from microbiome_analyzer.core.commands import (
-    run_import, run_export, write_rarefy, write_fasta, write_collapse,
-    write_sepp, write_alpha, write_feat_filter, write_barplots, write_krona,
-    write_tabulate, write_alpha_correlation, write_alpha_rarefaction,
-    write_volatility, write_beta, write_rpca, write_deicode, write_pcoa,
-    write_biplot, write_emperor, write_emperor_biplot, write_empress,
-    write_permanova_permdisp, write_adonis, write_tsne, write_umap,
-    write_procrustes, write_mantel, write_phate, write_sourcetracking)
+    run_summary, run_import, run_export, write_rarefy, write_fasta,
+    write_collapse, write_sepp, write_alpha, write_feat_filter,
+    write_barplots, write_krona, write_tabulate, write_alpha_correlation,
+    write_alpha_rarefaction, write_volatility, write_beta, write_rpca,
+    write_deicode, write_pcoa, write_biplot, write_emperor,
+    write_emperor_biplot, write_empress, write_permanova_permdisp,
+    write_adonis, write_tsne, write_umap, write_procrustes, write_mantel,
+    write_phate, write_sourcetracking)
 from microbiome_analyzer.analyses.filter import (
     no_filtering, get_dat_filt, filtering_thresholds,
     harsh_filtering, filter_3d)
@@ -89,13 +90,15 @@ class AnalysisPrep(object):
         for dat, data in self.project.datasets.items():
             qza = '%s/data/%s.qza' % (self.dir, dat)
             biom = '%s.biom' % splitext(qza)[0]
+            qzv = '%s.qzv' % splitext(qza)[0]
             tsv = data.tsv['']
             data.qza[''] = qza
             data.biom[''] = biom
             cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
-            if self.config.force or to_do(qza) or to_do(biom):
+            cmd += run_summary(qza, qzv, data.meta)
+            if self.config.force or to_do(qza) or to_do(biom) or to_do(qzv):
                 self.cmds.setdefault(dat, []).append(cmd)
-                io_update(self, i_f=tsv, o_f=[biom, qza], key=dat)
+                io_update(self, i_f=tsv, o_f=[biom, qza, qzv], key=dat)
             self.register_provenance(dat, (qza,), cmd)
         self.register_io_command()
 
@@ -162,6 +165,7 @@ class AnalysisPrep(object):
             tsv_filt = tsv.replace(dat, dat_filt)
             biom_filt = biom.replace(dat, dat_filt)
             qza_filt = qza.replace(dat, dat_filt)
+            qzv_filt = '%s.qzv' % splitext(qza_filt)[0]
             # if not isdir(rep(dirname(tsv_filt))):
             #     os.makedirs(rep(dirname(tsv_filt)))
             data_filt.tsv = {'': tsv_filt}
@@ -190,11 +194,12 @@ class AnalysisPrep(object):
             data_filt_pd.to_csv(rep(tsv_filt), index=True, sep='\t')
             data_filt.data[''] = data_filt_biom
             cmd += run_import(tsv_filt, qza_filt, 'FeatureTable[Frequency]')
+            cmd += run_summary(qza_filt, qzv_filt, data_filt.meta)
             flt_cmds += cmd
             self.register_provenance(dat, (tsv_filt, qza_filt), flt_cmds)
-            if not isfile(qza_filt):
-                io_update(self, i_f=tsv_filt, o_f=[biom_filt, qza_filt],
-                          key=dat_filt)
+            if not isfile(qza_filt) or not isfile(qzv_filt):
+                io_update(self, i_f=tsv_filt, key=dat_filt,
+                          o_f=[biom_filt, qza_filt, qzv_filt])
                 self.cmds.setdefault(dat_filt, []).append(cmd)
             data_filt.phylo = data.phylo
             data_filt.features = get_gids(data.features, data_filt.data[''])
@@ -219,22 +224,21 @@ class AnalysisPrep(object):
                 tsv = '%s/%s%s.tsv' % (self.out, dat, raref)
                 biom = '%s.biom' % splitext(tsv)[0]
                 qza = '%s.qza' % splitext(tsv)[0]
+                qzv = '%s.qzv' % splitext(tsv)[0]
                 cmd = write_rarefy(data.qza[''], qza, depth)
                 cmd += run_export(qza, tsv, 'FeatureTable[Frequency]')
+                cmd += run_summary(qza, qzv, data.meta)
                 self.register_provenance(dat, (qza,), cmd)
-                if self.config.force or to_do(tsv) or to_do(biom):
-                    io_update(
-                        self, i_f=data.qza[''], o_f=[qza, biom, tsv], key=dat)
+                if self.config.force or to_do(tsv) or to_do(biom) or to_do(qzv):
+                    io_update(self, i_f=data.qza[''], key=dat,
+                              o_f=[qza, biom, tsv, qzv])
                     self.cmds.setdefault(dat, []).append(cmd)
-                # print(tsv)
-                # print(biom)
                 if not to_do(tsv) and not to_do(biom):
                     data.biom[raref] = biom
                     data.tsv[raref] = tsv
                     data.qza[raref] = qza
                     data.read_biom(raref)
         self.register_io_command()
-        # print(tsvfds)
 
     def taxonomy(self):
         method = 'sklearn'
@@ -397,9 +401,10 @@ class AnalysisPrep(object):
                     tax_tsv = '%s_tx-%s.tsv' % (splitext(tsv)[0], tax)
                     tax_biom = '%s.biom' % splitext(tax_tsv)[0]
                     tax_qza = '%s.qza' % splitext(tax_tsv)[0]
+                    tax_qzv = '%s.qzv' % splitext(tax_tsv)[0]
                     tax_meta = data.meta
                     coll_dat = splitext(tax_tsv)[0].split('/tab_')[-1]
-                    if not to_do(tax_tsv) and not to_do(tax_biom):
+                    if not (to_do(tax_tsv) or to_do(tax_biom) or to_do(tax_qzv)):
                         data_tax.tsv[raref] = tax_tsv
                         data_tax.biom[raref] = tax_biom
                         data_tax.qza[raref] = tax_qza
@@ -413,7 +418,7 @@ class AnalysisPrep(object):
                             continue
                         cmd += fix_collapsed_data(
                             self, dat, empties[tax], data_tax.data[raref],
-                            tax_tsv, tax_qza, tax_meta)
+                            tax_tsv, tax_qza, tax_qzv, tax_meta)
                         Datasets.coll_raw[coll_dat] = dat
                         Datasets.raw_coll.setdefault(dat, []).append(coll_dat)
                         data_tax.meta = tax_meta
@@ -421,7 +426,8 @@ class AnalysisPrep(object):
                     else:
                         cmd += write_collapse(
                             self, dat, data.qza[raref], data.tax[1], tax_qza,
-                            tax_tsv, data.meta, tax_meta, level, empties[tax])
+                            tax_tsv, tax_qzv, data.meta, tax_meta, level,
+                            empties[tax])
                     self.register_provenance(
                         dat, (tax_qza, tax_tsv, tax_meta,), cmd)
                 if cmd:
@@ -461,21 +467,21 @@ class AnalysisPrep(object):
         tsv_subset = '%s/%s%s.tsv' % (self.out, dat_subset, raref)
         biom_subset = '%s.biom' % splitext(tsv_subset)[0]
         qza_subset = '%s.qza' % splitext(tsv_subset)[0]
+        qzv_subset = '%s.qzv' % splitext(tsv_subset)[0]
         data_subset.tsv[raref] = tsv_subset
         data_subset.biom[raref] = biom_subset
         data_subset.qza[raref] = qza_subset
         data_subset.metadata = data.metadata
         data_subset.meta = data.meta
-        if self.config.force or not isfile(tsv_subset):
-
+        if self.config.force or not (isfile(tsv_subset) and isfile(qvz_subset)):
             meta_subset = '%s.tmp' % splitext(tsv_subset)[0]
             subset_pd = pd.DataFrame({
                 'Feature ID': feats,
                 'Subset': ['tmpsubsetting'] * len(feats)})
             subset_pd.to_csv(rep(meta_subset), index=False, sep='\t')
-
             cmd = write_feat_filter(data.qza[raref], qza_subset, meta_subset)
             cmd += run_export(qza_subset, tsv_subset, 'FeatureTable')
+            cmd += run_summary(qza_subset, qvz_subset, data_subset.meta)
             cmd += '\nrm %s\n\n' % meta_subset
             io_update(self, i_f=[data.qza[raref], meta_subset],
                       o_f=[qza_subset, tsv_subset], key=dat_subset)
