@@ -82,6 +82,7 @@ class DiffModels(object):
     def get_songbird_params(self):
         params = {
             'train': ['0.7'],
+            'examples': ['0.7'],
             'batches': ['2'],
             'learns': ['1e-4'],
             'epochs': ['5000'],
@@ -257,6 +258,8 @@ class DiffModels(object):
 
     def make_train_test_column(self, meta_fp, meta_pd, dat) -> dict:
         train_test_d = self.config.train_test_dict
+        print()
+        print("train_test_d:", train_test_d)
         train_tests = {}
         train = train_test_d['train']
         meta_tt_pd = meta_pd.set_index('sample_name').copy()
@@ -285,6 +288,11 @@ class DiffModels(object):
                 meta_subset_cols = set(meta_subset.columns)
                 for train_col, train_samples in train_tests.items():
                     if train_col not in meta_subset_cols:
+                        print()
+                        print(dat)
+                        print(tsv)
+                        print(qza)
+                        print(train_col)
                         rewrite = True
                         meta_subset[train_col] = [
                             'Train' if x in set(train_samples) else
@@ -772,6 +780,10 @@ class DiffModels(object):
             meta_pd = read_meta_pd(rep(meta_fp))
             models = self.check_metadata_models(
                 meta_fp, meta_pd, self.songbird_models[dat])
+            print()
+            print('------------ MODELS -------------')
+            print()
+            print(models)
             row_params_pd = params_pd.copy()
             self.process_params_combinations(dat, meta_pd, row_params_pd, mess)
             for p, params in row_params_pd.iterrows():
