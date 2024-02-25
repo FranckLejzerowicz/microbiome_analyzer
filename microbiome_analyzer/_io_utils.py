@@ -15,7 +15,7 @@ import yaml
 import pkg_resources
 import pandas as pd
 
-from os.path import basename, isfile, isdir, splitext
+from os.path import basename, dirname, isfile, isdir, splitext
 from microbiome_analyzer.core.commands import run_export
 from microbiome_analyzer._scratch import to_do, rep
 
@@ -362,3 +362,8 @@ def write_filtered_tsv(tsv_out: str, tsv_pd: pd.DataFrame) -> None:
     tsv_pd = tsv_pd.reset_index().rename(
         columns={tsv_sams_col: 'Feature ID'}).set_index('Feature ID')
     tsv_pd.reset_index().to_csv(tsv_out, index=False, sep='\t')
+
+
+def make_fp_dir(fp):
+    if not isdir(rep(dirname(fp))):
+        os.makedirs(rep(dirname(fp)))
