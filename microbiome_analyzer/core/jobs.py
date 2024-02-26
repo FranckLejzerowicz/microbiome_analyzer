@@ -24,7 +24,6 @@ class CreateScripts(object):
         self.job_fps = []
         self.job_name = None
         self.jobs_dir = None
-        self.tmpdir = None
         self.analysis = None
         self.nlss = None
         self.main = None
@@ -112,27 +111,19 @@ class CreateScripts(object):
 
     def get_jobs_dir(self):
         self.jobs_dir = '%s/%s/jobs' % (rep(self.dir), self.analysis)
-        self.tmpdir = '%s/%s/jobs/tmp' % (rep(self.dir), self.analysis)
         if not isdir(self.jobs_dir):
             os.makedirs(self.jobs_dir)
-        if not isdir(self.tmpdir):
-            os.makedirs(self.tmpdir)
 
     def write_chunks(self, chunk_keys):
         with open(self.sh, 'w') as sh:
             if self.config.jobs:
                 sh.write('rm -rf $TMPDIR\n')
-            # sh.write('TMPDIR=tmp\n' % self.tmpdir)
-            # if self.params['scratch'] and self.config.jobs:
-                # sh.write('TMPDIR=tmp_%s\n' % dt.now().strftime("%d%m%Y%H%M%S"))
             if self.config.cleanup and self.config.jobs:
                 cleanup = 'cleanup rm -rf ${TMPDIR}'
                 if self.params['scratch']:
                     cleanup += ' ${SCRATCH_FOLDER}/*'
                 sh.write('%s\n' % cleanup)
             for key in chunk_keys:
-                # k = '_'.join(map(str, key)).replace(' ', '')
-                # sh.write('TMPDIR=%s/%s\n' % (self.tmpdir, k))
                 for cmd in self.cmds[key]:
                     sh.write('%s\n' % cmd)
             if self.params['scratch'] and self.config.jobs:
@@ -212,8 +203,9 @@ class CreateScripts(object):
         with open(self.main, 'w') as o:
             if len(self.job_fps):
                 job_dir = dirname(self.job_fps[0])
-                o.write('mkdir -p %s/output\n' % job_dir)
-                o.write('cd %s/output\n' % job_dir)
+                if self.config.jobs:
+                    o.write('mkdir -p %s/output\n' % job_dir)
+                    o.write('cd %s/output\n' % job_dir)
                 for jdx, job_fp in enumerate(self.job_fps):
                     o.write('%s %s\n' % (self.scheduler, job_fp))
                 self.job_fps = []

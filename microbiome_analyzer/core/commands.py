@@ -894,7 +894,6 @@ def write_rpca(
             i_f.append(tree[0])
         else:
             i_f.append(qza)
-        cmd += ' --i-table %s' % new_qza
         cmd += ' --i-phylogeny %s' % tree[1]
         cmd += ' --m-taxonomy-file %s' % tax[1]
         cmd += ' --o-counts-by-node-tree %s' % tree_qza
@@ -905,9 +904,12 @@ def write_rpca(
         i_f.extend([tree[1], tax[1]])
         o_f.extend([tree_qza, tree_nwk, table, taxon])
     else:
-        cmd += 'qiime gemelli auto-rpca'
-        cmd += ' --i-table %s' % new_qza
+        if float(self.config.qiime_env.split('-')[-1]) >= 2023.5:
+            cmd += 'qiime gemelli rpca'
+        else:
+            cmd += 'qiime gemelli auto-rpca'
         i_f.append(qza)
+    cmd += ' --i-table %s' % new_qza
     if to_do(ordi):
         cmd += ' --p-min-feature-count %s' % self.config.run_params['rpca'][
             'min_feature_count']
@@ -994,83 +996,12 @@ def write_rpca(
     return cmd_final
 
 
-def write_deicode(
-        self,
-        dat: str,
-        qza: str,
-        meta: str,
-        new_qza: str,
-        ordi: str,
-        ordi_tsv: str,
-        dm_qza: str,
-        qzv: str
-) -> str:
-    """
-    Performs robust center log-ratio transform robust PCA and
-    ranks the features by the loadings of the resulting SVD.
-    https://library.qiime2.org/plugins/deicode/19/
-
-    Parameters
-    ----------
-    self
-    dat
-    qza
-    meta
-    new_qza
-    ordi
-    ordi_tsv
-    dm_qza
-    qzv
-
-    Returns
-    -------
-
-    """
-    cmd = ''
-    if to_do(new_qza):
-        cmd += 'qiime feature-table filter-samples'
-        cmd += ' --i-table %s' % qza
-        cmd += ' --p-min-frequency 1'
-        cmd += ' --p-filter-empty-features'
-        cmd += ' --m-metadata-file %s' % meta
-        cmd += ' --o-filtered-table %s\n\n' % new_qza
-        io_update(self, i_f=[qza, meta], o_f=new_qza, key=dat)
-
-    if to_do(ordi) or to_do(dm_qza):
-        cmd += 'qiime deicode rpca'
-        cmd += ' --i-table %s' % new_qza
-        # cmd += ' --p-min-feature-count 10'
-        # cmd += ' --p-min-sample-count 500'
-        cmd += ' --p-n-components 2'
-        cmd += ' --o-biplot %s' % ordi
-        cmd += ' --o-distance-matrix %s\n\n' % dm_qza
-        if not to_do(new_qza):
-            io_update(self, i_f=new_qza, o_f=[ordi, dm_qza], key=dat)
-        else:
-            io_update(self, o_f=[ordi, dm_qza], key=dat)
-
-    cmd += 'qiime emperor biplot'
-    cmd += ' --i-biplot %s' % ordi
-    cmd += ' --m-sample-metadata-file %s' % meta
-    cmd += ' --o-visualization %s' % qzv
-    cmd += ' --p-number-of-features 10\n\n'
-    cmd += 'rm %s %s\n\n' % (meta, new_qza)
-    cmd += run_export(ordi, ordi_tsv, 'pcoa')
-    if to_do(ordi):
-        io_update(self, i_f=meta, o_f=[qzv, ordi_tsv], key=dat)
-    else:
-        io_update(self, i_f=[ordi, meta], o_f=[qzv, ordi_tsv], key=dat)
-
-    return cmd
-
-
 def write_pcoa(
         self,
         dat: str,
         dm: str,
         dm_filt: str,
-        meta: str,
-        meta_met: str,
+        meta_fp: str,
         group: str,
         pcoa: str,
         pcoa_tsv: str
@@ -1085,8 +1016,7 @@ def write_pcoa(
     dat : str
     dm
     dm_filt
-    meta
-    meta_met
+    meta_fp
     group
     pcoa
     pcoa_tsv
@@ -1099,7 +1029,7 @@ def write_pcoa(
     if group != 'ALL':
         cmd += 'qiime diversity filter-distance-matrix'
         cmd += ' --i-distance-matrix %s' % dm
-        cmd += ' --m-metadata-file %s' % meta_met
+        cmd += ' --m-metadata-file %s' % meta_fp
         cmd += ' --o-filtered-distance-matrix %s\n' % dm_filt
     else:
         dm_filt = dm
@@ -1109,10 +1039,9 @@ def write_pcoa(
     cmd += ' --o-pcoa %s\n\n' % pcoa
     if group != 'ALL':
         cmd += 'rm %s\n\n' % dm_filt
-    cmd += 'mv %s %s.tsv\n\n' % (meta_met, meta)
     cmd += run_export(pcoa, pcoa_tsv, 'pcoa')
 
-    io_update(self, i_f=[dm, meta_met], o_f=[pcoa, pcoa_tsv, meta], key=dat)
+    io_update(self, i_f=[dm, meta_fp], o_f=[pcoa, pcoa_tsv], key=dat)
 
     return cmd
 
@@ -1501,8 +1430,7 @@ def write_tsne(
         dat: str,
         dm: str,
         dm_filt: str,
-        meta: str,
-        meta_met: str,
+        meta_fp: str,
         group: str,
         tsne: str,
         tsne_tsv: str
@@ -1515,8 +1443,7 @@ def write_tsne(
     dat : str
     dm
     dm_filt
-    meta
-    meta_met
+    meta_fp
     group
     tsne
     tsne_tsv
@@ -1529,7 +1456,7 @@ def write_tsne(
     if group != 'ALL':
         cmd += 'qiime diversity filter-distance-matrix'
         cmd += ' --i-distance-matrix %s' % dm
-        cmd += ' --m-metadata-file %s' % meta_met
+        cmd += ' --m-metadata-file %s' % meta_fp
         cmd += ' --o-filtered-distance-matrix %s\n' % dm_filt
     else:
         dm_filt = dm
@@ -1545,11 +1472,8 @@ def write_tsne(
     cmd += ' --o-tsne %s\n\n' % tsne
     if group != 'ALL':
         cmd += 'rm %s\n\n' % dm_filt
-    cmd += 'mv %s %s.tsv\n\n' % (meta_met, meta)
     cmd += run_export(tsne, tsne_tsv, 'pcoa')
-
-    io_update(self, i_f=[dm, meta_met], o_f=[tsne, tsne_tsv, meta], key=dat)
-
+    io_update(self, i_f=[dm, meta_fp], o_f=[tsne, tsne_tsv], key=dat)
     return cmd
 
 
@@ -1558,8 +1482,7 @@ def write_umap(
         dat: str,
         dm: str,
         dm_filt: str,
-        meta: str,
-        meta_met: str,
+        meta_fp: str,
         group: str,
         umap: str,
         umap_tsv: str
@@ -1572,8 +1495,7 @@ def write_umap(
     dat : str
     dm
     dm_filt
-    meta
-    meta_met
+    meta_fp
     group
     umap
     umap_tsv
@@ -1586,7 +1508,7 @@ def write_umap(
     if group != 'ALL':
         cmd += 'qiime diversity filter-distance-matrix'
         cmd += ' --i-distance-matrix %s' % dm
-        cmd += ' --m-metadata-file %s' % meta_met
+        cmd += ' --m-metadata-file %s' % meta_fp
         cmd += ' --o-filtered-distance-matrix %s\n' % dm_filt
     else:
         dm_filt = dm
@@ -1600,11 +1522,8 @@ def write_umap(
     cmd += ' --o-umap %s\n\n' % umap
     if group != 'ALL':
         cmd += 'rm %s\n\n' % dm_filt
-    cmd += 'mv %s %s.tsv\n\n' % (meta_met, meta)
     cmd += run_export(umap, umap_tsv, 'pcoa')
-
-    io_update(self, i_f=[dm, meta_met], o_f=[umap, umap_tsv, meta], key=dat)
-
+    io_update(self, i_f=[dm, meta_fp], o_f=[umap, umap_tsv], key=dat)
     return cmd
 
 
@@ -1613,7 +1532,6 @@ def write_procrustes(
         dat1: str,
         dat2: str,
         meta_fp: str,
-        meta_me: str,
         d1: str,
         d2: str,
         d1f: str,
@@ -1630,7 +1548,6 @@ def write_procrustes(
     dat1 : str
     dat2 : str
     meta_fp
-    meta_me
     d1
     d2
     d1f
@@ -1647,33 +1564,38 @@ def write_procrustes(
     pcoa_out2 = '%s_pcoa.qza' % splitext(d2f)[0]
     ref_pcoa = '%s_ref.qza' % splitext(pcoa_out1)[0]
     oth_pcoa = '%s_oth.qza' % splitext(pcoa_out2)[0]
+
     cmd = '\nqiime diversity filter-distance-matrix'
-    cmd += ' --m-metadata-file %s' % meta_me
+    cmd += ' --m-metadata-file %s' % meta_fp
     cmd += ' --i-distance-matrix %s' % d1
     cmd += ' --o-filtered-distance-matrix %s\n' % d1f
+
     cmd += '\nqiime diversity filter-distance-matrix'
-    cmd += ' --m-metadata-file %s' % meta_me
+    cmd += ' --m-metadata-file %s' % meta_fp
     cmd += ' --i-distance-matrix %s' % d2
     cmd += ' --o-filtered-distance-matrix %s\n' % d2f
+
     cmd += '\nqiime diversity pcoa'
     cmd += ' --i-distance-matrix %s' % d1f
     cmd += ' --o-pcoa %s\n' % pcoa_out1
+
     cmd += '\nqiime diversity pcoa'
     cmd += ' --i-distance-matrix %s' % d2f
     cmd += ' --o-pcoa %s\n' % pcoa_out2
+
     cmd += '\nqiime diversity procrustes-analysis'
     cmd += ' --i-reference %s' % pcoa_out1
     cmd += ' --i-other %s' % pcoa_out2
     cmd += ' --o-disparity-results %s' % dis
     cmd += ' --o-transformed-reference %s' % ref_pcoa
     cmd += ' --o-transformed-other %s\n' % oth_pcoa
+
     cmd += '\nqiime emperor procrustes-plot'
     cmd += ' --i-reference-pcoa %s' % ref_pcoa
     cmd += ' --i-other-pcoa %s' % oth_pcoa
-    cmd += ' --m-metadata-file %s' % meta_me
+    cmd += ' --m-metadata-file %s' % meta_fp
     cmd += ' --o-visualization %s\n' % qzv
-    meta_out = '%s.tsv' % meta_fp
-    cmd += 'mv %s %s\n' % (meta_me, meta_out)
+
     cmd += run_export(dis, tsv, '')
     cmd += 'rm %s\n' % pcoa_out1
     cmd += 'rm %s\n' % pcoa_out2
@@ -1683,7 +1605,8 @@ def write_procrustes(
     cmd += 'rm %s\n' % d2f
     cmd += 'rm %s\n' % dis
     dat = '%s__%s' % (dat1, dat2)
-    io_update(self, i_f=[meta_me, d1, d2], o_f=[meta_out, qzv, tsv], key=dat)
+
+    io_update(self, i_f=[meta_fp, d1, d2], o_f=[qzv, tsv], key=dat)
 
     return cmd
 
@@ -1695,7 +1618,6 @@ def write_mantel(
         dat2: str,
         r2: str,
         meta_fp: str,
-        meta_met: str,
         d1: str,
         d2: str,
         d1f: str,
@@ -1713,7 +1635,6 @@ def write_mantel(
     dat2 : str
     r2 : str
     meta_fp
-    meta_met
     d1
     d2
     d1f
@@ -1726,13 +1647,15 @@ def write_mantel(
 
     """
     cmd = '\nqiime diversity filter-distance-matrix'
-    cmd += ' --m-metadata-file %s' % meta_met
+    cmd += ' --m-metadata-file %s' % meta_fp
     cmd += ' --i-distance-matrix %s' % d1
     cmd += ' --o-filtered-distance-matrix %s\n' % d1f
+
     cmd += '\nqiime diversity filter-distance-matrix'
-    cmd += ' --m-metadata-file %s' % meta_met
+    cmd += ' --m-metadata-file %s' % meta_fp
     cmd += ' --i-distance-matrix %s' % d2
     cmd += ' --o-filtered-distance-matrix %s\n' % d2f
+
     cmd += '\nqiime diversity mantel'
     cmd += ' --i-dm1 %s' % d1f
     cmd += ' --i-dm2 %s' % d2f
@@ -1740,14 +1663,12 @@ def write_mantel(
     cmd += ' --p-label1 %s' % (dat1 + r1)
     cmd += ' --p-label2 %s' % (dat2 + r2)
     cmd += ' --o-visualization %s\n' % qzv
+
     cmd += run_export(qzv, html, 'mantel')
     cmd += 'rm %s %s %s\n' % (qzv, d1f, d2f)
-    meta_out = '%s.tsv' % meta_fp
-    cmd += 'mv %s %s' % (meta_met, meta_out)
 
     dat = '%s__%s' % (dat1, dat2)
-    io_update(self, i_f=[meta_met, d1, d2], o_f=[meta_out, qzv, html], key=dat)
-
+    io_update(self, i_f=[meta_fp, d1, d2], o_f=[qzv, html], key=dat)
     return cmd
 
 

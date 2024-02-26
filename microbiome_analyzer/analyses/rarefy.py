@@ -16,7 +16,6 @@ np.set_printoptions(precision=2, suppress=True)
 def get_dat_depths(
         dat: str,
         depths_yml: dict,
-        folder: str,
         sam_sum: pd.Series) -> tuple:
     """
     Parameters
@@ -24,9 +23,7 @@ def get_dat_depths(
     dat : str
         Dataset name
     depths_yml : dist
-        Mapping Dataset nanme -> Depths at which to rarefy
-    folder : str
-        Path to the output folder
+        Mapping Dataset name -> Depths at which to rarefy
     sam_sum : pd.Series
         Sum of reads per sample
 
@@ -39,7 +36,7 @@ def get_dat_depths(
     """
     skip = False
     if not depths_yml:
-        depths = get_default_raref_depth(dat, folder, sam_sum)
+        depths = get_default_raref_depth(dat, sam_sum)
         depths_tuple = (0, depths)
     elif dat in depths_yml:
         skip, depths = get_depths(dat, depths_yml[dat], sam_sum)
@@ -52,15 +49,12 @@ def get_dat_depths(
 
 def get_default_raref_depth(
         dat: str,
-        folder: str,
         sam_sum: pd.Series):
     """
     Parameters
     ----------
     dat : str
         Dataset name
-    folder : str
-        Path to the output folder
     sam_sum : pd.Series
         Sum of reads per sample
 
@@ -69,23 +63,19 @@ def get_default_raref_depth(
     depths : list
         Rarefaction depths
     """
-    raref_files = glob.glob('%s/rarefy/%s/tab_raref*.qza' % (folder, dat))
-    if len(raref_files):
-        depths = [x.split('_raref')[-1].split('.tsv')[0] for x in raref_files]
+    second_quantile = sam_sum.quantile(0.2)
+    print_skew(dat, sam_sum)
+    if second_quantile < 1000:
+        depths = []
+        print_not_rarefying(dat, sam_sum)
     else:
-        second_quantile = sam_sum.quantile(0.2)
-        print_skew(dat, sam_sum)
-        if second_quantile < 1000:
-            depths = []
-            print_not_rarefying(dat, sam_sum)
-        else:
-            nfigure = len(str(int(second_quantile)))
-            second_quantile_to_round = second_quantile / (10 ** (nfigure - 2))
-            second_quantile_rounded = round(second_quantile_to_round) * (
-                        10 ** (nfigure - 2))
-            depths = [str(int(second_quantile_rounded))]
-            print('[%s] Proposed rarefaction depth: %s '
-                  '(second quantile)' % (dat, depths[0]))
+        nfigure = len(str(int(second_quantile)))
+        second_quantile_to_round = second_quantile / (10 ** (nfigure - 2))
+        second_quantile_rounded = round(second_quantile_to_round) * (
+                    10 ** (nfigure - 2))
+        depths = [str(int(second_quantile_rounded))]
+        print('[%s] Proposed rarefaction depth: %s '
+              '(second quantile)' % (dat, depths[0]))
     return depths
 
 

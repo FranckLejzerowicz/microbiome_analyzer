@@ -276,8 +276,8 @@ def run_taxonomy_amplicon(self, dat: str, data) -> str:
         io_update(self, i_f=out_tsv, o_f=out_qza, key=dat)
     else:
         odir_seqs = '%s/sequences/%s' % (self.dir, dat)
-        seqs_fasta = '%s/%s.fasta' % (odir_seqs, dat)
-        seqs_qza = '%s/%s.qza' % (odir_seqs, dat)
+        seqs_fasta = '%s/sequences.fasta' % odir_seqs
+        seqs_qza = '%s/sequences.qza' % odir_seqs
         if not isdir(rep(odir_seqs)):
             os.makedirs(rep(odir_seqs))
         if self.config.force or to_do(seqs_qza):

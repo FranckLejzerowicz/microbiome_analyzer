@@ -184,7 +184,7 @@ class DOC(object):
             for raref, qza in data.qza.items():
                 docs = {}
                 for cohort, (sams, variables) in data.subsets[raref].items():
-                    self.get_output(data.path, (cohort + '/R'))
+                    self.get_output(dat, (cohort + '/R'))
                     meta = '%s/meta.tsv' % self.out
                     new_qza = '%s/tab.qza' % self.out
                     new_tsv = '%s/tab.tsv' % self.out

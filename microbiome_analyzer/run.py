@@ -41,6 +41,12 @@ def runner(**kwargs):
     # if config.qemistree and 'qemistree' not in config.skip:
     #     analysis.run_qemistree()
 
+    # for dat, data in project.datasets.items():
+    #     print()
+    #     print(dat)
+    #     print(data.rarefs)
+    #     print(data.raref_depths)
+
     project.get_precomputed_taxonomy()
     if 'taxonomy' not in config.skip:
         analysis.taxonomy()
@@ -61,7 +67,10 @@ def runner(**kwargs):
         analysis.subset_features()
     if config.collapse and 'collapse' not in config.skip:
         analysis.collapse_taxa()
-    analysis.edits()
+
+    analysis.show_datasets()
+    analysis.make_edits()
+
     if 'alpha' not in config.skip:
         analysis.alpha()
         if 'alpha_correlations' not in config.skip:
@@ -90,8 +99,6 @@ def runner(**kwargs):
         analysis.beta()
         if 'rpca' not in config.skip:
             analysis.rpca()
-        if 'deicode' not in config.skip:
-            analysis.deicode()
         if 'pcoa' not in config.skip:
             analysis.pcoa()
         if 'tsne' not in config.skip:
