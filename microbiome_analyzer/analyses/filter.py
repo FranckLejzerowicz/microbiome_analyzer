@@ -53,8 +53,7 @@ def no_filtering(
     return skip
 
 
-def get_dat_filt(
-        dat: str,
+def get_filt(
         names: list,
         thresh_sam: int,
         thresh_feat: int) -> str:
@@ -63,8 +62,6 @@ def get_dat_filt(
 
     Parameters
     ----------
-    dat : str
-        Dataset name
     names : list
         Name for the threshold
     thresh_sam : int
@@ -74,26 +71,24 @@ def get_dat_filt(
 
     Returns
     -------
-    dat_filt : str
+    filt : str
         New dataset name for the filtered version
     """
-    dat_filt = []
+    filts = []
     if names:
-        dat_filt.append('%srm' % len(names))
+        filts.append('%srm' % len(names))
     if thresh_sam:
         if thresh_sam > 1:
-            dat_filt.append('minSam%s' % thresh_sam)
+            filts.append('sam%s' % thresh_sam)
         else:
-            dat_filt.append('minSam%s' % str(thresh_sam).replace('.', ''))
-
+            filts.append('sam%s' % str(thresh_sam).replace('.', ''))
     if thresh_feat:
         if thresh_feat > 1:
-            dat_filt.append('minFeat%s' % thresh_feat)
+            filts.append('feat%s' % thresh_feat)
         else:
-            dat_filt.append('minFeat%s' % str(thresh_feat).replace('.', ''))
-    dat_filt = '%s_%s' % (dat, '-'.join(dat_filt))
-    # dat_filt = '%s/%s' % (dat, '-'.join(dat_filt))
-    return dat_filt
+            filts.append('feat%s' % str(thresh_feat).replace('.', ''))
+    filt = '-'.join(filts)
+    return filt
 
 
 def filtering_names(
