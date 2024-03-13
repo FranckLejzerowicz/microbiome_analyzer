@@ -16,10 +16,7 @@ from biom import load_table
 from microbiome_analyzer.core.metadata import get_sample_subset
 from microbiome_analyzer._inputs import read_meta_pd
 from microbiome_analyzer._scratch import to_do, rep
-from microbiome_analyzer._io_utils import (
-    convert_to_biom,
-    check_features,
-)
+from microbiome_analyzer._io_utils import convert_to_biom, check_features
 from microbiome_analyzer.analyses.rarefy import get_dat_depths, get_digit_depth
 from microbiome_analyzer.analyses.taxonomy import (
     get_tax_tables, parse_split_taxonomy, edit_split_taxonomy)
@@ -243,7 +240,7 @@ class Datasets(object):
         for dataset_, data in self.datasets.items():
             dataset = self._get_filt_raw(dataset_)
             self.set_key_dir('taxonomy', dataset)
-            tax_qza = '%s/%s.qza' % (self.key_dir, dataset)
+            tax_qza = '%s/taxonomy.qza' % self.key_dir
             tax_tsv = '%s.tsv' % splitext(tax_qza)[0]
             if not to_do(tax_tsv) and not to_do(tax_qza):
                 data.tax = ['', tax_qza, tax_tsv]
