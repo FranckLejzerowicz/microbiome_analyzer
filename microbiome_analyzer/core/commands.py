@@ -1120,7 +1120,7 @@ def write_biplot(
     cmd += '\nqiime feature-table filter-samples'
     cmd += ' --i-table %s' % tab_rel_qza_tmp
     cmd += ' --p-filter-empty-features'
-    cmd += ' --m-metadata-file %s.tsv' % meta
+    cmd += ' --m-metadata-file %s' % meta
     cmd += ' --o-filtered-table %s\n\n' % tab_rel_qza
 
     cmd += 'qiime diversity pcoa-biplot'
