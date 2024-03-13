@@ -287,9 +287,6 @@ class AnalysisPrep(object):
         self.project.set_tree_paths()
         if len(Data.wols):
             wol_tree, wol_tree_cmd = get_wol_tree(self.config.wol_tree)
-            # if wol_tree_cmd:
-            #     self.cmds.setdefault(dat, []).append(cmd)
-            #     io_update(self, i_f=self.config.wol_tree, o_f=wol_tree, key=dat)
             wol = TreeNode.read(wol_tree)
             for dat, data in self.project.datasets.items():
                 if dat in Datasets.filt_raw:
