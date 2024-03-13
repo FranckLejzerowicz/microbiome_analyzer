@@ -82,7 +82,6 @@ class DiffModels(object):
     def get_songbird_params(self):
         params = {
             'train': ['0.7'],
-            'examples': ['0.7'],
             'batches': ['2'],
             'learns': ['1e-4'],
             'epochs': ['5000'],
@@ -110,7 +109,6 @@ class DiffModels(object):
             '0_0': dict((is_mb[dat], ['0', '0']) for dat in models.keys())}
         if 'filtering' not in self.config.diff_models:
             pass
-            # print('No filtering config in %s\n:' % self.config.diff_models)
         else:
             if 'global' in self.config.diff_models['filtering']:
                 for fname, p_a in self.config.diff_models[
@@ -153,8 +151,6 @@ class DiffModels(object):
                 subsets_fp, columns=['dataset', 'subset', 'subsets', 'pair'])
             self.songbirds = self.songbirds.merge(
                 subsets, on=['dataset'], how='outer')
-            # print(subsets)
-            # print(subsetsd)
 
     def get_songbirds_filts(self):
         filts_df = []
@@ -288,11 +284,6 @@ class DiffModels(object):
                 meta_subset_cols = set(meta_subset.columns)
                 for train_col, train_samples in train_tests.items():
                     if train_col not in meta_subset_cols:
-                        print()
-                        print(dat)
-                        print(tsv)
-                        print(qza)
-                        print(train_col)
                         rewrite = True
                         meta_subset[train_col] = [
                             'Train' if x in set(train_samples) else
@@ -319,74 +310,53 @@ class DiffModels(object):
         return params_pd
 
     @staticmethod
-    def print_message_or_not(mess, m):
-        if m not in mess:
-            mess.add(m)
+    def print_message_or_not(messages, mess):
+        if mess not in messages:
+            messages.add(mess)
 
-    def process_params_combinations(
+    def get_train_example(
             self,
-            dataset: str,
             meta_pd: pd.DataFrame,
-            params_pd: pd.DataFrame,
-            mess: set):
-        """Filter the combinations of parameters too remove
-        those involving unusable train/test splits, e.g. not
-        having the specified or too few samples therein.
+            params: pd.Series):
+        """Get the number of examples or the "Train/Test" metadata variable
+        to use for training, or if the given value for any is not allow, give
+        an explicit error message to print before skipping.
 
         Parameters
         ----------
-        dataset : str
-            Dataset
         meta_pd : pd.DataFrame
             Dataset metadata table.
-        params_pd : pd.DataFrame
+        params : pd.Series
             Combinations of parameters (rows)
-        mess : set
-            Messages to print
+
+        Returns
+        -------
+        mess : str
+            Error message indicating that the model is skipped (none by default)
         """
-        examples = []
-        valid_params = []
-        nsams = meta_pd.shape[0]
-        meta_cols = meta_pd.columns
-        for p, params in params_pd.iterrows():
-            train = params['train']
-            if train.replace('.', '').isdigit():
-                if float(train) < 0.1:
-                    valid_params.append(p)
-                    m = '[songbird] "%s": %s %s for training is too low' % (
-                        dataset, float(train) * 100, '%')
-                    self.print_message_or_not(mess, m)
-                elif float(train) > 0.95:
-                    valid_params.append(p)
-                    m = '[songbird] "%s": %s %s for training is too high' % (
-                        dataset, float(train) * 100, '%')
-                    self.print_message_or_not(mess, m)
-                else:
-                    examples.append(int(nsams * (1 - float(train))))
+        ns = meta_pd.shape[0]
+        cols = set(meta_pd.columns)
+        mess = ''
+        t = params['train']
+        if t.replace('.', '').isdigit():
+            if float(t) < 0.1:
+                mess = '%s %s for training is too low' % (float(t) * 100, '%')
+            elif float(t) > 0.95:
+                mess = '%s %s for training is too high' % (float(t) * 100, '%')
             else:
-                if train not in set(meta_cols):
-                    valid_params.append(p)
-                    m = '[songbird] Training column "%s" not in metadata' % (
-                        train)
-                    self.print_message_or_not(mess, m)
+                params['examples'] = int(ns * (1 - float(t)))
+        else:
+            if t not in set(cols):
+                mess = 'Training column "%s" not in metadata' % t
+            else:
+                vc = meta_pd[t].value_counts()
+                if {'Train', 'Test'}.issubset(set(vc.index)):
+                    nt = vc['Train']
+                    if ns < (1.2 * nt):
+                        mess = '%s samples for %s training samples:' % (ns, nt)
                 else:
-                    train_vc = meta_pd[train].value_counts()
-                    if {'Train', 'Test'}.issubset(set(train_vc.index)):
-                        ntrain = train_vc['Train']
-                        if nsams < (1.2 * ntrain):
-                            valid_params.append(p)
-                            m = '[songbird] "%s": %s samples for %s training ' \
-                                'samples:' % (dataset, nsams, ntrain)
-                            self.print_message_or_not(mess, m)
-                    else:
-                        valid_params.append(p)
-                        m = '[songbird] "%s": no TrainTest in column "%s"' % (
-                            dataset, train)
-                        self.print_message_or_not(mess, m)
-        if valid_params:
-            params_pd.drop(index=valid_params, inplace=True)
-        if examples:
-            params_pd['examples'] = examples
+                    mess = 'No TrainTest in column "%s"' % t
+        return mess
 
     @staticmethod
     def get_filt_params(params):
@@ -448,7 +418,7 @@ class DiffModels(object):
         Parameters
         ----------
         odir : str
-            Output dierctory for a mmvec model/null pair.
+            Output directory for a mmvec model/null pair.
         model_null : str
             "model" or null""
 
@@ -712,10 +682,10 @@ class DiffModels(object):
             models[model] = (formula, variables)
         return models
 
-    def show_models_issues(self, mess):
-        if mess:
-            for m in sorted(mess):
-                print(m)
+    def show_models_issues(self, messages):
+        if messages:
+            for mess in sorted(messages):
+                print(mess)
 
         if self.models_issues['var']:
             print('\n## [songbird] Variables(s) missing in metadata:')
@@ -767,7 +737,7 @@ class DiffModels(object):
         parameters and collect the output info for potential reuse in figure
         generation and post-analysis.
         """
-        mess = set()
+        messages = set()
         songbird = []
         self.analysis = 'songbird'
         params_pd = self.get_params_combinations()
@@ -780,13 +750,11 @@ class DiffModels(object):
             meta_pd = read_meta_pd(rep(meta_fp))
             models = self.check_metadata_models(
                 meta_fp, meta_pd, self.songbird_models[dat])
-            print()
-            print('------------ MODELS -------------')
-            print()
-            print(models)
-            row_params_pd = params_pd.copy()
-            self.process_params_combinations(dat, meta_pd, row_params_pd, mess)
-            for p, params in row_params_pd.iterrows():
+            for p, params in params_pd.iterrows():
+                mess = self.get_train_example(meta_pd, params)
+                if mess:
+                    self.print_message_or_not(messages, mess)
+                    continue
                 filt_list, params_list = self.get_filt_params(params)
                 baselines, model_baselines = {}, {'1': '1'}
                 for model, (formula, variables) in models.items():
@@ -818,7 +786,7 @@ class DiffModels(object):
                             self.bcmds.setdefault(dat, []).append(bcmd)
         if songbird:
             self.get_songbird_pd(songbird)
-        self.show_models_issues(mess)
+        self.show_models_issues(messages)
 
         self.analysis = 'songbird_filter'
         self.register_io_command()
