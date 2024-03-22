@@ -7,11 +7,14 @@
 # ----------------------------------------------------------------------------
 
 import biom
+import pkg_resources
 import pandas as pd
 from os.path import basename, dirname, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
 from microbiome_analyzer._scratch import io_update, to_do, rep
+RESOURCES = pkg_resources.resource_filename(
+    "microbiome_analyzer", "resources/python_scripts")
 
 
 def run_summary(
@@ -739,8 +742,8 @@ def write_alpha_rarefaction(
 def write_volatility(
         meta: str,
         qzv: str,
-        timepoint: str,
-        host: str
+        time_subj: dict,
+        ctf: bool=False
 ) -> str:
     """
     Generate an interactive control chart depicting the longitudinal
@@ -755,22 +758,14 @@ def write_volatility(
     typically be a measure of time, but any numeric metadata column can be
     used.
     https://docs.qiime2.org/2019.10/plugins/available/longitudinal/volatility/
-
-    Parameters
-    ----------
-    meta
-    qzv
-    timepoint
-    host
-
-    Returns
-    -------
-
     """
     cmd = 'qiime longitudinal volatility'
     cmd += ' --m-metadata-file %s' % meta
-    cmd += ' --p-state-column "%s"' % timepoint
-    cmd += ' --p-individual-id-column "%s"' % host
+    cmd += ' --p-state-column "%s"' % time_subj['time']
+    if ctf:
+        cmd += ' --p-individual-id-column "subject_id"'
+    else:
+        cmd += ' --p-individual-id-column "%s"' % time_subj['subject']
     cmd += ' --o-visualization %s\n' % qzv
     return cmd
 
@@ -837,6 +832,180 @@ def write_beta(
         cmd += ' --o-distance-matrix %s\n' % dm_qza
         io_update(self, i_f=i_f, o_f=dm_qza, key=dat)
     return cmd
+
+
+def write_ctf(
+        self,
+        dat: str,
+        time_subj: dict,
+        qza: str,
+        meta: str,
+        tax_filt: str,
+        new_qza: str,
+        out_qza: str,
+        sam_traj: str,
+        fea_traj: str,
+        sub_ordi: str,
+        sta_ordi: str,
+        sub_qzv: str,
+        sta_qzv: str,
+        dm: str,
+        tree_qza: str,
+        table: str,
+        taxon: str,
+        qurro: str,
+        data,
+) -> str:
+    """
+    Gemelli is a tool box for running Robust Aitchison PCA (RPCA),
+    Joint Robust Aitchison PCA (Joint-RPCA), TEMPoral TEnsor Decomposition (
+    TEMPTED), and Compositional Tensor Factorization (CTF) on sparse
+    compositional omics datasets.
+    https://github.com/biocore/gemelli
+    """
+    params = self.config.run_params['ctf']
+    phylo = data.phylo
+    tree = data.tree
+    tax = data.tax
+
+    i_f, o_f = [meta], []
+    cmd, cmd_filt, cmd_exp = '', '', ''
+
+    is_phylo = False
+    qza_in = qza
+    if phylo[0] and tree[1] and not to_do(tree[1]):
+        is_phylo = True
+        cmd += 'qiime gemelli phylogenetic-ctf-with-taxonomy'
+        if tree[0]:
+            qza_in = tree[0]
+        cmd += ' --i-phylogeny %s' % tree[1]
+        cmd += ' --m-taxonomy-file %s' % tax_filt
+        cmd += ' --o-counts-by-node-tree %s' % tree_qza
+        cmd += ' --o-counts-by-node %s' % table
+        cmd += ' --o-t2t-taxonomy %s' % taxon
+        cmd += ' --o-subject-table %s' % out_qza
+        cmd += ' --p-min-depth %s' % params['min_depth']
+        tree_nwk = '%s.nwk' % splitext(tree_qza)[0]
+        cmd_exp += run_export(tree_qza, tree_nwk, 'phylogeny')
+        out_tsv = '%s.tsv' % splitext(out_qza)[0]
+        cmd_exp += run_export(out_qza, out_tsv, "FeatureTable")
+        i_f.extend([tree[1], tax[1]])
+        o_f.extend([tree_qza, tree_nwk, table, taxon, out_qza, out_tsv])
+    else:
+        cmd += 'qiime gemelli ctf'
+        cmd += ' --m-feature-metadata-file %s' % tax_filt
+
+    i_f.append(qza_in)
+    cmd += ' --i-table %s' % new_qza
+    cmd += ' --m-sample-metadata-file %s' % meta
+    cmd += ' --p-individual-id-column "%s"' % time_subj['subject']
+    cmd += ' --p-state-column "%s"' % time_subj['time']
+    cmd += ' --p-n-components %s' % params['n_components']
+    cmd += ' --p-min-sample-count %s' % params['min_sample_count']
+    cmd += ' --p-min-feature-count %s' % params['min_feature_count']
+    cmd += ' --p-min-feature-frequency %s' % params['min_feature_frequency']
+    cmd += ' --p-max-iterations-als %s' % params['max_iterations_als']
+    cmd += ' --p-max-iterations-rptm %s' % params['max_iterations_rptm']
+    cmd += ' --p-n-initializations %s' % params['n_initializations']
+    cmd += ' --o-subject-biplot %s' % sub_ordi
+    cmd += ' --o-state-biplot %s' % sta_ordi
+    cmd += ' --o-state-subject-ordination %s' % sam_traj
+    cmd += ' --o-state-feature-ordination %s' % fea_traj
+    cmd += ' --o-distance-matrix %s\n' % dm
+
+    dm_tsv = dm.replace('.qza', '.tsv')
+    sub_ordi_tsv = sub_ordi.replace('.qza', '.txt')
+    sta_ordi_tsv = sta_ordi.replace('.qza', '.txt')
+    if to_do(sub_ordi) or to_do(sta_ordi):
+        # export distance matrix
+        cmd += run_export(dm, dm_tsv)
+        # export ordination
+        cmd += run_export(sub_ordi, sub_ordi_tsv, 'pcoa')
+        cmd += run_export(sta_ordi, sta_ordi_tsv, 'pcoa')
+        if cmd_exp:
+            cmd += cmd_exp
+        o_f.extend([sub_ordi, sub_ordi_tsv, sta_ordi, sta_ordi_tsv,
+                    sam_traj, fea_traj, dm, dm_tsv])
+    else:
+        i_f.extend([sub_ordi, sta_ordi])
+        o_f.extend([sub_qzv, sta_qzv])
+        cmd = ''
+    io_update(self, i_f=i_f, o_f=o_f, key=dat)
+
+    subject = time_subj['subject'].replace(' ', '_').replace('/', '_')
+    sub_meta = '%s_%s.tsv' % (splitext(meta)[0], subject)
+    cmd += 'python3 %s/groupby_metadata.py' % RESOURCES
+    cmd += ' -i %s' % meta
+    cmd += ' -o %s' % sub_meta
+    cmd += ' -c "%s"' % time_subj['subject']
+    cmd += ' -g first\n'
+
+    # if self.config.jobs:
+    #     cmd += 'rm %s %s\n\n' % (meta, new_qza)
+
+    rm_cmd, feat_metas = '', []
+    if data.feat_meta:
+        nid = sub_ordi_tsv + '.nID.txt'
+        cmd += 'grep "^n[0-9]*\\t" %s | cut -f1 > %s\n' % (sub_ordi_tsv, nid)
+        for feat_meta in data.feat_meta:
+            cmd += 'cat %s %s > %s.nID.tsv\n' % (feat_meta, nid, feat_meta)
+            rm_cmd += 'rm %s.nID.tsv\n' % feat_meta
+            feat_metas.append('%s.nID.tsv' % feat_meta)
+
+    # Emperor / Empress
+    if is_phylo:
+        cmd += 'qiime empress community-plot'
+        cmd += ' --i-tree %s' % tree_qza
+        cmd += ' --i-feature-table %s' % out_qza
+        cmd += ' --i-pcoa %s' % sub_ordi
+        cmd += ' --m-feature-metadata-file %s' % taxon
+        cmd += ' --p-filter-missing-features'
+        cmd += ' --p-ignore-missing-samples'
+    else:
+        cmd += 'qiime emperor biplot'
+        cmd += ' --i-biplot %s' % sub_ordi
+        cmd += ' --m-feature-metadata-file %s' % tax[1]
+    for feat_meta in feat_metas:
+        cmd += ' --m-feature-metadata-file %s' % feat_meta
+    cmd += ' --p-number-of-features %s' % params['number_of_features']
+    cmd += ' --m-sample-metadata-file %s' % sub_meta
+    cmd += ' --o-visualization %s\n\n' % sub_qzv
+
+    # Add filtering upfront
+    cmd_final = 'qiime feature-table filter-samples'
+    cmd_final += ' --i-table %s' % qza_in
+    cmd_final += ' --p-min-frequency 1'
+    cmd_final += ' --p-filter-empty-features'
+    cmd_final += ' --m-metadata-file %s' % meta
+    cmd_final += ' --o-filtered-table %s\n\n' % new_qza
+
+    cmd_final += 'python3 %s/filter_taxonomy.py' % RESOURCES
+    cmd_final += ' -i %s' % tax[1]
+    cmd_final += ' -o %s' % tax_filt
+    cmd_final += ' -t %s\n' % qza_in
+
+    cmd_final += cmd
+    cmd_final += rm_cmd
+
+    cmd_final += 'qiime qurro loading-plot'
+    cmd_final += ' --i-ranks %s' % sub_ordi
+    if phylo[0] and tree[1] and not to_do(tree[1]):
+        cmd_final += ' --i-table %s' % table
+        cmd_final += ' --m-feature-metadata-file %s' % taxon
+    else:
+        cmd_final += ' --i-table %s' % new_qza
+        cmd_final += ' --m-feature-metadata-file %s' % tax[1]
+    for feat_meta in feat_metas:
+        cmd += ' --m-feature-metadata-file %s' % feat_meta
+    cmd_final += ' --m-sample-metadata-file %s' % meta
+    cmd_final += ' --o-visualization %s\n' % qurro
+
+    if self.config.jobs:
+        cmd_final += 'rm -rf $TMPDIR\n'
+
+    io_update(self, i_f=[qza_in, meta], o_f=qurro, key=dat)
+
+    return cmd_final
 
 
 def write_rpca(
@@ -1268,6 +1437,11 @@ def write_empress(
     cmd += 'qiime empress community-plot'
     cmd += ' --i-tree %s' % tree[1]
     cmd += ' --i-pcoa %s' % pcoa_biplot
+    # ================================
+    # ================================
+    #        if gemelli table
+    # ================================
+    # ================================
     if tree[0]:
         cmd += ' --i-feature-table %s' % tree[0]
         i_f.append(tree[0])

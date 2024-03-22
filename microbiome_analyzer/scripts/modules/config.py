@@ -17,90 +17,93 @@ from microbiome_analyzer import __version__
     "-i", "--analysis-folder", required=True,
     help="Path to the folder containing the data and metadata sub-folders")
 @click.option(
-    "-o", "--configs-folder", required=True,
-    help="Path to the folder to contain the config files")
-@click.option(
     "-d", "--datasets", multiple=True, required=True,
     help="Dataset(s) identifier(s). Multiple is possible: e.g. "
          "-d dataset_number_1 and -d dataset_number_2 for "
-         "'tab_dataset_number_1.tsv' and tab_dataset_number_2.tsv'")
-@click.option(
-    "--filter/--no-filter", default=False,
-    help="Prepare a template configuration file for `--filter`")
-@click.option(
-    "--rarefy/--no-rarefy", default=False,
-    help="Prepare a template configuration file for `--rarefy`")
-@click.option(
-    "--feature-subsets/--no-feature-subsets", default=False,
-    help="Prepare a template configuration file for `--feature-subsets`")
-@click.option(
-    "--sample-subsets/--no-sample-subsets", default=False,
-    help="Prepare a template configuration file for `--sample-subsets`")
-@click.option(
-    "--adonis/--no-adonis", default=False,
-    help="Prepare a template configuration file for `--adonis`")
-@click.option(
-    "--nestedness/--no-nestedness", default=False,
-    help="Prepare a template configuration file for `--nestedness`")
-@click.option(
-    "--procrustes/--no-procrustes", default=False,
-    help="Prepare a template configuration file for `--procrustes`")
-@click.option(
-    "--mantel/--no-mantel", default=False,
-    help="Prepare a template configuration file for `--mantel`")
-@click.option(
-    "--dm-decay/--no-dm-decay", default=False,
-    help="Prepare a template configuration file for `--dm-decay`")
-@click.option(
-    "--geo-decay/--no-geo-decay", default=False,
-    help="Prepare a template configuration file for `--geo-decay`")
-@click.option(
-    "--collapse/--no-collapse", default=False,
-    help="Prepare a template configuration file for `--collapse`")
-@click.option(
-    "--train-test/--notrain-test-", default=False,
-    help="Prepare a template configuration file for `--train-test`")
-@click.option(
-    "--phate/--no-phate", default=False,
-    help="Prepare a template configuration file for `--phate`")
-@click.option(
-    "--sourcetracking/--no-sourcetracking", default=False,
-    help="Prepare a template configuration file for `--sourcetracking`")
-@click.option(
-    "--doc/--no-doc", default=False,
-    help="Prepare a template configuration file for `--doc`")
-@click.option(
-    "--xmmvec/--no-xmmvec", default=False,
-    help="Prepare a template configuration file for `--xmmvec`")
-@click.option(
-    "--mmvec-highlights/--no-mmvec-highlights", default=False,
-    help="Prepare a template configuration file for `--mmvec-highlights`")
-@click.option(
-    "--mmvec-pairs/--no-mmvec-pairs", default=False,
-    help="Prepare a template configuration file for `--mmvec-pairs`")
-@click.option(
-    "--diff-models/--no-diff-models", default=False,
-    help="Prepare a template configuration file for `--diff-models`")
-@click.option(
-    "--filt3d/--no-filt3d", default=False,
-    help="Prepare a template configuration file for `--filt3d`")
+         "'table.tsv' and table.tsv'")
 @click.option(
     "--all-datasets/--no-all-datasets", default=False,
-    help="Setup all template configuration files once for all datasets")
+    help="Set configurations once for all datasets")
+@click.option(
+    "--all-configs/--no-all-configs", default=False,
+    help="Go through the preparation of all configurations one by one")
+@click.option(
+    "--filtering/--no-filtering", default=False,
+    help="Specify the sample/feature filtering parameters (for `--filtering`)")
+@click.option(
+    "--rarefy/--no-rarefy", default=False,
+    help="Specify the rarefaction levels (for `--rarefy`)")
+@click.option(
+    "--feature-subsets/--no-feature-subsets", default=False,
+    help="Specify the terms/regex to subset features (for `--feature-subsets`)")
+@click.option(
+    "--sample-subsets/--no-sample-subsets", default=False,
+    help="Specify variables/factors to subset samples (for `--sample-subsets`)")
+@click.option(
+    "--time-subject/--no-time-subject", default=False,
+    help="Specify variables for time and subject (for CTF/longitudinal)")
+@click.option(
+    "--permanova/--no-permanova", default=False,
+    help="Specify variables for statistical comparisons (for `--permanova`)")
+@click.option(
+    "--adonis/--no-adonis", default=False,
+    help="Specify models to make variance partitioning tests (for `--adonis`)")
+@click.option(
+    "--nestedness/--no-nestedness", default=False,
+    help="Specify variables/params for nestedness testing (for `--nestedness`)")
+@click.option(
+    "--pairs/--no-pairs", default=False,
+    help="Specify datasets pairs (for `--procrustes` and `--mantel`)")
+@click.option(
+    "--dm-decay/--no-dm-decay", default=False,
+    help="Specify params for beta distance decay analysis (for `--dm-decay`)")
+@click.option(
+    "--geo-decay/--no-geo-decay", default=False,
+    help="Specify params for beta vs geo distances decay (for `--geo-decay`)")
+@click.option(
+    "--collapse/--no-collapse", default=False,
+    help="Specify taxonomic levels to collapse feature to (for `--collapse`)")
+@click.option(
+    "--train-test/--no-train-test", default=False,
+    help="Specify variables for train/test stratification (for `--train-test`)")
+@click.option(
+    "--phate/--no-phate", default=False,
+    help="Specify params for PHATE dimensionality reduction (for `--phate`)")
+@click.option(
+    "--sourcetracking/--no-sourcetracking", default=False,
+    help="Specify source/sink in sourcetracker2/FEAST (for `--sourcetracking`)")
+@click.option(
+    "--doc/--no-doc", default=False,
+    help="Specify params to fit the Dissimilarity-Overlab Curves (for `--doc`)")
+@click.option(
+    "--xmmvec/--no-xmmvec", default=False,
+    help="Specify variables to plot conditional proba heatmap (for `--xmmvec`)")
+@click.option(
+    "--mmvec-highlights/--no-mmvec-highlights", default=False,
+    help="Specify variables to highlight on biplots (for `--mmvec-highlights`)")
+@click.option(
+    "--mmvec-pairs/--no-mmvec-pairs", default=False,
+    help="Specify MMVEC dataset pairs, subsets, filters (for `--mmvec-pairs`)")
+@click.option(
+    "--diff-abund/--no-diff-abund", default=False,
+    help="Specify formulas, baselines, subsets (for `--diff-abund`)")
+@click.option(
+    "--filt3d/--no-filt3d", default=False,
+    help="Prepare a configuration file (for `--filt3d`)")
 @click.version_option(__version__, prog_name="microbiome_analyzer")
 
 def config(
         analysis_folder,
-        configs_folder,
         datasets,
-        filter,
+        filtering,
         rarefy,
         feature_subsets,
         sample_subsets,
+        time_subject,
+        permanova,
         adonis,
         nestedness,
-        procrustes,
-        mantel,
+        pairs,
         dm_decay,
         geo_decay,
         collapse,
@@ -111,23 +114,24 @@ def config(
         xmmvec,
         mmvec_highlights,
         mmvec_pairs,
-        diff_models,
+        diff_abund,
         filt3d,
-        all_datasets
+        all_datasets,
+        all_configs
 ):
-    """Write template config files for different analyses."""
+    """Write configuration files for different analyses:"""
     configure(
         analysis_folder=analysis_folder,
-        configs_folder=configs_folder,
         datasets=datasets,
-        filtering=filter,
+        filtering=filtering,
         rarefactions=rarefy,
         feature_subsets=feature_subsets,
         sample_subsets=sample_subsets,
+        time_subject=time_subject,
+        permanova=permanova,
         adonis=adonis,
         nestedness=nestedness,
-        procrustes=procrustes,
-        mantel=mantel,
+        pairs=pairs,
         dm_decay=dm_decay,
         geo_decay=geo_decay,
         collapse=collapse,
@@ -138,7 +142,8 @@ def config(
         xmmvec=xmmvec,
         mmvec_highlights=mmvec_highlights,
         mmvec_pairs=mmvec_pairs,
-        diff_models=diff_models,
+        diff_abund=diff_abund,
         filt3d=filt3d,
-        all_datasets=all_datasets
+        all_datasets=all_datasets,
+        all_configs=all_configs
     )

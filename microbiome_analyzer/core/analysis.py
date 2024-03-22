@@ -21,7 +21,7 @@ from microbiome_analyzer.core.commands import (
     write_collapse, write_sepp, write_alpha, write_feat_filter,
     write_barplots, write_krona, write_tabulate, write_alpha_correlation,
     write_alpha_rarefaction, write_volatility, write_beta, write_rpca,
-    write_pcoa, write_biplot, write_emperor,  write_emperor_biplot,
+    write_ctf, write_pcoa, write_biplot, write_emperor,  write_emperor_biplot,
     write_empress, write_permanova_permdisp, write_adonis, write_tsne,
     write_umap, write_procrustes, write_mantel, write_phate,
     write_sourcetracking)
@@ -695,11 +695,6 @@ class AnalysisPrep(object):
         self.analysis = 'alpha_rarefaction'
         for dat, data in self.project.datasets.items():
             self.get_output(dat)
-            print()
-            print()
-            print()
-            print(dat)
-            print(data.path)
             for raref, alphas in data.alpha.items():
                 for (qza, tab, m) in alphas:
                     if to_do(qza):
@@ -710,24 +705,6 @@ class AnalysisPrep(object):
                             self, dat, tab, qzv, m, raref, data)
                         self.register_provenance(dat, (qzv,), cmd)
                         self.cmds.setdefault(dat, []).append(cmd)
-        self.register_io_command()
-
-    def volatility(self):
-        self.analysis = 'volatility'
-        host = 'host_subject_id'  # this is subject to change
-        for dat, data in self.project.datasets.items():
-            if dat != data.source:
-                continue
-            self.get_output(dat)
-            if self.config.longi_column not in set(data.metadata.columns):
-                continue
-            qzv = '%s/volatility.qzv' % self.out
-            if self.config.force or to_do(qzv):
-                cmd = write_volatility(
-                    data.meta, qzv, self.config.longi_column, host)
-                self.register_provenance(dat, (qzv,), cmd)
-                self.cmds.setdefault(dat, []).append(cmd)
-                io_update(self, i_f=data.meta, o_f=qzv, key=dat)
         self.register_io_command()
 
     def beta(self):
@@ -758,13 +735,13 @@ class AnalysisPrep(object):
                 data.beta[raref] = betas
         self.register_io_command()
 
-    def check_testing(self, data, cohort, sams, n=4) -> list:
+    def check_testing(self, dat_tests, data, cohort, sams, n=4) -> list:
         tests = []
         meta = data.metadata.copy()
         meta = meta.loc[meta.sample_name.isin(sams)]
         columns = set(meta.columns)
         message = '[%s] %s (subset "%s")' % (self.analysis, data.source, cohort)
-        for test in self.config.tests:
+        for test in dat_tests:
             if test not in columns:
                 self.messages.add('%s has no variable %s' % (message, test))
                 continue
@@ -788,10 +765,13 @@ class AnalysisPrep(object):
     def permanova(self):
         self.analysis = 'permanova'
         for dat, data in self.project.datasets.items():
+            if dat not in self.config.permanova:
+                continue
+            dat_tests = self.config.permanova[dat]
             for raref, dms_metrics in data.beta.items():
                 perms = {}
                 for cohort, (sams, variables) in data.subsets[raref].items():
-                    tests = self.check_testing(data, cohort, sams, 4)
+                    tests = self.check_testing(dat_tests, data, cohort, sams, 4)
                     if tests:
                         self.get_output(dat, cohort)
                     for test in tests:
@@ -827,9 +807,6 @@ class AnalysisPrep(object):
         self.register_io_command()
         for message in sorted(self.messages):
             print(message)
-
-    def permanova_r(self):
-        self.analysis = 'permanova_r'
 
     def get_models_stratas(self):
         strata = ''
@@ -931,33 +908,98 @@ class AnalysisPrep(object):
                 data.beta[raref].extend(betas)
         self.register_io_command()
 
-    # def deicode(self):
-    #     self.analysis = 'deicode'
-    #     for dat, data in self.project.datasets.items():
-    #         for raref, qza in data.qza.items():
-    #             # rpcas = {}
-    #             if to_do(qza):
-    #                 continue
-    #             for cohort, (sams, variables) in data.subsets[raref].items():
-    #                 self.get_output(data.path, cohort)
-    #                 qzv = '%s/biplot%s.qzv' % (self.out, raref)
-    #                 ordi = '%s/ordination%s.qza' % (self.out, raref)
-    #                 ordi_tsv = '%s.tsv' % splitext(ordi)[0]
-    #                 make_fp_dir(qzv)
-    #                 # rpcas[cohort] = ordi_tsv
-    #                 if self.config.force or to_do(qzv):
-    #                     meta_pd = subset_meta(data.metadata, sams, variables)
-    #                     meta = '%s/meta%s.tsv' % (self.out, raref)
-    #                     meta_pd.to_csv(rep(meta), index=False, sep='\t')
-    #                     dm_qza = '%s/dm%s.qza' % (self.out, raref)
-    #                     new_qza = '%s/tab%s.qza' % (self.out, raref)
-    #                     cmd = write_deicode(
-    #                         self, dat, qza, meta, new_qza, ordi, ordi_tsv,
-    #                         dm_qza, qzv)
-    #                     self.register_provenance(dat, (ordi, qza,), cmd)
-    #                     self.cmds.setdefault(dat, []).append(cmd)
-    #             # data.rpca[raref] = rpcas
-    #     self.register_io_command()
+    def ctf(self):
+        self.analysis = 'ctf'
+        for dat, data in self.project.datasets.items():
+            if dat not in self.config.time_subject:
+                continue
+            time_subj = self.config.time_subject[dat]
+            ts = '-'.join(map(str, [time_subj['time'], time_subj['subject']]))
+            is_phylo = False
+            if data.phylo[0] and data.tree[1] and not to_do(data.tree[1]):
+                is_phylo = True
+            for raref, qza in data.qza.items():
+                ctfs = {}
+                betas = []
+                if to_do(qza):
+                    continue
+                for cohort, (sams, variables_) in data.subsets[raref].items():
+                    variables = list(set(variables_ + list(time_subj.values())))
+                    self.get_output(data.path, '%s/%s' % (cohort, ts))
+                    tax_filt = '%s/taxonomy%s.qza' % (self.out, raref)
+                    sam_traj = '%s/sample-trajectory%s.qza' % (self.out, raref)
+                    fea_traj = '%s/feature-trajectory%s.qza' % (self.out, raref)
+                    sub_ordi = '%s/subject-ordination%s.qza' % (self.out, raref)
+                    sta_ordi = '%s/state-ordination%s.qza' % (self.out, raref)
+                    out_qza = '%s/subject-table%s.qza' % (self.out, raref)
+                    sub_qzv = '%s.qzv' % splitext(sub_ordi)[0]
+                    sta_qzv = '%s.qzv' % splitext(sta_ordi)[0]
+                    qurro = '%s/subject-qurro%s.qzv' % (self.out, raref)
+                    make_fp_dir(qurro)
+                    metric = 'ctf'
+                    if is_phylo:
+                        metric = 'phylo_ctf'
+                        sub_qzv = '%s_wtree.qzv' % splitext(sub_qzv)[0]
+                        sta_qzv = '%s_wtree.qzv' % splitext(sta_qzv)[0]
+                    dm = '%s/dm_%s%s.qza' % (self.out, metric, raref)
+                    dm_tsv = '%s.tsv' % splitext(dm)[0]
+                    if cohort == 'ALL':
+                        betas.append([dm, dm_tsv, metric])
+                    tree = '%s/phylo-tree%s.qza' % (self.out, raref)
+                    table = '%s/phylo-table%s.qza' % (self.out, raref)
+                    taxon = '%s/phylo-taxonomy%s.qza' % (self.out, raref)
+                    meta = '%s/meta%s.tsv' % (self.out, raref)
+                    ctfs[cohort] = [sam_traj, fea_traj, sub_ordi, sta_ordi,
+                                    dm, tree, table, taxon, meta]
+                    if self.config.force or to_do(sub_qzv) or to_do(qurro):
+                        meta_pd = subset_meta(
+                            data.metadata, sams, variables,
+                            terms=list(data.metadata.columns)[1:])
+                        # meta_pd = meta_pd[~meta_pd.isna().any(axis=1)]
+                        meta_pd.to_csv(rep(meta), index=False, sep='\t')
+                        new_qza = '%s/tab%s.qza' % (self.out, raref)
+                        cmd = write_ctf(
+                            self, dat, time_subj, qza, meta, tax_filt, new_qza,
+                            out_qza, sam_traj, fea_traj, sub_ordi, sta_ordi,
+                            sub_qzv, sta_qzv, dm, tree, table, taxon, qurro,
+                            data)
+                        self.register_provenance(dat, (
+                            sub_ordi, sta_ordi, sub_qzv, sta_qzv, qza,), cmd)
+                        self.cmds.setdefault(dat, []).append(cmd)
+                data.ctf[raref] = ctfs
+                data.beta[raref].extend(betas)
+        self.register_io_command()
+
+    def volatility(self):
+        self.analysis = 'volatility'
+        for dat, data in self.project.datasets.items():
+            if dat not in self.config.time_subject:
+                continue
+            time_subj = self.config.time_subject[dat]
+            ts = '-'.join(map(str, [time_subj['time'], time_subj['subject']]))
+            for raref, qza in data.qza.items():
+                if to_do(qza):
+                    continue
+                for cohort in data.subsets[raref]:
+                    self.get_output(data.path, '%s/%s' % (cohort, ts))
+                    qzv = '%s/volatility%s.qzv' % (self.out, raref)
+                    i_f, o_f = [data.meta], [qzv]
+                    if self.config.force or to_do(qzv):
+                        cmd = write_volatility(data.meta, qzv, time_subj)
+                        self.register_provenance(dat, (qzv,), cmd)
+                        self.cmds.setdefault(dat, []).append(cmd)
+                        io_update(self, i_f=data.meta, o_f=qzv, key=dat)
+                    ctf = data.ctf.get(raref, {}).get(cohort, [])
+                    if ctf:
+                        qzv = '%s-volatility.qzv' % splitext(ctf[0])[0]
+                        i_f.append(ctf[0])
+                        o_f.append(qzv)
+                        cmd = write_volatility(ctf[0], qzv, time_subj, True)
+                        self.register_provenance(dat, (qzv,), cmd)
+                        self.cmds.setdefault(dat, []).append(cmd)
+                    io_update(self, i_f=i_f, o_f=o_f, key=dat)
+
+        self.register_io_command()
 
     def tsne(self):
         self.analysis = 'tsne'
@@ -1215,9 +1257,8 @@ class AnalysisPrep(object):
         phate_pd = pd.read_csv(rep(txt), sep='\t', dtype={'sample_name': str})
         phate_pd = phate_pd.loc[phate_pd['variable'].str.contains('cluster_k')]
         if len(phate_pd[['knn', 'decay', 't']].drop_duplicates()) > 2:
-            print(
-                'Warning: PHATE was run for >10 parameters combinations:\n'
-                ' --> May be unwise (chose few, desired sets of parameters)')
+            print('Warning: PHATE was run for >10 parameters combinations:\n'
+                  ' --> May be unwise (chose few, desired sets of parameters)')
             return None
         clusters = dict(phate_pd[
             ['sample_name', 'knn', 'decay', 't', 'variable', 'factor']

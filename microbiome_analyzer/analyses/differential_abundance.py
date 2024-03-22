@@ -37,7 +37,7 @@ class DiffModels(object):
         self.out = ''
         self.model = ''
         self.formula = ''
-        if config.diff_models:
+        if config.diff_abund:
             (self.songbird_models, self.filtering, self.params, self.baselines,
              self.songbird_subsets) = self.get_songbird_dicts()
             self.models, self.models_issues = {}, {'var': {}, 'fac': {}}
@@ -59,24 +59,24 @@ class DiffModels(object):
         return out
 
     def get_songbird_models(self):
-        if 'models' not in self.config.diff_models:
-            print('No models in %s' % self.config.diff_models)
+        if 'models' not in self.config.diff_abund:
+            print('No models in %s' % self.config.diff_abund)
             sys.exit(0)
         is_mb = {}
         models = {}
-        for dat in self.config.diff_models['models'].keys():
+        for dat in self.config.diff_abund['models'].keys():
             if dat[-1] == '*':
                 is_mb[dat[:-1]] = (dat[:-1], 1)
-                models[dat[:-1]] = self.config.diff_models['models'][dat]
+                models[dat[:-1]] = self.config.diff_abund['models'][dat]
             else:
                 is_mb[dat] = (dat, 0)
-                models[dat] = self.config.diff_models['models'][dat]
+                models[dat] = self.config.diff_abund['models'][dat]
         return models, is_mb
 
     def get_songbird_baselines(self):
         baselines = {}
-        if 'baselines' in self.config.diff_models:
-            return self.config.diff_models['baselines']
+        if 'baselines' in self.config.diff_abund:
+            return self.config.diff_abund['baselines']
         return baselines
 
     def get_songbird_params(self):
@@ -90,16 +90,16 @@ class DiffModels(object):
             'diff_priors': ['0.5'],
             'summary_interval': ['1']
         }
-        if 'params' not in self.config.diff_models:
+        if 'params' not in self.config.diff_abund:
             print('No parameters set in %s:\nUsing defaults: %s' % (
-                self.config.diff_models,
+                self.config.diff_abund,
                 ', '.join(['%s: %s' % (k, v) for k, v in params.items()])))
         else:
-            for param in self.config.diff_models['params']:
-                cur_param = self.config.diff_models['params'][param]
+            for param in self.config.diff_abund['params']:
+                cur_param = self.config.diff_abund['params'][param]
                 if not isinstance(cur_param, list):
                     print('Parameter %s should be a list (correct in %s)\n' % (
-                        param, self.config.diff_models))
+                        param, self.config.diff_abund))
                     sys.exit(0)
                 params[param] = cur_param
         return params
@@ -107,17 +107,17 @@ class DiffModels(object):
     def get_filtering(self, models, is_mb):
         filtering = {
             '0_0': dict((is_mb[dat], ['0', '0']) for dat in models.keys())}
-        if 'filtering' not in self.config.diff_models:
+        if 'filtering' not in self.config.diff_abund:
             pass
         else:
-            if 'global' in self.config.diff_models['filtering']:
-                for fname, p_a in self.config.diff_models[
+            if 'global' in self.config.diff_abund['filtering']:
+                for fname, p_a in self.config.diff_abund[
                         'filtering']['global'].items():
                     for dat in models.keys():
                         if fname not in filtering:
                             filtering[fname] = {}
                         filtering[fname][is_mb[dat]] = p_a
-            for dat, filts in self.config.diff_models['filtering'].items():
+            for dat, filts in self.config.diff_abund['filtering'].items():
                 if dat == 'global':
                     continue
                 for fname, p_a in filts.items():
@@ -138,8 +138,8 @@ class DiffModels(object):
         params = self.get_songbird_params()
         baselines = self.get_songbird_baselines()
         subsets = {'ALL': [[]]}
-        if 'subsets' in self.config.diff_models:
-            subsets.update(self.config.diff_models['subsets'])
+        if 'subsets' in self.config.diff_abund:
+            subsets.update(self.config.diff_abund['subsets'])
         return models, filtering, params, baselines, subsets
 
     def merge_subsets_apply(self):
@@ -254,8 +254,6 @@ class DiffModels(object):
 
     def make_train_test_column(self, meta_fp, meta_pd, dat) -> dict:
         train_test_d = self.config.train_test_dict
-        print()
-        print("train_test_d:", train_test_d)
         train_tests = {}
         train = train_test_d['train']
         meta_tt_pd = meta_pd.set_index('sample_name').copy()

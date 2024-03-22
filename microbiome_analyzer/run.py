@@ -25,7 +25,7 @@ def runner(**kwargs):
     Main qiime2 functions writer.
     """
     config = AnalysesConfig(**kwargs)
-    config. init()
+    config.init()
 
     project = Datasets(config)
     project.collect_datasets()
@@ -80,8 +80,6 @@ def runner(**kwargs):
             analysis.merge_metadata()
         if 'alpha_rarefaction' not in config.skip:
             analysis.alpha_rarefaction()
-        if config.longi_column and 'volatility' not in config.skip:
-            analysis.volatility()
         if 'alpha_group_significance' not in config.skip:
             # make a python script to fill with groups to test
             pass
@@ -97,8 +95,6 @@ def runner(**kwargs):
 
     if 'beta' not in config.skip:
         analysis.beta()
-        if 'rpca' not in config.skip:
-            analysis.rpca()
         if 'pcoa' not in config.skip:
             analysis.pcoa()
         if 'tsne' not in config.skip:
@@ -111,9 +107,8 @@ def runner(**kwargs):
             analysis.biplots()
             if 'emperor_biplot' not in config.skip:
                 analysis.emperor_biplot()
-        if config.tests and 'permanova' not in config.skip:
+        if config.permanova and 'permanova' not in config.skip:
             analysis.permanova()
-            # analysis.permanova_r()
         # summarize_permanova(
         #     datasets_folder, permanovas, prjct_nm, qiime_env, p_chmod, noloc,
         #     slurm, split, run_params['permanova'], filt_raref, jobs, chunkt)
@@ -130,6 +125,14 @@ def runner(**kwargs):
         if config.geo_decay and 'geo_decay' not in config.skip:
             pass
 
+        if 'rpca' not in config.skip:
+            analysis.rpca()
+        if config.time_subject:
+            if 'ctf' not in config.skip:
+                analysis.ctf()
+            if 'volatility' not in config.skip:
+                analysis.volatility()
+
     if config.doc and 'doc' not in config.skip:
         DOC(config, project)
     # if config.sourcetracking and 'sourcetracking' not in config.skip:
@@ -141,7 +144,7 @@ def runner(**kwargs):
         paired_datasets.mmvec()
 
     differentials = DiffModels(config, project)
-    if config.diff_models and 'songbird' not in config.skip:
+    if config.diff_abund and 'songbird' not in config.skip:
         differentials.prep_songbirds(paired_datasets.mmvec_pd)
         differentials.make_train_test()
         differentials.songbird()

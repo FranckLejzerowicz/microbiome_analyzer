@@ -72,6 +72,7 @@ class Data(object):
         self.tsne = {}
         self.tsv = {}
         self.umap = {}
+        self.ctf = {}
 
     def read_biom(self, index=''):
         biom = load_table(rep(self.biom[index]))

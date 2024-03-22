@@ -20,12 +20,12 @@ from microbiome_analyzer import __version__
     "-d", "--datasets", multiple=True, required=True,
     help="Dataset(s) identifier(s). Multiple is possible: e.g. "
          "-d dataset_number_1 and -d dataset_number_2 for "
-         "'tab_dataset_number_1.tsv' and tab_dataset_number_2.tsv'")
+         "'table.tsv' and table.tsv'")
 @click.option(
     "-n", "--project-name", required=True, show_default=True,
     help="Nick name for your project")
 @click.option(
-    "-f", "--filter", show_default=True, default=False,
+    "-f", "--filtering", show_default=True, default=False,
     help="Samples to remove, min. read abundance and feature prevalence "
          "(>1 = based on absolute reads, 0-1 = based on relative reads). "
          "(yaml file)")
@@ -69,12 +69,14 @@ from microbiome_analyzer import __version__
     "-g", "--sample-subsets", required=False, show_default=True,
     default=False, help="Subsets for DMs, PCoAs, PERMANOVAs, etc (yml file)")
 @click.option(
-    "-t", "--test", multiple=True, required=False, show_default=True,
-    default=False, help="Groups to tests between in each PERMANOVA subset "
-                        "(multiple values possible, e.g. '-d sex -d age_cat')")
+    "-t", "--time_subject", required=False, default=False, show_default=True,
+    help="Time and subject variables for CTF/Volatility analyses (yaml file)")
+@click.option(
+    "-p", "--permanova", required=False, default=False, show_default=True,
+    help="Groups for PERMANOVA/Kruskal-Wallis for each subset (yaml file)")
 @click.option(
     "-a", "--adonis", required=False, default=False, show_default=True,
-    help="Formula for Adonis tests for each PERMANOVA subset (yaml file)")
+    help="Formula for Adonis2 tests for each subset (yaml file)")
 @click.option(
     "-nstd", "--nestedness", required=False, show_default=True,
     default=False, help="Nestedness analysis config  (yml file)")
@@ -102,7 +104,7 @@ from microbiome_analyzer import __version__
     "-tt", "--train-test", required=False, show_default=True, default=False,
     help="Train test split per dataset (yaml file)")
 @click.option(
-    "-phate", "--phate", required=False, default=False, show_default=True,
+    "-pht", "--phate", required=False, default=False, show_default=True,
     help="Filters, subsets, parameters and stratifications for the PHATE latent"
          " space analysis (yaml file)")
 @click.option(
@@ -114,7 +116,7 @@ from microbiome_analyzer import __version__
     help="Filters and subsets for the dissimilarity overlap curves analyses "
          " (yaml file)")
 @click.option(
-    "-s", "--diff-models", required=False, default=False, show_default=True,
+    "-s", "--diff-abund", required=False, default=False, show_default=True,
     help="Formulas for multinomial regression-based differential abundance "
          "ranking (songbird) (yaml file)")
 @click.option(
@@ -128,10 +130,6 @@ from microbiome_analyzer import __version__
 @click.option(
     "-mm", "--xmmvec", required=False, default=False, show_default=True,
     help="Config for Xmmvec (yaml file)")
-@click.option(
-    "-lon", "--longi-column", required=False, default=False, show_default=True,
-    help="If data is longitudinal; provide the time metadata column"
-         "for volatility analysis")
 @click.option(
     "-chmod", "--chmod", default=None, show_default=True,
     help="Change output files permission (default = 664 [= -rw-rw-r--])")
@@ -241,11 +239,11 @@ def run(
         analysis_folder,
         project_name,
         qiime2_env,
-        longi_column,
-        filter,
+        filtering,
         rarefactions,
         feature_subsets,
-        test,
+        time_subject,
+        permanova,
         sample_subsets,
         nestedness,
         beta_type,
@@ -265,7 +263,7 @@ def run(
         wol_tree,
         sepp_tree,
         qemistree,
-        diff_models,
+        diff_abund,
         mmvec_pairs,
         mmvec_highlights,
         xmmvec,
@@ -294,12 +292,12 @@ def run(
         dir=analysis_folder,
         project_name=project_name,
         qiime_env=qiime2_env,
-        longi_column=longi_column,
         rarefy=rarefy,
-        filter_fp=filter,
+        filter_fp=filtering,
         rarefs_fp=rarefactions,
         feature_subsets_fp=feature_subsets,
-        tests=test,
+        time_subject_fp=time_subject,
+        permanova_fp=permanova,
         sample_subsets_fp=sample_subsets,
         nestedness_fp=nestedness,
         beta_type=beta_type,
@@ -319,7 +317,7 @@ def run(
         wol_tree=wol_tree,
         sepp_tree=sepp_tree,
         qemistree=qemistree,
-        diff_models_fp=diff_models,
+        diff_abund_fp=diff_abund,
         mmvec_pairs_fp=mmvec_pairs,
         mmvec_highlights_fp=mmvec_highlights,
         xmmvec_fp=xmmvec,
