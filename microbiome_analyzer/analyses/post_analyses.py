@@ -546,9 +546,21 @@ class PostAnalysis(object):
             print('No mmvec output detected...')
             return None
         self.prep_mmvec(paired_datasets.mmvec_pd)
+        # print('--------')
+        # for i, j in self.mmvec_songbird_pd[self.mmvec_songbird_pd[
+        #                                  'subset']=='ALL'].T.to_dict()[
+        #     0].items():
+        #     print(i, j)
+        # print('--------')
         if differentials.songbird_pd.shape[0]:
             songbird_pd = self.prep_songbird(differentials.songbird_pd)
             self.merge_mmvec_songbird(songbird_pd)
+            # print('--------')
+            # for i, j in self.mmvec_songbird_pd[
+            #           self.mmvec_songbird_pd['subset']=='ALL'].T.to_dict()[
+            #           0].items():
+            #     print(i, j)
+            # print('--------')
 
         self.get_taxo_pds()
         self.get_omics_songbirds_taxa()
