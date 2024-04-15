@@ -171,15 +171,13 @@ class DiffModels(object):
 
     def merge_mmvecs(self, mmvec_pd):
         mmvecs = []
-        for row in mmvec_pd.values:
+        for rdx, row in enumerate(mmvec_pd.values):
             pair, filt, subset, dat1, dat2, prev1, abun1, prev2, abun2 = row[:9]
-            meta_common_fp = row[10]
-            omic1_common_qza = row[13]
-            omic2_common_qza = row[14]
-            mmvecs.append([dat1, filt, prev1, abun1, subset, pair,
-                           omic1_common_qza, omic2_common_qza, meta_common_fp])
-            mmvecs.append([dat2, filt, prev2, abun2, subset, pair,
-                           omic1_common_qza, omic2_common_qza, meta_common_fp])
+            meta_fp, tsv1, tsv2, qza1, qza2 = row[10:15]
+            mmvecs.append([
+                dat1, filt, prev1, abun1, subset, pair, tsv1, qza1, meta_fp])
+            mmvecs.append([
+                dat2, filt, prev2, abun2, subset, pair, tsv2, qza2, meta_fp])
         if mmvecs and self.songbirds.shape[0]:
             self.songbirds.drop(columns=['is_mb', 'subsets'], inplace=True)
             mmvecs_pd = pd.DataFrame(mmvecs, columns=self.songbirds.columns)
@@ -739,6 +737,15 @@ class DiffModels(object):
         songbird = []
         self.analysis = 'songbird'
         params_pd = self.get_params_combinations()
+        print()
+        print()
+        print()
+        print('++++++++++++++++')
+        print()
+        print(self.songbirds)
+        print()
+        print('++++++++++++++++')
+        print()
         for r, row in self.songbirds.iterrows():
             qza, pair, meta_fp = row['qza'], row['pair'], row['meta']
             dat, filt, subset = row['dataset'], row['filter'], row['subset']

@@ -2245,8 +2245,13 @@ def write_songbird(
     bcmd = ''
     bdiff_qza = out_paths['bdiff_qza']
     bstat = out_paths['bstat']
+    bplot = out_paths['bplot']
+    # if bstat == '${SCRATCH_FOLDER}/Users/franck/projects/costa_rica/keilor/metagenomes/analysis/songbird/mags_sample/unpaired/0_0/ALL/filt_f0_s0/5_1e-4_100000_05_08_1/season/b-1/differentials-stats-baseline.qza':
+    #     print(bdiff_qza)
+    #     print(bstat)
+    #     print(bplot)
+    #     print(sfvk)
     if force or len(bdiff_qza) and to_do(bstat):
-        bplot = out_paths['bplot']
         bcmd += '\nqiime songbird multinomial'
         bcmd += ' --i-table %s' % new_qza
         bcmd += ' --m-metadata-file %s' % new_meta
