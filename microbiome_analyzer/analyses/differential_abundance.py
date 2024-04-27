@@ -195,7 +195,9 @@ class DiffModels(object):
                 subsets = row_d['subsets']
                 meta_pd = get_subset_pd(data.metadata, dat, subset, subsets)
                 meta_pd.to_csv(rep(meta), index=False, sep='\t')
-                if not self.config.force and not to_do(tsv) and not to_do(qza):
+                if not self.config.force and not (to_do(tsv) or to_do(qza)):
+                    continue
+                if not data.data:
                     continue
                 tsv_pd = data.data[''].to_dataframe(dense=True)[
                     meta_pd.sample_name.tolist()]
@@ -225,7 +227,7 @@ class DiffModels(object):
                 for analysis in ['songbird']:
                     self.analysis = analysis
                     self.get_output('datasets/%s/%s' % (dataset, subset))
-                    rad = '%s_%s' % (dataset, filter_)
+                    rad = '%s_%s' % (dataset.replace('/', '_'), filter_)
                     tsv = '%s/tab_%s.tsv' % (self.out, rad)
                     qza = '%s.qza' % splitext(tsv)[0]
                     meta = '%s/meta_%s.tsv' % (self.out, rad)
@@ -574,7 +576,14 @@ class DiffModels(object):
                     path = root + '/' + fil
                     diff = '%s/differentials.tsv' % dirname(root)
                     root_s = root.split('%s/' % rep(songbird))[-1].split('/')
-                    d, pr, fr, sb, sr, ps, ml, be = root_s
+                    if len(root_s) == 8:
+                        d, pr, fr, sb, sr, ps, ml, be = root_s
+                    elif len(root_s) == 9:
+                        d, sstx, pr, fr, sb, sr, ps, ml, be = root_s
+                        d = d + '/' + sstx
+                    else:
+                        d, ss, tx, pr, fr, sb, sr, ps, ml, be = root_s
+                        d = d + '/' + ss + '/' + tx
                     with open(rep(path)) as f:
                         for line in f:
                             if 'Pseudo Q-squared' in line:
@@ -586,8 +595,8 @@ class DiffModels(object):
         if q2s:
             self.q2s_pd = pd.DataFrame(q2s, columns=[
                 'pair', 'dataset', 'filter', 'subset', 'model',
-                'songbird_filter', 'parameters', 'baseline', 'differentials',
-                'Pseudo_Q_squared'])
+                'songbird_filter', 'parameters', 'baseline',
+                'differentials', 'Pseudo_Q_squared'])
             q2s_fp = '%s/songbird_q2.tsv' % songbird
             self.q2s_pd.to_csv(rep(q2s_fp), index=False, sep='\t')
             print('Written -> %s' % q2s_fp)
@@ -619,9 +628,9 @@ class DiffModels(object):
                 if len(dataset_sbs):
                     sbs_pd = pd.concat(dataset_sbs, axis=1, sort=False)
                     self.get_output(dat)
-                    fpo_tsv = '%s/differentials_%s.tsv' % (self.out, dat)
+                    fpo_tsv = '%s/differentials.tsv' % self.out
                     self.project.datasets[dat].sb = fpo_tsv
-                    fpo_qza = '%s/differentials_%s.qza' % (self.out, dat)
+                    fpo_qza = '%s/differentials.qza' % self.out
                     sbs_pd.index.name = 'Feature ID'
                     sbs_pd = sbs_pd[sorted(sbs_pd.columns)]
                     sbs_pd.to_csv(rep(fpo_tsv), sep='\t')
@@ -737,15 +746,6 @@ class DiffModels(object):
         songbird = []
         self.analysis = 'songbird'
         params_pd = self.get_params_combinations()
-        print()
-        print()
-        print()
-        print('++++++++++++++++')
-        print()
-        print(self.songbirds)
-        print()
-        print('++++++++++++++++')
-        print()
         for r, row in self.songbirds.iterrows():
             qza, pair, meta_fp = row['qza'], row['pair'], row['meta']
             dat, filt, subset = row['dataset'], row['filter'], row['subset']

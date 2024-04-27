@@ -37,16 +37,8 @@ def runner(**kwargs):
     analysis.filter()
     if config.rarefy:
         analysis.rarefy()
-
     # if config.qemistree and 'qemistree' not in config.skip:
     #     analysis.run_qemistree()
-
-    # for dat, data in project.datasets.items():
-    #     print()
-    #     print(dat)
-    #     print(data.rarefs)
-    #     print(data.raref_depths)
-
     project.get_precomputed_taxonomy()
     if 'taxonomy' not in config.skip:
         analysis.taxonomy()

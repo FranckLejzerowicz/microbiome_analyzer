@@ -64,7 +64,7 @@ class AnalysisPrep(object):
         self.messages = set()
 
     def show_datasets(self):
-        print('-'* 30)
+        print('-' * 30)
         print('Current datasets:')
         for dat in self.project.datasets:
             print(' -', dat)
@@ -351,7 +351,7 @@ class AnalysisPrep(object):
 
     def set_taxa(self, dat, tax, data_tax, data, lvl):
         tx_pd = data.taxa[1].loc[:,data.taxa[1].columns[:lvl]].drop_duplicates()
-        tx_pd.index = tx_pd.apply(lambda x: ';'.join(x), axis=1)
+        tx_pd.index = tx_pd.apply(lambda x: '|'.join(x), axis=1)
         tx_pd = tx_pd.iloc[:,:-1]
         tax_pd = pd.DataFrame({
             'Taxon': tx_pd.apply(lambda x: '; '.join(x), axis=1)})
@@ -433,7 +433,7 @@ class AnalysisPrep(object):
                             data_tax.qza[raref] = ''
                             continue
                         cmd += fix_collapsed_data(
-                            self, dat, empties[tax], data_tax.data[raref],
+                            self, dat, empties[tax], data_tax, raref,
                             tax_tsv, tax_qza, tax_qzv, tax_meta)
                         Datasets.coll_raw[tax] = dat
                         Datasets.raw_coll.setdefault(dat, []).append(tax)
@@ -448,7 +448,8 @@ class AnalysisPrep(object):
                 data_tax.phylo = ('', 0)
                 project_coll[dat_tax] = data_tax
             if empties:
-                project_coll = {k: v for k, v in project_coll.items() if k not in torm}
+                project_coll = {
+                    k: v for k, v in project_coll.items() if k not in torm}
         self.project.datasets.update(project_coll)
         self.register_io_command()
 
@@ -506,36 +507,44 @@ class AnalysisPrep(object):
     def subset_features(self):
         self.analysis = 'feature_subsets'
         feature_subsets = {}
+        reverses = [False]
+        if self.config.feature_subsets.get('reverse_subsets'):
+            reverses = [False, True]
         for dat, data in self.project.datasets.items():
             if dat not in self.config.feature_subsets:
                 continue
-            for subset, regex in self.config.feature_subsets[dat].items():
-                feats = find_matching_features(data, regex)
-                if not feats:
-                    continue
-                dat_subset = '%s/%s' % (dat, subset)
-                # dat_subset = '%s_%s' % (dat, subset)
-                data_subset = Data(dat_subset)
-                data_subset.feat_meta = data.feat_meta
-                data_subset.phylo = data.phylo
-                data_subset.features = set(feats)
-                data_subset.rarefs = data.rarefs
-                data_subset.raref_depths = data.raref_depths
-                data_subset.tax = data.tax
-                data_subset.filt = data.filt
-                data_subset.filts = data.filts
-                data_subset.taxa = data.taxa
-                data_subset.tree = data.tree
-                data_subset.seqs = data.seqs
-                data_subset.source = data.source
-                data_subset.subset = subset
-                for raref, tab in data.data.items():
-                    self.get_features_subsets(dat, subset, dat_subset, data,
-                                              data_subset, feats, raref)
-                    if not to_do(data_subset.biom[raref]):
-                        data_subset.read_biom(raref)
-                        if data_subset.data:
-                            feature_subsets[dat_subset] = data_subset
+            for subset_, regex in self.config.feature_subsets[dat].items():
+                for reverse in reverses:
+                    feats = find_matching_features(data, regex, reverse, )
+                    if not feats:
+                        continue
+                    if reverse:
+                        subset = 'no_%s' % subset_
+                    else:
+                        subset = subset_
+                    dat_subset = '%s/%s' % (dat, subset)
+                    data_subset = Data(dat_subset)
+                    data_subset.feat_meta = data.feat_meta
+                    data_subset.phylo = data.phylo
+                    data_subset.features = set(feats)
+                    data_subset.rarefs = data.rarefs
+                    data_subset.raref_depths = data.raref_depths
+                    data_subset.tax = data.tax
+                    data_subset.filt = data.filt
+                    data_subset.filts = data.filts
+                    data_subset.taxa = data.taxa
+                    data_subset.tree = data.tree
+                    data_subset.seqs = data.seqs
+                    data_subset.source = data.source
+                    data_subset.subset = subset
+                    for raref, tab in data.data.items():
+                        self.get_features_subsets(dat, subset, dat_subset, data,
+                                                  data_subset, feats, raref)
+                        if not to_do(data_subset.biom[raref]):
+                            data_subset.read_biom(raref)
+                            if data_subset.data:
+                                feature_subsets[dat_subset] = data_subset
+
         self.project.datasets.update(feature_subsets)
         self.register_io_command()
 
@@ -876,8 +885,11 @@ class AnalysisPrep(object):
                 betas = []
                 if to_do(qza):
                     continue
+                diffs = '%s/songbird/%s/differentials.tsv' % (
+                    self.dir, dat)
                 for cohort, (sams, variables) in data.subsets[raref].items():
-                    self.get_output(data.path, cohort)
+                    self.get_output(dat, cohort)
+                    # self.get_output(data.path, cohort)
                     ordi = '%s/ordination%s.qza' % (self.out, raref)
                     qzv = '%s/ordination%s.qzv' % (self.out, raref)
                     qurro = '%s/qurro%s.qzv' % (self.out, raref)
@@ -900,7 +912,7 @@ class AnalysisPrep(object):
                         meta_pd.to_csv(rep(meta), index=False, sep='\t')
                         new_qza = '%s/tab%s.qza' % (self.out, raref)
                         cmd = write_rpca(
-                            self, dat, qza, meta, new_qza, ordi, dm,
+                            self, dat, qza, meta, new_qza, ordi, dm, diffs,
                             tree, table, taxon, qzv, qurro, data)
                         self.register_provenance(dat, (ordi, qza,), cmd)
                         self.cmds.setdefault(dat, []).append(cmd)

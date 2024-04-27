@@ -78,8 +78,8 @@ class Data(object):
         biom = load_table(rep(self.biom[index]))
         biom.remove_empty(axis='whole', inplace=True)
         self.samples = set(biom.ids(axis='sample'))
-        if biom.shape[0] >= 10:
-            self.data[index] = biom
+        # if biom.shape[0] >= 10:
+        self.data[index] = biom
 
     def read_tsv(self):
         data_pd = read_meta_pd(rep(self.tsv['']), 'Feature ID')
@@ -91,7 +91,7 @@ class Data(object):
             data_pd = data_pd.loc[:, (data_pd.sum() > 0)]
             data_pd = data_pd.loc[(data_pd.sum(1) > 0), :]
         self.samples = set(data_pd.columns)
-        self.data[''] = data_pd
+        self.data[''] = convert_to_biom(data_pd)
 
     def read_meta_pd(self):
         meta_pd = read_meta_pd(rep(self.meta), 'sample_name')
@@ -151,7 +151,6 @@ class Datasets(object):
                 data.read_biom()
             else:
                 data.read_tsv()
-                data.data[''] = convert_to_biom(data.data[''])
             data.read_meta_pd()
             data.check_gid_or_dna()
             data.feat_meta = self.get_feat_meta(dat)

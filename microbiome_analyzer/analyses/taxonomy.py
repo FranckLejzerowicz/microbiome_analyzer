@@ -9,7 +9,7 @@
 import os
 import biom
 import pandas as pd
-from os.path import isdir
+from os.path import isdir, splitext
 
 from microbiome_analyzer._inputs import read_meta_pd
 from microbiome_analyzer._io_utils import (
@@ -419,7 +419,7 @@ def get_split_levels(
             tax_edit = tax.replace(str(taxo_name), '').strip('__')
             if str(tax) != 'nan' and len(tax_edit) < 3:
                 empties[taxo_name].add(
-                    ';'.join(split_taxa_pd.iloc[tdx, :split_taxa_index]))
+                    '|'.join(split_taxa_pd.iloc[tdx, :split_taxa_index]))
     return split_levels, empties
 
 
@@ -450,7 +450,8 @@ def fix_collapsed_data(
         self,
         dat: str,
         remove_empty: set,
-        coll_biom: biom.Table,
+        coll_data,
+        raref: str,
         coll_tsv: str,
         coll_qza: str,
         coll_qzv: str,
@@ -462,7 +463,8 @@ def fix_collapsed_data(
     self
     dat : str
     remove_empty : set
-    coll_biom : biom.Table
+    coll_data : Data class instance
+    raref: str
     coll_tsv : str
     coll_qza : str
     coll_qzv : str
@@ -473,6 +475,22 @@ def fix_collapsed_data(
     cmd : str
     """
     cmd = ''
+    coll_biom = coll_data.data[raref]
+    _, coll_tax_qza, coll_tax_tsv = coll_data.tax
+    coll_tax_pd, coll_tx_pd, coll_tax_split = coll_data.taxa
+    coll_tax_fix = '%s_fixed.txt' % splitext(coll_tax_tsv)[0]
+    if remove_empty and to_do(coll_tax_fix):
+        with open(rep(coll_tax_fix), 'w') as o:
+            o.write('Taxa removed from "%s" (and its ".qza"):' % coll_tax_tsv)
+            for rm_empty in remove_empty:
+                o.write('%s\n' % rm_empty)
+        coll_tax_rm_pd = coll_tax_pd.loc[
+            ~coll_tax_pd['Feature ID'].isin(remove_empty)]
+        coll_tx_rm_pd = coll_tx_pd.drop(index=remove_empty)
+        coll_tx_rm_pd.to_csv(rep(coll_tax_split), sep='\t')
+        coll_tax_rm_pd.to_csv(rep(coll_tax_tsv), index=False, sep='\t')
+        cmd += run_import(coll_tax_tsv, coll_tax_qza, 'FeatureData[Taxonomy]')
+
     ids = set(coll_biom.ids(axis='observation'))
     common = remove_empty & ids
     if len(common):
@@ -491,6 +509,7 @@ def fix_collapsed_data(
             coll_meta_pd = coll_meta_pd.loc[
                 coll_meta_pd.sample_name.isin(coll_pd.columns.tolist())]
             coll_meta_pd.to_csv(rep(coll_meta), index=False, sep='\t')
+
     if to_do(coll_qza):
         cmd += run_import(coll_tsv, coll_qza, 'FeatureTable[Frequency]')
         cmd += run_summary(coll_qza, coll_qzv, coll_meta)
@@ -498,7 +517,7 @@ def fix_collapsed_data(
     return cmd
 
 
-def find_matching_features(data, subset_regex) -> list:
+def find_matching_features(data, subset_regex, reverse) -> list:
     """
     Make a feature metadata from the regex to get the names
     of the features to keep.
@@ -515,5 +534,8 @@ def find_matching_features(data, subset_regex) -> list:
             tax_pd_regex = tax_pd_regex['Taxon'].str.contains(str(regex))
             to_keep_feats['%s_2' % regex] = tax_pd_regex
     to_keep_feats_pd = pd.DataFrame(to_keep_feats)
-    to_keep_feats = to_keep_feats_pd.loc[to_keep_feats_pd.any(axis=1)]
+    if reverse:
+        to_keep_feats = to_keep_feats_pd.loc[~to_keep_feats_pd.any(axis=1)]
+    else:
+        to_keep_feats = to_keep_feats_pd.loc[to_keep_feats_pd.any(axis=1)]
     return to_keep_feats.index.tolist()

@@ -20,7 +20,7 @@ RESOURCES = pkg_resources.resource_filename(
 def run_summary(
         input_path: str,
         output_path: str,
-        metadata_path: str=''
+        metadata_path: str = ''
 ) -> str:
     """
     Return the qiime2 summary command.
@@ -336,6 +336,10 @@ def write_collapse(
         cmd += ' --i-taxonomy %s' % tax_qza
         cmd += ' --p-level %s' % level
         cmd += ' --o-collapsed-table %s\n\n' % collapsed_qza
+        cmd += run_export(collapsed_qza, collapsed_tsv, 'FeatureTable')
+        cmd += 'sed "s/;/|/g" %s > %s.tmp\n' % (collapsed_tsv, collapsed_tsv)
+        cmd += 'mv %s.tmp %s\n' % (collapsed_tsv, collapsed_tsv)
+        cmd += run_import(collapsed_tsv, collapsed_qza, 'FeatureTable')
         io_update(self, i_f=[tab_qza, tax_qza], o_f=collapsed_qza, key=dat)
 
     if remove_empty:
@@ -1016,6 +1020,7 @@ def write_rpca(
         new_qza: str,
         ordi: str,
         dist: str,
+        diffs: str,
         tree_qza: str,
         table: str,
         taxon: str,
@@ -1036,6 +1041,7 @@ def write_rpca(
     new_qza : str
     ordi : str
     dist : str
+    diffs : str
     tree_qza : str
     table : str
     taxon : str
@@ -1105,28 +1111,39 @@ def write_rpca(
         cmd += cmd_exp
 
     rm_cmd, feat_cmd = '', ''
-    if data.feat_meta:
+    if data.feat_meta or not to_do(diffs):
         nid_tsv = ordi_tsv + '.nID.txt'
         cmd += 'grep "^n[0-9]*\\t" %s | cut -f1 > %s\n' % (ordi_tsv, nid_tsv)
         for feat_meta in data.feat_meta:
             cmd += 'cat %s %s > %s.nID.tsv\n' % (feat_meta, nid_tsv, feat_meta)
             rm_cmd += 'rm %s.nID.tsv\n' % feat_meta
             feat_cmd += ' --m-feature-metadata-file %s.nID.tsv' % feat_meta
+        if not to_do(diffs):
+            cmd += 'cat %s %s > %s.nID.tsv\n' % (diffs, nid_tsv, diffs)
+            rm_cmd += 'rm %s.nID.tsv\n' % diffs
+            feat_cmd += ' --m-feature-metadata-file %s.nID.tsv' % diffs
     if is_phylo:
+
+        taxo_tsv = taxon.replace('.qza', '.tsv')
+        cmd += run_export(taxon, taxo_tsv)
+        cmd += "awk -F'\\t' '$1 != \"\"' %s > %s.tmp\n" % (taxo_tsv, taxo_tsv)
+        cmd += "mv %s.tmp %s\n" % (taxo_tsv, taxo_tsv)
+        cmd += run_import(taxo_tsv, taxon, 'FeatureData[Taxonomy]')
+
         cmd += 'qiime empress community-plot'
         cmd += ' --i-tree %s' % tree_qza
         cmd += ' --i-feature-table %s' % table
         cmd += ' --i-pcoa %s' % ordi
         cmd += ' --m-feature-metadata-file %s' % taxon
-        cmd += ' --p-filter-missing-features'
         cmd += ' --p-ignore-missing-samples'
+        cmd += ' --p-filter-missing-features'
     else:
         cmd += 'qiime emperor biplot'
         cmd += ' --i-biplot %s' % ordi
         cmd += ' --m-feature-metadata-file %s' % tax[1]
         # cmd += ' --m-feature-metadata-file %s' % taxa[-1]
 
-    if data.feat_meta:
+    if data.feat_meta or not to_do(diffs):
         cmd += feat_cmd
     cmd += ' --p-number-of-features %s' % self.config.run_params['rpca'][
         'number_of_features']

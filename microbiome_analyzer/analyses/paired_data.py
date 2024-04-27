@@ -322,6 +322,9 @@ class PairedData(object):
                 ['dataset', 'filter', 'subset']):
             row_d = row.iloc[0, :].to_dict()
             tsv, qza, meta = row_d['tsv'], row_d['qza'], row_d['meta']
+            print(tsv)
+            print(qza)
+            print(meta)
             if not to_do(tsv) and not to_do(qza) and not to_do(meta):
                 continue
             data = project.datasets[dat]
@@ -356,10 +359,10 @@ class PairedData(object):
         datasets_paths = datasets_paths.drop(columns=['pair', 'omic'])
         datasets_paths = datasets_paths.loc[
             ~datasets_paths.astype(str).duplicated()]
-
+        print(datasets_paths)
         paths = []
         for r, row in datasets_paths.iterrows():
-            dataset = row['dataset']
+            dataset = row['dataset'].replace('/', '__')
             filter_ = row['filter']
             subset = row['subset']
             self.get_output('datasets/%s/%s' % (dataset, subset))
