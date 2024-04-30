@@ -881,6 +881,8 @@ class AnalysisPrep(object):
             if data.phylo[0] and data.tree[1] and not to_do(data.tree[1]):
                 is_phylo = True
             for raref, qza in data.qza.items():
+                if raref:
+                    continue
                 rpcas = {}
                 betas = []
                 if to_do(qza):
@@ -888,6 +890,8 @@ class AnalysisPrep(object):
                 diffs = '%s/songbird/%s/differentials.tsv' % (
                     self.dir, dat)
                 for cohort, (sams, variables) in data.subsets[raref].items():
+                    if data.data[raref].shape[0] < 10:
+                        continue
                     self.get_output(dat, cohort)
                     # self.get_output(data.path, cohort)
                     ordi = '%s/ordination%s.qza' % (self.out, raref)
