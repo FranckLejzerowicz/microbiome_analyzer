@@ -110,8 +110,8 @@ def runner(**kwargs):
             analysis.procrustes_mantel('procrustes')
         if config.mantel and 'mantel' not in config.skip:
             analysis.procrustes_mantel('mantel')
-        # if config.nestedness and 'nestedness' not in config.skip:
-        #     Nestedness(config, project)
+        if config.nestedness and 'nestedness' not in config.skip:
+            Nestedness(config, project)
         if config.dm_decay and 'dm_decay' not in config.skip:
             DmDecay(config, project)
         if config.geo_decay and 'geo_decay' not in config.skip:

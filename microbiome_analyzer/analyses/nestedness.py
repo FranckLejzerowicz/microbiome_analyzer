@@ -54,9 +54,11 @@ class Nestedness(object):
         self.figure_graphs()
         AnalysisPrep.analyses_nestedness = self.res_pd
 
-    def get_output(self, dat, cohort):
+    def get_output(self, dat, cohort=''):
         self.out = '%s/%s/%s' % (self.dir, self.analysis, dat)
         if cohort:
+            cohort = cohort.replace('(', '').replace(')', '').replace(
+                ' ', '_').replace(',', '_')
             self.out = (self.out + '/' + cohort).rstrip('/')
         self.out = self.out.replace(' ', '_')
         if not isdir(rep(self.out)):
@@ -147,7 +149,7 @@ class Nestedness(object):
         cmd = ''
         if to_do(graph):
             cmd += 'java -cp %s' % self.binary
-            cmd += 'edu.ucsf.Nestedness.Grapher.GrapherLauncher'
+            cmd += ' edu.ucsf.Nestedness.Grapher.GrapherLauncher'
             cmd += ' --sBIOMPath=%s' % biom
             cmd += ' --bCheckRarefied=false'
             cmd += ' --bNormalize=true'
@@ -165,7 +167,7 @@ class Nestedness(object):
         cmd = ''
         if self.config.force or to_do(comp):
             cmd += 'java -Xmx5g -cp %s' % self.binary
-            cmd += 'edu.ucsf.Nestedness.ComparisonSelector.ComparisonSelectorLauncher'
+            cmd += ' edu.ucsf.Nestedness.ComparisonSelector.ComparisonSelectorLauncher'
             cmd += ' --sBIOMPath=%s' % biom
             cmd += ' --sOutputPath=%s' % comp
             cmd += ' --bCheckRarefied=false'
@@ -188,7 +190,7 @@ class Nestedness(object):
         cmd = ''
         if self.config.force or to_do(simul):
             cmd += 'java -cp %s' % self.binary
-            cmd += 'edu.ucsf.Nestedness.Calculator.CalculatorLauncher'
+            cmd += ' edu.ucsf.Nestedness.Calculator.CalculatorLauncher'
             cmd += ' --sBIOMPath=%s' % biom
             cmd += ' --sOutputPath=%s' % simul
             cmd += ' --bCheckRarefied=false'
@@ -312,10 +314,6 @@ class Nestedness(object):
         cmd, graph = self.write_graph(data, meta_pd, raref)
         self.graphs.append([dat, data.dat, cohort, raref, graph])
         for mdx, mode in enumerate(self.modes):
-            print()
-            print()
-            print()
-            print('mode: [',  mdx, ']', mode)
             m_dir = '%s/output_%s%s' % (self.out, mode, raref.replace('_', '/'))
             if not isdir(rep(m_dir)):
                 os.makedirs(rep(m_dir))
@@ -327,12 +325,7 @@ class Nestedness(object):
             meta = '%s/meta.tsv' % m_dir
             init_cmd, biom = self.init_cmds(m_dir, meta, data, raref)
             nest_cmd = ''
-            print('len(self.nodfs_vars):', len(self.nodfs_vars))
-            print("    self.nodfs_vars :", self.nodfs_vars)
             for ndx, nodf_var in enumerate(self.nodfs_vars):
-                print()
-                print()
-                print('         nodf_var   : [', ndx, ']', nodf_var)
                 comp = '%s/comparisons_%s.csv' % (m_dir, nodf_var)
                 nest_cmd += self.write_comparisons(biom, comp, mode, nodf_var)
                 if not to_do(biom):
@@ -350,8 +343,6 @@ class Nestedness(object):
                     io_update(self, i_f=i_f, o_f=simul, key=data.dat)
             self.merge_outputs(m_dir, level, raref, cohort, nodfs_fp)
             self.res.append([dat, nodfs_fp, cohort, self.out])
-            print()
-            print('len(nest_cmd)', len(nest_cmd))
             if nest_cmd:
                 self.write_meta(meta, data.metadata, meta_pd, nodfs)
                 cmd += init_cmd + nest_cmd
@@ -365,13 +356,13 @@ class Nestedness(object):
         for dat, data in self.project.datasets.items():
             if data.taxon or not data.collapsed:
                 continue
-            dat_pd = self.res_pd.loc[self.res_pd.dat == dat]
+            dat_pd = self.res_pd.loc[self.res_pd["dataset"] == dat]
             o_dir = dat_pd.loc[dat_pd['cohort'] == 'ALL'].o_dir.values[0]
             pdf, py = '%s/nodfs.pdf' % o_dir, '%s/nodfs.py' % o_dir
             if self.config.force or to_do(pdf):
                 cmd = 'python3 %s\n' % py
                 self.cmds.setdefault(dat, []).append(cmd)
-                io_update(self, i_f=([py] + dat_pd['nodfs_fps']),
+                io_update(self, i_f=([py] + dat_pd['nodfs_fps'].tolist()),
                           o_d=o_dir, key=dat)
                 with open(rep(py), 'w') as o, open(rep(nodfs_py)) as f:
                     for line in f:
@@ -444,50 +435,14 @@ class Nestedness(object):
                 tab = data.data[raref]
                 tab_sams = set(pd.Series(tab.ids(axis='sample')))
 
-                for name, vars_vals in data.sample_subsets.items():
-                    if name == 'ALL':
-                        sams = tab_sams
-                    else:
-                        vars_sams = get_sample_subset(
-                            data.metadata, dat, vars_vals)
-                        sams = tab_sams & set.intersection(*vars_sams)
-
-                    if len(sams) < 4:
+                for grp, (sams, variables) in data.subsets[raref].items():
+                    self.get_output(dat, grp)
+                    meta_fp = '%s/meta%s.tsv' % (self.out, raref)
+                    meta = subset_meta(data.metadata, sams, variables)
+                    if meta.shape[0] < 10:
                         continue
-                    subsets[name] = (list(sams), list(vars_vals))
-                    self.get_output(data.path, cohort)
-
-                # for group, group_vals in data.sample_subsets.items():
-                #     for vals in group_vals:
-                #         cohort = get_cohort('nestedness', group, vals, data)
-                #         if not cohort:
-                #             continue
-                #         self.get_output(data.path, cohort)
-
-                    ## ---------------------------------------------
-                    ## USE THE SAME SUBSET AS FOR THE OTHER TOOL !!!
-                    ## ---------------------------------------------
-                # ------>
-                # for cohort, (sams, variables) in data.subsets[raref].items():
-                    # ------>
-
-                    meta_pd = subset_meta(
-                        data.metadata, vals, group, col=group)
-                    if meta_pd.shape[0] < 10:
-                        continue
-                    print()
-                    print()
-                    print('========================')
-                    print('dat:', dat)
-                    print('level:', level)
-                    print('raref:', raref)
-                    print('name:', name)
-                    print('meta_pd.shape:', meta_pd.shape)
-                    print('- - - - - - - - - - - - - - - - - - - - - - ')
-                    print('meta_pd.nunique():\n', meta_pd.nunique())
-                    print('- - - - - - - - - - - - - - - - - - - - - - ')
-                    print('========================')
-                    self.scripts(meta_pd, data, raref, level, cohort)
+                    meta.to_csv(rep(meta_fp), index=False, sep='\t')
+                    self.scripts(meta, data, raref, level, grp)
         self.register_io_command()
 
     def register_io_command(self):

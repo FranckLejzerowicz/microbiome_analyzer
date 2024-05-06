@@ -20,7 +20,7 @@ import seaborn as sns
 dat = '<DAT>'
 odir = '<ODIR>'
 nodfs = '<NODFS>'
-collapsed = '<COLLAPSED>'
+coll = '<COLLAPSED>'
 
 arefiles = [x for x in nodfs if isfile(x)]
 if arefiles:
@@ -30,7 +30,7 @@ if arefiles:
     nodfs_cols = ['NODF_OBSERVED', 'NODF_NULL_MEAN']
     nodfs = nodfs.set_index([x for x in nodfs.columns if x not in nodfs_cols])
     nodfs = nodfs.stack().reset_index().rename(
-        columns={'level_11': 'NODF_TYPE', 0: 'NODF'})
+        columns={'level_10': 'NODF_TYPE', 0: 'NODF'})
     nodfs_obs = nodfs.loc[nodfs.NODF_TYPE == 'NODF_OBSERVED'].drop(
         columns=['NODF_NULL_STDEV'])
     nodfs_null = nodfs.loc[nodfs.NODF_TYPE == 'NODF_NULL_MEAN'].copy()
@@ -46,11 +46,6 @@ if arefiles:
     nodfs_leg = dict(zip(nodfs_metas.COMPARISON.unique(), sns.color_palette(
                 palette='Set1', n_colors=nodfs_metas.COMPARISON.unique().size)))
     nodfs_leg['overall'] = (0, 0, 0)
-    # nodfs_and_null['FEATURE_SUBSET'] = nodfs_and_null[
-    #     'FEATURE_SUBSET'].fillna('')
-    # nodfs_and_null['SUBSET'] = nodfs_and_null[
-    #     ['FEATURE_SUBSET', 'SAMPLE_SUBSET']
-    # ].apply(func=lambda x: ''.join(x), axis=1)
 
     comparison_raref = 'COMPARISON'
     if sum(nodfs_and_null.RAREF.fillna('NaN').str.contains('raref')):
@@ -71,39 +66,34 @@ if arefiles:
         ['MODE', 'METADATA']
     ].fillna('').apply(func=lambda x: ' - '.join([y for y in x if y]), axis=1)
     levels = dict(
-        (y[0], x) for x, y in enumerate(
-            sorted(collapsed.items(), key=lambda item: item[1])
+        (y[0], x) for x, y in enumerate(sorted(coll.items(), key=lambda i: i[1])
         ) if y[0] in nodfs_and_null.LEVEL.unique())
-    levels['feature'] = max(levels.values()) + 1
+    levels['feature'] = 1
+    if levels:
+        levels['feature'] = max(levels.values()) + 1
     nodfs_and_null['LEVEL_SORT'] = [levels[x] for x in nodfs_and_null['LEVEL']]
     nodfs_and_null = nodfs_and_null.sort_values(
         ['LEVEL_SORT', 'NODF_TYPE'], ascending=True)
-    nodfs_and_null = nodfs_and_null.drop(columns=[
-        # 'FEATURE_SUBSET', 'SAMPLE_SUBSET',
-        'RAREF', 'MODE', 'METADATA'])
+    nodfs_and_null = nodfs_and_null.drop(columns=['RAREF', 'MODE', 'METADATA'])
     table_fpo = '%s/nodfs.tsv' % odir
     nodfs_and_null.to_csv(table_fpo, index=False, sep='\t')
 
     nodfs_pdf = '%s/nodfs.pdf' % odir
     with PdfPages(nodfs_pdf) as pdf:
-        for (mode_meta, null), nodfs_and_null_mode_ in nodfs_and_null.groupby(
+        for (mode_meta, null), nodfs_ in nodfs_and_null.groupby(
                 ['MODE_METADATA', 'NULL']):
-            nodfs_and_null_mode = nodfs_and_null_mode_.drop(
-                columns=['MODE_METADATA'])
-            nodfs_and_null_mode[
-                'LEVEL_SORT_LEVEL'] = nodfs_and_null_mode[
-                    'LEVEL_SORT'].astype(str) + nodfs_and_null_mode['LEVEL']
-            SUBSETS = ['ALL'] + sorted([
-                x for x in nodfs_and_null_mode.SAMPLE_SUBSET.unique().tolist()
-                # x for x in nodfs_and_null_mode.SUBSET.unique().tolist()
-                if x != 'ALL'])
-            nodfs_and_null_mode.index = range(nodfs_and_null_mode.shape[0])
+            nodfs = nodfs_.drop(columns=['MODE_METADATA'])
+            nodfs['SORT'] = nodfs['LEVEL_SORT'].astype(str) + nodfs['LEVEL']
+            SUBSETS = sorted([
+                x for x in nodfs.SAMPLE_SUBSET.unique().tolist()if x != 'ALL'])
+            if 'ALL' in nodfs.SAMPLE_SUBSET.unique():
+                SUBSETS = ['ALL'] + SUBSETS
+            nodfs.index = range(nodfs.shape[0])
             g = sns.relplot(
-                data=nodfs_and_null_mode, x="LEVEL_SORT_LEVEL", y="NODF",
-                col="SUBSET", col_wrap=2, col_order=SUBSETS,
-                hue=comparison_raref, palette=nodfs_leg, style='NODF_TYPE',
+                data=nodfs, x="SORT", y="NODF", col="SAMPLE_SUBSET", col_wrap=2,
+                col_order=SUBSETS, hue=comparison_raref, palette=nodfs_leg,
+                style='NODF_TYPE', kind="line", err_style="bars", ci='sd',
                 style_order=['NODF_OBSERVED', 'NODF_NULL_MEAN'],
-                kind="line", err_style="bars", ci='sd',
                 facet_kws={'sharey': False, 'sharex': False})
             axes = g.axes
             for sdx, SUBSET in enumerate(SUBSETS):
@@ -112,17 +102,15 @@ if arefiles:
                 axes[sdx].set_xticklabels([x[0] for x in sorted(
                     levels.items(), key=lambda item: item[1])], rotation=45)
                 axes[sdx].set_xlabel(SUBSET)
-                SUBSET_pd = nodfs_and_null_mode.loc[
-                    (nodfs_and_null_mode.SUBSET == SUBSET) &
-                    (nodfs_and_null_mode.NODF_TYPE == 'NODF_OBSERVED')
-                ].drop(columns=['SUBSET'])
+                SUBSET_pd = nodfs.loc[(nodfs.SAMPLE_SUBSET == SUBSET) &
+                                      (nodfs.NODF_TYPE == 'NODF_OBSERVED')
+                ].drop(columns=['SAMPLE_SUBSET'])
                 for (LEVEL_SORT, NODF, PVALUE, COMP) in SUBSET_pd[
                     ['LEVEL_SORT', 'NODF', 'PVALUE', comparison_raref]
                 ].values:
                     if PVALUE:
-                        axes[sdx].text(
-                            LEVEL_SORT, NODF+0.005, PVALUE,
-                            color=nodfs_leg[COMP], fontsize=5)
+                        axes[sdx].text(LEVEL_SORT, NODF+0.005, PVALUE,
+                                       color=nodfs_leg[COMP], fontsize=5)
             suptitle = '%s - %s (%s)' % (dat, mode_meta, null)
             plt.suptitle(suptitle, fontsize=12)
             plt.subplots_adjust(top=.90, hspace=0.3)
