@@ -109,7 +109,7 @@ class Nestedness(object):
 
     def get_taxo_level(self, dat, data):
         level = 'feature'
-        if dat in Datasets.coll_raw:
+        if dat not in Datasets.raw_coll:
             level = data.taxon
         return level
 
@@ -281,9 +281,9 @@ class Nestedness(object):
     def write_graph(self, data, meta_pd, raref) -> (str, str):
         graph = '%s/graphs%s.csv' % (self.out, raref)
         cmd = ''
+        meta = '%s/meta.tsv' % self.out
+        self.write_meta(meta, data.metadata, meta_pd, self.nodfs)
         if self.config.force or to_do(graph):
-            meta = '%s/meta.tsv' % self.out
-            self.write_meta(meta, data.metadata, meta_pd, self.nodfs)
             cmd, biom = self.init_cmds(self.out, meta, data, raref)
             cmd += self.write_nestedness_graph(biom, graph)
         return cmd, graph
@@ -342,44 +342,48 @@ class Nestedness(object):
                         i_f.append(comp)
                     io_update(self, i_f=i_f, o_f=simul, key=data.dat)
             self.merge_outputs(m_dir, level, raref, cohort, nodfs_fp)
-            self.res.append([dat, nodfs_fp, cohort, self.out])
+            self.res.append([
+                dat, dat.split('/tx-')[0], nodfs_fp, cohort, self.out])
             if nest_cmd:
                 self.write_meta(meta, data.metadata, meta_pd, nodfs)
                 cmd += init_cmd + nest_cmd
-        self.cmds.setdefault(data.dat, []).append(cmd)
+        if cmd:
+            self.cmds.setdefault(data.dat, []).append(cmd)
 
     def figure_nodfs(self):
         self.analysis = 'nestedness_nodfs'
-        self.res_pd = pd.DataFrame(self.res, columns=['dataset', 'nodfs_fps',
-                                                      'cohort', 'o_dir'])
+        self.res_pd = pd.DataFrame(
+            self.res, columns=['dataset', 'src', 'nodfs_fps', 'cohort', 'odir'])
         nodfs_py = '%s/%s.py' % (RESOURCES, self.analysis)
         for dat, data in self.project.datasets.items():
             if data.taxon or not data.collapsed:
                 continue
-            dat_pd = self.res_pd.loc[self.res_pd["dataset"] == dat]
-            o_dir = dat_pd.loc[dat_pd['cohort'] == 'ALL'].o_dir.values[0]
-            pdf, py = '%s/nodfs.pdf' % o_dir, '%s/nodfs.py' % o_dir
-            if self.config.force or to_do(pdf):
-                cmd = 'python3 %s\n' % py
-                self.cmds.setdefault(dat, []).append(cmd)
-                io_update(self, i_f=([py] + dat_pd['nodfs_fps'].tolist()),
-                          o_d=o_dir, key=dat)
-                with open(rep(py), 'w') as o, open(rep(nodfs_py)) as f:
-                    for line in f:
-                        line_edit = line
-                        if '<DAT>' in line:
-                            line_edit = line_edit.replace('<DAT>', dat)
-                        if '<ODIR>' in line:
-                            line_edit = line_edit.replace(
-                                '<ODIR>', self.get_path(o_dir))
-                        if '<NODFS>' in line:
-                            ns = [self.get_path(x) for x in dat_pd['nodfs_fps']]
-                            line_edit = line_edit.replace(
-                                "'<NODFS>'", str(ns))
-                        if '<COLLAPSED>' in line:
-                            line_edit = line_edit.replace(
-                                "'<COLLAPSED>'", str(data.collapsed))
-                        o.write(line_edit)
+            dat_pd = self.res_pd.loc[(self.res_pd["src"] == dat)]
+            for raref in data.qza:
+                o_dir = dat_pd.sort_values('dataset')["odir"].values[0]
+                nodfs_fps = dat_pd['nodfs_fps']
+                pdf, py = '%s/nodfs.pdf' % o_dir, '%s/nodfs.py' % o_dir
+                if self.config.force or to_do(pdf):
+                    cmd = 'python3 %s\n' % py
+                    self.cmds.setdefault(dat, []).append(cmd)
+                    io_update(self, o_d=o_dir, key=dat,
+                              i_f=([py] + nodfs_fps.tolist()))
+                    with open(rep(py), 'w') as o, open(rep(nodfs_py)) as f:
+                        for line in f:
+                            line_edit = line
+                            if '<DAT>' in line:
+                                line_edit = line_edit.replace('<DAT>', dat)
+                            if '<ODIR>' in line:
+                                line_edit = line_edit.replace(
+                                    '<ODIR>', self.get_path(o_dir))
+                            if '<NODFS>' in line:
+                                ns = [self.get_path(x) for x in nodfs_fps]
+                                line_edit = line_edit.replace(
+                                    "'<NODFS>'", str(ns))
+                            if '<COLLAPSED>' in line:
+                                line_edit = line_edit.replace(
+                                    "'<COLLAPSED>'", str(data.collapsed))
+                            o.write(line_edit)
         self.register_io_command()
 
     def figure_graphs(self):
@@ -405,7 +409,7 @@ class Nestedness(object):
                               o_f=[pdf, txt], key=dat)
                     with open(rep(py), 'w') as o, open(rep(graphs_py)) as f:
                         for line in f:
-                            o.write(line.replace(
+                            l_rep = line.replace(
                                 '<DAT>', dat).replace(
                                 # '<RAREF>', data.rarefs[idx]).replace(
                                 '<RAREF>', raref
@@ -424,7 +428,10 @@ class Nestedness(object):
                                 '<COHORT>', cohort).replace(
                                 "'<COLL>'", str(data.collapsed)
                             ).replace(
-                                '<GRAPH_FP>', self.get_path(graph_fp)))
+                                '<GRAPH_FP>', self.get_path(graph_fp))
+                            if not self.config.jobs:
+                                l_rep = l_rep.replace('${SCRATCH_FOLDER}', '')
+                            o.write(l_rep)
         self.register_io_command()
 
     def run(self):
@@ -434,7 +441,6 @@ class Nestedness(object):
             for raref, qza in data.qza.items():
                 tab = data.data[raref]
                 tab_sams = set(pd.Series(tab.ids(axis='sample')))
-
                 for grp, (sams, variables) in data.subsets[raref].items():
                     self.get_output(dat, grp)
                     meta_fp = '%s/meta%s.tsv' % (self.out, raref)

@@ -84,10 +84,8 @@ if arefiles:
                 ['MODE_METADATA', 'NULL']):
             nodfs = nodfs_.drop(columns=['MODE_METADATA'])
             nodfs['SORT'] = nodfs['LEVEL_SORT'].astype(str) + nodfs['LEVEL']
-            SUBSETS = sorted([
+            SUBSETS = ['ALL'] + sorted([
                 x for x in nodfs.SAMPLE_SUBSET.unique().tolist()if x != 'ALL'])
-            if 'ALL' in nodfs.SAMPLE_SUBSET.unique():
-                SUBSETS = ['ALL'] + SUBSETS
             nodfs.index = range(nodfs.shape[0])
             g = sns.relplot(
                 data=nodfs, x="SORT", y="NODF", col="SAMPLE_SUBSET", col_wrap=2,
@@ -98,9 +96,10 @@ if arefiles:
             axes = g.axes
             for sdx, SUBSET in enumerate(SUBSETS):
                 ticks = axes[sdx].get_xticks()
-                axes[sdx].xaxis.set_major_locator(mticker.FixedLocator(ticks))
-                axes[sdx].set_xticklabels([x[0] for x in sorted(
-                    levels.items(), key=lambda item: item[1])], rotation=45)
+                axes[sdx].set_xticks(axes[sdx].get_xticks())
+                axes[sdx].set_xticklabels(
+                    [x.get_text()[1:] for x in axes[sdx].get_xticklabels()],
+                    rotation=45)
                 axes[sdx].set_xlabel(SUBSET)
                 SUBSET_pd = nodfs.loc[(nodfs.SAMPLE_SUBSET == SUBSET) &
                                       (nodfs.NODF_TYPE == 'NODF_OBSERVED')
