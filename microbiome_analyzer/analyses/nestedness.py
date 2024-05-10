@@ -257,7 +257,7 @@ class Nestedness(object):
         cmd = ''
         if to_do(biom_):
             cmd += write_sample_filter(data.qza[raref], qza, meta)
-            cmd += run_export(qza, tsv, 'FeatureTable')
+            cmd += run_(qza, tsv, 'FeatureTable')
             cmd += 'rm %s %s\n' % (qza, tsv)
             i_f = []
             if isfile(meta):
