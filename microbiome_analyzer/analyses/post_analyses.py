@@ -228,7 +228,9 @@ class PostAnalysis(object):
                             omic_tax_pd, on='Feature ID',
                             how='left').drop_duplicates()
                 meta_omic_fp = '%s/feature_metadata_%s_%s__%s_%s.tsv' % (
-                    self.out, omic, filt, omic_, filt_)
+                    self.out,
+                    omic.replace('/', '__'), filt,
+                    omic_.replace('/', '__'), filt_)
                 drop_columns = [col for col in omic_songbird_ranks.columns if
                                 omic_songbird_ranks[col].unique().size == 1]
                 meta_omic_pd = omic_songbird_ranks.drop(columns=drop_columns)

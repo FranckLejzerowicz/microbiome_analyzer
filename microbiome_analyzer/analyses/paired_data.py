@@ -256,15 +256,16 @@ class PairedData(object):
         # print(self.mmvecs)
         pfs = ['pair', 'filter', 'subset']
         for (pair, filter_, subset), mmvec in self.mmvecs.groupby(pfs):
-            # print(mmvec)
             data_dir = self.get_output('common/data/%s/%s' % (pair, subset))
             meta_dir = self.get_output('common/metadata/%s/%s' % (pair, subset))
             mmvec_d = mmvec.iloc[0, :].to_dict()
-            dat1, dat2 = mmvec_d['dataset1'], mmvec_d['dataset2']
+            dat1_, dat2_ = mmvec_d['dataset1'], mmvec_d['dataset2']
+            dat1 = dat1_.replace('/', '__')
+            dat2 = dat2_.replace('/', '__')
             prev1, prev2 = mmvec_d['prevalence1'], mmvec_d['prevalence2']
             abun1, abun2 = mmvec_d['abundance1'], mmvec_d['abundance2']
-            qza1, meta1 = self.get_dataset_path(dat1, filter_, subset)
-            qza2, meta2 = self.get_dataset_path(dat2, filter_, subset)
+            qza1, meta1 = self.get_dataset_path(dat1_, filter_, subset)
+            qza2, meta2 = self.get_dataset_path(dat2_, filter_, subset)
             if to_do(meta1) or to_do(meta2):
                 continue
             meta1_pd = read_meta_pd(rep(meta1))
@@ -322,9 +323,6 @@ class PairedData(object):
                 ['dataset', 'filter', 'subset']):
             row_d = row.iloc[0, :].to_dict()
             tsv, qza, meta = row_d['tsv'], row_d['qza'], row_d['meta']
-            print(tsv)
-            print(qza)
-            print(meta)
             if not to_do(tsv) and not to_do(qza) and not to_do(meta):
                 continue
             data = project.datasets[dat]
@@ -359,23 +357,22 @@ class PairedData(object):
         datasets_paths = datasets_paths.drop(columns=['pair', 'omic'])
         datasets_paths = datasets_paths.loc[
             ~datasets_paths.astype(str).duplicated()]
-        print(datasets_paths)
-        paths = []
+        ps = []
         for r, row in datasets_paths.iterrows():
-            dataset = row['dataset'].replace('/', '__')
+            dat = row['dataset']
             filter_ = row['filter']
             subset = row['subset']
-            self.get_output('datasets/%s/%s' % (dataset, subset))
-            rad = '%s_%s' % (dataset, filter_)
+            self.get_output('datasets/%s/%s' % (dat.replace('/', '__'), subset))
+            rad = '%s_%s' % (dat.replace('/', '__'), filter_)
             tsv = '%s/tab_%s.tsv' % (self.out, rad)
             qza = '%s.qza' % splitext(tsv)[0]
             meta = '%s/meta_%s.tsv' % (self.out, rad)
-            paths.append([dataset, filter_, subset, tsv, qza, meta])
+            ps.append([dat, filter_, subset, tsv, qza, meta])
 
+        paths_pd = pd.DataFrame(
+            ps, columns=['dataset', 'filter', 'subset', 'tsv', 'qza', 'meta'])
         datasets_paths = datasets_paths.merge(
-            pd.DataFrame(paths, columns=[
-                'dataset', 'filter', 'subset', 'tsv', 'qza', 'meta']),
-            on=['dataset', 'filter', 'subset'], how='left')
+            paths_pd, on=['dataset', 'filter', 'subset'], how='left')
         return datasets_paths
 
     def get_mmvec_matrix(self, project):
@@ -619,7 +616,6 @@ class PairedData(object):
                         params['summary_interval'], self.config.gpu,
                         self.config.qiime_env)
                     self.cmds.setdefault(pair, []).append(cmd)
-            print(pair, filter_, subset)
         if mmvec:
             self.get_mmvec_pd(mmvec)
         self.register_io_command()

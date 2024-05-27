@@ -492,11 +492,25 @@ def fix_collapsed_data(
         cmd += run_import(coll_tax_tsv, coll_tax_qza, 'FeatureData[Taxonomy]')
 
     ids = set(coll_biom.ids(axis='observation'))
+    # print()
+    # print()
+    # print("dat:", dat, "raref:", raref)
+    # print()
+    # print("ids")
+    # print(ids)
+    # print()
+    # print("remove_empty")
+    # print(remove_empty)
     common = remove_empty & ids
+    # print()
+    # print("ids - remove_empty")
+    # print(ids - remove_empty)
     if len(common):
         cmd += '\n# Features removed: %s\n'
         for c in common:
             cmd += '#  - %s\n' % c
+        for i in coll_biom.ids(axis='observation'):
+            print('-', i)
         coll_biom.filter(ids_to_keep=list(ids - remove_empty))
         coll_biom.remove_empty()
         coll_pd = coll_biom.to_dataframe(dense=True)
