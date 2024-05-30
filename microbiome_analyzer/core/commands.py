@@ -2335,6 +2335,7 @@ def get_biplot_commands(
         cmd += ' --m-%s-metadata-file %s' % (omic_feature, meta1_fp)
         cmd += ' --m-%s-metadata-file %s' % (omic_sample, meta2_fp)
         cmd += ' --p-number-of-features %s' % n_edit
+        cmd += ' --p-ignore-missing-samples'
         cmd += ' --o-visualization %s\n' % qzv
         io_update(self, i_f=[meta1_fp, meta2_fp], o_f=qzv, key=pair)
     return cmd
