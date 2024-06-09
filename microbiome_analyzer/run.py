@@ -99,6 +99,8 @@ def runner(**kwargs):
             analysis.biplots()
             if 'emperor_biplot' not in config.skip:
                 analysis.emperor_biplot()
+        if 'rpca' not in config.skip:
+            analysis.rpca()
         if config.permanova and 'permanova' not in config.skip:
             analysis.permanova()
         # summarize_permanova(
@@ -116,9 +118,6 @@ def runner(**kwargs):
             DmDecay(config, project)
         if config.geo_decay and 'geo_decay' not in config.skip:
             pass
-
-        if 'rpca' not in config.skip:
-            analysis.rpca()
         if config.time_subject:
             if 'ctf' not in config.skip:
                 analysis.ctf()
