@@ -77,8 +77,10 @@ class PostAnalysis(object):
         mmvec_pd = mmvec_pd.set_index(mmvec_pd.columns.tolist()[:-1]).unstack()
         mmvec_pd.columns = mmvec_pd.columns.droplevel()
         mmvec_pd.reset_index(inplace=True)
-        mmvec_pd['filter1'] = mmvec_pd['pr1'] + '_' + mmvec_pd['ab1']
-        mmvec_pd['filter2'] = mmvec_pd['pr2'] + '_' + mmvec_pd['ab2']
+        mmvec_pd['filter1'] = mmvec_pd.apply(
+            lambda x: '_'.join([str(x['pr1']), str(x['ab1'])]), axis=1)
+        mmvec_pd['filter2'] = mmvec_pd.apply(
+            lambda x: '_'.join([str(x['pr2']), str(x['ab2'])]), axis=1)
         mmvec_pd['omic_subset_filt1'] = mmvec_pd.apply(
             lambda x: '__'.join(x[['omic1', 'subset', 'filter1']]), axis=1)
         mmvec_pd['omic_subset_filt2'] = mmvec_pd.apply(
