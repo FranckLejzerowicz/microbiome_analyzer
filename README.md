@@ -52,40 +52,49 @@ the email address for job completion [as explained here](https://github.com/Fran
 The input is strict:
 - path to a folder containing at least two sub-folder named `data` and 
   `metadata` (option `-i`):
-  - `<-i>/data` must contain one or more feature table(s) ending 
-    either with:
-      - `.tsv` (tab-separated plain text with samples as columns and 
-        features as rows)
-      - `.biom` (possibly generated from these .tsv tables or fetched using 
-        e.g. [redbiom](https://github.com/biocore/redbiom))
-  - `<-i>/metadata` must contain as many metadata table(s), ending with `.tsv`
-    - samples are row; variables are columns; first column is for the 
-      "`sample_name`"
-- name of the dataset(s) that appear _internally_ in these folders file 
-  names (options `-d`). There must be a perfect matching of this _internal_ 
-  name in the features/metadata file pairs, e.g.
+  - the `data` folder must contain one subfolder per dataset, named after the 
+    dataset as it will appear in all outputs and configs:
+    - inside each subfolder, a table named `data.tsv` must be tab-separated 
+      with samples as columns and features as rows.
+  - the `metadata` folder must also contain one subfolder per dataset (named as 
+    above):
+    - ins
+      - samples are row; variables are columns; first column is for the 
+        "`sample_name`"
+- the dataset name(s) that appear in these folders must be given to option 
+  `-d` and thus, to match the features/metadata tables, e.g.
     ```
-    datasets_folder
+    workfolder
     ├── metadata
-    │   └── dataset_number_1.tsv
-    │   └── dataset_number_2.tsv
-    ├── data
-    │   └── dataset_number_1.tsv
-    │   └── dataset_number_2.tsv
+    │   ├── dataset_name_1
+    │   │    └── metadata.tsv
+    │   └── dataset_name_2
+    │        └── metadata.tsv
+    └── data
+        ├── dataset_name_1
+        │    └── data.tsv
+        └── dataset_name_2
+             └── data.tsv
     ```
-    In this case, the matching _internal_ names are `dataset_number_1` and 
-  `dataset_number_2`. Any `data` .tsv/.biom files that do not have a matching
+    In this case, the matching _internal_ names are `dataset_name_1` and 
+  `dataset_name_2`. Any `data` .tsv files that do not have a matching
   `metadata` .tsv path will be ignored.
 
     **The analysis is performed as follows:**
 
     - If both datasets are to be processed:
     ```
-    microbiome_analyzer run -i datasets_folder -d dataset_number_1 -d dataset_number_2 -n jobs_name -e qiime2-2019.10
+    microbiome_analyzer run \
+        -i /path/to/workfolder \
+        -d dataset_name_1 -d dataset_name_2 \
+        -n jobs_name -e qiime2-2024.5
     ```
-    - If only the `dataset_number_2` dataset is to be processed:
+    - If only the `dataset_name_2` dataset is to be processed:
     ```
-    microbiome_analyzer run -i datasets_folder -d dataset_number_2 -n jobs_name -e qiime2-2019.10
+    microbiome_analyzer run \
+        -i /path/to/workfolder \
+        -d dataset_name_2 \
+        -n jobs_name -e qiime2-2019.10
     ```
   
 In fact, the tool simply generates scripts files that need to be started 
@@ -97,79 +106,84 @@ command lines pre-written for Torque/Slurm and ready to be run on a HPC!
 
 After running this command (you can try):
 ```
-microbiome_analyzer run -i ./microbiome_analyzer/tests/files -d dataset_number_1 -n jobs_name -e qiime2-2021.11
+microbiome_analyzer run \
+    -i /path/to/workfolder \
+    -d dataset_name_1 \
+    -n jobs_name -e qiime2-2024.5
 ```
-You would obtain _files_ in the `jobs` folders (scripts to check and run),
-and _folders_ in the `<analysis_name>` folder (locations for qiime2 outputs).
+
+Inside the `workfolder` you will obtain _files_ in `jobs` subfolders 
+(scripts to check and run), for each analysis _folders_ named after the 
+`<analysis_name>` (these obvisouly are the locations for outputs).
 ```
 .
-├── data
-│   ├── dataset_number_1.tsv
-│   └── dataset_number_2.tsv
-├── jobs
-│   ├── alpha
-│   ├── alpha_correlations
-│   ├── beta
-│   ├── emperor
-│   ├── import_tables
-│   └── pcoa
 ├── metadata
-│   ├── dataset_number_1.tsv
-│   └── dataset_number_2.tsv
+│   ├── dataset_name_1
+│   │    └── metadata.tsv
+│   └── dataset_name_2
+│        └── metadata.tsv
+├── data
+│    ├── dataset_name_1
+│    │    └── data.tsv
+│    └── dataset_name_2
+│         └── data.tsv
 ├── alpha
-│   └── dataset_number_1
+│   └── dataset_name_1
 ├── alpha_correlations
-│   └── dataset_number_1
+│   └── dataset_name_1
 ├── beta
-│   └── dataset_number_1
+│   └── dataset_name_1
 ├── emperor
-│   └── dataset_number_1
-└── pcoa
-    └── dataset_number_1
+│   └── dataset_name_1
+├── pcoa
+│    └── dataset_name_1
+├── ...
 ```
 
 Here's the stdout for the simple command above:
 ```
 # import
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/run.sh
+sh /path/to/workfolder/import/run.sh
 # taxonomy
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/run.sh
+sh /path/to/workfolder/taxonomy/run.sh
 ```
 
-These prints are jobs to run, i.e. these `sh` commands only need to be copy-pasted on the
-HPC terminal to actually run the `.pbs` (for Torque) or `.slm` (for Slurm, use option `--slurm`)
-scripts within. For example, the first `.sh` file contains:
+These prints are jobs to run, i.e. these `sh` commands only need to be 
+copy-pasted on the HPC terminal to actually run the `.pbs` (for Torque) or
+`.slm` (for Slurm, use option `--slurm`) scripts within. For example, the 
+first `.sh` file contains:
 
 ```
-$ cat /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/run.sh
-mkdir -p /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/jobs
-cd /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/jobs
-sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/jobs/run_0.pbs
-sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/jobs/run_1.pbs
-sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/jobs/run_2.pbs
+$ cat /path/to/workfolder/<analysis_name>/run.sh
+mkdir -p /path/to/workfolder/<analysis_name>/jobs
+cd /path/to/workfolder/<analysis_name>/jobs
+sbatch /path/to/workfolder/<analysis_name>/jobs/run_0.pbs
+sbatch /path/to/workfolder/<analysis_name>/jobs/run_1.pbs
+sbatch /path/to/workfolder/<analysis_name>/jobs/run_2.pbs
 ...
 ```
 
 * Note: If you where to prepare scripts for 5 datasets:
   ```
-  microbiome_analyzer run -i ./microbiome_analyzer/tests/files \
-      -d dataset_number_1 \
-      -d dataset_number_2 \
-      -d dataset_number_3 \
-      -d dataset_number_4 \
-      -d dataset_number_5 \
-      -n jobs_name -e qiime2-2021.11
+  microbiome_analyzer run \
+      -i ./microbiome_analyzer/tests/files \
+      -d dataset_name_1 \
+      -d dataset_name_2 \
+      -d dataset_name_3 \
+      -d dataset_name_4 \
+      -d dataset_name_5 \
+      -n jobs_name -e qiime2-2024.5
   ```
   Then this first `.sh` file would contain:
   ```
-  $ cat /abs/path/to/microbiome_analyzer/tests/files/jobs/import/run.sh
-  mkdir -p /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs
-  cd /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs
-  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_dataset_number_1.pbs
-  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_dataset_number_2.pbs
-  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_dataset_number_3.pbs
-  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_dataset_number_4.pbs
-  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_dataset_number_5.pbs
+  $ cat /path/to/workfolder/import/run.sh
+  mkdir -p /path/to/workfolder/import/jobs
+  cd /path/to/workfolder/import/jobs
+  sbatch /path/to/workfolder/import/jobs/run_dataset_name_1.pbs
+  sbatch /path/to/workfolder/import/jobs/run_dataset_name_2.pbs
+  sbatch /path/to/workfolder/import/jobs/run_dataset_name_3.pbs
+  sbatch /path/to/workfolder/import/jobs/run_dataset_name_4.pbs
+  sbatch /path/to/workfolder/import/jobs/run_dataset_name_5.pbs
   ```
   * *Trick here*: using the option `-x <int>` (or `--chunks <int>`) to group 
     the commands into less jobs. This can be useful if you have say 50 
@@ -177,22 +191,23 @@ sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/<analysis_name>/jobs/ru
     this would send probably too many jobs to the scheduler. Let's see what 
     it does to make For our 5 datasets:
   ```
-  microbiome_analyzer run -i ./microbiome_analyzer/tests/files \
-      -d dataset_number_1 \
-      -d dataset_number_2 \
-      -d dataset_number_3 \
-      -d dataset_number_4 \
-      -d dataset_number_5 \
+  microbiome_analyzer run \
+      -i /path/to/workfolder \
+      -d dataset_name_1 \
+      -d dataset_name_2 \
+      -d dataset_name_3 \
+      -d dataset_name_4 \
+      -d dataset_name_5 \
       -n jobs_name -e qiime2-2021.11 -x 3
   ```
   The `.sh` file would now contain only two jobs:
   ```
-  $ cat /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jbs_nm.sh
-  mkdir -p /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs
-  cd /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs
-  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_0.pbs
-  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_1.pbs
-  sbatch /abs/path/to/microbiome_analyzer/tests/files/jobs/import/jobs/run_2.pbs
+  $ cat /path/to/workfolder/import/jbs_nm.sh
+  mkdir -p /path/to/workfolder/import/jobs
+  cd /path/to/workfolder/import/jobs
+  sbatch /path/to/workfolder/import/jobs/run_0.pbs
+  sbatch /path/to/workfolder/import/jobs/run_1.pbs
+  sbatch /path/to/workfolder/import/jobs/run_2.pbs
   ```
 
 Only `import` and `taxonomy` are showing up because the former one needs to be run first before most other
@@ -207,13 +222,13 @@ After running these two jobs, if you re-run the same, simple command above, you 
 
 ```
 # alpha
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha/run.sh
+sh /path/to/workfolder/alpha/run.sh
 # tabulate
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/tabulate/run.sh
+sh /path/to/workfolder/tabulate/run.sh
 # barplot
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/barplot/run.sh
+sh /path/to/workfolder/barplot/run.sh
 # beta
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/beta/run.sh
+sh /path/to/workfolder/beta/run.sh
 ```
 That's more work ready to start, because now the data table was imported to qiime2:
 
@@ -232,7 +247,7 @@ and which thresholds to use to remove rare features (`features`) and poorly
 sequenced samples (`samples`), e.g.:
 
 ```
-dataset_number_1:  # dataset name
+dataset_name_1:  # dataset name
   names:
   - "samplename1"
   - "samplename2"
@@ -241,7 +256,7 @@ dataset_number_1:  # dataset name
 ```
 which is interpreted as a dictionary:
 ```
-{"dataset_number_1": {"names": ["samplename1", "samplename2"],
+{"dataset_name_1": {"names": ["samplename1", "samplename2"],
                       features: 0.0001, samples: 100}    
 ```
 The filteting proceeds in this order:
@@ -265,13 +280,13 @@ of the distribution of number of reads per sample.
 
 If the following yaml file is given to option `-r`:
 ```
-dataset_number_1:
+dataset_name_1:
   - "100"
   - "200"
-dataset_number_2:
+dataset_name_2:
   - min
 ```
-There will be two rarefaction depths for `dataset_number_1`, while `dataset_number_2`
+There will be two rarefaction depths for `dataset_name_1`, while `dataset_name_2`
 will be rarefied to the depth of the minimum of the distribution of number of reads per sample.
 
 ### Feature subsets (option `-k`):
@@ -279,22 +294,22 @@ will be rarefied to the depth of the minimum of the distribution of number of re
 The yaml file gives, for each dataset, the list of names **or regex** to find the features 
 for which to make different subsets. 
 ```
-dataset_number_1:
+dataset_name_1:
   OGUs_selection:
     - "G000146185"
     - "G000153885"
     - "G000153905"
   OGUs_ragex:
     - "G000[12]0000[89]"
-dataset_number_5:
+dataset_name_5:
   Milk_dataset:
     - "Milk"
 ```
 This will create:
-- two subsets for `dataset_number_1`:
+- two subsets for `dataset_name_1`:
   * subset `OGUs_selection` will contain three features given exactly
   * subset `OGUs_ragex` will contain max the four features matching the regex (i.e., `G000100008`, `G000100009`, `G000200009` or `G000200009`) 
-- one subset for `dataset_number_5`:
+- one subset for `dataset_name_5`:
   * subset `Milk_dataset` will contain all features contaiing the work "Milk".
 
 ### Taxonomic collapsing (option `--coll`):
@@ -307,11 +322,11 @@ and as value, either:
 (`1` would be for the very first, coarsest taxonomic level).
 
 ```
-dataset_number_1:
+dataset_name_1:
   phylum: "p"
   family: "f"
   genus: "g"
-dataset_number_5:
+dataset_name_5:
   level1: 1
   level2: 2
   level4: 4
@@ -399,12 +414,12 @@ These two-datasets comparison methods are using the same subsetting mechanism,
 to run on the sample in common between datasets pairs defined in a yaml file, e.g.:
 ```
 pairs:
-  dataset_number_1_5:  # invented name  
-    - "dataset_number_1"
-    - "dataset_number_5"
+  dataset_name_1_5:  # invented name  
+    - "dataset_name_1"
+    - "dataset_name_5"
   my_datastes_pair:  # invented name  
-    - "dataset_number_3"
-    - "dataset_number_4"
+    - "dataset_name_3"
+    - "dataset_name_4"
 ```
 
 Note that as above, the tests are also computed for sample subsets applied to these pairs.
@@ -440,18 +455,18 @@ The passed models will perform on each of the subsets defined in the file passed
 A config file must be provided in the following .yml format:
 ```
 models:
-  dataset_number_1:
+  dataset_name_1:
     timepoint_months_PLUS_income: "timepoint_months+income"
     timepoint_months_INTER_income: "timepoint_months*income"
     timepoint_months_PLUS_income_INTER_sex: "timepoint_months+income*sex"
     sex: "sex"
     timepoint_months: "timepoint_months"
-  dataset_number_5:
+  dataset_name_5:
     timepoint_months: "timepoint_months"
     timepoint_months_PLUS_income: "timepoint_months+income"
 strata:
   global: "sex"
-  dataset_number_1:
+  dataset_name_1:
     timepoint_months_PLUS_income:
     - "sex"
     - "group"
@@ -486,10 +501,10 @@ which is fairly simple. It tells which column name to create for each dataset, a
 on randomly selecting which proportion of each factor in each other column, e.g.:
 ```
 datasets:
-  dataset_number_1:   # a dataset name
+  dataset_name_1:   # a dataset name
     traintest_sex:    # a column to create in metadata of this dataset
       - "sex"         # which columns to use for (balanced) random sampling 
-  dataset_number_5:   # another dataset name
+  dataset_name_5:   # another dataset name
     traintest_sex:
       - "sex"
 train: 0.7            # proportiton to randomly sample for training
@@ -510,13 +525,13 @@ subsets to make per dataset, and the parameters.
 This config file must be provided in the following `.yml` format:
 ```
 models:
-  dataset_number_1:
+  dataset_name_1:
     timeINTERsexPLUSincome: "sex+income*timepoint_months"
     sexPLUSincome: "sex+income"
-  dataset_number_2:
+  dataset_name_2:
     sexPLUSincome: "sex+income"
 baselines:
-  dataset_number_1:
+  dataset_name_1:
     sexPLUSincome:
       sex: "sex"
       income: "income"
@@ -525,7 +540,7 @@ subsets:
   - - Female
   - - Male
 filtering:
-  dataset_number_1:
+  dataset_name_1:
     0.1-0.0001:
     - '0.1'
     - '0.0001'
@@ -555,7 +570,7 @@ The allowed "sections" are `models`, `baselines`, `filtering`, `subsets` and
 - `models`: for each dataset, one (or more) model name(s) and associated 
   model formula (which can accommodate categorical variables in formulation, 
   see [here](https://github.com/biocore/songbird#3-specifying-a-formula-)). 
-    - In the above example, both `dataset_number_1` and `dataset_number_2` will test 
+    - In the above example, both `dataset_name_1` and `dataset_name_2` will test 
       for the model named `sexPLUSincome` by the user, which will actually 
       use the formula `sex+income`.
 
@@ -572,7 +587,7 @@ The allowed "sections" are `models`, `baselines`, `filtering`, `subsets` and
         income: "income"
   ```
   the model `sexPLUSincome` (which formula was `sex+income`) will be 
-  compared for `dataset_number_2` with both the results of model `sex` (which 
+  compared for `dataset_name_2` with both the results of model `sex` (which 
   formula is simply `sex`) and `income` (which formula is simply `income`). 
   Note that by default, the baseline is `1` and thus the "section" 
   `baselines` can be missing. It is important to know that Pseudo Q2 values 
@@ -592,7 +607,7 @@ The allowed "sections" are `models`, `baselines`, `filtering`, `subsets` and
       interpreted as an absolute number, e.g. `10` would mean _min 10_ 
       (sample occurrences, or reads per sample).
 
-  In the above example, only `dataset_number_1` will be filtered (`dataset_number_2` 
+  In the above example, only `dataset_name_1` will be filtered (`dataset_name_2` 
   will be used raw, or filtered using songbird params, see below), to keep 
   only features that have at least 0.01% of the reads of each sample 
   (`0.0001`), for 10% of the samples (`0.1`).   
@@ -696,14 +711,14 @@ A config file must be provided in the following .yml format:
 ```
 pairs:
   2_3:
-    - dataset_number_2
-    - dataset_number_3*
+    - dataset_name_2
+    - dataset_name_3*
   2_4:
-   - dataset_number_2
-   - dataset_number_4
+   - dataset_name_2
+   - dataset_name_4
   3_4:
-   - dataset_number_3*
-   - dataset_number_4
+   - dataset_name_3*
+   - dataset_name_4
 filtering:
   prevalence:
     - 0
@@ -772,10 +787,10 @@ Options:
                                   files  [required]
 
   -d, --datasets TEXT             Dataset(s) identifier(s). Multiple is
-                                  possible: e.g. -d dataset_number_1 and -d
-                                  dataset_number_2 for
-                                  'tab_dataset_number_1.tsv' and
-                                  tab_dataset_number_2.tsv'  [required]
+                                  possible: e.g. -d dataset_name_1 and -d
+                                  dataset_name_2 for
+                                  'tab_dataset_name_1.tsv' and
+                                  tab_dataset_name_2.tsv'  [required]
 
   --filter / --no-filter          Prepare a template configuration file for
                                   `--filter`
@@ -859,10 +874,10 @@ Options:
                                   metadata sub-folders  [required]
 
   -d, --datasets TEXT             Dataset(s) identifier(s). Multiple is
-                                  possible: e.g. -d dataset_number_1 and -d
-                                  dataset_number_2 for
-                                  'tab_dataset_number_1.tsv' and
-                                  tab_dataset_number_2.tsv'  [required]
+                                  possible: e.g. -d dataset_name_1 and -d
+                                  dataset_name_2 for
+                                  'tab_dataset_name_1.tsv' and
+                                  tab_dataset_name_2.tsv'  [required]
 
   -n, --project-name TEXT         Nick name for your project  [required]
   -f, --filter TEXT               Samples to remove, min. read abundance and
@@ -1032,8 +1047,8 @@ microbiome_analyzer run \
   -i ./microbiome_analyzer/tests/files \
   -e qiime2-2021.11 \
   -n test \
-  -d dataset_number_1 \
-  -d dataset_number_5 \
+  -d dataset_name_1 \
+  -d dataset_name_5 \
   -d vioscreen_foods_consumed_grams_per_day_1800s_noLiquids \
   -f ./microbiome_analyzer/tests/files/filtering.yml \
   -filt3d ./microbiome_analyzer/tests/files/filtering_3d.yml \
@@ -1060,63 +1075,63 @@ The standard output shows you the scripts that have been written, i.e.,
 pretty much all the analyses available here so far: 
 ```
 # import
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/import/run.sh
+sh /path/to/workfolder/import/run.sh
 # rarefy
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/rarefy/run.sh
+sh /path/to/workfolder/rarefy/run.sh
 # taxonomy
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/taxonomy/run.sh
+sh /path/to/workfolder/taxonomy/run.sh
 # import_trees
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/import_trees/run.sh
+sh /path/to/workfolder/import_trees/run.sh
 # subsets
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/subsets/run.sh
+sh /path/to/workfolder/subsets/run.sh
 # alpha
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha/run.sh
+sh /path/to/workfolder/alpha/run.sh
 # alpha_correlations
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha_correlations/run.sh
+sh /path/to/workfolder/alpha_correlations/run.sh
 # tabulate
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/tabulate/run.sh
+sh /path/to/workfolder/tabulate/run.sh
 # alpha_rarefaction
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/alpha_rarefaction/run.sh
+sh /path/to/workfolder/alpha_rarefaction/run.sh
 # volatility
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/volatility/run.sh
+sh /path/to/workfolder/volatility/run.sh
 # mmvec_single_imports
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/mmvec_single_imports/run.sh
+sh /path/to/workfolder/mmvec_single_imports/run.sh
 # mmvec_paired_imports
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/mmvec_paired_imports/run.sh
+sh /path/to/workfolder/mmvec_paired_imports/run.sh
 # phate
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/phate/run.sh
+sh /path/to/workfolder/phate/run.sh
 # barplot
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/barplot/run.sh
+sh /path/to/workfolder/barplot/run.sh
 # beta
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/beta/run.sh
+sh /path/to/workfolder/beta/run.sh
 # deicode
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/deicode/run.sh
+sh /path/to/workfolder/deicode/run.sh
 # pcoa
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/pcoa/run.sh
+sh /path/to/workfolder/pcoa/run.sh
 # tsne
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/tsne/run.sh
+sh /path/to/workfolder/tsne/run.sh
 # umap
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/umap/run.sh
+sh /path/to/workfolder/umap/run.sh
 # permanova
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/permanova/run.sh
+sh /path/to/workfolder/permanova/run.sh
 # adonis
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/adonis/run.sh
+sh /path/to/workfolder/adonis/run.sh
 # dm_decay
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/dm_decay/run.sh
+sh /path/to/workfolder/dm_decay/run.sh
 # dm_decay_plot
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/dm_decay_plot/run.sh
+sh /path/to/workfolder/dm_decay_plot/run.sh
 # doc_R
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/doc_R/run.sh
+sh /path/to/workfolder/doc_R/run.sh
 # songbird_imports
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird_imports/run.sh
+sh /path/to/workfolder/songbird_imports/run.sh
 # songbird_filter
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird_filter/run.sh
+sh /path/to/workfolder/songbird_filter/run.sh
 # songbird_baselines
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird_baselines/run.sh
+sh /path/to/workfolder/songbird_baselines/run.sh
 # songbird
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/songbird/run.sh
+sh /path/to/workfolder/songbird/run.sh
 # qurro
-sh /abs/path/to/microbiome_analyzer/tests/files/jobs/qurro/run.sh
+sh /path/to/workfolder/qurro/run.sh
 ```
 
 
