@@ -553,7 +553,6 @@ def write_feat_filter(
     -------
 
     """
-
     cmd = 'qiime feature-table filter-features'
     cmd += ' --i-table %s' % qza
     cmd += ' --m-metadata-file %s' % meta_subset
