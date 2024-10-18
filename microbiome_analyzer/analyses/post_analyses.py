@@ -60,6 +60,15 @@ class PostAnalysis(object):
         return path
 
     def merge_mmvec_songbird(self, songbird_pd):
+        print()
+        print()
+        print('---------------')
+        print(songbird_pd.values)
+        print('---------------')
+        print()
+        print('---------------')
+        print(self.mmvec_songbird_pd.values)
+        print('---------------')
         rename_dic1 = dict(
             (x, '%s_omic1_songbird_common_fp' % x) for x in songbird_pd.columns)
         rename_dic1.update({'pair_omic_subset_filt': 'pair_omic_subset_filt1'})
@@ -78,9 +87,9 @@ class PostAnalysis(object):
         mmvec_pd.columns = mmvec_pd.columns.droplevel()
         mmvec_pd.reset_index(inplace=True)
         mmvec_pd['filter1'] = mmvec_pd.apply(
-            lambda x: '_'.join([str(x['pr1']), str(x['ab1'])]), axis=1)
+            lambda x: '-'.join([str(x['pr1']), str(x['ab1'])]), axis=1)
         mmvec_pd['filter2'] = mmvec_pd.apply(
-            lambda x: '_'.join([str(x['pr2']), str(x['ab2'])]), axis=1)
+            lambda x: '-'.join([str(x['pr2']), str(x['ab2'])]), axis=1)
         mmvec_pd['omic_subset_filt1'] = mmvec_pd.apply(
             lambda x: '__'.join(x[['omic1', 'subset', 'filter1']]), axis=1)
         mmvec_pd['omic_subset_filt2'] = mmvec_pd.apply(
@@ -128,6 +137,12 @@ class PostAnalysis(object):
     def get_omics_songbirds_taxa(self):
         self.analysis = 'mmvec'
         for omicn in ['1', '2']:
+            print()
+            print()
+            print('_____________')
+            print('____  %s ____' % omicn)
+            print('_____________')
+            print()
             pair_case_omics_filts = ['pair', 'subset', 'omic1',
                                      'filter1', 'omic2', 'filter2']
             all_omic_sb = [x for x in self.mmvec_songbird_pd.columns if
@@ -137,6 +152,8 @@ class PostAnalysis(object):
                 pair_case_omics_filts).T.to_dict()
             for (pair, subset, omic1, filt1, omic2,
                  filt2), sb_head_diff_fp in omicn_songbirds.items():
+                print()
+                print((pair, subset, omic1, filt1, omic2, filt2))
                 if omicn == '1':
                     omic = omic1
                     omic_ = omic2
@@ -193,12 +210,18 @@ class PostAnalysis(object):
                                 omic_diff_list.append(diff_pd)
                                 feats_diff_cols.extend(diff_cols)
                 if len(omic_diff_list):
+                    print('------')
+                    print('111111')
+                    print('------')
                     omic_songbird_ranks = pd.concat(
                         omic_diff_list, axis=1, sort=False).reset_index()
                     omic_songbird_ranks.rename(
                         columns={omic_songbird_ranks.columns[0]: 'Feature ID'},
                         inplace=True)
                 else:
+                    print('------')
+                    print('222222')
+                    print('------')
                     omic_common_fp = self.mmvec_songbird_pd.loc[
                         (self.mmvec_songbird_pd['pair'] == pair) &
                         (self.mmvec_songbird_pd['subset'] == subset) &
@@ -217,6 +240,10 @@ class PostAnalysis(object):
                                 omic_tax_list.append([line.split('\t')[0]])
                     omic_songbird_ranks = pd.DataFrame(omic_tax_list,
                                                        columns=['Feature ID'])
+                print()
+                print()
+                print("omic_songbird_ranks")
+                print(omic_songbird_ranks)
                 if omic in self.taxo_pds:
                     omic_tax_pd = self.taxo_pds[omic]
                     if omic_tax_pd.shape[0]:
@@ -494,6 +521,18 @@ class PostAnalysis(object):
                                                       filt1, omic2, filt2)]
             meta2, meta_pd2, diff_cols2 = self.metas[(pair, case, omic2,
                                                       filt2, omic1, filt1)]
+            print()
+            print()
+            print(pair, case, omic1, filt1, omic2, filt2)
+            print("meta1")
+            print(meta1)
+            print(meta_pd1)
+            print()
+            print()
+            print(pair, case, omic2, filt2, omic1, filt1)
+            print("meta2")
+            print(meta2)
+            print(meta_pd2)
             # features are biplot, samples are dots
             ordi = OrdinationResults.read(rep(ordi_fp))
             cur_pc_sb_correlations, max_r = self.get_pc_sb_correlations(
@@ -550,22 +589,9 @@ class PostAnalysis(object):
             print('No mmvec output detected...')
             return None
         self.prep_mmvec(paired_datasets.mmvec_pd)
-        # print('--------')
-        # for i, j in self.mmvec_songbird_pd[self.mmvec_songbird_pd[
-        #                                  'subset']=='ALL'].T.to_dict()[
-        #     0].items():
-        #     print(i, j)
-        # print('--------')
         if differentials.songbird_pd.shape[0]:
             songbird_pd = self.prep_songbird(differentials.songbird_pd)
             self.merge_mmvec_songbird(songbird_pd)
-            # print('--------')
-            # for i, j in self.mmvec_songbird_pd[
-            #           self.mmvec_songbird_pd['subset']=='ALL'].T.to_dict()[
-            #           0].items():
-            #     print(i, j)
-            # print('--------')
-
         self.get_taxo_pds()
         self.get_omics_songbirds_taxa()
         self.get_mmvec_res()
