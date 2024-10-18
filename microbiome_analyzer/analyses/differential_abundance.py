@@ -172,12 +172,14 @@ class DiffModels(object):
     def merge_mmvecs(self, mmvec_pd):
         mmvecs = []
         for rdx, row in enumerate(mmvec_pd.values):
-            pair, filt, subset, dat1, dat2, prev1, abun1, prev2, abun2 = row[:9]
+            pair, _, subset, dat1, dat2, prev1, abun1, prev2, abun2 = row[:9]
             meta_fp, tsv1, tsv2, qza1, qza2 = row[10:15]
+            filt1 = '%s-%s' % (prev1, abun1)
+            filt2 = '%s-%s' % (prev2, abun2)
             mmvecs.append([
-                dat1, filt, prev1, abun1, subset, pair, tsv1, qza1, meta_fp])
+                dat1, filt1, prev1, abun1, subset, pair, tsv1, qza1, meta_fp])
             mmvecs.append([
-                dat2, filt, prev2, abun2, subset, pair, tsv2, qza2, meta_fp])
+                dat2, filt2, prev2, abun2, subset, pair, tsv2, qza2, meta_fp])
         if mmvecs and self.songbirds.shape[0]:
             self.songbirds.drop(columns=['is_mb', 'subsets'], inplace=True)
             mmvecs_pd = pd.DataFrame(mmvecs, columns=self.songbirds.columns)
@@ -260,7 +262,7 @@ class DiffModels(object):
         if 'datasets' in train_test_d and dat in train_test_d['datasets']:
             for tt, vars_ in train_test_d['datasets'][dat].items():
                 vars_pd = meta_tt_pd[vars_].copy()
-                vars_pd = vars_pd.loc[~vars_pd.isna().any(1)]
+                vars_pd = vars_pd.loc[~vars_pd.isna().any(axis=1)]
                 vars_pd = rename_duplicate_columns(vars_pd)
                 trains = self.get_traintests(
                     meta_fp, vars_pd, vars_, str(train), tt)
@@ -556,7 +558,7 @@ class DiffModels(object):
             variables[params['train']] = []
         new_meta_pd = meta_pd[
             (['sample_name'] + [v for v in variables if v in meta_cols])].copy()
-        new_meta_pd = new_meta_pd.loc[~new_meta_pd.isna().any(1)]
+        new_meta_pd = new_meta_pd.loc[~new_meta_pd.isna().any(axis=1)]
         new_meta_pd = rename_duplicate_columns(new_meta_pd)
         # if drop:
         #     to_remove = pd.concat([
