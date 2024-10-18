@@ -480,20 +480,13 @@ class AnalysisPrep(object):
         self.get_output(dat)
         tsv_subset = '%s/%s/table%s.tsv' % (self.out, subset, raref)
         make_fp_dir(tsv_subset)
-        # tsv_subset = '%s/%s%s.tsv' % (self.out, dat_subset, raref)
         biom_subset = '%s.biom' % splitext(tsv_subset)[0]
         qza_subset = '%s.qza' % splitext(tsv_subset)[0]
         qzv_subset = '%s.qzv' % splitext(tsv_subset)[0]
-        data_subset.tsv[raref] = tsv_subset
-        data_subset.biom[raref] = biom_subset
-        data_subset.qza[raref] = qza_subset
-        data_subset.metadata = data.metadata
-        data_subset.meta = data.meta
         if self.config.force or to_do(tsv_subset) or to_do(qzv_subset):
             meta_subset = '%s.tmp' % splitext(tsv_subset)[0]
             subset_pd = pd.DataFrame({
-                'Feature ID': feats,
-                'Subset': ['tmpsubsetting'] * len(feats)})
+                'Feature ID': feats, 'Subset': ['tmpsubsetting'] * len(feats)})
             subset_pd.to_csv(rep(meta_subset), index=False, sep='\t')
             cmd = write_feat_filter(data.qza[raref], qza_subset, meta_subset)
             cmd += run_export(qza_subset, tsv_subset, 'FeatureTable')
@@ -503,6 +496,7 @@ class AnalysisPrep(object):
                       o_f=[qza_subset, tsv_subset, qzv_subset], key=dat_subset)
             self.register_provenance(dat_subset, (qza_subset, tsv_subset,), cmd)
             self.cmds.setdefault(dat_subset, []).append(cmd)
+        return tsv_subset, biom_subset, qza_subset
 
     def subset_features(self):
         self.analysis = 'feature_subsets'
@@ -524,6 +518,8 @@ class AnalysisPrep(object):
                         subset = subset_
                     dat_subset = '%s/%s' % (dat, subset)
                     data_subset = Data(dat_subset)
+                    data_subset.metadata = data.metadata
+                    data_subset.meta = data.meta
                     data_subset.feat_meta = data.feat_meta
                     data_subset.phylo = data.phylo
                     data_subset.features = set(feats)
@@ -538,13 +534,16 @@ class AnalysisPrep(object):
                     data_subset.source = data.source
                     data_subset.subset = subset
                     for raref, tab in data.data.items():
-                        self.get_features_subsets(dat, subset, dat_subset, data,
-                                                  data_subset, feats, raref)
-                        if not to_do(data_subset.biom[raref]):
+                        tsv, biom, qza = self.get_features_subsets(
+                            dat, subset, dat_subset, data,
+                            data_subset, feats, raref)
+                        if not to_do(biom):
+                            data_subset.biom[raref] = biom
+                            data_subset.tsv[raref] = tsv
+                            data_subset.qza[raref] = qza
                             data_subset.read_biom(raref)
                             if data_subset.data:
                                 feature_subsets[dat_subset] = data_subset
-
         self.project.datasets.update(feature_subsets)
         self.register_io_command()
 
@@ -971,7 +970,6 @@ class AnalysisPrep(object):
                         meta_pd = subset_meta(
                             data.metadata, sams, variables,
                             terms=list(data.metadata.columns)[1:])
-                        # meta_pd = meta_pd[~meta_pd.isna().any(axis=1)]
                         meta_pd.to_csv(rep(meta), index=False, sep='\t')
                         new_qza = '%s/tab%s.qza' % (self.out, raref)
                         cmd = write_ctf(
