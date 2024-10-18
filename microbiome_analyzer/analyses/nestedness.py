@@ -111,6 +111,8 @@ class Nestedness(object):
         level = 'feature'
         if dat not in Datasets.raw_coll:
             level = data.taxon
+        if level is None:
+            level = 'feature'
         return level
 
     def write_meta(self, meta, full_meta_pd, meta_pd, nodfs):
