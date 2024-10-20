@@ -48,7 +48,7 @@ pip install --upgrade git+https://github.com/FranckLejzerowicz/microbiome_analyz
   pip install numpy==2.1.2
   pip install biom-format==2.1.16
   pip install biom-format==2.1.16
-  pip install -U scikit-learn==1.5.2
+  pip install scikit-learn==1.5.2
   ```
 - [Xhpc](https://github.com/FranckLejzerowicz/Xhpc): allows automatic 
   preparation of HPC scripts from the basic qiime2 bash scripts
