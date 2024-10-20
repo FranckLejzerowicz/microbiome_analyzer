@@ -42,6 +42,14 @@ pip install --upgrade git+https://github.com/FranckLejzerowicz/microbiome_analyz
 
 ### Depencency
 
+- Please install (preferentially in a conda env):
+  ```
+  conda install -c conda-forge scikit-bio==0.6.2
+  pip install numpy==2.1.2
+  pip install biom-format==2.1.16
+  pip install biom-format==2.1.16
+  pip install -U scikit-learn==1.5.2
+  ```
 - [Xhpc](https://github.com/FranckLejzerowicz/Xhpc): allows automatic 
   preparation of HPC scripts from the basic qiime2 bash scripts
 written here. For Xpbs to work, it is necessary that the user provide edit the config.txt file of this tool (simply adding 
