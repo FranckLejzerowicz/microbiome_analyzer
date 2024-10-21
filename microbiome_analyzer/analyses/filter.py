@@ -184,7 +184,7 @@ def filtering_features(
             biom_rm = tab_perc < thresh_feat
             rm_thresh_feat = '%s%s' % ((thresh_feat * 100), '%')
         filt_cmds += '- Removed %s features (min %s reads):\n' % (
-            biom_rm.any(1).sum(), rm_thresh_feat)
+            biom_rm.any(axis=1).sum(), rm_thresh_feat)
         tab_filt_rmd = biom_rm.sum(1).to_dict()
         filt_cmds += '- Number of samples from which each feature if removed:\n'
         for feat, n_rm in tab_filt_rmd.items():

@@ -210,7 +210,7 @@ class PairedData(object):
             if 'datasets' in train_test_d and dat in train_test_d['datasets']:
                 for tt, vars_ in train_test_d['datasets'][dat].items():
                     vars_pd = meta_tt_pd[vars_].copy()
-                    vars_pd = vars_pd.loc[~vars_pd.isna().any(1)]
+                    vars_pd = vars_pd.loc[~vars_pd.isna().any(axis=1)]
                     vars_pd = rename_duplicate_columns(vars_pd)
                     trains = self.get_traintests(meta_fp, vars_pd, vars_,
                                                  str(train), tt)
