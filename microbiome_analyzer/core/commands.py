@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import biom
+import yaml
 import pkg_resources
 import pandas as pd
 from os.path import basename, dirname, isfile, splitext
@@ -135,8 +136,8 @@ def run_export(
             cmd += 'biom convert'
             cmd += '  -i %s' % cur_biom
             cmd += '  -o %s.tmp' % output_path
-            cmd += '  --to-tsv\n\n'
-            cmd += 'tail -n +2 %s.tmp > %s\n\n' % (output_path, output_path)
+            cmd += '  --to-tsv\n'
+            cmd += 'tail -n +2 %s.tmp > %s\n' % (output_path, output_path)
             cmd += 'rm -rf %s %s.tmp\n' % (out, output_path)
     else:
         if 'phylogeny' in typ:
@@ -408,7 +409,7 @@ def write_sepp(
     dat
     seqs_qza
     tree_qza
-    o_tree
+    sepp_tree
     qza
     qza_in
     tsv_in
@@ -420,24 +421,25 @@ def write_sepp(
     """
     plac = '%s/plac_%s' % (dirname(sepp_tree), basename(sepp_tree))
     cmd = ''
-    if to_do(o_tree):
+    if to_do(sepp_tree):
         cmd += 'qiime fragment-insertion sepp'
         cmd += ' --i-representative-sequences %s' % seqs_qza
         cmd += ' --i-reference-database %s' % tree_qza
-        cmd += ' --o-tree %s' % o_tree
+        cmd += ' --o-tree %s' % sepp_tree
         cmd += ' --o-placements %s' % plac
         cmd += ' --p-threads %s\n' % self.run_params['sepp']['cpus']
-        io_update(self, i_f=[seqs_qza, tree_qza], o_f=[o_tree, plac], key=dat)
+        io_update(
+            self, i_f=[seqs_qza, tree_qza], o_f=[sepp_tree, plac], key=dat)
     if to_do(tsv_in):
         cmd += 'qiime fragment-insertion filter-features'
         cmd += ' --i-table %s' % qza
-        cmd += ' --i-tree %s' % o_tree
+        cmd += ' --i-tree %s' % sepp_tree
         cmd += ' --o-filtered-table %s' % qza_in
         cmd += ' --o-removed-table %s\n' % qza_out
         cmd += run_export(qza_in, tsv_in, 'FeatureTable')
         i_f = [qza]
-        if not to_do(o_tree):
-            i_f.append(o_tree)
+        if not to_do(sepp_tree):
+            i_f.append(sepp_tree)
         io_update(self, i_f=i_f, o_f=[qza_in, qza_out, tsv_in], key=dat)
     return cmd
 
@@ -1055,7 +1057,6 @@ def write_rpca(
     phylo = data.phylo
     tree = data.tree
     tax = data.tax
-    taxa = data.taxa
     i_f, o_f = [], []
     cmd, cmd_exp = '', ''
     is_phylo = False
@@ -1111,16 +1112,25 @@ def write_rpca(
 
     rm_cmd, feat_cmd = '', ''
     if data.feat_meta or not to_do(diffs):
-        nid_tsv = ordi_tsv + '.nID.txt'
-        cmd += 'grep "^n[0-9]*\\t" %s | cut -f1 > %s\n' % (ordi_tsv, nid_tsv)
+        ordi_set = '%s_set2.txt' % splitext(ordi_tsv)[0]
+        cmd += 'sed -n "/Species/,/Site/p" %s | tail -n +2 | ' % ordi_tsv
+        cmd += 'grep -v ^Site | cut -f 1 | sort | tail -n +2 > %s\n' % ordi_set
+        nids = '%s.nID.txt' % splitext(ordi_tsv)[0]
+        cmd += 'grep "^n[0-9]*\\t" %s | cut -f1 > %s\n' % (ordi_tsv, nids)
         for feat_meta in data.feat_meta:
-            cmd += 'cat %s %s > %s.nID.tsv\n' % (feat_meta, nid_tsv, feat_meta)
-            rm_cmd += 'rm %s.nID.tsv\n' % feat_meta
-            feat_cmd += ' --m-feature-metadata-file %s.nID.tsv' % feat_meta
+            new_feat_meta = '%s.nIDs.tsv' % splitext(feat_meta)[0]
+            cmd += 'cat %s %s > %s\n' % (feat_meta, nids, new_feat_meta)
+            rm_cmd += 'rm %s\n' % new_feat_meta
+            feat_cmd += ' --m-feature-metadata-file %s' % new_feat_meta
         if not to_do(diffs):
-            cmd += 'cat %s %s > %s.nID.tsv\n' % (diffs, nid_tsv, diffs)
-            rm_cmd += 'rm %s.nID.tsv\n' % diffs
-            feat_cmd += ' --m-feature-metadata-file %s.nID.tsv' % diffs
+            new_diffs = '%s.diffs.txt' % splitext(ordi_tsv)[0]
+            set1 = '%s_set1.txt' % splitext(ordi_tsv)[0]
+            cmd += 'cut -f 1 %s | tail -n +3 | sort > %s\n' % (diffs, set1)
+            add = '%s_add.txt' % splitext(ordi_tsv)[0]
+            cmd += 'comm -13 %s %s > %s\n' % (set1, ordi_set, add)
+            cmd += 'cat %s %s > %s\n' % (diffs, add, new_diffs)
+            rm_cmd += 'rm %s %s %s\n' % (set1, add, new_diffs)
+            feat_cmd += ' --m-feature-metadata-file %s' % new_diffs
     if is_phylo:
 
         taxo_tsv = taxon.replace('.qza', '.tsv')
@@ -1913,82 +1923,6 @@ def write_phate(
     return cmd
 
 
-def write_sourcetracking(
-        qza: str,
-        new_qza: str,
-        new_tsv: str,
-        new_meta: str,
-        meth: str,
-        fp: str,
-        fa: str,
-        cur_rad: str,
-        column: str,
-        sink: str,
-        sources: list,
-        sourcetracking_params: dict,
-        loo: bool,
-        nodes: str,
-        cpus: str,
-        imports: set
-) -> str:
-    """
-
-    Parameters
-    ----------
-    qza
-    new_qza
-    new_tsv
-    new_meta
-    meth
-    fp
-    fa
-    cur_rad
-    column
-    sink
-    sources
-    sourcetracking_params
-    loo
-    nodes
-    cpus
-    imports
-
-    Returns
-    -------
-
-    """
-    cmd = ''
-    if not isfile(new_tsv) and new_tsv not in imports:
-        cmd = '\nqiime feature-table filter-samples'
-        cmd += ' --i-table %s' % qza
-        cmd += ' --m-metadata-file %s' % new_meta
-        cmd += ' --o-filtered-table %s\n' % new_qza
-        cmd = run_export(new_qza, new_tsv, 'FeatureTable')
-        imports.add(new_tsv)
-
-    cmd = '\nXsourcetracking'
-    cmd += ' -i %s' % new_tsv
-    cmd += ' -m %s' % new_meta
-    cmd += ' -o %s' % cur_rad
-    cmd += ' -c %s' % column
-    cmd += ' -si %s' % sink
-    for source in sources:
-        if source:
-            cmd += ' -so %s' % source
-    cmd += ' -fp %s' % fp
-    cmd += ' -fa %s' % fa
-    cmd += ' -meth %s' % meth
-    cmd += ' --p-cpus %s' % (int(nodes) * int(cpus))
-    if sourcetracking_params['rarefaction']:
-        cmd += ' --p-rarefaction %s' % sourcetracking_params['rarefaction']
-    if sourcetracking_params['iterations']:
-        cmd += ' --p-iterations-burnins %s' % sourcetracking_params['iterations']
-    if meth == 'sourcetracker' and loo:
-        cmd += ' --loo \n'
-    cmd += ' --verbose \n'
-    cmd += run_export(pcoa, pcoa_tsv, 'pcoa')
-    return cmd
-
-
 def filter_feature_table(qza: str, new_qza: str, meta: str) -> str:
     """
     :param qza:
@@ -2216,6 +2150,8 @@ def write_songbird(
     -------
 
     """
+    skip = False
+
     fcmd = ''
     if to_do(new_qza):
         fcmd += filter_feature_table(qza, new_qza, new_meta)
@@ -2302,7 +2238,7 @@ def write_songbird(
         cmd += run_export(tens, html, 'songbird')
         io_update(self, i_f=[stat, bstat], o_f=[tens, html], key=(dat, ''))
 
-    return cmd, fcmd, bcmd
+    return cmd, fcmd, bcmd, skip
 
 
 def get_biplot_commands(
@@ -2383,4 +2319,55 @@ def get_xmmvec_commands(
         cmd += '\n'
         io_update(self, i_f=[ranks_fp, meta1_fp, meta2_fp], o_f=ranks_html,
                   key=pair)
+    return cmd
+
+
+def write_sourcetracking(
+        self,
+        dat,
+        qza: str,
+        new_qza: str,
+        new_tsv: str,
+        new_meta: str,
+        meth: str,
+        column: str,
+        sink: str,
+        sources: list
+) -> str:
+    cmd = ''
+    if to_do(new_tsv):
+        cmd += 'qiime feature-table filter-samples'
+        cmd += ' --i-table %s' % qza
+        cmd += ' --p-min-frequency 1'
+        cmd += ' --p-filter-empty-features'
+        cmd += ' --m-metadata-file %s' % new_meta
+        cmd += ' --o-filtered-table %s\n' % new_qza
+        cmd += run_export(new_qza, new_tsv, 'FeatureTable')
+        cmd += 'rm %s %s.biom\n' % (new_qza, splitext(new_qza)[0])
+        io_update(self, i_f=qza, key=dat)
+
+    cmd += '\nXsourcetracking'
+    cmd += ' -i %s' % new_tsv
+    cmd += ' -m %s' % new_meta
+    cmd += ' -o %s' % self.out
+    cmd += ' -c %s' % column
+    cmd += ' -si %s' % sink
+    for source in sources:
+        if source:
+            cmd += ' -so %s' % source
+    if self.params['prevalence']:
+        cmd += ' --p-filter-prevalence %s' % self.params['prevalence']
+    if self.params['abundance']:
+        cmd += ' --p-filter-abundance %s' % self.params['abundance']
+    cmd += ' --p-filter-order %s' % self.params['order']
+    cmd += ' --p-method %s' % meth
+    if self.params['cpus']:
+        ncpu = self.params['cpus']
+    else:
+        nodes = self.config.run_params['sourcetracking']['nodes']
+        cpus = self.config.run_params['sourcetracking']['cpus']
+        ncpu = int(nodes) * int(cpus)
+    cmd += ' --p-st2-config %s' % self.params_yml
+    cmd += ' --p-cpus %s' % ncpu
+    cmd += ' --verbose\n'
     return cmd

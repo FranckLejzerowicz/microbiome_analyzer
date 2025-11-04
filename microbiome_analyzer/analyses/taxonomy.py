@@ -492,26 +492,33 @@ def fix_collapsed_data(
         cmd += run_import(coll_tax_tsv, coll_tax_qza, 'FeatureData[Taxonomy]')
 
     ids = set(coll_biom.ids(axis='observation'))
-    # print()
-    # print()
-    # print("dat:", dat, "raref:", raref)
-    # print()
-    # print("ids")
-    # print(ids)
-    # print()
-    # print("remove_empty")
-    # print(remove_empty)
     common = remove_empty & ids
-    # print()
-    # print("ids - remove_empty")
-    # print(ids - remove_empty)
     if len(common):
         cmd += '\n# Features removed: %s\n'
         for c in common:
             cmd += '#  - %s\n' % c
-        for i in coll_biom.ids(axis='observation'):
-            print('-', i)
+        # for i in coll_biom.ids(axis='observation'):
+        #     print('-', i)
         coll_biom.filter(ids_to_keep=list(ids - remove_empty))
+        # try:
+        #     coll_biom.filter(ids_to_keep=list(ids - remove_empty))
+        # except:
+        #     coll_biom.to_dataframe().to_csv(
+        #         '',
+        #         sep='\t', index=True
+        #     )
+        #     print()
+        #     print("dat:", dat, "raref:", raref)
+        #     print()
+        #     print("ids")
+        #     print(len(ids), ids)
+        #     print()
+        #     print("remove_empty")
+        #     print(len(remove_empty), remove_empty)
+        #     print()
+        #     print("ids - remove_empty")
+        #     print(len(ids - remove_empty), ids - remove_empty)
+        #     print(sdkfjsjkbsdf)
         coll_biom.remove_empty()
         coll_pd = coll_biom.to_dataframe(dense=True)
         coll_pd.index.name = 'FeatureID'

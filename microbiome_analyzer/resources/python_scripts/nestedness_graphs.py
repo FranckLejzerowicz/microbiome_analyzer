@@ -67,7 +67,10 @@ else:
         if tax_cols:
             tax_pd = tax_pd[tax_cols]
 
-    graphs = pd.read_csv(graph_fp, header=0, sep=',', dtype={'SAMPLE_ID': str})
+    graphs = pd.read_csv(graph_fp, header=None, usecols=[0, 1, 2, 3],
+                         sep=',', skiprows=1, dtype={2: str})
+    graphs.columns = [
+        'SAMPLE_RANK', 'OBSERVATION_RANK', 'SAMPLE_ID', 'OBSERVATION_ID']
     samples_order = [y for x, y in sorted(
         dict(graphs[['SAMPLE_RANK', 'SAMPLE_ID']].values).items())][::-1]
     features_order = [y for x, y in sorted(

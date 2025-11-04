@@ -40,7 +40,8 @@ class DiffModels(object):
         if config.diff_abund:
             (self.songbird_models, self.filtering, self.params, self.baselines,
              self.songbird_subsets) = self.get_songbird_dicts()
-            self.models, self.models_issues = {}, {'var': {}, 'fac': {}}
+            self.models = {}
+            self.models_issues = {'var': {}, 'fac': {}, 'exp': {}}
             self.songbirds = pd.DataFrame(dtype='object', columns=[
                 'dataset', 'is_mb', 'filter', 'prevalence', 'abundance'])
             self.params_list = [
@@ -112,7 +113,7 @@ class DiffModels(object):
         else:
             if 'global' in self.config.diff_abund['filtering']:
                 for fname, p_a in self.config.diff_abund[
-                        'filtering']['global'].items():
+                    'filtering']['global'].items():
                     for dat in models.keys():
                         if fname not in filtering:
                             filtering[fname] = {}
@@ -378,11 +379,11 @@ class DiffModels(object):
             ('--p-learning-rate', str(params['learns'])),
             ('--p-epochs', str(params['epochs'])),
             ('--differential-prior: %s' % str(params['diff_priors']),
-                str(params['diff_priors']).replace('.', '')),
+             str(params['diff_priors']).replace('.', '')),
             ('--p-training-column: %s' % str(params['train']),
-                str(params['train']).replace('.', '')),
+             str(params['train']).replace('.', '')),
             ('--p-summary-interval: %s' % str(params['summary_interval']),
-                str(params['summary_interval']).replace('.', ''))]
+             str(params['summary_interval']).replace('.', ''))]
 
         return filt_list, params_list
 
@@ -513,9 +514,7 @@ class DiffModels(object):
             with open(rep(readme), 'w') as o:
                 o.write(text)
 
-        new_qza = '%s/tab.qza' % o_dir
-        new_meta = '%s/metadata.tsv' % o_dir
-        return dat_dir, p_dir, o_dir, new_qza, new_meta
+        return dat_dir, p_dir, o_dir
 
     # @staticmethod
     # def get_main_dirs(
@@ -622,6 +621,10 @@ class DiffModels(object):
                     be = 'baseline=%s' % row['baseline']
                     q2 = '[Q2=%s]' % row['Pseudo_Q_squared']
                     diffs = row['differentials']
+                    diffs_qza = '%s.qza' % splitext(diffs)[0]
+                    if to_do(diffs) and not to_do(diffs_qza):
+                        self.models_issues['exp'][diffs] = diffs_qza
+                        continue
                     sb_pd = pd.read_csv(rep(diffs), index_col=0, sep='\t')
                     sb_pd.columns = ['%s %s: %s' % (
                         '__'.join([dat, pr, fr, sb, ml, st, ps, be]),
@@ -630,14 +633,14 @@ class DiffModels(object):
                 if len(dataset_sbs):
                     sbs_pd = pd.concat(dataset_sbs, axis=1, sort=False)
                     self.get_output(dat)
-                    fpo_tsv = '%s/differentials.tsv' % self.out
-                    self.project.datasets[dat].sb = fpo_tsv
-                    fpo_qza = '%s/differentials.qza' % self.out
+                    tsv = '%s/differentials.tsv' % self.out
+                    self.project.datasets[dat].sb = tsv
+                    qza = '%s/differentials.qza' % self.out
                     sbs_pd.index.name = 'Feature ID'
                     sbs_pd = sbs_pd[sorted(sbs_pd.columns)]
-                    sbs_pd.to_csv(rep(fpo_tsv), sep='\t')
-                    run_import(fpo_tsv, fpo_qza, 'FeatureData[Differential]')
-                    io_update(self, i_f=fpo_tsv, o_f=fpo_qza, key=(dat, ''))
+                    sbs_pd.to_csv(rep(tsv), sep='\t')
+                    cmd = run_import(tsv, qza, 'FeatureData[Differential]')
+                    io_update(self, i_f=tsv, o_f=qza, key=(dat, ''))
 
     def get_songbird_pd(self, songbird):
         self.songbird_pd = pd.DataFrame(
@@ -671,6 +674,8 @@ class DiffModels(object):
                 continue
             not_in_v = set(factors).difference(set(meta_pd[v]))
             if not_in_v:
+                # self.models_issues['fac'].setdefault(meta_fp, []).append(
+                #     [not_in_v, self.model, self.formula, v])
                 self.models_issues['fac'].setdefault(meta_fp, []).append(
                     [not_in_v, self.model, self.formula, v])
                 skip = True
@@ -703,14 +708,23 @@ class DiffModels(object):
                 print("##     missing: %s" % ', '.join(sorted(not_in)))
             print('\n')
 
-        if self.models_issues['var']:
+        if self.models_issues['fac']:
             print('\n## [songbird] Factor(s) missing in metadata:')
-            for fp, (not_in, mod, form, v) in self.models_issues['var'].items():
-                print("##     file: %s" % rep(fp))
-                print("##     model: %s" % mod)
-                print("##     formula: %s" % form)
-                print("##     variable: %s" % v)
-                print("##     missing: %s" % ', '.join(sorted(not_in)))
+            print(self.models_issues['fac'])
+            for fp, issues in self.models_issues['fac'].items():
+                for (not_in, mod, form, v) in issues:
+                    print("##     file: %s" % rep(fp))
+                    print("##     model: %s" % mod)
+                    print("##     formula: %s" % form)
+                    print("##     variable: %s" % v)
+                    print("##     missing: %s" % ', '.join(sorted(not_in)))
+            print('\n')
+
+        if self.models_issues['exp']:
+            print('\n## [songbird] Export(s) not completed:')
+            for tsv, qza in self.models_issues['exp'].items():
+                print("##     qza: %s" % rep(qza))
+                print("##     tsv: %s" % rep(tsv))
             print('\n')
 
     def make_qurros(self) -> None:
@@ -751,7 +765,7 @@ class DiffModels(object):
         for r, row in self.songbirds.iterrows():
             qza, pair, meta_fp = row['qza'], row['pair'], row['meta']
             dat, filt, subset = row['dataset'], row['filter'], row['subset']
-            if dat not in self.songbird_models:
+            if dat not in self.songbird_models or to_do(qza):
                 continue
             pair_dir = self.get_dat_pair_dir(dat, pair)
             meta_pd = read_meta_pd(rep(meta_fp))
@@ -765,8 +779,10 @@ class DiffModels(object):
                 filt_list, params_list = self.get_filt_params(params)
                 baselines, model_baselines = {}, {'1': '1'}
                 for model, (formula, variables) in models.items():
-                    dat_dir, p_dir, o_dir, new_qza, new_meta = self.get_dirs(
+                    dat_dir, p_dir, o_dir = self.get_dirs(
                         pair_dir, filt, subset, filt_list, params_list, model)
+                    new_qza = '%s/tab.qza' % o_dir
+                    new_meta = '%s/metadata.tsv' % o_dir
                     nsams = self.new_meta(meta_pd, new_meta, variables, params)
                     if dat in self.baselines and model in self.baselines[dat]:
                         if self.baselines[dat][model]:
@@ -777,7 +793,7 @@ class DiffModels(object):
                         out_paths = self.get_out_paths(
                             o_dir, model_base, baselines)
                         # convergence = self.check_stats_convergence(out_paths)
-                        cmd, fcmd, bcmd = write_songbird(
+                        cmd, fcmd, bcmd, skip = write_songbird(
                             self, dat, qza, new_qza, new_meta, nsams, params,
                             formula, b_formula, out_paths)
                         songbird.append([
@@ -793,7 +809,6 @@ class DiffModels(object):
                             self.bcmds.setdefault(dat, []).append(bcmd)
         if songbird:
             self.get_songbird_pd(songbird)
-        self.show_models_issues(messages)
 
         self.analysis = 'songbird_filter'
         self.register_io_command()
@@ -804,6 +819,7 @@ class DiffModels(object):
 
         self.summarize_songbirds()
         self.create_songbird_feature_metadata()
+        self.show_models_issues(messages)
 
     def register_io_command(self):
         if self.analysis == 'songbird_baselines':

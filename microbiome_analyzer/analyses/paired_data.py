@@ -45,7 +45,8 @@ class PairedData(object):
                 'summary_interval']
             self.get_mmvec_matrix(project)
             if self.mmvecs.shape[0]:
-                self.datasets_paths = self.make_datasets_paths(project)
+                self.datasets_paths = self.get_datasets_paths()
+                self.make_datasets_paths(project)
                 self.unstack_mmvecs()
                 self.get_common_paths()
         self.mmvec_pd = pd.DataFrame()
@@ -114,6 +115,7 @@ class PairedData(object):
                 for filt_name, dats_d in pair_d.items():
                     filtering[pair][filt_name] = {}
                     for dat_, prev_abund in dats_d.items():
+                        # print(pair, filt_name, dat, prev_abund)
                         dat = self.get_dat_mb_or_not(dat_)
                         if dat in dats:
                             filtering[pair][filt_name][dat] = prev_abund
@@ -165,15 +167,10 @@ class PairedData(object):
         return mmvec_pairs, mmvec_filtering, mmvec_params, mmvec_subsets
 
     def unstack_mmvecs(self):
-        # print(self.mmvecs)
         mmvecs_us = self.mmvecs.set_index(
             ['pair', 'filter', 'subset', 'omic']
         ).unstack().reset_index()
-        # print(1)
-        # print(mmvecs_us)
         mmvecs_us.columns = ['%s%s' % (x, y) for x, y in mmvecs_us.columns]
-        # print(2)
-        # print(mmvecs_us)
         self.mmvecs = mmvecs_us
 
     def get_dataset_path(self, dat, filter_, subset):
@@ -247,13 +244,12 @@ class PairedData(object):
             if not to_do(new_qza2):
                 io_update(self, i_f=new_qza2, key='import')
         if cmd:
-            self.cmds.setdefault('import', []).append(cmd)
+            self.cmds.setdefault(pair, []).append(cmd)
         return meta_fp, new_tsv1, new_qza1, new_tsv2, new_qza2
 
     def get_common_paths(self):
         paths = []
         self.analysis = 'mmvec_paired_imports'
-        # print(self.mmvecs)
         pfs = ['pair', 'filter', 'subset']
         for (pair, filter_, subset), mmvec in self.mmvecs.groupby(pfs):
             data_dir = self.get_output('common/data/%s/%s' % (pair, subset))
@@ -290,7 +286,6 @@ class PairedData(object):
                            'new_qza1', 'new_qza2']))
             self.mmvecs = self.mmvecs.merge(
                 common_paths_pd, on=['pair', 'filter', 'subset'])
-
         self.register_io_command()
 
     def make_train_test(self):
@@ -317,9 +312,8 @@ class PairedData(object):
                     meta_subset.to_csv(rep(meta_fp), index=False, sep='\t')
 
     def make_datasets_paths(self, project):
-        datasets_path = self.get_datasets_paths()
         self.analysis = 'mmvec_single_imports'
-        for (dat, _, subset), row in datasets_path.groupby(
+        for (dat, _, subset), row in self.datasets_paths.groupby(
                 ['dataset', 'filter', 'subset']):
             row_d = row.iloc[0, :].to_dict()
             tsv, qza, meta = row_d['tsv'], row_d['qza'], row_d['meta']
@@ -349,7 +343,6 @@ class PairedData(object):
                     io_update(self, i_f=tsv, key=dat)
                 self.cmds.setdefault(dat, []).append(cmd)
         self.register_io_command()
-        return datasets_path
 
     def get_datasets_paths(self):
         self.analysis = 'mmvec'
@@ -377,7 +370,6 @@ class PairedData(object):
 
     def get_mmvec_matrix(self, project):
         self.make_mmvec_pairs_table(project)
-        # print(self.mmvecs)
         if self.mmvecs.shape[0]:
             self.merge_filtering_per_pair()
             self.merge_subsets_apply()

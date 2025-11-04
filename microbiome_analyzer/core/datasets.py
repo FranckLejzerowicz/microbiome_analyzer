@@ -283,7 +283,7 @@ class Datasets(object):
     def set_sample_subsets(self):
         sample_subsets_issues = {}
         for dat, data in self.datasets.items():
-            if data.source != dat:
+            if data.source != dat and not self.config.filt_only:
                 continue
             meta_cols = set(data.metadata.columns)
             for name, vars_vals in self.config.subsets.items():
@@ -319,7 +319,7 @@ class Datasets(object):
                         vars_sams = get_sample_subset(
                             data.metadata, dat, vars_vals)
                         sams = tab_sams & set.intersection(*vars_sams)
-                    if len(sams) < 4:
+                    if len(sams) < 3:
                         continue
                     subsets[name] = (list(sams), list(vars_vals))
                 data.subsets[raref] = subsets

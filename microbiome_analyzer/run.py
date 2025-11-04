@@ -16,7 +16,7 @@ from microbiome_analyzer.analyses.doc import DOC
 from microbiome_analyzer.analyses.post_analyses import PostAnalysis
 from microbiome_analyzer.analyses.differential_abundance import DiffModels
 from microbiome_analyzer.analyses.paired_data import PairedData
-# from microbiome_analyzer.analyses.sourcetracking import Sourcetracking
+from microbiome_analyzer.analyses.sourcetracking import Sourcetracking
 # from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
 
 
@@ -126,8 +126,8 @@ def runner(**kwargs):
 
     if config.doc and 'doc' not in config.skip:
         DOC(config, project)
-    # if config.sourcetracking and 'sourcetracking' not in config.skip:
-    #     Sourcetracking(config, project)
+    if config.sourcetracking and 'sourcetracking' not in config.skip:
+        Sourcetracking(config, project)
 
     paired_datasets = PairedData(config, project)
     if config.mmvec_pairs and 'mmvec' not in config.skip:

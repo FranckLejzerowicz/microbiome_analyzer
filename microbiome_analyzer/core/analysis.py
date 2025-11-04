@@ -23,8 +23,7 @@ from microbiome_analyzer.core.commands import (
     write_alpha_rarefaction, write_volatility, write_beta, write_rpca,
     write_ctf, write_pcoa, write_biplot, write_emperor,  write_emperor_biplot,
     write_empress, write_permanova_permdisp, write_adonis, write_tsne,
-    write_umap, write_procrustes, write_mantel, write_phate,
-    write_sourcetracking)
+    write_umap, write_procrustes, write_mantel, write_phate)
 from microbiome_analyzer.analyses.filter import (
     no_filtering, get_filt, filtering_thresholds, harsh_filtering, filter_3d)
 from microbiome_analyzer.analyses.rarefy import get_digit_depth
@@ -323,14 +322,11 @@ class AnalysisPrep(object):
             tree_qza = get_sepp_tree(self.config.sepp_tree)
             for dat, data in self.project.datasets.items():
                 if data.phylo and data.phylo[0] == 'amplicon':
-
                     qza = data.qza['']
                     tsv = data.tsv['']
                     biom_tab = data.data['']
-
                     seqs_fasta = data.seqs[1]
                     seqs_qza = data.seqs[0]
-
                     cmd_seqs = write_fasta(seqs_fasta, seqs_qza, biom_tab, tsv)
                     io_update(self, i_f=seqs_fasta, o_f=seqs_qza, key=dat)
 
@@ -683,7 +679,11 @@ class AnalysisPrep(object):
                 alpha_pd = alpha_pd.set_index('sample_name')
                 alpha_pd.columns = ['alpha-%s%s' % ('__'.join(pre + [x]), raref)
                                     for x in alpha_pd.columns]
-                alphas.setdefault(data.source, []).append(alpha_pd)
+                if self.config.filt_only:
+                    d = dat.split('/tx')[0]
+                    alphas.setdefault(d, []).append(alpha_pd)
+                else:
+                    alphas.setdefault(data.source, []).append(alpha_pd)
         for dat, alpha_pds in alphas.items():
             data = self.project.datasets[dat]
             alpha_pd = pd.concat(alpha_pds, axis=1).reset_index().rename(
@@ -694,10 +694,14 @@ class AnalysisPrep(object):
             merged_fp = '%s_alphas.tsv' % splitext(data.meta)[0]
             merged_pd.to_csv(rep(merged_fp), sep='\t', index=False)
             print('Written ->', rep(merged_fp))
-            for data in self.project.datasets.values():
-                if data.source == dat:
-                    data.metadata = merged_pd
-                    data.meta = merged_fp
+            if self.config.filt_only:
+                data.metadata = merged_pd
+                data.meta = merged_fp
+            else:
+                for data in self.project.datasets.values():
+                    if data.source == dat:
+                        data.metadata = merged_pd
+                        data.meta = merged_fp
 
     def alpha_rarefaction(self):
         self.analysis = 'alpha_rarefaction'
@@ -1122,16 +1126,18 @@ class AnalysisPrep(object):
                         continue
                     path = p1.replace(dat1, dat1 + r1 + '__' + dat2 + r2)
                     self.get_output(pair, cohort)
+                    write_meta = True
                     for edx, ((d1, t1, m1), (d2, t2, m2)) in enumerate(
                             its.product(*[b1, b2])):
-                        if metrics == 'same' and (m1 != m2):
-                            continue
                         if to_do(d1) or to_do(d2):
                             continue
-                        if not edx:
+                        if metrics == 'same' and (m1 != m2):
+                            continue
+                        if write_meta:
                             meta = subset_dm(data1.metadata, sams, t1, t2)
                             meta_fp = '%s/meta.tsv' % self.out
                             meta.to_csv(rep(meta_fp), index=False, sep='\t')
+                            write_meta = False
                         d1f = '%s/dm1_%s-%s.qza' % (self.out, m1, m2)
                         d2f = '%s/dm2_%s-%s.qza' % (self.out, m1, m2)
                         qzv = '%s/%s-%s.qzv' % (self.out, m1, m2)
@@ -1321,34 +1327,6 @@ class AnalysisPrep(object):
                         self.make_subsets(cohort, txt, subsets_update)
                 data.subsets[raref].update(subsets_update)
                 data.phate[raref] = phates
-        self.register_io_command()
-
-    def sourcetracking(self):
-        self.analysis = 'sourcetracking'
-        for dat, data in self.project.datasets.items():
-            for raref, dms_metrics in data.beta.items():
-                sourcetrackings = {}
-                for cohort, (sams, variables) in data.subsets[raref].items():
-                    self.get_output(data.path, cohort)
-                    for ddx, (dm, _, metric) in enumerate(dms_metrics):
-                        if not isfile(dm):
-                            continue
-                        meta_rad = '%s/meta%s' % (self.out, raref)
-                        meta_met = '%s_%s.tsv' % (meta_rad, metric)
-                        dm_filt = '%s/dm%s_%s.qza' % (self.out, raref, metric)
-                        pcoa = '%s/pcoa%s_%s.qza' % (self.out, raref, metric)
-                        pcoa_tsv = '%s.tsv' % splitext(pcoa)[0]
-                        sourcetrackings.setdefault(cohort, []).append(
-                            (pcoa, meta_rad, metric))
-                        if self.config.force or not isfile(pcoa_tsv):
-                            meta = subset_meta(data.metadata, sams, variables)
-                            meta.to_csv(meta_met, index=False, sep='\t')
-                            cmd = write_sourcetracking(
-                                dm, dm_filt, meta_rad, meta_met, variables, pcoa
-                            )
-                            self.register_provenance(dat, (pcoa, dm,), cmd)
-                            self.cmds.setdefault(dat, []).append(cmd)
-                data.sourcetracking[raref] = sourcetrackings
         self.register_io_command()
 
     def register_provenance(self, dat, outputs, cmd):
