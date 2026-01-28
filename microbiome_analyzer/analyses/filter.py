@@ -254,6 +254,13 @@ def harsh_filtering(
     return skip
 
 
+def skip_subset(variables, meta_pd):
+    for v, fs in variables.items():
+        if len(fs) == 1 and meta_pd[v].unique()[0] == fs[0]:
+            return True
+    return False
+
+
 def filter_mb_table(preval: str, abund: str, tsv_pd: pd.DataFrame,
                     do_res: bool = False) -> (pd.DataFrame, list):
     preval = float(preval)

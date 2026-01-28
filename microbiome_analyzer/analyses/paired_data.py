@@ -267,7 +267,7 @@ class PairedData(object):
             meta1_pd = read_meta_pd(rep(meta1))
             meta2_pd = read_meta_pd(rep(meta2))
             sams = set(meta1_pd.sample_name) & set(meta2_pd.sample_name)
-            if len(sams) < 9:
+            if len(sams) < 8:
                 print('- Too few samples (%s) for "%s": %s (%s) vs %s (%s)' % (
                     pair, len(sams),
                     mmvec_d['dataset1'], meta1_pd.shape[0],

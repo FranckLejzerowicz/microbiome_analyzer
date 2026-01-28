@@ -7,7 +7,6 @@
 # ----------------------------------------------------------------------------
 
 import biom
-import yaml
 import pkg_resources
 import pandas as pd
 from os.path import basename, dirname, isfile, splitext
@@ -1076,8 +1075,10 @@ def write_rpca(
         cmd += ' --o-t2t-taxonomy %s' % taxon
         tree_nwk = '%s.nwk' % splitext(tree_qza)[0]
         cmd_exp += run_export(tree_qza, tree_nwk, 'phylogeny')
+        table_tsv = '%s.tsv' % splitext(table)[0]
+        cmd_exp += run_export(table, table_tsv, 'FeatureTable')
         i_f.extend([tree[1], tax[1]])
-        o_f.extend([tree_qza, tree_nwk, table, taxon])
+        o_f.extend([tree_qza, tree_nwk, table, taxon, table_tsv])
     else:
         if float(self.config.qiime_env.split('-')[-1]) >= 2023.5:
             cmd += 'qiime gemelli rpca'
@@ -1132,7 +1133,6 @@ def write_rpca(
             rm_cmd += 'rm %s %s %s\n' % (set1, add, new_diffs)
             feat_cmd += ' --m-feature-metadata-file %s' % new_diffs
     if is_phylo:
-
         taxo_tsv = taxon.replace('.qza', '.tsv')
         cmd += run_export(taxon, taxo_tsv)
         cmd += "awk -F'\\t' '$1 != \"\"' %s > %s.tmp\n" % (taxo_tsv, taxo_tsv)
@@ -1173,6 +1173,10 @@ def write_rpca(
     cmd_final += ' --p-filter-empty-features'
     cmd_final += ' --m-metadata-file %s' % meta
     cmd_final += ' --o-filtered-table %s\n\n' % new_qza
+
+    new_qza_tsv = new_qza.replace('.qza', '.tsv')
+    if not isfile(rep(new_qza_tsv)):
+        cmd_final += run_export(new_qza, new_qza_tsv, 'FeatureTable')
     cmd_final += cmd + rm_cmd
 
     cmd_final += 'qiime qurro loading-plot'
@@ -1572,9 +1576,10 @@ def write_adonis(
     r : list
         R scripts line
     """
-    def adonis_collector(n, s, me, r):
+    def adonis_collector(n, s, me, r, f):
         r.append("res[[%s]]$strata <- '%s'" % (n, s))
         r.append("res[[%s]]$metric <- '%s'" % (n, me))
+        r.append("res[[%s]]$formula <- '%s'" % (n, f))
         r.append("res[[%s]]$factors <- row.names(res[[%s]])" % (n, n))
         r.append("row.names(res[[%s]]) <- NULL" % n)
 
@@ -1584,14 +1589,13 @@ def write_adonis(
         meta_fp = rep(meta_fp)
         out = rep(out)
 
-    n_perm = '499'
+    n_perm = '999'
     r = ["library(vegan)", "library(readr)", "library(data.table)"]
     r.append("res <- list()")
     r.append("meta_fp <- '%s'" % meta_fp)
     r.append("meta <- read.table(meta_fp, header=TRUE, check.names=FALSE, "
              "sep='\\t', colClasses=c('sample_name'='character'))")
     r.append("row.names(meta) <- meta[,'sample_name']")
-    # r.append("meta <- meta[,-1]")
     meta = "meta[, c('%s'" % "', '".join(variables)
     if stratas:
         meta += ", '%s')" % "', '".join(stratas)
@@ -1607,17 +1611,17 @@ def write_adonis(
         r.append("dm <- read.table(dm_fp, check.names = FALSE)")
         i_f.append('%s.tsv' % splitext(dm)[0])
         r.append("sdm <- dm[row.names(meta), row.names(meta)]")
-        a2 = "as.data.frame(adonis2(sdm ~ %s, data=meta" % (formula)
+        a2 = 'as.data.frame(adonis2(sdm ~ %s, data=meta, by="terms"' % formula
         if stratas:
             for s in stratas:
                 n = "'%s_%s'" % (s, me)
                 r.append("setBlocks(perm) <- with(meta, meta[,'%s'])" % s)
                 r.append("res[[%s]] <- %s, permutations = perm))" % (n, a2))
-                adonis_collector(n, s, me, r)
+                adonis_collector(n, s, me, r, formula)
         else:
             n = "'no_strata_%s'" % me
-            r.append("res[[%s]] <- %s))" % (n, a2))
-            adonis_collector(n, 'no_strata', me, r)
+            r.append("res[[%s]] <- %s, permutations = perm))" % (n, a2))
+            adonis_collector(n, 'no_strata', me, r, formula)
     r.append("out_fp <- '%s'" % out)
     r.append("write.table(x=rbindlist(res), file=out_fp, quote=FALSE, "
              "sep='\\t', row.names=FALSE)")

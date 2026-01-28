@@ -326,7 +326,9 @@ class PostAnalysis(object):
                         corrs.append([pair, case, omic1, filt1,
                                       'PC%s' % (r + 1), model, r2, p2,
                                       'spearman',
-                                      meta_fp, omic1_common_fp, ranks_fp])
+                                      rep(meta_fp),
+                                      rep(omic1_common_fp),
+                                      rep(ranks_fp)])
                 sams = ordi.samples[r]
                 if len(diff_cols2):
                     for model in diff_cols2:
@@ -340,7 +342,9 @@ class PostAnalysis(object):
                         corrs.append([pair, case, omic2, filt2,
                                       'PC%s' % (r + 1), model, r2, p2,
                                       'spearman',
-                                      meta_fp, omic2_common_fp, ranks_fp])
+                                      rep(meta_fp),
+                                      rep(omic2_common_fp),
+                                      rep(ranks_fp)])
         corrs_pd = pd.DataFrame(corrs, columns=[
             'pair',
             'case',
@@ -494,7 +498,6 @@ class PostAnalysis(object):
             cmd += '\nrm %s %s %s %s\n' % (
                 ranks_qza_tmp, omic1_qza_tmp, omic2_qza_tmp, taxonomy_tsv_tmp)
             io_update(self, i_f=py, o_f=paired_heatmap_qzv, key=pair)
-
         return cmd
 
     def get_pair_cmds(self, omics_pairs):

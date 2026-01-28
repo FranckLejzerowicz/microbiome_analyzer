@@ -34,7 +34,7 @@ class Sourcetracking(object):
         self.ios = {}
         self.cmds = {}
         self.params = {
-            'methods': ['sourcetracker'],
+            'methods': ['sourcetracker', 'feast'],
             'estimators': [
                 'RandomForestClassifier',
                 'GradientBoostingClassifier',
@@ -107,7 +107,7 @@ class Sourcetracking(object):
                     if v not in vs:
                         sys.exit('[sourcetracking] "%s" not in %s' % (p, vs))
                 elif p == 'methods':
-                    vs = ['sourcetracker', 'feast', 'q2']
+                    vs = ['sourcetracker', 'feast', 'q2_classifier']
                     if set(v).difference(vs):
                         sys.exit('[sourcetracking] "%s" not in %s' % (p, vs))
                 elif p == 'estimators':
@@ -160,7 +160,7 @@ class Sourcetracking(object):
     def get_outs(self, method) -> (str, bool):
         miss = False
         dir_method = self.out + '/' + method
-        if method == 'q2':
+        if method == 'q2_classifier':
             for root, dirs, files in os.walk(dir_method):
                 if len(root.split(dir_method)[-1].split('/')) == 4:
                     print(method, root.split(dir_method)[-1].split('/'))
@@ -200,7 +200,7 @@ class Sourcetracking(object):
                 for cohort, (sams, variables) in data.subsets[raref].items():
                     for name, srcs_snks in self.source_sink.items():
                         for meth in self.params['methods']:
-                            var, srcs, snks, reps = self.check(data, srcs_snks)
+                            var, srcs, snk, reps = self.check(data, srcs_snks)
                             odir = '/'.join([cohort, name])
                             self.get_output(data.path, odir)
                             new_meta = '%s/meta.tsv' % self.out
@@ -210,13 +210,16 @@ class Sourcetracking(object):
                                 data.metadata, sams, variables, var)
                             meta_pd.replace({var: reps}, inplace=True)
                             meta_pd.to_csv(rep(new_meta), index=False, sep='\t')
+                            vs = set(meta_pd.columns)
+                            if var not in vs or snk not in set(meta_pd[var]):
+                                continue
                             outs, miss = self.get_outs(meth)
                             sourcetrackings.setdefault((
                                 cohort, name, meth), []).append((outs,))
                             if self.config.force or not glob.glob(outs) or miss:
                                 cmd = write_sourcetracking(
                                     self, dat, qza, new_qza, new_tsv, new_meta,
-                                    meth, var, snks, srcs)
+                                    meth, var, snk, srcs)
                                 self.cmds.setdefault(dat, []).append(cmd)
                 data.sourcetracking[raref] = sourcetrackings
         self.register_io_command()

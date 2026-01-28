@@ -849,18 +849,18 @@ class AnalysisPrep(object):
                 r2s = {}
                 for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(dat, cohort)
-                    out = '%s/r2%s.txt' % (self.out, raref)
-                    if self.config.force or to_do(out):
-                        r_scripts = []
-                        for model, (formula, stratas) in data.adonis.items():
-                            variables = re.split('[*/+-]', formula)
-                            terms = list(set(variables + stratas))
-                            meta_pd = subset_meta(
-                                data.metadata, sams, variables, '', terms)
-                            cv = '%s/cv_%s%s.tsv' % (self.out, model, raref)
-                            meta = '%s/meta_%s%s.tsv' % (self.out, model, raref)
-                            if add_q2_type(meta_pd, meta, cv, terms):
-                                continue
+                    r_scripts = []
+                    for model, (formula, stratas) in data.adonis.items():
+                        variables = re.split('[*/+-]', formula)
+                        terms = list(set(variables + stratas))
+                        meta_pd = subset_meta(
+                            data.metadata, sams, variables, '', terms)
+                        cv = '%s/cv_%s%s.tsv' % (self.out, model, raref)
+                        meta = '%s/meta_%s%s.tsv' % (self.out, model, raref)
+                        if add_q2_type(meta_pd, meta, cv, terms):
+                            continue
+                        out = '%s/r2%s_%s.txt' % (self.out, raref, model)
+                        if self.config.force or to_do(out):
                             r2s.setdefault(cohort, []).append((model, out))
                             r_scripts.extend(write_adonis(
                                 self, dat, meta, formula, variables, stratas,

@@ -18,7 +18,7 @@ from microbiome_analyzer.core.metadata import (
     get_train_perc_from_numeric, get_cat_vars_and_vc, make_train_test_from_cat)
 from microbiome_analyzer.analyses.models import parse_formula
 from microbiome_analyzer.analyses.filter import (
-    filter_mb_table, filter_non_mb_table)
+    filter_mb_table, filter_non_mb_table, skip_subset)
 from microbiome_analyzer._io_utils import write_filtered_tsv
 from microbiome_analyzer._inputs import read_meta_pd
 from microbiome_analyzer._scratch import io_update, to_do, rep
@@ -605,8 +605,6 @@ class DiffModels(object):
     def create_songbird_feature_metadata(self):
         if self.q2s_pd.shape[0]:
             q2_pd = self.q2s_pd.copy()
-            # q2_pd = self.q2s_pd.loc[(self.q2s_pd.pair == 'unpaired') &
-            #                         (self.q2s_pd.Pseudo_Q_squared > 0)]
             for dat, dataset_pd in q2_pd.groupby('dataset'):
                 if dat not in self.project.datasets:
                     continue
@@ -702,20 +700,21 @@ class DiffModels(object):
         if self.models_issues['var']:
             print('\n## [songbird] Variables(s) missing in metadata:')
             for fp, (not_in, mod, form) in self.models_issues['var'].items():
-                print("##     file: %s" % rep(fp))
-                print("##     model: %s" % mod)
-                print("##     formula: %s" % form)
+                print("")
+                print("##-----file: %s" % rep(fp))
+                print("##     model: %s -> %s" % (mod, form))
                 print("##     missing: %s" % ', '.join(sorted(not_in)))
             print('\n')
 
         if self.models_issues['fac']:
             print('\n## [songbird] Factor(s) missing in metadata:')
-            print(self.models_issues['fac'])
             for fp, issues in self.models_issues['fac'].items():
+                print("")
+                print("##-----file: %s" % rep(fp))
                 for (not_in, mod, form, v) in issues:
-                    print("##     file: %s" % rep(fp))
-                    print("##     model: %s" % mod)
-                    print("##     formula: %s" % form)
+                    print("")
+                    print("##-----file: %s" % rep(fp))
+                    print("##     model: %s -> %s" % (mod, form))
                     print("##     variable: %s" % v)
                     print("##     missing: %s" % ', '.join(sorted(not_in)))
             print('\n')
@@ -783,6 +782,8 @@ class DiffModels(object):
                         pair_dir, filt, subset, filt_list, params_list, model)
                     new_qza = '%s/tab.qza' % o_dir
                     new_meta = '%s/metadata.tsv' % o_dir
+                    if skip_subset(variables, meta_pd):
+                        continue
                     nsams = self.new_meta(meta_pd, new_meta, variables, params)
                     if dat in self.baselines and model in self.baselines[dat]:
                         if self.baselines[dat][model]:
