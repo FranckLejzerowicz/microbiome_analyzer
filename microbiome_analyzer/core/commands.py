@@ -1091,6 +1091,8 @@ def write_rpca(
             'min_feature_count']
         cmd += ' --p-min-sample-count %s' % self.config.run_params['rpca'][
             'min_sample_count']
+        cmd += ' --p-min-feature-frequency %s' % self.config.run_params['rpca'][
+            'min_feature_frequency']
         cmd += ' --o-biplot %s' % ordi
         cmd += ' --o-distance-matrix %s\n' % dist
         o_f.extend([ordi, dist])
