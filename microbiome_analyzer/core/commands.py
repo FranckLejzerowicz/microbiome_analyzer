@@ -1614,7 +1614,7 @@ def write_adonis(
         i_f.append('%s.tsv' % splitext(dm)[0])
         r.append("rnames <- intersect(row.names(dm), row.names(meta))")
         r.append("sdm <- dm[rnames, rnames]")
-        r.append("mt <- meta[rnames,]")
+        r.append("mt <- meta[rnames, , drop = FALSE]")
         a2 = 'as.data.frame(adonis2(sdm ~ %s, data=mt, by="terms"' % formula
         if stratas:
             for s in stratas:
