@@ -1101,8 +1101,8 @@ def write_rpca(
         io_update(self, i_f=i_f, o_f=o_f, key=dat)
         cmd = ''
 
-    if self.config.jobs:
-        cmd += 'rm %s %s\n\n' % (meta, new_qza)
+    # if self.config.jobs:
+    #     cmd += 'rm %s %s\n\n' % (meta, new_qza)
 
     # export distance matrix
     dist_tsv = dist.replace('.qza', '.tsv')
