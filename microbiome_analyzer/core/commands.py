@@ -1612,9 +1612,10 @@ def write_adonis(
         r.append("dm_fp <- '%s.tsv'" % splitext(dm)[0])
         r.append("dm <- read.table(dm_fp, check.names = FALSE)")
         i_f.append('%s.tsv' % splitext(dm)[0])
-        intersect = 'intersect(row.names(dm), row.names(meta))'
-        r.append("sdm <- dm[%s, %s]" % (intersect, intersect))
-        a2 = 'as.data.frame(adonis2(sdm ~ %s, data=meta, by="terms"' % formula
+        r.append("rnames <- intersect(row.names(dm), row.names(meta))")
+        r.append("sdm <- dm[rnames, rnames]")
+        r.append("mt <- meta[rnames,]")
+        a2 = 'as.data.frame(adonis2(sdm ~ %s, data=mt, by="terms"' % formula
         if stratas:
             for s in stratas:
                 n = "'%s_%s'" % (s, me)
