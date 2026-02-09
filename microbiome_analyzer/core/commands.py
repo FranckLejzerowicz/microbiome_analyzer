@@ -743,6 +743,34 @@ def write_alpha_rarefaction(
     return cmd
 
 
+def write_alpha_group_significance(
+        qza: str,
+        qzv: str,
+        meta: str
+) -> str:
+    """
+    Visually and statistically compare groups of alpha diversity values.
+    https://docs.qiime2.org/2019.10/plugins/available/diversity/alpha-group
+    -significance
+
+    Parameters
+    ----------
+    qza
+    qzv
+    meta
+
+    Returns
+    -------
+    cmd : str
+        Qiime2 command
+    """
+    cmd = 'qiime diversity alpha-group-significance'
+    cmd += ' --i-alpha-diversity %s' % qza
+    cmd += ' --m-metadata-file %s' % meta
+    cmd += ' --o-visualization %s\n\n' % qzv
+    return cmd
+
+
 def write_volatility(
         meta: str,
         qzv: str,

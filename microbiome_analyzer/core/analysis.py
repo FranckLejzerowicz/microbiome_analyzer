@@ -20,10 +20,11 @@ from microbiome_analyzer.core.commands import (
     run_summary, run_import, run_export, write_rarefy, write_fasta,
     write_collapse, write_sepp, write_alpha, write_feat_filter,
     write_barplots, write_krona, write_tabulate, write_alpha_correlation,
-    write_alpha_rarefaction, write_volatility, write_beta, write_rpca,
-    write_ctf, write_pcoa, write_biplot, write_emperor,  write_emperor_biplot,
-    write_empress, write_permanova_permdisp, write_adonis, write_tsne,
-    write_umap, write_procrustes, write_mantel, write_phate)
+    write_alpha_rarefaction, write_alpha_group_significance,
+    write_volatility, write_beta, write_rpca, write_ctf, write_pcoa,
+    write_biplot, write_emperor,  write_emperor_biplot, write_empress,
+    write_permanova_permdisp, write_adonis, write_tsne, write_umap,
+    write_procrustes, write_mantel, write_phate)
 from microbiome_analyzer.analyses.filter import (
     no_filtering, get_filt, filtering_thresholds, harsh_filtering, filter_3d)
 from microbiome_analyzer.analyses.rarefy import get_digit_depth
@@ -601,7 +602,6 @@ class AnalysisPrep(object):
                     continue
                 alphas = []
                 self.get_output(dat)
-                # self.get_output(data.path)
                 for metric in metrics:
                     qza_o = '%s/alpha%s_%s.qza' % (self.out, raref, metric)
                     tsv_o = '%s.tsv' % splitext(qza_o)[0]
@@ -625,7 +625,6 @@ class AnalysisPrep(object):
             for raref, metrics_alphas in data.alpha.items():
                 for method in ['spearman', 'pearson']:
                     self.get_output('%s/%s' % (dat, method))
-                    # self.get_output('/%s/%s' % (data.path, method))
                     for (qza, _, metric) in metrics_alphas:
                         if to_do(qza):
                             continue
@@ -715,6 +714,24 @@ class AnalysisPrep(object):
                     if self.config.force or to_do(qzv):
                         cmd = write_alpha_rarefaction(
                             self, dat, tab, qzv, m, raref, data)
+                        self.register_provenance(dat, (qzv,), cmd)
+                        self.cmds.setdefault(dat, []).append(cmd)
+        self.register_io_command()
+
+    def alpha_group_significance(self):
+        self.analysis = 'alpha_group_significance'
+        for dat, data in self.project.datasets.items():
+            for raref, metrics_alphas in data.alpha.items():
+                self.get_output(dat)
+                for (qza, _, metric) in metrics_alphas:
+                    if to_do(qza):
+                        continue
+                    qzv = '%s/ags%s_%s.qzv' % (self.out, raref, metric)
+                    if self.config.force or to_do(qzv):
+                        cmd = write_alpha_group_significance(
+                            qza, qzv, data.meta)
+                        io_update(self, i_f=[qza, data.meta],
+                                  o_f=qzv, key=dat)
                         self.register_provenance(dat, (qzv,), cmd)
                         self.cmds.setdefault(dat, []).append(cmd)
         self.register_io_command()
