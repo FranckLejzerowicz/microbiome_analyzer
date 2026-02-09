@@ -73,7 +73,7 @@ def runner(**kwargs):
         if 'alpha_rarefaction' not in config.skip:
             analysis.alpha_rarefaction()
         if 'alpha_group_significance' not in config.skip:
-            # make a python script to fill with groups to test
+            analysis.alpha_group_significance()
             pass
 
     project.get_meta_subsets()

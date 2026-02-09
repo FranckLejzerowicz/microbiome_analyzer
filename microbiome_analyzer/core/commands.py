@@ -366,9 +366,9 @@ def write_collapse(
         else:
             io_update(self, o_f=collapsed_tsv, key=dat)
 
-    if to_do(collapsed_meta):
-        cmd += 'cp %s %s\n' % (meta_fp, collapsed_meta)
-        io_update(self, i_f=meta_fp, o_f=collapsed_meta, key=dat)
+    # if to_do(collapsed_meta):
+    #     cmd += 'cp %s %s\n' % (meta_fp, collapsed_meta)
+    #     io_update(self, i_f=meta_fp, o_f=collapsed_meta, key=dat)
 
     if to_do(collapsed_qzv):
         cmd += run_summary(collapsed_qza, collapsed_qzv, collapsed_meta)
