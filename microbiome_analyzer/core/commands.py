@@ -53,7 +53,7 @@ def run_import(
         typ: str) -> str:
     """
     Return the import qiime2 command.
-    
+
     Parameters
     ----------
     input_path : str
@@ -94,6 +94,31 @@ def run_import(
         cmd += ' --input-path %s' % infile
         cmd += ' --output-path %s' % output_path
         cmd += ' --type "%s"\n' % typ
+    return cmd
+
+
+def run_filter(
+        input_path: str,
+) -> str:
+    """
+    Remove samples with <3 features command.
+
+    Parameters
+    ----------
+    input_path : str
+        Input file to import to qiime2 artefact.
+
+    Returns
+    -------
+    cmd : str
+        Qiime2 command.
+    """
+    tmp = '%s.tmp.qza' % splitext(input_path)[0]
+    cmd = 'qiime feature-table filter-samples'
+    cmd += ' --i-table %s' % input_path
+    cmd += ' --o-filtered-table %s' % tmp
+    cmd += ' --p-min-features 3\n'
+    cmd += 'mv %s %s\n' % (tmp, input_path)
     return cmd
 
 
@@ -336,6 +361,7 @@ def write_collapse(
         cmd += ' --i-taxonomy %s' % tax_qza
         cmd += ' --p-level %s' % level
         cmd += ' --o-collapsed-table %s\n\n' % collapsed_qza
+        # cmd += run_filter(collapsed_qza)
         cmd += run_export(collapsed_qza, collapsed_tsv, 'FeatureTable')
         cmd += 'sed "s/;/|/g" %s > %s.tmp\n' % (collapsed_tsv, collapsed_tsv)
         cmd += 'mv %s.tmp %s\n' % (collapsed_tsv, collapsed_tsv)
@@ -355,6 +381,7 @@ def write_collapse(
         cmd += ' --i-table %s' % collapsed_qza
         cmd += ' --m-metadata-file %s' % tax_tmp
         cmd += ' --o-filtered-table %s2.qza' % collapsed_qza
+        cmd += ' --p-min-features 3'
         cmd += ' --p-exclude-ids\n'
         cmd += 'mv %s2.qza %s\n' % (collapsed_qza, collapsed_qza)
         io_update(self, i_f=tax_tmp, o_f=collapsed_qza, key=dat)

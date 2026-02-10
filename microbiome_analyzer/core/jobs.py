@@ -149,7 +149,7 @@ class CreateScripts(object):
             '-t', str(self.params['time']),
             '-c', str(self.params['cpus']),
             '-M', str(self.params['mem']), self.params['mem_dim'],
-            '--no-stat', '--no-abspath']
+            '--no-stat', '--no-abspath', '--no-email']
         # whether the cpus requests is per node
         if self.params['nodes']:
             self.cmd.extend(['-n', str(self.params['nodes'])])
