@@ -884,10 +884,13 @@ class AnalysisPrep(object):
                                 dms_metrics, out))
                         if r_scripts:
                             r_fp = '%s.R' % splitext(out)[0]
-                            with open(rep(r_fp), 'w') as o:
+                            rr_fp = rep(r_fp)
+                            with open(rr_fp, 'w') as o:
                                 for line in r_scripts:
                                     o.write('%s\n' % line)
-                            cmd = 'R -f %s --vanilla\n\n' % r_fp
+                            cmd = 'envsubst < %s > %s.tmp\n' % (rr_fp, rr_fp)
+                            cmd += 'mv %s.tmp %s\n' % (rr_fp, rr_fp)
+                            cmd += 'R -f %s --vanilla\n\n' % r_fp
                             self.register_provenance(dat, (out,), cmd)
                             self.cmds.setdefault(dat, []).append(cmd)
                             io_update(self, i_f=r_fp, key=dat)
