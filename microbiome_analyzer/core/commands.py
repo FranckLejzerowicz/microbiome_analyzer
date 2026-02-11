@@ -381,7 +381,7 @@ def write_collapse(
         cmd += ' --i-table %s' % collapsed_qza
         cmd += ' --m-metadata-file %s' % tax_tmp
         cmd += ' --o-filtered-table %s2.qza' % collapsed_qza
-        cmd += ' --p-min-features 3'
+        cmd += ' --p-min-samples 3'
         cmd += ' --p-exclude-ids\n'
         cmd += 'mv %s2.qza %s\n' % (collapsed_qza, collapsed_qza)
         io_update(self, i_f=tax_tmp, o_f=collapsed_qza, key=dat)
