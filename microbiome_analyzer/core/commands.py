@@ -803,7 +803,7 @@ def write_alpha_group_significance(
     cmd += 'qiime diversity alpha-group-significance'
     cmd += ' --i-alpha-diversity %s' % tmp_qza
     cmd += ' --m-metadata-file %s' % meta
-    cmd += ' --o-visualization %s\n\n' % qzv
+    cmd += ' --o-visualization %s\n' % qzv
     cmd += 'rm %s %s\n' % (tmp_tsv, tmp_qza)
     return cmd
 
