@@ -795,10 +795,16 @@ def write_alpha_group_significance(
     cmd : str
         Qiime2 command
     """
-    cmd = 'qiime diversity alpha-group-significance'
-    cmd += ' --i-alpha-diversity %s' % qza
+    rad = splitext(qza)[0]
+    tmp_tsv = '%s_filt.tsv' % rad
+    tmp_qza = '%s_filt.qza' % rad
+    cmd = "awk 'NF==2' %s.tsv > %s\n" % (rad, tmp_tsv)
+    cmd += run_import(tmp_tsv, tmp_qza, 'SampleData[AlphaDiversity]')
+    cmd += 'qiime diversity alpha-group-significance'
+    cmd += ' --i-alpha-diversity %s' % tmp_qza
     cmd += ' --m-metadata-file %s' % meta
     cmd += ' --o-visualization %s\n\n' % qzv
+    cmd += 'rm %s %s\n' % (tmp_tsv, tmp_qza)
     return cmd
 
 
