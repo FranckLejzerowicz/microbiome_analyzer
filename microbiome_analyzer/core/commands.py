@@ -761,11 +761,12 @@ def write_alpha_rarefaction(
         i_f.append(qza)
     cmd += ' --m-metadata-file %s' % data.meta
     cmd += ' --p-metrics %s' % metric
-    if self.config.run_params['alpha_rarefaction']['max_depth']:
+    if 'max_depth' in self.config.run_params['alpha_rarefaction']:
         md = self.config.run_params['alpha_rarefaction']['max_depth']
         cmd += ' --p-max-depth %s' % md
     elif raref:
-        cmd += ' --p-max-depth %s' % raref.split('raref')[-1]
+        rd = int(round(int(raref.split('raref')[-1]) * 0.75, 0))
+        cmd += ' --p-max-depth %s' % rd
     else:
         cmd += ' --p-max-depth 5000'
     cmd += ' --o-visualization %s\n\n' % qzv
