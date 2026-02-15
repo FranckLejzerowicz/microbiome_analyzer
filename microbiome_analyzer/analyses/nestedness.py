@@ -405,7 +405,9 @@ class Nestedness(object):
                 txt = '%s.txt' % splitext(graph_fp)[0]
                 py = '%s.py' % splitext(graph_fp)[0]
                 if self.config.force or to_do(pdf) and to_do(txt):
-                    cmd = 'python3 %s\n' % py
+                    cmd = 'envsubst < %s > %s.tmp\n' % (py, py)
+                    cmd += 'mv %s.tmp %s\n' % (py, py)
+                    cmd += 'python3 %s\n' % py
                     self.cmds.setdefault(dat, []).append(cmd)
                     io_update(self, i_f=[data.tsv[raref], data.meta, graph_fp],
                               o_f=[pdf, txt], key=dat)
