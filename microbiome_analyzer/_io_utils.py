@@ -202,7 +202,7 @@ def subset_dm(
             s2 = set(line.strip().split('\t'))
             break
     sams = list(s1 & s2 & set(sams) & set(meta_pd1[col]) & set(meta_pd2[col]))
-    new_meta_pd = meta_pd.loc[meta_pd[col].isin(sams)].copy()
+    new_meta_pd = meta_pd1.loc[meta_pd1[col].isin(sams)].copy()
     return new_meta_pd
 
 
