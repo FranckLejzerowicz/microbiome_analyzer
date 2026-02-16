@@ -163,7 +163,8 @@ def add_q2_type(meta_pd: pd.DataFrame, meta: str, cv: str, tests: list,
 
 
 def subset_dm(
-        meta_pd: pd.DataFrame,
+        meta_pd1: pd.DataFrame,
+        meta_pd2: pd.DataFrame,
         sams: list,
         t1: str,
         t2: str,
@@ -174,8 +175,10 @@ def subset_dm(
 
     Parameters
     ----------
-    meta_pd : pd.DataFrame
-        Metadata table
+    meta_pd1 : pd.DataFrame
+        Metadata table for dataset 1
+    meta_pd2 : pd.DataFrame
+        Metadata table for dataset 2
     sams : list
         All possible samples
     t1 : str
@@ -198,7 +201,7 @@ def subset_dm(
         for line in f:
             s2 = set(line.strip().split('\t'))
             break
-    sams = list(s1 & s2 & set(sams))
+    sams = list(s1 & s2 & set(sams) & set(meta_pd1[col]) & set(meta_pd2[col]))
     new_meta_pd = meta_pd.loc[meta_pd[col].isin(sams)].copy()
     return new_meta_pd
 

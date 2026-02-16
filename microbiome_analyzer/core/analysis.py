@@ -1154,7 +1154,8 @@ class AnalysisPrep(object):
                         if metrics == 'same' and (m1 != m2):
                             continue
                         if write_meta:
-                            meta = subset_dm(data1.metadata, sams, t1, t2)
+                            meta = subset_dm(
+                                data1.metadata, data2.metadata, sams, t1, t2)
                             meta_fp = '%s/meta.tsv' % self.out
                             meta.to_csv(rep(meta_fp), index=False, sep='\t')
                             write_meta = False
