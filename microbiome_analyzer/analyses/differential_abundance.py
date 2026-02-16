@@ -787,7 +787,10 @@ class DiffModels(object):
                         pair_dir, filt, subset, filt_list, params_list, model)
                     new_qza = '%s/tab.qza' % o_dir
                     new_meta = '%s/metadata.tsv' % o_dir
+                    print(model)
+                    print(formula, variables)
                     if skip_subset(variables, meta_pd):
+                        print('...')
                         continue
                     nsams = self.new_meta(meta_pd, new_meta, variables, params)
                     if dat in self.baselines and model in self.baselines[dat]:
