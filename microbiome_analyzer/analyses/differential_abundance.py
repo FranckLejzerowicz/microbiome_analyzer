@@ -655,6 +655,11 @@ class DiffModels(object):
         skip = False
         not_in_meta = set(variables).difference(set(meta_pd.columns.values))
         if not_in_meta:
+            print(set(variables))
+            print(set(meta_pd.columns.values))
+            print(not_in_meta)
+            print(self.model)
+            print(self.formula)
             self.models_issues['var'].setdefault(meta_fp, []).append(
                 [not_in_meta, self.model, self.formula])
             skip = True
