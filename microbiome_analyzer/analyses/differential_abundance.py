@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2022, Franck Lejzerowicz.
+# Copyright (c) 2026, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -775,6 +775,7 @@ class DiffModels(object):
             meta_pd = read_meta_pd(rep(meta_fp))
             models = self.check_metadata_models(
                 meta_fp, meta_pd, self.songbird_models[dat])
+            print(models)
             for p, params in params_pd.iterrows():
                 mess = self.get_train_example(meta_pd, params)
                 if mess:
