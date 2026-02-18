@@ -775,7 +775,6 @@ class DiffModels(object):
             meta_pd = read_meta_pd(rep(meta_fp))
             models = self.check_metadata_models(
                 meta_fp, meta_pd, self.songbird_models[dat])
-            print(models)
             for p, params in params_pd.iterrows():
                 mess = self.get_train_example(meta_pd, params)
                 if mess:
@@ -788,7 +787,8 @@ class DiffModels(object):
                         pair_dir, filt, subset, filt_list, params_list, model)
                     new_qza = '%s/tab.qza' % o_dir
                     new_meta = '%s/metadata.tsv' % o_dir
-                    print(model)
+                    print("model:", model)
+                    print("formula, variables")
                     print(formula, variables)
                     if skip_subset(variables, meta_pd):
                         print('...')
