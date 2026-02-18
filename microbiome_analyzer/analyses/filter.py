@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2022, Franck Lejzerowicz.
+# Copyright (c) 2026, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -256,6 +256,11 @@ def harsh_filtering(
 
 def skip_subset(variables, meta_pd):
     for v, fs in variables.items():
+        print()
+        print("v, fs")
+        print(v, fs)
+        print("meta_pd[v].unique()")
+        print(meta_pd[v].unique())
         if len(fs) == 1 and meta_pd[v].unique()[0] == fs[0]:
             return True
     return False
