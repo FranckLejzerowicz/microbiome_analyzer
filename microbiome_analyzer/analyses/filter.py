@@ -256,12 +256,7 @@ def harsh_filtering(
 
 def skip_subset(variables, meta_pd):
     for v, fs in variables.items():
-        print()
-        print("v, fs")
-        print(v, fs)
-        print("meta_pd[v].unique()")
-        print(meta_pd[v].unique())
-        if len(fs) == 1 and meta_pd[v].unique()[0] == fs[0]:
+        if len(fs) == meta_pd[v].nunique():
             return True
     return False
 
