@@ -623,6 +623,7 @@ class DiffModels(object):
                     if to_do(diffs) and not to_do(diffs_qza):
                         self.models_issues['exp'][diffs] = diffs_qza
                         continue
+                    print(rep(diffs))
                     sb_pd = pd.read_csv(rep(diffs), index_col=0, sep='\t')
                     sb_pd.columns = ['%s %s: %s' % (
                         '__'.join([dat, pr, fr, sb, ml, st, ps, be]),
