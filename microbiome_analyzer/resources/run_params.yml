@@ -262,11 +262,31 @@ deicode:
   scratch:
   machine: saga
   chunks:
+ctf:
+  time: "4"
+  nodes: "1"
+  cpus: "1"
+  mem: "10"
+  mem_dim: "gb"
+  env: "qiime2-2023.5"
+  partition:
+  scratch:
+  machine: saga
+  chunks:
+  n_components: 3
+  min_sample_count: 0
+  min_feature_count: 0
+  min_feature_frequency: 0
+  min_depth: 0
+  max_iterations_als: 25
+  max_iterations_rptm: 25
+  n_initializations: 25
+  number_of_features: 20
 rpca:
   time: "4"
   nodes: "1"
   cpus: "1"
-  mem: "20"
+  mem: "2"
   mem_dim: "gb"
   env: "qiime2-2023.2"
   partition:
@@ -274,8 +294,9 @@ rpca:
   machine: saga
   chunks:
   min_feature_count: 10
-  min_sample_count: 500
-  number_of_features: 25
+  min_sample_count: 200
+  min_feature_frequency: 10
+  number_of_features: 15
 pcoa:
   time: "10"
   nodes: "1"
@@ -489,7 +510,7 @@ geo_decay:
 sourcetracking:
   time: "72"
   nodes: "1"
-  cpus: "2"
+  cpus: "1"
   mem: "60"
   mem_dim: "gb"
   partition:
