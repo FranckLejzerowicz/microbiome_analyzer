@@ -1187,8 +1187,10 @@ def write_rpca(
         cmd += 'sed -n "/Species/,/Site/p" %s | tail -n +2 | ' % ordi_tsv
         cmd += 'grep -v ^Site | cut -f 1 | sort | tail -n +2 > %s\n' % ordi_set
         nids = '%s.nID.txt' % splitext(ordi_tsv)[0]
-        cmd += 'grep "^n[0-9]*\\t" %s | cut -f1 > %s\n' % (ordi_tsv, nids)
+        cmd += 'grep -P "^n[0-9]*\\t" %s | cut -f1 > %s\n' % (ordi_tsv, nids)
         for feat_meta in data.feat_meta:
+            if feat_meta.endswith('.nID.tsv'):
+                continue
             new_feat_meta = '%s.nIDs.tsv' % splitext(feat_meta)[0]
             cmd += 'cat %s %s > %s\n' % (feat_meta, nids, new_feat_meta)
             rm_cmd += 'rm %s\n' % new_feat_meta
