@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2022, Franck Lejzerowicz.
+# Copyright (c) 2026, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -10,9 +10,9 @@ import re
 import os
 import glob
 import pandas as pd
+import pkg_resources
 from os.path import basename, dirname, isdir, isfile, splitext
 from skbio.tree import TreeNode
-import pkg_resources
 import itertools as its
 
 from microbiome_analyzer.core.datasets import Datasets, Data
@@ -946,6 +946,7 @@ class AnalysisPrep(object):
                 data.rpca[raref] = rpcas
                 data.beta[raref].extend(betas)
         self.register_io_command()
+        self.write_readme()
 
     def ctf(self):
         self.analysis = 'ctf'
@@ -1358,3 +1359,12 @@ class AnalysisPrep(object):
         AnalysisPrep.analyses_commands[self.analysis] = dict(self.cmds)
         self.ios = {}
         self.cmds = {}
+
+    def write_readme(self):
+        readme = '%s/%s/readme.txt' % (self.dir, self.analysis)
+        if not isfile(rep(readme)):
+            src = '%s/readmes/%s.txt' % (RESOURCES, self.analysis)
+            with open(rep(readme), 'w') as o, open(src) as f:
+                for line in f:
+                    o.write(line)
+
