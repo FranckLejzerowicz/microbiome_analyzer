@@ -1018,6 +1018,8 @@ def write_ctf(
         nid = sub_ordi_tsv + '.nID.txt'
         cmd += 'grep -P "^n[0-9]*\\t" %s | cut -f1 > %s\n' % (sub_ordi_tsv, nid)
         for feat_meta in data.feat_meta:
+            if feat_meta.endswith('.nID.tsv'):
+                continue
             cmd += 'cat %s %s > %s.nID.tsv\n' % (feat_meta, nid, feat_meta)
             rm_cmd += 'rm %s.nID.tsv\n' % feat_meta
             feat_metas.append('%s.nID.tsv' % feat_meta)
