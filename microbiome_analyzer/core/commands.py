@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2022, Franck Lejzerowicz.
+# Copyright (c) 2026, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -13,6 +13,7 @@ from os.path import basename, dirname, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
 from microbiome_analyzer._scratch import io_update, to_do, rep
+
 RESOURCES = pkg_resources.resource_filename(
     "microbiome_analyzer", "resources/python_scripts")
 
@@ -1015,7 +1016,7 @@ def write_ctf(
     rm_cmd, feat_metas = '', []
     if data.feat_meta:
         nid = sub_ordi_tsv + '.nID.txt'
-        cmd += 'grep "^n[0-9]*\\t" %s | cut -f1 > %s\n' % (sub_ordi_tsv, nid)
+        cmd += 'grep -P "^n[0-9]*\\t" %s | cut -f1 > %s\n' % (sub_ordi_tsv, nid)
         for feat_meta in data.feat_meta:
             cmd += 'cat %s %s > %s.nID.tsv\n' % (feat_meta, nid, feat_meta)
             rm_cmd += 'rm %s.nID.tsv\n' % feat_meta
