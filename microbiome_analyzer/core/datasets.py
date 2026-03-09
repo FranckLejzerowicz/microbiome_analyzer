@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2022, Franck Lejzerowicz.
+# Copyright (c) 2026, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -155,6 +155,8 @@ class Datasets(object):
             data.check_gid_or_dna()
             data.feat_meta = self.get_feat_meta(dat)
             self.datasets[dat] = data
+        print(self.datasets)
+        print(self.datasedsts)
 
     def get_feat_meta(self, dat):
         paths = glob.glob('%s/feature_metadata/%s/*' % (rep(self.dir), dat))
