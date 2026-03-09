@@ -165,16 +165,20 @@ class AnalysisPrep(object):
             filt = get_filt(names, thresh_sam, thresh_feat)
             # dat_filt = '%s_%s' % (dat, '-'.join(dat_filt))
             dat_filt = '%s/%s' % (dat, filt)
-            print("dat")
-            print(dat)
-            print("dat_filt")
-            print(dat_filt)
             Datasets.filt_raw[dat_filt] = dat
             Datasets.raw_filt[dat] = dat_filt
             # register the filtered dataset as an additional dataset
             data_filt = Data(dat_filt)
             tsv, biom, qza = data.tsv[''], data.biom[''], data.qza['']
             tsv_filt = tsv.replace(dat, dat_filt)
+            print("dat")
+            print(dat)
+            print("dat_filt")
+            print(dat_filt)
+            print("tsv")
+            print(tsv)
+            print("tsv_filt")
+            print(tsv_filt)
             biom_filt = biom.replace(dat, dat_filt)
             qza_filt = qza.replace(dat, dat_filt)
             qzv_filt = '%s.qzv' % splitext(qza_filt)[0]
