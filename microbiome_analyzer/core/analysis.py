@@ -218,8 +218,9 @@ class AnalysisPrep(object):
             data_filt.phylo = data.phylo
             data_filt.features = get_gids(data.features, data_filt.data[''])
             project_filt[dat_filt] = data_filt
-        print(sdjhsdcsd)
         self.project.datasets.update(project_filt)
+        print(self.project.datasets)
+        print(sdjhsdcsd)
         self.register_io_command()
 
     def rarefy(self):
