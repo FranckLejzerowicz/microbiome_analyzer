@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2022, Franck Lejzerowicz.
+# Copyright (c) 2026, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -20,7 +20,6 @@ from microbiome_analyzer.core.commands import (
     write_sample_filter, write_feat_filter, run_export, run_add_metadata)
 from microbiome_analyzer._io_utils import check_vals, subset_meta
 from microbiome_analyzer._scratch import io_update, to_do, rep
-
 
 RESOURCES = pkg_resources.resource_filename(
     "microbiome_analyzer", "resources/python_scripts")

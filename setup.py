@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2022, Franck Lejzerowicz.
+# Copyright (c) 2026, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -70,6 +70,7 @@ setup(
     package_data={
         'routine_qiime2_analyses': [
             'test/*/*/*',
+            'core/readmes/*',
             'resources/run_params.yml',
             'resources/beta_metrics.txt',
             'resources/alpha_metrics.txt',

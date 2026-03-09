@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2020, Franck Lejzerowicz.
+# Copyright (c) 2026, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -12,7 +12,6 @@ from os.path import isfile
 
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.colors import to_rgba
-import matplotlib.ticker as mticker
 import matplotlib.pyplot as plt
 import seaborn as sns
 

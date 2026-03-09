@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2022, Franck Lejzerowicz.
+# Copyright (c) 2026, Franck Lejzerowicz.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -66,27 +66,26 @@ class DmDecay(object):
             tsv: str, meta_fp: str, mode: str, mode_group: str) -> str:
         cmd = ''
         if to_do(qza):
-            cmd += 'qiime diversity filter-distance-matrix '
-            cmd += ' --i-distance-matrix %s ' % dm
-            cmd += ' --m-metadata-file %s ' % meta_fp
+            cmd += 'qiime diversity filter-distance-matrix'
+            cmd += ' --i-distance-matrix %s' % dm
+            cmd += ' --m-metadata-file %s' % meta_fp
             cmd += ' --o-filtered-distance-matrix %s\n' % dm_filt
-            cmd += 'qiime distance-decay %s ' % mode
-            cmd += ' --i-distance-matrix %s ' % dm_filt
+            cmd += 'qiime distance-decay %s' % mode
+            cmd += ' --i-distance-matrix %s' % dm_filt
             if mode != 'individual':
-                cmd += ' --m-metadata-file %s ' % meta_fp
+                cmd += ' --m-metadata-file %s' % meta_fp
                 if 'targeted' in mode:
-                    cmd += ' --p-source-category %s ' % self.group_source
-                    cmd += ' --p-target-category %s ' % self.group_target
-                    cmd += ' --p-source-category-value %s ' % self.val_source
-                    cmd += ' --p-target-category-value %s ' % self.val_target
+                    cmd += ' --p-source-category %s' % self.group_source
+                    cmd += ' --p-target-category %s' % self.group_target
+                    cmd += ' --p-source-category-value %s' % self.val_source
+                    cmd += ' --p-target-category-value %s' % self.val_target
                 else:
-                    cmd += ' --m-category-column %s ' % mode_group
-                cmd += ' --p-balance '
-            cmd += ' --p-iteration %s ' % self.iteration
-            cmd += ' --p-step %s ' % self.step
+                    cmd += ' --m-category-column %s' % mode_group
+                cmd += ' --p-balance'
+            cmd += ' --p-iteration %s' % self.iteration
+            cmd += ' --p-step %s' % self.step
             params = self.config.run_params['dm_decay']
-            cmd += ' --p-jobs %s ' % (int(params['nodes']) *
-                                         int(params['cpus']))
+            cmd += ' --p-jobs %s' % (int(params['nodes']) * int(params['cpus']))
             cmd += ' --o-distance-decay %s\n' % qza
             io_update(self, i_f=[dm, meta_fp], key=dat)
             cmd += 'rm %s\n' % dm_filt
