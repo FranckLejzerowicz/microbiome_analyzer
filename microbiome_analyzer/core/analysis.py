@@ -165,6 +165,10 @@ class AnalysisPrep(object):
             filt = get_filt(names, thresh_sam, thresh_feat)
             # dat_filt = '%s_%s' % (dat, '-'.join(dat_filt))
             dat_filt = '%s/%s' % (dat, filt)
+            print("dat")
+            print(dat)
+            print("dat_filt")
+            print(dat_filt)
             Datasets.filt_raw[dat_filt] = dat
             Datasets.raw_filt[dat] = dat_filt
             # register the filtered dataset as an additional dataset
@@ -214,6 +218,7 @@ class AnalysisPrep(object):
             data_filt.phylo = data.phylo
             data_filt.features = get_gids(data.features, data_filt.data[''])
             project_filt[dat_filt] = data_filt
+        print(sdjhsdcsd)
         self.project.datasets.update(project_filt)
         self.register_io_command()
 
