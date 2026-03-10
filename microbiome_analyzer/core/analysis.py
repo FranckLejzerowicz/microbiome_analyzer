@@ -164,32 +164,24 @@ class AnalysisPrep(object):
             # -------
             filt = get_filt(names, thresh_sam, thresh_feat)
             # dat_filt = '%s_%s' % (dat, '-'.join(dat_filt))
-            dat_filt = '%s/%s' % (dat, filt)
+            dat_filt = '/'.join([dat, filt])
             Datasets.filt_raw[dat_filt] = dat
             Datasets.raw_filt[dat] = dat_filt
             # register the filtered dataset as an additional dataset
             data_filt = Data(dat_filt)
             tsv, biom, qza = data.tsv[''], data.biom[''], data.qza['']
-            tsv_filt = tsv.replace(dat, dat_filt)
-            print("dat")
-            print(dat)
-            print("dat_filt")
-            print(dat_filt)
-            print("tsv")
-            print(tsv)
-            print("tsv_filt")
-            print(tsv_filt)
-            biom_filt = biom.replace(dat, dat_filt)
-            qza_filt = qza.replace(dat, dat_filt)
-            qzv_filt = '%s.qzv' % splitext(qza_filt)[0]
+            dat_dir = os.path.join(dirname(tsv), filt)
+            tsv_filt = os.path.join(dat_dir, 'table.tsv')
+            biom_filt = os.path.join(dat_dir, 'table.biom')
+            qza_filt = os.path.join(dat_dir, 'table.qza')
+            qzv_filt = os.path.join(dat_dir, 'table.qzv')
             data_filt.tsv = {'': tsv_filt}
             data_filt.biom = {'': biom_filt}
             data_filt.qza = {'': qza_filt}
-            data_filt.meta = data.meta.replace(dat, dat_filt)
-
+            meta_dir = os.path.join(dirname(data.meta), filt)
+            data_filt.meta = os.path.join(meta_dir, 'metadata.tsv')
             make_fp_dir(tsv_filt)
             make_fp_dir(data_filt.meta)
-
             data_filt.filts = dat
             data_filt.filt = filt
             data_filt.metadata = data.metadata.copy()
@@ -223,8 +215,6 @@ class AnalysisPrep(object):
             data_filt.features = get_gids(data.features, data_filt.data[''])
             project_filt[dat_filt] = data_filt
         self.project.datasets.update(project_filt)
-        print(self.project.datasets)
-        print(sdjhsdcsd)
         self.register_io_command()
 
     def rarefy(self):
