@@ -2166,6 +2166,8 @@ def write_mmvec(
             cmd += ' --o-visualization %s\n' % summary
             cmd += run_export(summary, summary_html, 'mmvec_summary')
 
+            cmd += 'rm -rf %s/logdir*\n' % model_odir
+            cmd += 'rm -rf %s/logdir*\n' % null_odir
             io_update(
                 self, i_f=[qza1, qza2, meta_fp], key=pair,
                 o_f=[ranks_qza, ranks_tsv, ordination_qza, ordination_tsv,
