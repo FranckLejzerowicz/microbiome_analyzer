@@ -100,6 +100,8 @@ class PairedData(object):
             if 'global' in self.config.mmvec_pairs['filtering']:
                 for filt_name, prev_abund in self.config.mmvec_pairs[
                         'filtering']['global'].items():
+                    if filt_name == '0_0':
+                        continue
                     for pair, dats_pair in mmvec_pairs.items():
                         if pair not in filtering:
                             filtering[pair] = {}
@@ -151,9 +153,10 @@ class PairedData(object):
         return params
 
     def get_subsets(self) -> dict:
-        subsets = {'ALL': {}}
         if 'subsets' in self.config.mmvec_pairs:
-            subsets.update(self.config.mmvec_pairs['subsets'])
+            subsets = self.config.mmvec_pairs['subsets']
+        else:
+            subsets = {'ALL': {}}
         return subsets
 
     def get_mmvec_dicts(self):
