@@ -10,6 +10,6 @@
               '  r2_<MODEL>.R\t: R script\n'
               '  r2_<MODEL>.txt\t: model outputs\n',
     "formula": 'here's the model formulas:\n'
-               'NAME_FORMULA'
+               'NAME_FORMULA',
     "version": 'Generated from configuration file\nCONFIGFILE\nCONFIGMD5'
 }
