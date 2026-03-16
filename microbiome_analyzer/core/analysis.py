@@ -8,6 +8,7 @@
 
 import re
 import os
+import json
 import glob
 import pandas as pd
 import pkg_resources
@@ -54,6 +55,7 @@ class AnalysisPrep(object):
 
     def __init__(self, config, project) -> None:
         self.config = config
+        self.readme = self.get_readmes()
         self.project = project
         self.dir = project.dir
         self.dirs = project.dirs
@@ -62,6 +64,13 @@ class AnalysisPrep(object):
         self.cmds = {}
         self.out = ''
         self.messages = set()
+
+    def get_readmes(self):
+        readme = {}
+        for analysis in self.config.analyses:
+            with open('%s/readmes/%s.txt' % (RESOURCES, analysis)) as f:
+                readme[analysis] = json.load(f)
+        return readme
 
     def show_datasets(self):
         print('-' * 30)
