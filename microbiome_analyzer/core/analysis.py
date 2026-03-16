@@ -68,7 +68,7 @@ class AnalysisPrep(object):
     def get_readmes(self):
         readme = {}
         for analysis in self.config.analyses:
-            with open('%s/readmes/%s.txt' % (RESOURCES, analysis)) as f:
+            with open('%s/readmes/%s.txt' % (RESOURCES, analysis[1])) as f:
                 readme[analysis] = json.load(f)
         return readme
 
