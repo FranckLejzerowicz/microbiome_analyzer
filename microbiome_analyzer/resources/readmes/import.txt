@@ -1,8 +1,5 @@
 {
-    "main": "The adonis folder contains inputs and outputs for the Permutational
-            Multivariate Analysis of Variance Using Distance Matrices performed
-             using the R package adonis2 (https://search.r-project
-             .org/CRAN/refmans/vegan/html/adonis.html)",
+    "main": "The adonis folder contains inputs and outputs for the Permutational Multivariate Analysis of Variance Using Distance Matrices performed using the R package adonis2 (https://search.r-project.org/CRAN/refmans/vegan/html/adonis.html)",
     "dataset": "adonis models are run on the feature for dataset\n",
     "output": "each model yield three files:\n'meta_<MODEL>.tsv\t: metadata with useful columns\n  r2_<MODEL>.R\t: R script\nr2_<MODEL>.txt\t: model outputs\n",
     "formula": "heres the model formulas:\nNAME_FORMULA",
