@@ -1,5 +1,5 @@
 {
-    "main": 'The `adonis` folder contains inputs and outputs for the '
+    "main": 'The adonis folder contains inputs and outputs for the '
             'Permutational Multivariate Analysis of Variance Using Distance '
             'Matrices performed using the R package "adonis2" (https://search'
             .r-project.org/CRAN/refmans/vegan/html/adonis.html)',
