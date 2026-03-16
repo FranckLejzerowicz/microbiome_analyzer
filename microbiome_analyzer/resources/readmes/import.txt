@@ -9,7 +9,7 @@
               '  meta_<MODEL>.tsv\t: metadata with useful columns\n'
               '  r2_<MODEL>.R\t: R script\n'
               '  r2_<MODEL>.txt\t: model outputs\n',
-    "formula": 'here's the model formulas:\n'
+    "formula": "here's the model formulas:\n"
                'NAME_FORMULA',
     "version": 'Generated from configuration file\nCONFIGFILE\nCONFIGMD5'
 }
