@@ -14,7 +14,6 @@ OUT = pkg_resources.resource_filename("microbiome_analyzer", "tests")
 RESOURCE = pkg_resources.resource_filename("microbiome_analyzer", "resources")
 
 
-
 class ConfigTests(unittest.TestCase):
 
     def setUp(self):
@@ -68,13 +67,13 @@ class ConfigTests(unittest.TestCase):
         config = AnalysesConfig(**config_dict)
         print(config.__dict__)
 
+    def test_parse_yamls(self):
+        pass
+
     def test_check_input(self):
         pass
 
     def test_get_prjct_anlss_nm(self):
-        pass
-
-    def test_parse_yamls(self):
         pass
 
     def test_get_run_params(self):

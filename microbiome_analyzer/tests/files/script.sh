@@ -3,6 +3,15 @@ microbiome_analyzer \
   -e qiime2-2021.11 \
   -n test \
   -d dataset_number_1 \
+  -s ./microbiome_analyzer/tests/files/songbird.yml \
+  --no-jobs
+
+
+microbiome_analyzer \
+  -i ./microbiome_analyzer/tests/files \
+  -e qiime2-2021.11 \
+  -n test \
+  -d dataset_number_1 \
   -d dataset_number_5 \
   -d vioscreen_foods_consumed_grams_per_day_1800s_noLiquids \
   -f ./microbiome_analyzer/tests/files/filtering.yml \

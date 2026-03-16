@@ -1,44 +1,15 @@
-------------------------------------------
-Robust Principal Component Analysis (RPCA)
-------------------------------------------
-RPCA is built for sparse microbiome compositional data with missing or uneven
-sampling. It addresses shortcoming in standard PCA by treating the data matrix
-as having a low-rank signal corrupted by sparse noise — a classic assumption
-from the robust PCA / matrix completion literature.
-
-RPCA decomposes a samples*features count matrix M in L + S components, with:
-L = low-rank matrix capturing the true biological structure
-S = sparse matrix capturing outliers/noise (e.g., contaminants, errors)
-
-The analyses steps are:
-1. Centered log-ratio transformation (Aitchison geometry): since CLR breaks with
- zeros (needs pseudocount), RPCA treats zeros as missing values rather than true
-  absence.
-2. Matrix completion over missing/zero entries: zeros are masked and the
-low-rank structure is imputed during the optimization. Instead of imputing
-zeros, the low-rank signal itself informs what those zeros "should be".
-3. Robust to outliers: component S absorbs extreme values, so individual
-anomalous samples or features don't distort the principal components.
-
-In output, RPCA produces beta diversity and ordination files with sample and
-feature loadings to identify which ASVs/taxa drive variation.
-
-Code
-----
-https://github.com/biocore/gemelli
-
-References
-----------
-Martino, C., McDonald, D., Cantrell, K., Dilmore, A.H., Vázquez-Baeza, Y.,
-Shenhav, L., Shaffer, J.P., Rahman, G., Armstrong, G., Allaband, C. and Song, S
-.J., 2022. Compositionally aware phylogenetic beta-diversity measures better
-resolve microbiomes associated with phenotype. Msystems, 7(3), pp.e00050-22.
-
-Armstrong, G., Rahman, G., Martino, C., McDonald, D., Gonzalez, A., Mishne, G.
-and Knight, R., 2022. Applications and comparison of dimensionality reduction
-methods for microbiome data. Frontiers in bioinformatics, 2, p.821861
-https://doi.org/10.3389/fbinf.2022.821861
-
-Silverman, J.D., Roche, K., Mukherjee, S. and David, L.A., 2020. Naught all
-zeros in sequence count data are the same. Computational and structural
-biotechnology journal, 18, pp.2789-2798.
+{
+    "main": 'The `adonis` folder contains inputs and outputs for the '
+            'Permutational Multivariate Analysis of Variance Using Distance '
+            'Matrices performed using the R package "adonis2" (https://search'
+            .r-project.org/CRAN/refmans/vegan/html/adonis.html)',
+    "dataset": 'adonis models are run on the feature for dataset\n'
+               'DATASET',
+    "output": 'each model yield three files:\n'
+              '  meta_<MODEL>.tsv\t: metadata with useful columns\n'
+              '  r2_<MODEL>.R\t: R script\n'
+              '  r2_<MODEL>.txt\t: model outputs\n',
+    "formula": 'here's the model formulas:\n'
+               'NAME_FORMULA'
+    "version": 'Generated from configuration file\nCONFIGFILE\nCONFIGMD5'
+}
