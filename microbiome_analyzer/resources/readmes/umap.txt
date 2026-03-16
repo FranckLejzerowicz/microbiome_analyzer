@@ -1,7 +1,11 @@
 {
-    "main": 'The adonis folder contains inputs and outputs for the '
-            'Permutational Multivariate Analysis of Variance Using Distance '
-            'Matrices performed using the R package "adonis2" (https://search'
+    "main": 'The `umap` folder contains outputs for Uniform Manifold Approximation and Projection (UMAP), a dimensionality reduction method that serves as an alternative to PCoA and has been shown to better resolve differences between samples, especially when clusters consist of multiple subgroups.\nIt takes as input a distance matrix (see `beta` folder)
+
+
+
+
+
+Matrices performed using the R package "adonis2" (https://search'
             .r-project.org/CRAN/refmans/vegan/html/adonis.html)',
     "dataset": 'adonis models are run on the feature for dataset\n'
                'DATASET',
@@ -11,5 +15,6 @@
               '  r2_<MODEL>.txt\t: model outputs\n',
     "formula": 'here's the model formulas:\n'
                'NAME_FORMULA',
-    "version": 'Generated from configuration file\nCONFIGFILE\nCONFIGMD5'
+    "version": 'Generated from configuration file\nCONFIGFILE\nCONFIGMD5',
+
 }

@@ -55,7 +55,7 @@ class AnalysisPrep(object):
 
     def __init__(self, config, project) -> None:
         self.config = config
-        self.readme = self.get_readmes()
+        # self.readme = self.get_readmes()
         self.project = project
         self.dir = project.dir
         self.dirs = project.dirs

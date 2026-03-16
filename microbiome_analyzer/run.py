@@ -31,7 +31,7 @@ def runner(**kwargs):
     project.collect_datasets()
 
     analysis = AnalysisPrep(config, project)
-    print(analysis.readme)
+    # print(analysis.readme)
     analysis.import_datasets()
     if config.filt3d:
         analysis.explore_filtering()
