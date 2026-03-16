@@ -1877,14 +1877,15 @@ def write_procrustes(
     cmd += run_export(dis, tsv, '')
     cmd += 'rm %s\n' % pcoa_out1
     cmd += 'rm %s\n' % pcoa_out2
-    cmd += 'rm %s\n' % ref_pcoa
-    cmd += 'rm %s\n' % oth_pcoa
+    # cmd += 'rm %s\n' % ref_pcoa
+    # cmd += 'rm %s\n' % oth_pcoa
     cmd += 'rm %s\n' % d1f
     cmd += 'rm %s\n' % d2f
     cmd += 'rm %s\n' % dis
     dat = '%s__%s' % (dat1, dat2)
 
-    io_update(self, i_f=[meta_fp, d1, d2], o_f=[qzv, tsv], key=dat)
+    io_update(self, i_f=[meta_fp, d1, d2], o_f=[qzv, tsv, ref_pcoa, oth_pcoa],
+              key=dat)
 
     return cmd
 
