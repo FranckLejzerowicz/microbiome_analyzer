@@ -1173,13 +1173,19 @@ class AnalysisPrep(object):
                         d2f = '%s/dm2_%s-%s.qza' % (self.out, m1, m2)
                         qzv = '%s/%s-%s.qzv' % (self.out, m1, m2)
                         dis = '%s/m2_%s-%s.qza' % (self.out, m1, m2)
+
+                        pcoa_out1 = '%s_pcoa.qza' % splitext(d1f)[0]
+                        ref_pcoa = '%s_ref.qza' % splitext(pcoa_out1)[0]
+
                         if analysis == 'mantel':
                             out = '%s.html' % splitext(qzv)[0]
                         else:
                             out = '%s.tsv' % splitext(dis)[0]
                         AnalysisPrep.analyses_procrustes.setdefault(
                             (path, m1, m2), []).append((qzv, out))
-                        if self.config.force or to_do(out):
+                        if self.config.force or to_do(out) or (
+                            analysis == 'procrustes' and to_do(ref_pcoa)
+                        ):
                             if analysis == 'mantel':
                                 cmd = write_mantel(
                                     self, dat1, r1, dat2, r2, meta_fp, d1,
