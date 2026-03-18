@@ -55,7 +55,7 @@ class AnalysisPrep(object):
 
     def __init__(self, config, project) -> None:
         self.config = config
-        # self.readme = self.get_readmes()
+        self.readme = self.get_readmes()
         self.project = project
         self.dir = project.dir
         self.dirs = project.dirs
@@ -1212,7 +1212,8 @@ class AnalysisPrep(object):
                         for (ordi, _, metric) in metrics:
                             if to_do(ordi):
                                 continue
-                            qzv = '%s/%s_%s.qzv' % (self.out, raref, metric)
+                            qzv = '%s/emperor%s_%s.qzv' % (self.out, raref,
+                                                         metric)
                             if self.config.force or to_do(qzv):
                                 cmd = write_emperor(ordi, qzv, data.meta)
                                 self.register_provenance(dat, (qzv, ordi,), cmd)
