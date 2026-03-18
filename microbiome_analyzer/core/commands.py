@@ -1944,7 +1944,7 @@ def write_mantel(
     cmd += ' --o-visualization %s\n' % qzv
 
     cmd += run_export(qzv, html, 'mantel')
-    cmd += 'rm %s %s %s\n' % (qzv, d1f, d2f)
+    cmd += 'rm %s %s\n' % (d1f, d2f)
 
     dat = '%s__%s' % (dat1, dat2)
     io_update(self, i_f=[meta_fp, d1, d2], o_f=[qzv, html], key=dat)
