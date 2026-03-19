@@ -685,6 +685,36 @@ def write_tabulate(
     return cmd
 
 
+def write_tree(
+        qza: str,
+        qzv: str,
+        data
+) -> str:
+    """
+    Generate a tabular view of Metadata. The output visualization supports
+    interactive filtering, sorting, and exporting to common file formats.
+    https://docs.qiime2.org/2019.10/plugins/available/metadata/tabulate/
+
+    Parameters
+    ----------
+    qza
+    qzv
+    data
+
+    Returns
+    -------
+    cmd
+    """
+    cmd = 'qiime empress tree-plot'
+    cmd += ' --i-tree %s' % qza
+    cmd += ' --o-visualization %s' % qzv
+    if data.feat_meta:
+        for feat_meta in data.feat_meta:
+            cmd += ' --m-feature-metadata-file %s' % feat_meta
+    cmd += '\n\n'
+    return cmd
+
+
 def write_alpha_correlation(
         qza: str,
         qzv: str,

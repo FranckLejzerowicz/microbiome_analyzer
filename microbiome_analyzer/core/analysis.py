@@ -25,7 +25,7 @@ from microbiome_analyzer.core.commands import (
     write_volatility, write_beta, write_rpca, write_ctf, write_pcoa,
     write_biplot, write_emperor,  write_emperor_biplot, write_empress,
     write_permanova_permdisp, write_adonis, write_tsne, write_umap,
-    write_procrustes, write_mantel, write_phate)
+    write_procrustes, write_mantel, write_phate, write_tree)
 from microbiome_analyzer.analyses.filter import (
     no_filtering, get_filt, filtering_thresholds, harsh_filtering, filter_3d)
 from microbiome_analyzer.analyses.rarefy import get_digit_depth
@@ -284,11 +284,13 @@ class AnalysisPrep(object):
             if dat in Datasets.filt_raw:
                 continue
             _, qza, nwk = data.tree
+            qzv = '%s.qzv' % splitext(qza)[0]
             cmd = run_import(nwk, qza, 'Phylogeny[Rooted]')
-            if nwk and (self.config.force or not isfile(qza)):
+            cmd += write_tree(qza, qzv, data)
+            if nwk and (self.config.force or not isfile(qzv)):
                 self.cmds.setdefault(dat, []).append(cmd)
-                io_update(self, i_f=nwk, o_f=qza, key=dat)
-            self.register_provenance(dat, (qza,), cmd)
+                io_update(self, i_f=nwk, o_f=[qza, qzv], key=dat)
+            self.register_provenance(dat, (qza, qzv,), cmd)
         self.register_io_command()
 
     def shear_tree(self):
