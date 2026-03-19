@@ -1474,7 +1474,6 @@ def write_emperor_biplot(
         biplot_tax: str,
         meta: str,
         qzv: str,
-        tax_pd: pd.DataFrame
 ) -> str:
     """
     Generates an interactive ordination plot where the user can visually
@@ -1489,7 +1488,6 @@ def write_emperor_biplot(
     biplot_tax
     meta
     qzv
-    tax_pd
 
     Returns
     -------
@@ -1514,8 +1512,6 @@ def write_emperor_biplot(
         i_f.append(biplot_tax)
     cmd += ' --p-number-of-features 10'
     cmd += ' --o-visualization %s\n' % qzv
-    # if isfile(biplot_tax):
-    #     cmd += 'rm %s\n' % tax_tmp
     io_update(self, i_f=i_f, o_f=qzv, key=dat)
 
     return cmd
