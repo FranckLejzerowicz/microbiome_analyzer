@@ -1,0 +1,8 @@
+{
+    "main": "The `alpha_correlations` folder contains the jobs and outputs to determine whether numeric sample metadata columns (e.g., solutes concentrations, days) are correlated with alpha diversity values across samples. It applies both the Spearman or Pearson correlation tests to assess the relationship between continuous metadata and alpha diversity metrics (e.g., Faith's PD, Shannon index).\n\nIt is done in QIIME2 using the q2-diversity library",
+    "qiime2 command": "`qiime diversity alpha-correlations`",
+    "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-alpha-correlations",
+    "dataset": "the first folders in `alpha_correlations` are each of the datasets.",
+    "output": "Within both a `pearson` and `spearman` subfolder, there is one a QIIME2 Visualization file `corr_<metric_name>.qzv` for each metric.\n", 
+     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+}

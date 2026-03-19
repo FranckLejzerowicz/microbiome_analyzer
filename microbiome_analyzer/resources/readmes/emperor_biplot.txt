@@ -1,0 +1,11 @@
+{
+    "main": "The `emperor_biplot` folder contains jobs and their outputs for interactive, multi-dimensional visualizations of microbial community composition based on beta diversity metrics. The Emperor biplot offers the same interactions as te Emperor plot, but here, the arrows represent the loading of the features (see `biplots` folder).\n\nIt is done in QIIME2 using the q2-emperor library",
+    "reference": "Vázquez-Baeza, Y., Pirrung, M., Gonzalez, A. and Knight, R., 2013. EMPeror: a tool for visualizing high-throughput microbial community data. Gigascience, 2(1), pp.2047-217X.",
+    "doi": "https://doi.org/10.1186/2047-217X-2-16",
+    "qiime2 command": "`qiime diversity emperor`",
+    "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/emperor.html#q2-action-emperor-biplot",
+    "dataset": 'the first folders in `emperor_biplot` are the dimensionality reduction techniques (e.g., `pcoa`) and therein, there is one subfolders for each of the datasets.",
+    "output": "Interactive ordination visualization files:\n- in QIIME2 Artefact format (`.qzv`): `emperor_biplot_<beta_metric>.qzv`\n",
+     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+}
+

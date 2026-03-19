@@ -1,0 +1,7 @@
+{
+    "main": "The `songbird_baselines` folder only contains the jobs for the baseline models, which performance statistics will  be compared to the statistics of the test models, to measure the gain in learning from the additional information that distinguish the test from baseline models (see explanations in the `songbird` folder).",
+    "reference": "Morton, J.T., Marotz, C., Washburne, A. et al. Establishing microbial composition measurement standards with reference frames. Nat Commun 10, 2719 (2019).",
+    "github": "https://github.com/biocore/songbird",
+    "doi": "https://doi.org/10.1038/s41467-019-10656-5",
+    "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+}

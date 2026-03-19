@@ -1,15 +1,8 @@
 {
-    "main": 'The adonis folder contains inputs and outputs for the '
-            'Permutational Multivariate Analysis of Variance Using Distance '
-            'Matrices performed using the R package "adonis2" (https://search'
-            .r-project.org/CRAN/refmans/vegan/html/adonis.html)',
-    "dataset": 'adonis models are run on the feature for dataset\n'
-               'DATASET',
-    "output": 'each model yield three files:\n'
-              '  meta_<MODEL>.tsv\t: metadata with useful columns\n'
-              '  r2_<MODEL>.R\t: R script\n'
-              '  r2_<MODEL>.txt\t: model outputs\n',
-    "formula": 'here's the model formulas:\n'
-               'NAME_FORMULA',
-    "version": 'Generated from configuration file\nCONFIGFILE\nCONFIGMD5'
+    "main": "The adonis folder contains inputs and outputs for the Permutational Multivariate Analysis of Variance Using Distance Matrices performed using the R package "adonis2" (https://search.r-project.org/CRAN/refmans/vegan/html/adonis.html)",
+    "reference": "Oksanen, J., Simpson, G.L., Blanchet, F.G., Kindt, R., Legendre, P., Minchin, P.R., O'hara, R.B., Solymos, P., Stevens, M.H.H., Szoecs, E. and Wagner, H., 2001. Vegan: community ecology package. (No Title).",
+    "doi": "10.32614/cran.package.vegan",
+    "dataset": "The first folders in `adonis` are each of the datasets.",
+    "output": "For each model yield three files:\n- `meta_<model>.tsv`: metadata with useful columns for modelling\n- `r2_<model>.R`: R script\n- `r2_<model>.txt`: model outputs\n- `cv_<model>.tsv`: counts of the values in each tests variable",
+    "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
 }

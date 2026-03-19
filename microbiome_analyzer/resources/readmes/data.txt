@@ -1,0 +1,5 @@
+{
+    "main": "The `data` folder contains the prepared feature tables (with features as row and samples as columns) and named `table.tsv`, a requisite for `microbiome_analyzer.",
+    "dataset": "the first folders in `data` are each of the datasets.",
+    "output": "Importing into QIIME2 consists of creating the first `table.qza` file (called an "Artefact") for the dataset, which is then used for all configured analyses. It is automatically used an input to make summaries:\n- `table.tsv`: initial feature table prepared by the user (rows=features; columns=samples)\n- `table.biom`: initial feature table can be in BIOM format\n- `table.qza`: feature table after imported as QIIME2 Artefact (see `import` folder)\n- `table.qzv`: QIIME2 Interactive Visualization containing summaries of the samples and features (load in https://view.qiime2.org)",    "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+}

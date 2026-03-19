@@ -1,15 +1,9 @@
 {
-    "main": 'The adonis folder contains inputs and outputs for the '
-            'Permutational Multivariate Analysis of Variance Using Distance '
-            'Matrices performed using the R package "adonis2" (https://search'
-            .r-project.org/CRAN/refmans/vegan/html/adonis.html)',
-    "dataset": 'adonis models are run on the feature for dataset\n'
-               'DATASET',
-    "output": 'each model yield three files:\n'
-              '  meta_<MODEL>.tsv\t: metadata with useful columns\n'
-              '  r2_<MODEL>.R\t: R script\n'
-              '  r2_<MODEL>.txt\t: model outputs\n',
-    "formula": 'here's the model formulas:\n'
-               'NAME_FORMULA',
-    "version": 'Generated from configuration file\nCONFIGFILE\nCONFIGMD5'
+    "main": "The `qurro` folder only contains the jobs to generate interactive visualization of the log-ratios per sample, that are formed by features that can be selected as numerator and denominator based either on their loadings on ordinations (e.g., see `rpca`) or their ranking after differential abundance analysis (e.g., see `songbird`). Thus is also uses the count information in the feature tables based on which ordination or differential abundance analyses were run.\n\nIt is done in QIIME2 using the q2-qurro library",
+    "reference": Fedarko, M.W., Martino, C., Morton, J.T., González, A., Rahman, G., Marotz, C.A., Minich, J.J., Allen, E.E. and Knight, R., 2020. Visualizing’omic feature rankings and log-ratios using Qurro. NAR genomics and bioinformatics, 2(2), p.lqaa023.\n",
+    "doi": "https://doi.org/10.1093/nargab/lqaa023",
+    "github": "https://github.com/biocore/qurro",
+    "dataset": '`qurro` can be run on the datasets for which there are outputs in the form biplots such as `rpca` and differentials such as `songbird`.",
+    "output": "QIIME2 Visualization (`qurro.qzv`) in the `songbord` and `rpca` folders, that can be loaded on https://view.qiime2.org", 
+     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
 }

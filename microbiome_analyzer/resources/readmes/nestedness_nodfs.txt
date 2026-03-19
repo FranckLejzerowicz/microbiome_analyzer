@@ -1,0 +1,6 @@
+{
+    "main": "The `nestedness_nodfs` folder contains jobs to run the `nodfs.py` scripts located in the `nestedness` folder, for the creation the NODF plots (see explanations in the `nestedness` folder).",
+    "reference": "Almeida‐Neto, M., Guimaraes, P., Guimaraes Jr, P.R., Loyola, R.D. and Ulrich, W., 2008. A consistent metric for nestedness analysis in ecological systems: reconciling concept and measurement. Oikos, 117(8), pp.1227-1239.",
+    "doi": "https://doi.org/10.1111/j.0030-1299.2008.16644.x",
+     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+}

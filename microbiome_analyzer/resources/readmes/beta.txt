@@ -1,15 +1,13 @@
 {
-    "main": 'The adonis folder contains inputs and outputs for the '
-            'Permutational Multivariate Analysis of Variance Using Distance '
-            'Matrices performed using the R package "adonis2" (https://search'
-            .r-project.org/CRAN/refmans/vegan/html/adonis.html)',
-    "dataset": 'adonis models are run on the feature for dataset\n'
-               'DATASET',
-    "output": 'each model yield three files:\n'
-              '  meta_<MODEL>.tsv\t: metadata with useful columns\n'
-              '  r2_<MODEL>.R\t: R script\n'
-              '  r2_<MODEL>.txt\t: model outputs\n',
-    "formula": 'here's the model formulas:\n'
-               'NAME_FORMULA',
-    "version": 'Generated from configuration file\nCONFIGFILE\nCONFIGMD5'
+    "main": "The `beta` folder contains jobs and their outputs to compute a beta diversity metric for all pairs of samples in a feature table (see `data` folder), resulting in a distance matrix that quantifies dissimilarity between microbial communities, which can then be compared across environmental gradients or treatments.\n\nIt is done in QIIME2 using the q2-diversity library",
+    "reference": "Legendre, P. and Legendre, L., 2012. Numerical Ecology, third english ed. Developments in environmental modelling). Elsevier, Amsterdam, 1006.",
+    "doi": "ISBN: 978-0-444-53868-0",
+    "qiime2 command": "`qiime diversity beta`",
+    "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-beta",
+    "dataset": "the first folders in `beta` are each of the datasets.",
+    "output": "Beta diversity distance matrix files:\n- `beta_<beta_metric>.qza`: QIIME2 Artefact format;\n- `beta_<beta_metric>.tsv`: tab-separated format.\n",
+     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5",
 }
+
+
+

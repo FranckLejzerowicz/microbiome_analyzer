@@ -1,0 +1,7 @@
+{
+    "main": "The `metadata` folder contains the prepared sample information tables and named `metadata.tsv`, a requisite for `microbiome_analyzer.",
+    "dataset": "the first folders in `taxonomy` are each of the datasets.",
+    "reference": "Yilmaz, P., Kottmann, R., Field, D., Knight, R., Cole, J.R., Amaral-Zettler, L., Gilbert, J.A., Karsch-Mizrachi, I., Johnston, A., Cochrane, G. and Vaughan, R., 2011. Minimum information about a marker gene sequence (MIMARKS) and minimum information about any (x) sequence (MIxS) specifications. Nature biotechnology, 29(5), pp.415-420.",
+    "doi": "https://doi.org/10.1038/nbt.1823",
+    "output": "Once all alpha diversity measures have been computed (see `alpha` folder) and that the per-metric info has been merged (see `alpha_merge` folder), then every following run of `microbiome_analyzer` will collate the alpha diversity vectors (across filtering thresholds, taxonomic collapsing, and rarefaction depths) into a copy of the metadata, called `metadata_alphas.tsv`",    "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+}

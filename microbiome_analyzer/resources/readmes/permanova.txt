@@ -1,15 +1,10 @@
 {
-    "main": 'The adonis folder contains inputs and outputs for the '
-            'Permutational Multivariate Analysis of Variance Using Distance '
-            'Matrices performed using the R package "adonis2" (https://search'
-            .r-project.org/CRAN/refmans/vegan/html/adonis.html)',
-    "dataset": 'adonis models are run on the feature for dataset\n'
-               'DATASET',
-    "output": 'each model yield three files:\n'
-              '  meta_<MODEL>.tsv\t: metadata with useful columns\n'
-              '  r2_<MODEL>.R\t: R script\n'
-              '  r2_<MODEL>.txt\t: model outputs\n',
-    "formula": 'here's the model formulas:\n'
-               'NAME_FORMULA',
-    "version": 'Generated from configuration file\nCONFIGFILE\nCONFIGMD5'
+    "main": "The `permanova` folder contains jobs and their outputs to determine whether groups of samples are significantly different from one another based on their beta diversity (i.e., dissimilarity in microbial community composition). It test whether microbial communities differ significantly between predefined sample groups, using a permutation-based statistical tests, incl. PERMANOVA and PERMDISP on a distance matrix (see `beta` folder), to formally compare the average distances between samples within groups and between groups. The `microbiome_analyzer` will not attempt to run configured tests on datasets with only one factor or only one sample per group. Also, the QIIME2 implementation of PERMANOVA and PERMDISP only allow for testing on a single variable. For multi-way tests (e.g., testing multiple factors and their interactions), see `adonis`.\n\nIt is done in QIIME2 using the q2-diversity library",
+    "reference": "Anderson, M.J., 2001. A new method for non‐parametric multivariate analysis of variance. Austral ecology, 26(1), pp.32-46.",
+    "doi": "https://doi.org/10.1111/j.1442-9993.2001.01070.pp.x",
+    "qiime2 command": "`qiime diversity beta-group-significance`",
+    "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-beta-group-significance"
+    "dataset": "the first folders in `permanova` are each of the datasets.",
+    "output": "For each tested variable:\n- the results of PERMANOVA testing:\n  - `permanova_<metric_name>__<variable>.qzv`: QIIME2 Visualization file\n  - `permanova_<metric_name>__<variable>.html`: HTML export of the `.qzv` file\n- `cv_<variable>.tsv`: the frequencies of samples per factors of the variable\n- `meta_<variable>.tsv`: the metadata of the samples for the variable",
+     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
 }

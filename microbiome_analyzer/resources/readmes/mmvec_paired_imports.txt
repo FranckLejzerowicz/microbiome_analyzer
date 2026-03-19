@@ -1,0 +1,5 @@
+{
+    "main": "The `mmvec_paired_imports` folder contains the jobs to subset the feature tables prepared in `mmvec_single_imports` for the samples in common between each table and the one it is paired with for co-occurrence analysis in `mmvec`, according to the configuration file passed to `microbiome_analyzer` using the `-m` option.",
+    "dataset": "The folders are in `mmvec/common` and consist of feature tables (`data` subfolder) and metadata (`metadata` subfolder) for each pair and sample subsets.",
+    "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+}

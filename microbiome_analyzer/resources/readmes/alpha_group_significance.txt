@@ -1,0 +1,8 @@
+{
+    "main": "The `alpha_group_significance` folder contains the jobs and outputs to statistically and visually compare alpha diversity values across different groups defined in your sample metadata. It performs the Kruskal-Wallis test, a non-parametric statistical test, to determine if there are significant differences in alpha diversity (e.g., observed features, Faith's Phylogenetic Diversity, Shannon index) between two or more groups.\n\nIt is done in QIIME2 using the q2-diversity library",
+    "qiime2 command": "`qiime diversity alpha-group-significance`",
+    "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-alpha-group-significance",
+    "dataset": "the first folders in `alpha_group_significance` are each of the datasets.",
+    "output": "For each metric, a QIIME2 Visualization file `ags_<metric_name>.qzv`\n", 
+     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5",
+}}

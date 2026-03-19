@@ -1,0 +1,8 @@
+{
+    "main": "The `alpha_merge` folder contains the jobs to merge the alpha diversity vectors per dataset and per (taxonomic or filtering) subset, previously generated using `alpha`.\n\nIt is done in QIIME2 using the q2-metadata library",
+    "qiime2 command": "`qiime metadata tabulate`",
+    "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/metadata.html#q2-action-metadata-tabulate",
+    "dataset": "the first folders in `alpha_merge` are each of the datasets.",
+    "output": "For each rarefaction depth, filtering folder or taxonomic collapsing folder:\n- `alphas.tsv`: tabulated alpha diversity metrics values (in tab-separated format)\n- `alphas.qzv`: tabulated alpha diversity metrics values (in QIIME2 Visualization format, load in https://view.qiime2.org)", 
+     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5",
+}}

@@ -1,0 +1,5 @@
+{
+    "main": "The `mmvec_single_imports` folder only contains jobs to filter (as explained for `filter` folder) and import the individual features tables of each omic.",
+    "dataset": "The folders are in `mmvec/datasets` and consist of feature tables for each dataset per pair, and in `mmvec/metadata` for the associated sample metadata.",
+    "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+}

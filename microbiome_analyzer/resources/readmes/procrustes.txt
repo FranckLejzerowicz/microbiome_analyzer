@@ -1,15 +1,8 @@
 {
-    "main": 'The adonis folder contains inputs and outputs for the '
-            'Permutational Multivariate Analysis of Variance Using Distance '
-            'Matrices performed using the R package "adonis2" (https://search'
-            .r-project.org/CRAN/refmans/vegan/html/adonis.html)',
-    "dataset": 'adonis models are run on the feature for dataset\n'
-               'DATASET',
-    "output": 'each model yield three files:\n'
-              '  meta_<MODEL>.tsv\t: metadata with useful columns\n'
-              '  r2_<MODEL>.R\t: R script\n'
-              '  r2_<MODEL>.txt\t: model outputs\n',
-    "formula": 'here's the model formulas:\n'
-               'NAME_FORMULA',
-    "version": 'Generated from configuration file\nCONFIGFILE\nCONFIGMD5'
+    "main": "The `procrustes` folder contains the results of comparing ordinations by fitting one against another used as reference. It yield a figure and a M^2 values as a Goodness-of-Fit measure: A lower M² value indicates a stronger match (greater concordance) between the two ordinations being compared. It is obtained using the PROcrustean randomization TEST (PROTEST), a permutation-based method to assess the significance of the observed M^2 value.  This involves randomly shuffling row assignments in one matrix many times to generate a null distribution of M^2 values, allowing for statistical inference.\n\nIt is done in QIIME2 using the q2-diversity library",
+    "reference": Peres-Neto, P.R. and Jackson, D.A., 2001. How well do multivariate data sets match? The advantages of a Procrustean superimposition approach over the Mantel test. Oecologia, 129(2), pp.169-178.\n",
+    "doi": "https://doi.org/10.1007/s004420100720",
+    "dataset": "the first folders in `procrustes` are for each pair of datasets, as specified in the `procrustes` configuration file.",
+    "output": "Folders in `procrustes` are named after the pairs listed in the configuration files. Inside these folder, there is another subfolder for each samples subset, which contains:\n- `dm1_<metric_name>-<metric_name>_pcoa_ref.qza`: reference ordinations in QIIME2 Artefact format;\n- `dm2_<metric_name>-<metric_name>_pcoa_oth.qza`: other ordination that has been fitted to the reference one in QIIME2 Artefact format\n- `<metric_name>-<metric_name>.qzv`: QIIME2 Interactive Visualization file for this fit (load on https://view.qiime2.org);\n- `m2_<metric_name>-<metric_name>.tsv`: M^2 test values of the PROTEST for this fit",
+     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
 }
