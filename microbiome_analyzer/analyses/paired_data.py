@@ -560,7 +560,7 @@ class PairedData(object):
             ])
 
     def get_output(self, dat) -> str:
-        out = '%s/%s/%s' % (self.dir, self.analysis, dat)
+        out = '%s/mmvec/%s/%s' % (os.path.dirname(self.dir), self.analysis, dat)
         if not isdir(rep(out)):
             os.makedirs(rep(out))
         self.out = out
