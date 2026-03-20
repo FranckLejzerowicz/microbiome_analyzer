@@ -56,7 +56,6 @@ class AnalysisPrep(object):
 
     def __init__(self, config, project) -> None:
         self.config = config
-        self.get_readmes()
         self.project = project
         self.dir = project.dir
         self.dirs = project.dirs
@@ -1283,28 +1282,28 @@ class AnalysisPrep(object):
                             self.cmds.setdefault(dat, []).append(cmd)
         self.register_io_command()
 
-    def empress_biplot(self):
-        self.analysis = 'empress_biplot'
-        for dat, data in self.project.datasets.items():
-            if not isfile(data.tree[1]):
-                continue
-            feat_metas = [x for x in [data.tax[-1], data.sb] if x]
-            for raref, biplots in data.biplot.items():
-                qza = data.qza[raref]
-                for cohort, metrics in biplots.items():
-                    self.get_output(data.path, cohort)
-                    for (biplot, biplot_tax, metric) in metrics:
-                        if not isfile(biplot):
-                            continue
-                        qzv = '%s/empress_biplot%s_%s.qzv' % (
-                            self.out, raref, metric)
-                        if self.config.force or not isfile(qzv):
-                            cmd = write_empress(
-                               self, dat, qza, biplot, qzv, data.meta,
-                                feat_metas, data.tree)
-                            self.register_provenance(dat, (qzv, biplot,), cmd)
-                            self.cmds.setdefault(dat, []).append(cmd)
-        self.register_io_command()
+    # def empress_biplot(self):
+    #     self.analysis = 'empress_biplot'
+    #     for dat, data in self.project.datasets.items():
+    #         if not isfile(data.tree[1]):
+    #             continue
+    #         feat_metas = [x for x in [data.tax[-1], data.sb] if x]
+    #         for raref, biplots in data.biplot.items():
+    #             qza = data.qza[raref]
+    #             for cohort, metrics in biplots.items():
+    #                 self.get_output(data.path, cohort)
+    #                 for (biplot, biplot_tax, metric) in metrics:
+    #                     if not isfile(biplot):
+    #                         continue
+    #                     qzv = '%s/empress_biplot%s_%s.qzv' % (
+    #                         self.out, raref, metric)
+    #                     if self.config.force or not isfile(qzv):
+    #                         cmd = write_empress(
+    #                            self, dat, qza, biplot, qzv, data.meta,
+    #                             feat_metas, data.tree)
+    #                         self.register_provenance(dat, (qzv, biplot,), cmd)
+    #                         self.cmds.setdefault(dat, []).append(cmd)
+    #     self.register_io_command()
 
     def make_subsets(self, cohort, txt, subsets_update):
         phate_pd = pd.read_csv(rep(txt), sep='\t', dtype={'sample_name': str})
@@ -1366,12 +1365,10 @@ class AnalysisPrep(object):
         AnalysisPrep.analyses_provenances[(self.analysis, dat, outputs)] = cmd
 
     def register_io_command(self):
+        print(self.analysis)
+        with open('%s/readmes/%s.txt' % (RESOURCES, self.analysis)) as fp:
+            AnalysisPrep.analyses_readmes[self.analysis] = json.load(fp)
         AnalysisPrep.analyses_ios[self.analysis] = dict(self.ios)
         AnalysisPrep.analyses_commands[self.analysis] = dict(self.cmds)
         self.ios = {}
         self.cmds = {}
-
-    def get_readmes(self):
-        for analysis in self.config.analyses:
-            with open('%s/readmes/%s.txt' % (RESOURCES, analysis[1])) as fp:
-                AnalysisPrep.analyses_readmes[analysis[1]] = json.load(fp)

@@ -243,8 +243,8 @@ class CreateScripts(object):
                 k = k_
                 if k_ == 'main':
                     k = self.analysis
-                    o.write('%s\n' % '='*len(k))
+                    o.write('%s\n' % ('='*len(k)))
                 o.write('%s\n' % k)
-                o.write('%s\n\n' % '='*len(k))
-                o.write('%s\n' % v)
+                o.write('%s\n\n' % ('='*len(k)))
+                o.write('%s\n\n' % v)
 

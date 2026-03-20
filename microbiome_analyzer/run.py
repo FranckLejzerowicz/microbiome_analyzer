@@ -143,8 +143,8 @@ def runner(**kwargs):
 
     if 'empress' not in config.skip:
         analysis.empress()
-    if 'empress_biplot' not in config.skip:
-        analysis.empress_biplot()
+    # if 'empress_biplot' not in config.skip:
+    #     analysis.empress_biplot()
 
     if config.mmvec_pairs and 'mmbird' not in config.skip:
         post_analyses = PostAnalysis(config, project)

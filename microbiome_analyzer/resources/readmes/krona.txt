@@ -1,6 +1,6 @@
 {
     "main": "The `krona` folder only contains the jobs and outputs for interactive, multi-layered pie charts to explore feature table data by taxonomy collapsed at a different level by clicking (e.g., phylum, genus) and generates a Krona plot.\n\nIt is done in QIIME2 using the q2-krona library",
-    "reference": Ondov, B.D., Bergman, N.H. and Phillippy, A.M., 2011. Interactive metagenomic visualization in a Web browser. BMC bioinformatics, 12(1), p.385.",
+    "reference": "Ondov, B.D., Bergman, N.H. and Phillippy, A.M., 2011. Interactive metagenomic visualization in a Web browser. BMC bioinformatics, 12(1), p.385.",
     "doi": "https://doi.org/10.1186/1471-2105-12-385",
     "github": "https://github.com/kaanb93/q2-krona",
     "dataset": "the first folders in `krona` are each of the datasets.",

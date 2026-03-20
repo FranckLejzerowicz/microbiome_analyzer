@@ -258,7 +258,8 @@ class AnalysesConfig(object):
                 sys.exit(1)
 
     def get_analyses(self):
-        self.analyses = [('Import data table to Qiime2', 'import')]
+        self.analyses = [('Import data table to Qiime2', 'import'),
+                         ('Import phylogenetic tree to Qiime2', 'import_trees')]
 
         if self.filt3d:
             self.analyses.append(('Explore filtering (in 3D)', 'filter3d'))
@@ -352,7 +353,7 @@ class AnalysesConfig(object):
                 self.analyses.append(('Mantel tests', 'mantel'))
             if self.procrustes and 'procrustes' not in self.skip:
                 self.analyses.append(('Procrustes analysis', 'procrustes'))
-                self.analyses.append(('Procrustes analysis: R','procrustes_r'))
+                # self.analyses.append(('Procrustes analysis: R', 'procrustes_r'))
             if self.nestedness and 'nestedness' not in self.skip:
                 self.analyses.append(('Nestedness analysis', 'nestedness'))
                 self.analyses.append(('Nestedness Over Decreasing Fill (NODF)',
