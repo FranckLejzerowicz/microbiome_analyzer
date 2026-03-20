@@ -1,6 +1,6 @@
 {
     "main": "The `procrustes` folder contains the results of comparing ordinations by fitting one against another used as reference. It yield a figure and a M^2 values as a Goodness-of-Fit measure: A lower M^2 value indicates a stronger match (greater concordance) between the two ordinations being compared. It is obtained using the PROcrustean randomization TEST (PROTEST), a permutation-based method to assess the significance of the observed M^2 value.  This involves randomly shuffling row assignments in one matrix many times to generate a null distribution of M^2 values, allowing for statistical inference.\n\nIt is done in QIIME2 using the q2-diversity library",
-    "reference": Peres-Neto, P.R. and Jackson, D.A., 2001. How well do multivariate data sets match? The advantages of a Procrustean superimposition approach over the Mantel test. Oecologia, 129(2), pp.169-178.\n",
+    "reference": "Peres-Neto, P.R. and Jackson, D.A., 2001. How well do multivariate data sets match? The advantages of a Procrustean superimposition approach over the Mantel test. Oecologia, 129(2), pp.169-178.",
     "doi": "https://doi.org/10.1007/s004420100720",
     "qiime2 command": "`qiime diversity procrustes-analysis`",
     "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-procrustes-analysis",
