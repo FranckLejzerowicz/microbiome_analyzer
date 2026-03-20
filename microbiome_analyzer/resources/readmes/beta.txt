@@ -6,7 +6,7 @@
     "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-beta",
     "dataset": "the first folders in `beta` are each of the datasets.",
     "output": "Beta diversity distance matrix files:\n- `beta_<beta_metric>.qza`: QIIME2 Artefact format;\n- `beta_<beta_metric>.tsv`: tab-separated format.\n",
-     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5",
+     "version": "Generated from configuration file"
 }
 
 

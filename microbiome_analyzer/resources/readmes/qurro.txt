@@ -5,5 +5,5 @@
     "github": "https://github.com/biocore/qurro",
     "dataset": '`qurro` can be run on the datasets for which there are outputs in the form biplots such as `rpca` and differentials such as `songbird`.",
     "output": "QIIME2 Visualization (`qurro.qzv`) in the `songbord` and `rpca` folders, that can be loaded on https://view.qiime2.org", 
-     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+     "version": "Generated from configuration file"
 }

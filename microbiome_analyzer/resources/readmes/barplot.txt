@@ -4,5 +4,5 @@
     "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/taxa.html#q2-action-taxa-barplot",
     "dataset": "the first folders in `barplot` are each of the datasets.",
     "output": "One QIIME2 Visualization (`barplot.qzv`) that can be loaded on https://view.qiime2.org", 
-     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+     "version": "Generated from configuration file"
 }

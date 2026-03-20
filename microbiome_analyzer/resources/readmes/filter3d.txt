@@ -2,6 +2,6 @@
     "main": "The `filter3d` folder contains jobs and their outputs for interactive visualization of the number of microbial features (ASVs, genomes, whichever feature for a given dataset) along two X and Y axes representing read abundance and sample prevalence thresholds. This helps estimating how feature filtering treatments would affect the dataset, if such thresholds were to be used. Not that the figure shows the numbers of features remaining after filtering in this order: (1) keep only the features present in at least the number/percent of samples, and (2) remove features having less that the number/percent of reads in these samples (for each samples individually).\n\nIt is done directly within microbiome_analyzer.",
     "dataset": "the first folders in `filter3d` are each of the datasets.",
     "output": "Interactive pyplot visualization files:\n- `prevalence-as-count_abundance-as-count.html`: thresholds are absolute number of samples and absolute read counts;\n- `prevalence-as-count_abundance-as-fraction.html`: thresholds are absolute number of samples and read relative read counts\n- `prevalence-as-fraction_abundance-as-count.html`: thresholds are precentage of samples and absolute read counts\n- `prevalence-as-fraction_abundance-as-fraction.html`: thresholds are precentage of samples and read relative read counts\n",
-     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5",
+     "version": "Generated from configuration file"
 }
 

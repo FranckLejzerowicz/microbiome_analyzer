@@ -9,9 +9,11 @@
 import os
 import subprocess
 import numpy as np
-from datetime import datetime as dt
-from os.path import dirname, isdir, splitext
+from os.path import dirname, isdir, isfile, splitext
 from microbiome_analyzer._scratch import get_roundtrip, rep
+
+import pkg_resources
+RESOURCES = pkg_resources.resource_filename("microbiome_analyzer", "resources")
 
 
 class CreateScripts(object):
@@ -215,6 +217,7 @@ class CreateScripts(object):
         for sdx, (analysis, cmds) in enumerate(prep.analyses_commands.items()):
             if not len(cmds):
                 continue
+            self.write_readme()
             self.analysis = analysis
             self.params = self.config.run_params[analysis]
             self.ios = prep.analyses_ios[analysis]
@@ -232,3 +235,12 @@ class CreateScripts(object):
             main_print = '>%s\nsh %s' % (name, main)
             print(main_print)
             self.scripts.append(main_print)
+
+    def write_readme(self):
+        readme = '%s/%s/readme.txt' % (self.dir, self.analysis)
+        if not isfile(rep(readme)):
+            src = '%s/readmes/%s.txt' % (RESOURCES, self.analysis)
+            with open(rep(readme), 'w') as o, open(src) as f:
+                for line in f:
+                    o.write(line)
+

@@ -1,6 +1,6 @@
 {
-    "main": "The `import` folder only contains the jobs for the importing of the feature tables located in the `data` folder for use in QIIME2. This is the first step since `microbiome_analyzer` needs a `.tsv` or `.biom` file placed in a subfolder that inside the `data` folder, must be named after the name of the dataset",
+    "main": "The `import` folder only contains the jobs for the importing of the feature tables located in the `data` folder for use in QIIME2. This is the first step since `microbiome_analyzer` needs a `.tsv` or `.biom` file placed in a subfolder that inside the `data` folder must be named after the name of the dataset",
     "dataset": "Every dataset must be imported into QIIME2 to run analyses.",
-    "output": "Importing into QIIME2 consists of creating the first `table.qza` file (called an "Artefact") for the dataset, which is then used for all configured analyses. It is automatically used an input to make summaries: `table.qzv` (load in https://view.qiime2.org)",
-    "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+    "output": "Importing into QIIME2 consists of creating the first `table.qza` file (called an Artefact) for the dataset, which is then used for all configured analyses. It is automatically used an input to make summaries: `table.qzv` (load in https://view.qiime2.org)",
+    "version": "Generated from configuration file"
 }

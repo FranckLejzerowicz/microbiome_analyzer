@@ -4,5 +4,5 @@
     "doi": "https://doi.org/10.1128/msystems.00691-21",
     "dataset": "the first folders in `umap` are each of the datasets.",
     "output": "UMAP ordination files for samples:\n- in QIIME2 Artefact format (`.qza`): `umap_<beta_metric>.qza`\n- in tab-separated format (`.tsv`): umap_<beta_metric>.tsv`.\n",
-     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5",
+     "version": "Generated from configuration file"
 }

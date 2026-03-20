@@ -1,5 +1,5 @@
 {
     "main": "The `feature_metadata` folder contains the prepared feature information tables taht can be named anything, as long as they have the feature IDs in the first columns, a requisite for QIIME2.",
     "dataset": "the first folders in `feature_metadata ` are each of the datasets.",
-    "output": "The `feature_metadata` folder does not run anything, it is files to contextualize the features along the analyses, that can be prepared here and then, automatically used to investigate traits in other, actual analyses.",    "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+    "output": "The `feature_metadata` folder does not run anything, it is files to contextualize the features along the analyses, that can be prepared here and then, automatically used to investigate traits in other, actual analyses.",     "version": "Generated from configuration file"
 }

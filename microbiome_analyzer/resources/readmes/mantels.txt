@@ -1,7 +1,9 @@
 {
     "main": "The `mantel` folder contains the results of comparing beta diversity distance matrices by fitting one against another used as reference (see `beta` folder). The Mantel test is a nonparametric statistical method used to assess the correlation between two distance or dissimilarity matrice and to evaluate associations between microbial community composition and other variables. It yield R^2 values as a Goodness-of-Fit measures: A high R^2 value indicates a stronger match (greater concordance) between the two matrices being compared.\n\nIt is done in QIIME2 using the q2-diversity library.",
     "reference": "Mantel, N. (1967). The detection of disease clustering and a generalized regression approach. Cancer Research, 27(2), 209–220.",
-    "dataset": "the first folders in `procrustes` are for each pair of datasets, as specified in the `procrustes` configuration file.",
+    "qiime2 command": "`qiime diversity mantel`",
+    "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-mantel",
+    "dataset": "the first folders in `mantel` are for each pair of datasets, as specified in the `mantel` configuration file.",
     "output": "Folders in `mantel` are named after the pairs listed in the configuration files. Inside these folder, there is another subfolder for each samples subset, which contains:\n- `<metric_name>-<metric_name>.qzv`: QIIME2 Visualization file (load in https://view.qiime2.org);\n- `<metric_name>-<metric_name>.html`: exported results from the QIIME2 Visualization file.",
-     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+     "version": "Generated from configuration file"
 }

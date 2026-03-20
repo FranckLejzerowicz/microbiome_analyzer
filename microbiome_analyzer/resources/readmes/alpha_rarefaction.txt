@@ -1,8 +1,8 @@
 {
-    "main": "The `alpha_rarefaction` folder contains the jobs and outputs of interactive alpha rarefaction curves to assess whether sampling depth is sufficient to capture within-sample microbial diversity. It is used to see how diversity metrics change with sampling depth, and notably determine the even sampling depth where diversity metrics stabilize (i.e., "plateau off"), indicating sufficient sequencing depth for reliable comparisons.\n\nIt is done in QIIME2 using the q2-diversity library",
+    "main": "The `alpha_rarefaction` folder contains the jobs and outputs of interactive alpha rarefaction curves to assess whether sampling depth is sufficient to capture within-sample microbial diversity. It is used to see how diversity metrics change with sampling depth, and notably determine the even sampling depth where diversity metrics stabilize (i.e., plateau off), indicating sufficient sequencing depth for reliable comparisons.\n\nIt is done in QIIME2 using the q2-diversity library",
     "qiime2 command": "`qiime diversity alpha-rarefaction`",
     "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-alpha-rarefaction",
     "dataset": "the first folders in `alpha_rarefaction` are each of the datasets.",
     "output": "For each metric, a QIIME2 Visualization file `rarcurve_<metric_name>.qzv`\n", 
-     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5",
-}}
+     "version": "Generated from configuration file"
+}

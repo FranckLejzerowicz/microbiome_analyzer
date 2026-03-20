@@ -1,10 +1,10 @@
 {
-    "main": 'The `pcoa` folder contains jobs and their outputs to apply Principal Coordinate Analysis (PCoA) to a distance matrix capturing beta diversity, reducing this multidimensional data into a lower-dimensional space for interpretation. It transforms a pairwise distance matrix (see `beta` folder) into coordinates that preserve the relative distances between samples, for visual exploration of microbial community structure.\n\nIt is done in QIIME2 using the q2-diversity library",
+    "main": "`pcoa` folder contains jobs and their outputs to apply Principal Coordinate Analysis (PCoA) to a distance matrix capturing beta diversity, reducing this multidimensional data into a lower-dimensional space for interpretation. It transforms a pairwise distance matrix (see `beta` folder) into coordinates that preserve the relative distances between samples, for visual exploration of microbial community structure.\n\nIt is done in QIIME2 using the q2-diversity library.",
     "reference": "Legendre, P. and Legendre, L., 2012. Numerical Ecology, third english ed. Developments in environmental modelling). Elsevier, Amsterdam, 1006.",
     "doi": "ISBN: 978-0-444-53868-0",
     "qiime2 command": "`qiime diversity pcoa`",
     "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-pcoa",
     "dataset": "the first folders in `pcoa` are each of the datasets.",
-    "output": "PCoA ordination files for samples:\n- `pcoa_<beta_metric>.qza`: in QIIME2 Artefact format\n- `pcoa_<beta_metric>.tsv`: in tab-separated format.\n",
-     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+    "output": "PCoA ordination files for samples:\n- `pcoa_<beta_metric>.qza`: in QIIME2 Artefact format\n- `pcoa_<beta_metric>.tsv`: in tab-separated format.",
+     "version": "Generated from configuration file"
 }

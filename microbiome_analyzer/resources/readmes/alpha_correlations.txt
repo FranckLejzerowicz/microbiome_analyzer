@@ -4,5 +4,5 @@
     "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-alpha-correlations",
     "dataset": "the first folders in `alpha_correlations` are each of the datasets.",
     "output": "Within both a `pearson` and `spearman` subfolder, there is one a QIIME2 Visualization file `corr_<metric_name>.qzv` for each metric.\n", 
-     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+     "version": "Generated from configuration file"
 }

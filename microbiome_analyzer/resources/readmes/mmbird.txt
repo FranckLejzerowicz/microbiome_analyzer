@@ -2,5 +2,5 @@
     "main": "The `mmbird` folder only contains the jobs that add to the `mmvec` outputs (see `mmvec` folder), which mainly consist of visualizations of the microbe-metabolite co-occurrences and inferred interactions.\n\nIt is by both the q2-mmvec library and Xmmvec\nAttention: The mmvec QIIME2 plugin is only compatible with QIIME2 environments up to version 2020.6. It is recommended to the create a "qiime2-2020.6-mmvec" conda environment and have it used by specifying it as value to the `env` key in the user parameters file (option `-u` in `microbiome_analyzer run`).",
     "qiime2 command": "`qiime mmvec paired-heatmap`",
     "github": "https://github.com/biocore/mmvec\nhttps://github.com/FranckLejzerowicz/xmmvec",
-     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+     "version": "Generated from configuration file"
 }

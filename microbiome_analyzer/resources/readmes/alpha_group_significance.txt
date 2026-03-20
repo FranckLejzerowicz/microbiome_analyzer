@@ -4,5 +4,5 @@
     "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-alpha-group-significance",
     "dataset": "the first folders in `alpha_group_significance` are each of the datasets.",
     "output": "For each metric, a QIIME2 Visualization file `ags_<metric_name>.qzv`\n", 
-     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5",
-}}
+     "version": "Generated from configuration file"
+}

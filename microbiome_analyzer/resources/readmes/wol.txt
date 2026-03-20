@@ -1,0 +1,8 @@
+{
+    "main": "The `wol` folder contains the jobs to create the phylogenetic tree for the datasets detected as being genomes from the WOL database (Web of Life, https://biocore.github.io/wol), by reading the WOL tree and shearing it for the tips in the feature table.",
+    "reference": "Zhu, Q., Mai, U., Pfeiffer, W., Janssen, S., Asnicar, F., Sanders, J.G., Belda-Ferre, P., Al-Ghalith, G.A., Kopylova, E., McDonald, D. and Kosciolek, T., 2019. Phylogenomics of 10,575 genomes reveals evolutionary proximity between domains Bacteria and Archaea. Nature communications, 10(1), p.5477.",
+    "doi": "https://doi.org/10.1038/s41467-019-13443-4",
+    "dataset": "The first folders are in `phylogeny` and consist of each of the datasets which features correspond to WOL genomes.",
+    "output": "In the `phylogeny` folders, are created for WOL datasets:\n- `tree.nwk`: the WOL phylogenetic tree reduced/sheared for the tips in the feature table\n- `tree.qza`: the same tree as a QIIME2 Artefact for the rest of the analyse",
+     "version": "Generated from configuration file"
+}

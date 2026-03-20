@@ -1,0 +1,11 @@
+{
+    "main": "The `emperor` folder contains jobs to produce interactive, tree-guided exploration of microbiome data, supporting visualization of phylogenetic trees with integrated metadata, feature tables, and ordination plots in the so called 'Empire plot'. It is fast and scalable to very large phylogenetic trees.\n\nIt is done in QIIME2 using the q2-empress library",
+    "reference": "Cantrell, K., Fedarko, M.W., Rahman, G., McDonald, D., Yang, Y., Zaw, T., Gonzalez, A., Janssen, S., Estaki, M., Haiminen, N. and Beck, K.L., 2021. EMPress enables tree-guided, interactive, and exploratory analyses of multi-omic data sets. MSystems, 6(2), pp.10-1128.",
+    "doi": "https://doi.org/10.1128/msystems.01216-20",
+    "qiime2 command": "`qiime empress community-plot`",
+    "github": "https://github.com/biocore/empress",
+    "dataset": "Empress is used on the outputs of `rpca` and thus, the folders in `rpca` contains one subfolder per dataset",
+    "output": "QIIME2 Interactive Visualization of the phylo-RPCA ordination connectd to the phylogenetic tree (the so called 'Empire plot'), in files `ordination_wtree.qzv`.",
+     "version": "Generated from configuration file"
+}
+

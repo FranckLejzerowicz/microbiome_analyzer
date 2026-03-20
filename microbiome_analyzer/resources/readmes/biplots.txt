@@ -6,5 +6,5 @@
     "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-pcoa-biplot",
     "dataset": "the first folders in `biplot` are each of the datasets.",
     "output": "biplot ordination files for samples and features:\n- in QIIME2 Artefact format (`.qza`): `biplot_<beta_metric>.qza`\n- in tab-separated format (`.tsv`): biplot_<beta_metric>.tsv`.\n",
-     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5",
+     "version": "Generated from configuration file"
 }

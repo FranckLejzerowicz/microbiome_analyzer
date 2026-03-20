@@ -1,5 +1,5 @@
 {
     "main": "The `phylogeny` folder contains the prepared phylogenetic tree (with features of the feature in `data` as tips) and named `tree.nwk`, an (optional) requisite for `microbiome_analyzer` to se phylogenetic metrics.",
     "dataset": "the first folders in `phyolgeny ` are each of the datasets.",
-    "output": "Importing into QIIME2 consists of creating the first `tree.qza` file (called an "Artefact") for the dataset, which is then used for all phylogenetic analyses in the configuration (e.g., `rpca`). An interactive QIIME2 Visualization file is also generated, to look at the tree and decote it based on feature metadata such as the taxonony (`tree.qzv`).",    "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+    "output": "Importing into QIIME2 consists of creating the first `tree.qza` file (called an "Artefact") for the dataset, which is then used for all phylogenetic analyses in the configuration (e.g., `rpca`). An interactive QIIME2 Visualization file is also generated, to look at the tree and decote it based on feature metadata such as the taxonony (`tree.qzv`).",     "version": "Generated from configuration file"
 }

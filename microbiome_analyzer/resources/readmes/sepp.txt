@@ -1,0 +1,8 @@
+{
+    "main": "The `sepp` folder contains the jobs for the phylogenetic tree placement of short sequences (e.g., amplicons variants) for the datasets detected as being 16S, by using SEPP (SATé-enabled phylogenetic placement) based either on the SILVA (sepp-refs-silva-128.qza), or GreenGenes (sepp-refs-gg-13-8.qza) reference trees from QIIME2.\n\nIt is done in QIIME2 using the q2-diversity library.",
+    "reference": "Mirarab, S., Nguyen, N. and Warnow, T., 2012. SEPP: SATé-enabled phylogenetic placement. In Biocomputing 2012 (pp. 247-258).",
+    "doi": "https://doi.org/10.1142/9789814366496_0024",
+    "dataset": "The first folders are in `phylogeny` and consist of each of the datasets which features correspond to 16S sequences.",
+    "output": "In the `phylogeny` folders, are created for 16S datasets:\n- `tree.nwk`: the 16S phylogenetic tree reduced/sheared for the places sequences, now tips matching the features of the feature table\n- `tree.qza`: the same tree as a QIIME2 Artefact for the rest of the analyse",
+     "version": "Generated from configuration file"
+}

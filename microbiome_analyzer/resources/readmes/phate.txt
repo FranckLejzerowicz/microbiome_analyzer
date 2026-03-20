@@ -5,5 +5,5 @@
     "github": "https://github.com/KrishnaswamyLab/PHATE",
     "dataset": "the first folders in `phate` are each of the datasets.",
     "output": "For each filtering, taxonomic, or samples subset, the outputs are:\n- `cv.tsv`: values counts for each factor of the variables selected for showing\n- `meta.tsv`: sample metadata with the variables to use in plotting (so they can be selected on the interactive dropdown menu)\n- `phate_xphate_t<#>-knn<#>-decay<#>.html`: interactive figure where the samples can be selected based on different (the t, knn, and decay values are set in the configuration file)\n- `phate_xphate_xphate_3d.tsv`: PHATE 3D ordination in tab-separated format (can be imported as QIIME2 Artefact)\n- `phate_xphate_xphate.tsv`: samples cluster assignments based on silhouette score for the different t, knn, or decay values\n- `tab.tsv`: feature table for which to run PHATE.",
-     "version": "Generated from configuration file\nCONFIGFILE\nCONFIGMD5"
+     "version": "Generated from configuration file"
 }
