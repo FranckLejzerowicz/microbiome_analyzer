@@ -217,8 +217,8 @@ class CreateScripts(object):
         for sdx, (analysis, cmds) in enumerate(prep.analyses_commands.items()):
             if not len(cmds):
                 continue
-            self.write_readme()
             self.analysis = analysis
+            self.write_readme(prep)
             self.params = self.config.run_params[analysis]
             self.ios = prep.analyses_ios[analysis]
             self.get_cmds(cmds)
@@ -236,11 +236,10 @@ class CreateScripts(object):
             print(main_print)
             self.scripts.append(main_print)
 
-    def write_readme(self):
+    def write_readme(self, prep):
         readme = '%s/%s/readme.txt' % (self.dir, self.analysis)
         if not isfile(rep(readme)):
-            src = '%s/readmes/%s.txt' % (RESOURCES, self.analysis)
-            with open(rep(readme), 'w') as o, open(src) as f:
-                for line in f:
-                    o.write(line)
+            with open(rep(readme), 'w') as o:
+                for k, v in prep.analyses_readmes[self.analysis].items():
+                    o.write("%s\n%s\n" % (k, v))
 
