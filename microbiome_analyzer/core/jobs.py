@@ -238,8 +238,13 @@ class CreateScripts(object):
 
     def write_readme(self, prep):
         readme = '%s/%s/readme.txt' % (self.dir, self.analysis)
-        if not isfile(rep(readme)):
-            with open(rep(readme), 'w') as o:
-                for k, v in prep.analyses_readmes[self.analysis].items():
-                    o.write("%s\n%s\n" % (k, v))
+        with open(rep(readme), 'w') as o:
+            for k_, v in prep.analyses_readmes[self.analysis].items():
+                k = k_
+                if k_ == 'main':
+                    k = self.analysis
+                    o.write('%s\n' % '='*len(k))
+                o.write('%s\n' % k)
+                o.write('%s\n\n' % '='*len(k))
+                o.write('%s\n' % v)
 
