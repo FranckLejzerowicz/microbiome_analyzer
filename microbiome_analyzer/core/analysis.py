@@ -1365,7 +1365,6 @@ class AnalysisPrep(object):
         AnalysisPrep.analyses_provenances[(self.analysis, dat, outputs)] = cmd
 
     def register_io_command(self):
-        print(self.analysis)
         with open('%s/readmes/%s.txt' % (RESOURCES, self.analysis)) as fp:
             AnalysisPrep.analyses_readmes[self.analysis] = json.load(fp)
         AnalysisPrep.analyses_ios[self.analysis] = dict(self.ios)
