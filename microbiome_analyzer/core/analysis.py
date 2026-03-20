@@ -1374,4 +1374,4 @@ class AnalysisPrep(object):
     def get_readmes(self):
         for analysis in self.config.analyses:
             with open('%s/readmes/%s.txt' % (RESOURCES, analysis[1])) as fp:
-                AnalysisPrep.analyses_readmes[self.analysis] = json.load(fp)
+                AnalysisPrep.analyses_readmes[analysis[1]] = json.load(fp)
