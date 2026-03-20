@@ -281,8 +281,8 @@ class AnalysesConfig(object):
         if 'sepp' not in self.skip:
             self.analyses.append(('Phylogenetic read placement (SEPP)', 'sepp'))
 
-        if 'pies' not in self.skip:
-            self.analyses.append(('Draw pie charts', 'pies'))
+        # if 'pies' not in self.skip:
+        #     self.analyses.append(('Draw pie charts', 'pies'))
 
         if self.collapse and 'collapse' not in self.skip:
             self.analyses.append(('Collapse taxonomy', 'collapse'))
@@ -320,8 +320,6 @@ class AnalysesConfig(object):
 
         if 'beta' not in self.skip:
             self.analyses.append(('Beta diversity measures', 'beta'))
-            if 'deicode' not in self.skip:
-                self.analyses.append(('Robust Aitchison PCA', 'deicode'))
             if 'pcoa' not in self.skip:
                 self.analyses.append(('Principal coordinate analysis', 'pcoa'))
             if 'tsne' not in self.skip:

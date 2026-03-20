@@ -45,6 +45,7 @@ RESOURCES = pkg_resources.resource_filename(
 class AnalysisPrep(object):
     """
     """
+    analyses_readmes = {}
     analyses_commands = {}
     analyses_provenances = {}
     analyses_procrustes = {}
@@ -55,7 +56,7 @@ class AnalysisPrep(object):
 
     def __init__(self, config, project) -> None:
         self.config = config
-        self.readme = self.get_readmes()
+        self.get_readmes()
         self.project = project
         self.dir = project.dir
         self.dirs = project.dirs
@@ -64,13 +65,6 @@ class AnalysisPrep(object):
         self.cmds = {}
         self.out = ''
         self.messages = set()
-
-    def get_readmes(self):
-        readme = {}
-        for analysis in self.config.analyses:
-            with open('%s/readmes/%s.txt' % (RESOURCES, analysis[1])) as f:
-                readme[analysis] = json.load(f)
-        return readme
 
     def show_datasets(self):
         print('-' * 30)
@@ -957,7 +951,6 @@ class AnalysisPrep(object):
                 data.rpca[raref] = rpcas
                 data.beta[raref].extend(betas)
         self.register_io_command()
-        self.write_readme()
 
     def ctf(self):
         self.analysis = 'ctf'
@@ -1378,11 +1371,7 @@ class AnalysisPrep(object):
         self.ios = {}
         self.cmds = {}
 
-    def write_readme(self):
-        readme = '%s/%s/readme.txt' % (self.dir, self.analysis)
-        if not isfile(rep(readme)):
-            src = '%s/readmes/%s.txt' % (RESOURCES, self.analysis)
-            with open(rep(readme), 'w') as o, open(src) as f:
-                for line in f:
-                    o.write(line)
-
+    def get_readmes(self):
+        for analysis in self.config.analyses:
+            with open('%s/readmes/%s.txt' % (RESOURCES, analysis[1])) as fp:
+                AnalysisPrep.analyses_readmes[self.analysis] = json.load(fp)
