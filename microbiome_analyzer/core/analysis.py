@@ -8,7 +8,6 @@
 
 import re
 import os
-import json
 import glob
 import pandas as pd
 import pkg_resources
