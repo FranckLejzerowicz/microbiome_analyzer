@@ -32,6 +32,7 @@ class AnalysesConfig(object):
         self.prjct_nm = ''
         self.filt_raref = ''
         self.subsets = {}
+        self.readmes = {}
         self.analyses = {}
         self.run_params = {}
         self.train_test_dict = {}
@@ -43,6 +44,7 @@ class AnalysesConfig(object):
         self.get_project_name()  # project name for jobs
         self.get_conda_envs()
         self.get_analyses()
+        self.get_readmes()
         self.get_run_params()  # default (e.g. memory)
         self.get_filt_raref_suffix()  # job suffix (e.g. _flt)
         self.get_train_test_dict()
@@ -384,6 +386,12 @@ class AnalysesConfig(object):
         elif self.mmvec_pairs and 'mmbird' not in self.skip:
             self.analyses.append(('Integrating interactions and differentials',
                                   'mmbird'))
+        for i in sorted(self.analyses, key=lambda x: x[1]):
+            print(i)
+    def get_readmes(self):
+        for (_, analysis) in self.analyses:
+            with open('%s/readmes/%s.txt' % (RESOURCES, analysis)) as fp:
+                self.readmes[analysis] = json.load(fp)
 
 
 class PrepConfig(object):

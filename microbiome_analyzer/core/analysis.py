@@ -45,7 +45,6 @@ RESOURCES = pkg_resources.resource_filename(
 class AnalysisPrep(object):
     """
     """
-    analyses_readmes = {}
     analyses_commands = {}
     analyses_provenances = {}
     analyses_procrustes = {}
@@ -1365,8 +1364,6 @@ class AnalysisPrep(object):
         AnalysisPrep.analyses_provenances[(self.analysis, dat, outputs)] = cmd
 
     def register_io_command(self):
-        with open('%s/readmes/%s.txt' % (RESOURCES, self.analysis)) as fp:
-            AnalysisPrep.analyses_readmes[self.analysis] = json.load(fp)
         AnalysisPrep.analyses_ios[self.analysis] = dict(self.ios)
         AnalysisPrep.analyses_commands[self.analysis] = dict(self.cmds)
         self.ios = {}
