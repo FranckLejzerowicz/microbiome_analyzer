@@ -1,6 +1,0 @@
-{
-    "main": "The `import_trees` folder only contains the jobs for the importing of the phylogenetic trees located in the `phylogeny` folder for use in QIIME2. This is a required step for phylogenetic analyses since `microbiome_analyzer` matches any existing `.nwk` file placed in a subfolder that inside the `data` folder must be named after the name of the dataset",
-    "dataset": "Every phylogenetic tree in `phylogeny` must be imported into QIIME2 to run tree-based analyses.",
-    "output": "Importing into QIIME2 consists of creating the first `tree.qza` file (called an Artefact) for the dataset, which is then used for all configured analyses. It is automatically used to make an interactive QIIME2 Visualization `tree.qzv` that can be explored (load in https://view.qiime2.org)",
-    "version": "Generated from configuration file"
-}

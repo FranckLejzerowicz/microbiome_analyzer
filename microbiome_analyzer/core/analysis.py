@@ -270,7 +270,7 @@ class AnalysisPrep(object):
         self.register_io_command()
 
     def import_trees(self):
-        self.analysis = 'import_trees'
+        self.analysis = 'phylogeny'
         for dat, data in self.project.datasets.items():
             if dat in Datasets.filt_raw:
                 continue

@@ -261,9 +261,14 @@ class AnalysesConfig(object):
                 sys.exit(1)
 
     def get_analyses(self):
-        self.analyses = [('Import data table to Qiime2', 'import'),
-                         ('Import phylogenetic tree to Qiime2', 'import_trees')]
-
+        self.analyses = [
+            ('Check feature table', 'data'),
+            ('Import feature table to Qiime2', 'import'),
+            ('Read metadata table', 'metadata'),
+            ('Read feature metadata table(s)', 'feature_metadata'),
+            ('Potentially place ASVs into reference phylogeny', 'sepp'),
+            ('Import phylogenetic tree to Qiime2', 'phylogeny')
+        ]
         if self.filt3d:
             self.analyses.append(('Explore filtering (in 3D)', 'filter3d'))
         if self.filter:
@@ -279,6 +284,8 @@ class AnalysesConfig(object):
             self.analyses.append(('Taxonomic assignment', 'taxonomy'))
             if 'barplot' not in self.skip:
                 self.analyses.append(('Draw barplots', 'barplot'))
+            if 'krona' not in self.skip:
+                self.analyses.append(('Draw Krona plots', 'krona'))
 
         if 'wol' not in self.skip:
             self.analyses.append(('Shear Web-Of-Life tree', 'wol'))
@@ -291,8 +298,8 @@ class AnalysesConfig(object):
         if self.collapse and 'collapse' not in self.skip:
             self.analyses.append(('Collapse taxonomy', 'collapse'))
 
-        if self.feature_subsets and 'feature_subsets' not in self.skip:
-            self.analyses.append(('Subset feature groups', 'feature_subsets'))
+        # if self.feature_subsets and 'feature_subsets' not in self.skip:
+        #     self.analyses.append(('Subset feature groups', 'feature_subsets'))
 
         if 'alpha' not in self.skip:
             self.analyses.append(('Alpha diversity measures', 'alpha'))
@@ -309,11 +316,11 @@ class AnalysesConfig(object):
                     self.analyses.append(('Kruskal-Wallis for alpha diversity',
                                           'alpha_group_significance'))
 
-        if self.time_subject and 'volatility' not in self.skip:
-            self.analyses.append(('Volatility analysis', 'volatility'))
-        if self.time_subject and 'ctf' not in self.skip:
-            self.analyses.append(('Compositional Tensor Factorisation analysis',
-                                  'ctf'))
+        # if self.time_subject and 'volatility' not in self.skip:
+        #     self.analyses.append(('Volatility analysis', 'volatility'))
+        # if self.time_subject and 'ctf' not in self.skip:
+        #     self.analyses.append(('Compositional Tensor Factorisation analysis',
+        #                           'ctf'))
         if 'rpca' not in self.skip:
             self.analyses.append(('Robust-Principal Componenz Analysis',
                                   'rpca'))
@@ -362,24 +369,34 @@ class AnalysesConfig(object):
                 self.analyses.append(('Nestedness Over Decreasing Fill (NODF)',
                                       'nestedness_nodfs'))
                 self.analyses.append(('Nestedness graphs', 'nestedness_graphs'))
-            if self.dm_decay and 'dm_decay' not in self.skip:
-                self.analyses.append(('Beta-distance decay', 'dm_decay'))
-                self.analyses.append(('Beta-distance decay (plot)',
-                                      'dm_decay_plot'))
-            if self.geo_decay and 'geo_decay' not in self.skip:
-                self.analyses.append(('Geographic-distance decay', 'geo_decay'))
+            # if self.dm_decay and 'dm_decay' not in self.skip:
+            #     self.analyses.append(('Beta-distance decay', 'dm_decay'))
+            #     self.analyses.append(('Beta-distance decay (plot)',
+            #                           'dm_decay_plot'))
+            # if self.geo_decay and 'geo_decay' not in self.skip:
+            #     self.analyses.append(('Geographic-distance decay', 'geo_decay'))
 
         if self.sourcetracking and 'sourcetracking' not in self.skip:
             self.analyses.append(('Source-tracking', 'sourcetracking'))
 
-        if self.doc and 'doc' not in self.skip:
-            self.analyses.append(('Dissimilarity-Overlap Curves', 'doc'))
+        # if self.doc and 'doc' not in self.skip:
+        #     self.analyses.append(('Dissimilarity-Overlap Curves', 'doc'))
 
         if self.mmvec_pairs and 'mmvec' not in self.skip:
             self.analyses.append(('Microbe-metabolite co-occurrence estimation',
                                   'mmvec'))
+            self.analyses.append(('Import each omic for multi-omics analysis',
+                                  'mmvec_single_imports'))
+            self.analyses.append(('Import common omics for multi-omics',
+                                  'mmvec_paired_imports'))
         if self.diff_abund and 'songbird' not in self.skip:
-            self.analyses.append(('Log-fold change with multinomial regression',
+            self.analyses.append(('Import for differential abundance analysis',
+                                  'songbird_import'))
+            self.analyses.append(('Filter for differential abundance analysis',
+                                  'songbird_filter'))
+            self.analyses.append(('Multinomial regression modeling (baselines)',
+                                  'songbird_baseline'))
+            self.analyses.append(('Multinomial regression modeling (tests)',
                                   'songbird'))
             if 'qurro' not in self.skip:
                 self.analyses.append(('Log-fold change visualization',
@@ -389,6 +406,7 @@ class AnalysesConfig(object):
                                   'mmbird'))
         for i in sorted(self.analyses, key=lambda x: x[1]):
             print(i)
+
     def get_readmes(self):
         for (_, analysis) in self.analyses:
             with open('%s/readmes/%s.txt' % (RESOURCES, analysis)) as fp:
