@@ -391,11 +391,11 @@ class AnalysesConfig(object):
                                   'mmvec_paired_imports'))
         if self.diff_abund and 'songbird' not in self.skip:
             self.analyses.append(('Import for differential abundance analysis',
-                                  'songbird_import'))
+                                  'songbird_imports'))
             self.analyses.append(('Filter for differential abundance analysis',
                                   'songbird_filter'))
             self.analyses.append(('Multinomial regression modeling (baselines)',
-                                  'songbird_baseline'))
+                                  'songbird_baselines'))
             self.analyses.append(('Multinomial regression modeling (tests)',
                                   'songbird'))
             if 'qurro' not in self.skip:
