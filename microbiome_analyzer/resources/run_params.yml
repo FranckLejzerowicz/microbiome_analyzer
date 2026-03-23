@@ -20,7 +20,7 @@ import:
   scratch:
   machine: 
   chunks:
-import_trees:
+phyogeny:
   time: "4"
   nodes: "1"
   cpus: "1"
