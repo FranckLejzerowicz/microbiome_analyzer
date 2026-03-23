@@ -3,7 +3,7 @@
     "reference": "Anderson, M.J., 2001. A new method for non‐parametric multivariate analysis of variance. Austral ecology, 26(1), pp.32-46.",
     "doi": "https://doi.org/10.1111/j.1442-9993.2001.01070.pp.x",
     "qiime2 command": "`qiime diversity beta-group-significance`",
-    "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-beta-group-significance"
+    "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/diversity.html#q2-action-diversity-beta-group-significance",
     "dataset": "the first folders in `permanova` are each of the datasets.",
     "output": "For each tested variable:\n- the results of PERMANOVA testing:\n  - `permanova_<metric_name>__<variable>.qzv`: QIIME2 Visualization file\n  - `permanova_<metric_name>__<variable>.html`: HTML export of the `.qzv` file\n- `cv_<variable>.tsv`: the frequencies of samples per factors of the variable\n- `meta_<variable>.tsv`: the metadata of the samples for the variable",
      "version": "Generated from configuration file"
