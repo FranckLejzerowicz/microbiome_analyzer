@@ -404,11 +404,10 @@ class AnalysesConfig(object):
         elif self.mmvec_pairs and 'mmbird' not in self.skip:
             self.analyses.append(('Integrating interactions and differentials',
                                   'mmbird'))
-        for i in sorted(self.analyses, key=lambda x: x[1]):
-            print(i)
 
     def get_readmes(self):
         for (_, analysis) in self.analyses:
+            print(analysis)
             with open('%s/readmes/%s.txt' % (RESOURCES, analysis)) as fp:
                 self.readmes[analysis] = json.load(fp)
 
