@@ -9,7 +9,7 @@ default:
   scratch:
   machine: 
   chunks:
-import:
+data:
   time: "4"
   nodes: "1"
   cpus: "1"

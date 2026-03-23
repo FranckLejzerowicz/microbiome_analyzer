@@ -92,7 +92,7 @@ class AnalysisPrep(object):
         vc_pd.to_csv(rep(vc_tsv), index=False, sep='\t')
 
     def import_datasets(self):
-        self.analysis = 'import'
+        self.analysis = 'data'
         for dat, data in self.project.datasets.items():
             # qza = '%s/data/%s.qza' % (self.dir, dat)
             qza = '%s/data/%s/table.qza' % (self.dir, dat)
