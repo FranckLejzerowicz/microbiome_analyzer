@@ -1,6 +1,6 @@
 {
     "main": "The `qurro` folder only contains the jobs to generate interactive visualization of the log-ratios per sample, that are formed by features that can be selected as numerator and denominator based either on their loadings on ordinations (e.g., see `rpca`) or their ranking after differential abundance analysis (e.g., see `songbird`). Thus is also uses the count information in the feature tables based on which ordination or differential abundance analyses were run.\n\nIt is done in QIIME2 using the q2-qurro library",
-    "reference": Fedarko, M.W., Martino, C., Morton, J.T., González, A., Rahman, G., Marotz, C.A., Minich, J.J., Allen, E.E. and Knight, R., 2020. Visualizing’omic feature rankings and log-ratios using Qurro. NAR genomics and bioinformatics, 2(2), p.lqaa023.\n",
+    "reference": "Fedarko, M.W., Martino, C., Morton, J.T., González, A., Rahman, G., Marotz, C.A., Minich, J.J., Allen, E.E. and Knight, R., 2020. Visualizing’omic feature rankings and log-ratios using Qurro. NAR genomics and bioinformatics, 2(2), p.lqaa023.",
     "doi": "https://doi.org/10.1093/nargab/lqaa023",
     "github": "https://github.com/biocore/qurro",
     "dataset": '`qurro` can be run on the datasets for which there are outputs in the form biplots such as `rpca` and differentials such as `songbird`.",
