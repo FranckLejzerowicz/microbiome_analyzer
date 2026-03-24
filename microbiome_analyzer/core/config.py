@@ -262,8 +262,7 @@ class AnalysesConfig(object):
 
     def get_analyses(self):
         self.analyses = [
-            ('Check feature table', 'data'),
-            ('Import feature table to Qiime2', 'import'),
+            ('Import feature table to Qiime2', 'data'),
             ('Read metadata table', 'metadata'),
             ('Read feature metadata table(s)', 'feature_metadata'),
             ('Potentially place ASVs into reference phylogeny', 'sepp'),
