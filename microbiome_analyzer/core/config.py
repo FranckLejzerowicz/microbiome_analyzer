@@ -400,7 +400,7 @@ class AnalysesConfig(object):
             if 'qurro' not in self.skip:
                 self.analyses.append(('Log-fold change visualization',
                                       'qurro'))
-        elif self.mmvec_pairs and 'mmbird' not in self.skip:
+        if self.mmvec_pairs and 'mmbird' not in self.skip:
             self.analyses.append(('Integrating interactions and differentials',
                                   'mmbird'))
 
