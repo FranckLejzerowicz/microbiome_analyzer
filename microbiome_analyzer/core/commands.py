@@ -962,7 +962,6 @@ def write_classif(
     -------
     cmd : str
     """
-    params = self.config.run_params['classify']
     cmd = 'qiime sample-classifier classify-samples'
     cmd += ' --i-table %s' % qza
     cmd += ' --m-metadata-file %s' % meta
@@ -999,7 +998,7 @@ def write_classif(
     else:
         cmd += ' --p-n-jobs %s' % (int(nodes) * int(cpus))
 
-    io_update(self, i_f=[qza, meta], o_d=, key=dat)
+    io_update(self, i_f=[qza, meta], o_d=dirname(rad), key=dat)
     return cmd
 
 
