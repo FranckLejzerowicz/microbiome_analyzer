@@ -785,7 +785,7 @@ class AnalysisPrep(object):
         return tests
 
     def classify(self):
-        self.analysis = 'classify_samples'
+        self.analysis = 'classify'
         estimators = self.get_estimators(self.config.predict['estimators'])
         for dat, data in self.project.datasets.items():
             if 'global' in self.config.predict:

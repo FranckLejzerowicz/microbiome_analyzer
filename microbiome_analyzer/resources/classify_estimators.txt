@@ -1,0 +1,8 @@
+RandomForestClassifier
+ExtraTreesClassifier
+GradientBoostingClassifier
+AdaBoostClassifier[DecisionTree]
+AdaBoostClassifier[ExtraTrees]
+KNeighborsClassifier
+LinearSVC
+SVC
