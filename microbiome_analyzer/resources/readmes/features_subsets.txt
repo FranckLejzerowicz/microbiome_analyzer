@@ -1,6 +1,0 @@
-{
-    "main": "The `features_subsets` folder contains the prepared feature information tables that can be named anything, as long as they have the feature IDs in the first columns, a requisite for QIIME2.",
-    "dataset": "the first folders in `features_subsets ` are each of the datasets.",
-    "output": "The `features_subsets` folder does not run anything, it is files to contextualize the features along the analyses, that can be prepared here and then, automatically used to investigate traits in other, actual analyses.",
-     "version": "Generated from configuration file"
-}

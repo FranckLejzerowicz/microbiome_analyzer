@@ -456,7 +456,7 @@ class PairedData(object):
             row: pd.Series,
             params_pd: pd.DataFrame,
             mess: set):
-        """Filter the combinations of parameters too remove
+        """Filter the combinations of parameters to remove
         those involving unusable train/test splits, e.g. not
         having the specified or too few samples therein.
 
