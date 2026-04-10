@@ -9,7 +9,7 @@
 import os
 import subprocess
 import numpy as np
-from os.path import dirname, isdir, isfile, splitext
+from os.path import dirname, isdir, splitext
 from microbiome_analyzer._scratch import get_roundtrip, rep
 
 import pkg_resources

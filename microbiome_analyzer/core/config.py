@@ -293,12 +293,10 @@ class AnalysesConfig(object):
 
         # if 'pies' not in self.skip:
         #     self.analyses.append(('Draw pie charts', 'pies'))
-
         if self.collapse and 'collapse' not in self.skip:
             self.analyses.append(('Collapse taxonomy', 'collapse'))
-
-        # if self.feature_subsets and 'feature_subsets' not in self.skip:
-        #     self.analyses.append(('Subset feature groups', 'feature_subsets'))
+        if self.feature_subsets and 'feature_subsets' not in self.skip:
+            self.analyses.append(('Subset feature groups', 'feature_subsets'))
 
         if 'alpha' not in self.skip:
             self.analyses.append(('Alpha diversity measures', 'alpha'))
@@ -377,6 +375,8 @@ class AnalysesConfig(object):
 
         if self.sourcetracking and 'sourcetracking' not in self.skip:
             self.analyses.append(('Source-tracking', 'sourcetracking'))
+        if self.predict and 'classify' not in self.skip:
+            self.analyses.append(('Sample classifier', 'classify'))
 
         # if self.doc and 'doc' not in self.skip:
         #     self.analyses.append(('Dissimilarity-Overlap Curves', 'doc'))
