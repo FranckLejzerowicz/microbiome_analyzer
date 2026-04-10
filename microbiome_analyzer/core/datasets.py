@@ -38,6 +38,7 @@ class Data(object):
         self.beta = {}
         self.biom = {}
         self.biplot = {}
+        self.classifs = {}
         self.collapsed = {}
         self.data = {}
         self.doc = {}

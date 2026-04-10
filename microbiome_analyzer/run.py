@@ -83,6 +83,8 @@ def runner(**kwargs):
         analysis.barplot()
     if 'krona' not in config.skip:
         analysis.krona()
+    if 'classify' not in config.skip:
+        analysis.classify()
 
     if 'beta' not in config.skip:
         analysis.beta()

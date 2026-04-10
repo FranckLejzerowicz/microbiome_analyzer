@@ -1,0 +1,11 @@
+{
+    "main": "The `classify` folder contains jobs and their outputs for interactive, multi-dimensional visualizations of microbial community composition based on beta diversity metrics. In the Emperor plot, it is possible to connect samples (e.g., by location), biplots (see `biplot_emperor` or in `rpca`), and for animations such for samples along gradients (e.g. time points), to color samples according to metadata, to change shapes and sizes (e.g., according to numeric metadata), and to subset samples using the Visibility panel, but for the latter, it is best to filter the distance matrix before generating the ordination (with `-g` option in microbiome_analyzer, to specify sample subsets for all analyses).\n\nIt is done in QIIME2 using the q2-emperor library",
+    "reference": "Vázquez-Baeza, Y., Pirrung, M., Gonzalez, A. and Knight, R., 2013. EMPeror: a tool for visualizing high-throughput microbial community data. Gigascience, 2(1), pp.2047-217X.",
+    "doi": "https://doi.org/10.1186/2047-217X-2-16",
+    "qiime2 command": "`qiime diversity emperor`",
+    "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/emperor.html",
+    "dataset": "the first folders in `emperor` are the dimensionality reduction techniques (e.g., `pcoa`) and therein, there is one subfolders for each of the datasets",
+    "output": "Interactive ordination visualization files:\n- in QIIME2 Artefact format (`.qzv`): `emperor_<beta_metric>.qzv`\n",
+     "version": "Generated from configuration file"
+}
+

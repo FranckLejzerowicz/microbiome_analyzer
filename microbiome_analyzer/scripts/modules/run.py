@@ -81,6 +81,9 @@ from microbiome_analyzer import __version__
     "-nstd", "--nestedness", required=False, show_default=True,
     default=False, help="Nestedness analysis config  (yml file)")
 @click.option(
+    "-y", "--predict", required=False, show_default=True,
+    default=False, help="Sample classification analysis config  (yml file)")
+@click.option(
     "-bt", "--beta-type", required=False, show_default=False, multiple=True,
     default=('permanova', 'permdisp',), help="Type of beta group significance",
     type=click.Choice(['permanova', 'anosim', 'permdisp']))
@@ -247,6 +250,7 @@ def run(
         sample_subsets,
         nestedness,
         beta_type,
+        predict,
         procrustes,
         mantel,
         dm_decay,
@@ -301,6 +305,7 @@ def run(
         sample_subsets_fp=sample_subsets,
         nestedness_fp=nestedness,
         beta_type=beta_type,
+        predict_fp=predict,
         procrustes_fp=procrustes,
         mantel_fp=mantel,
         dm_decay_fp=dm_decay,

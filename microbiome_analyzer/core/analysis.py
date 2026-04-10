@@ -18,7 +18,7 @@ import itertools as its
 from microbiome_analyzer.core.datasets import Datasets, Data
 from microbiome_analyzer.core.commands import (
     run_summary, run_import, run_export, write_rarefy, write_fasta,
-    write_collapse, write_sepp, write_alpha, write_feat_filter,
+    write_collapse, write_sepp, write_alpha, write_feat_filter, write_classif,
     write_barplots, write_krona, write_tabulate, write_alpha_correlation,
     write_alpha_rarefaction, write_alpha_group_significance,
     write_volatility, write_beta, write_rpca, write_ctf, write_pcoa,
@@ -474,6 +474,25 @@ class AnalysisPrep(object):
                 metrics.append(user_metric)
         return metrics
 
+    def get_estimators(self, user_estimators: tuple) -> list:
+        """
+        Collect the ML classification estimators from a resources file.
+        """
+        estimators = []
+        with open('%s/%s_estimators.txt' % (RESOURCES, self.analysis)) as f:
+            for line in f:
+                line_strip = line.strip()
+                if len(line_strip):
+                    if user_estimators:
+                        if line_strip in user_estimators:
+                            estimators.append(line_strip)
+                    else:
+                        estimators.append(line_strip)
+        for user_estimator in user_estimators:
+            if user_estimator not in estimators:
+                estimators.append(user_estimator)
+        return estimators
+
     def get_features_subsets(self, dat, subset, dat_subset, data,
                              data_subset, feats, raref):
         self.get_output(dat)
@@ -738,34 +757,6 @@ class AnalysisPrep(object):
                         self.cmds.setdefault(dat, []).append(cmd)
         self.register_io_command()
 
-    def beta(self):
-        self.analysis = 'beta'
-        metrics = self.get_metrics(self.config.betas)
-        for dat, data in self.project.datasets.items():
-            self.get_output(data.path)
-            for raref, qza in data.qza.items():
-                betas = []
-                for metric in metrics:
-                    dm_qza = '%s/dm%s_%s.qza' % (self.out, raref, metric)
-                    dm_tsv = '%s.tsv' % splitext(dm_qza)[0]
-                    if to_do(qza):
-                        continue
-                    cmd = ''
-                    if to_do(dm_qza):
-                        cmd += write_beta(self, dat, qza, dm_qza, metric, data)
-                        if not cmd:
-                            continue
-                    betas.append([dm_qza, dm_tsv, metric])
-                    if self.config.force or to_do(dm_tsv):
-                        cmd += run_export(dm_qza, dm_tsv, '')
-                        self.register_provenance(dat, (dm_qza, dm_tsv,), cmd)
-                        self.cmds.setdefault(dat, []).append(cmd)
-                        io_update(self, o_f=dm_tsv, key=dat)
-                        if not to_do(dm_qza):
-                            io_update(self, i_f=dm_qza, key=dat)
-                data.beta[raref] = betas
-        self.register_io_command()
-
     def check_testing(self, dat_tests, data, cohort, sams, n=4) -> list:
         tests = []
         meta = data.metadata.copy()
@@ -792,6 +783,47 @@ class AnalysisPrep(object):
                 continue
             tests.append(test)
         return tests
+
+    def classify(self):
+        self.analysis = 'classify_samples'
+        estimators = self.get_estimators(self.config.predict['estimators'])
+        for dat, data in self.project.datasets.items():
+            if 'global' in self.config.predict:
+                dat_cols = self.config.predict['global']
+            elif dat not in self.config.predict:
+                continue
+            else:
+                dat_cols = self.config.predict[dat]
+            for raref, qza in data.qza.items():
+                classifs = {}
+                for cohort, (sams, variables) in data.subsets[raref].items():
+                    tests = self.check_testing(dat_cols, data, cohort, sams, 4)
+                    if tests:
+                        self.get_output(dat, cohort)
+                    for test in tests:
+                        test_dir = '%s/%s_%s' % (self.out, raref, test)
+                        cv = '%s/cv.tsv' % test_dir
+                        meta = '%s/meta.tsv' % test_dir
+                        make_fp_dir(meta)
+                        meta_pd = subset_meta(
+                            data.metadata, sams, variables, test)
+                        if add_q2_type(meta_pd, meta, cv, [test], True, 4):
+                            continue
+                        for est in estimators:
+                            rad = '%s/%s' % (test_dir, est)
+                            for k, v in self.config.predict.items():
+                                if k != 'estimators':
+                                    rad += '_%s-%s' % (k, v)
+                            qzv = '%s_accuracy.qzv' % rad
+                            classifs.setdefault((est, cohort), []).append(
+                                (cv, test, qzv))
+                            if self.config.force or to_do(qzv):
+                                cmd = write_classif(
+                                    self, dat, qza, meta, test, est, rad)
+                                self.register_provenance(dat, (qzv,), cmd)
+                                self.cmds.setdefault(dat, []).append(cmd)
+                data.classifs[raref] = classifs
+        self.register_io_command()
 
     def permanova(self):
         self.analysis = 'permanova'
@@ -838,6 +870,34 @@ class AnalysisPrep(object):
         self.register_io_command()
         for message in sorted(self.messages):
             print(message)
+
+    def beta(self):
+        self.analysis = 'beta'
+        metrics = self.get_metrics(self.config.betas)
+        for dat, data in self.project.datasets.items():
+            self.get_output(data.path)
+            for raref, qza in data.qza.items():
+                betas = []
+                for metric in metrics:
+                    dm_qza = '%s/dm%s_%s.qza' % (self.out, raref, metric)
+                    dm_tsv = '%s.tsv' % splitext(dm_qza)[0]
+                    if to_do(qza):
+                        continue
+                    cmd = ''
+                    if to_do(dm_qza):
+                        cmd += write_beta(self, dat, qza, dm_qza, metric, data)
+                        if not cmd:
+                            continue
+                    betas.append([dm_qza, dm_tsv, metric])
+                    if self.config.force or to_do(dm_tsv):
+                        cmd += run_export(dm_qza, dm_tsv, '')
+                        self.register_provenance(dat, (dm_qza, dm_tsv,), cmd)
+                        self.cmds.setdefault(dat, []).append(cmd)
+                        io_update(self, o_f=dm_tsv, key=dat)
+                        if not to_do(dm_qza):
+                            io_update(self, i_f=dm_qza, key=dat)
+                data.beta[raref] = betas
+        self.register_io_command()
 
     def get_models_stratas(self):
         strata = ''

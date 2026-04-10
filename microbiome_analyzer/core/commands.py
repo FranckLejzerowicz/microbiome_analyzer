@@ -934,6 +934,75 @@ def write_beta(
     return cmd
 
 
+def write_classif(
+        self,
+        dat: str,
+        qza: str,
+        meta: str,
+        test: str,
+        est: str,
+        rad: str
+) -> str:
+    """
+    Predicts a categorical sample metadata column using a supervised learning
+    classifier.
+    https://docs.qiime2.org/2019.10/plugins/available/sample-classifier/classify-samples
+
+    Parameters
+    ----------
+    self
+    dat : str
+    qza : str
+    meta : str
+    test : str
+    est : str
+    rad : str
+
+    Returns
+    -------
+    cmd : str
+    """
+    params = self.config.run_params['classify']
+    cmd = 'qiime sample-classifier classify-samples'
+    cmd += ' --i-table %s' % qza
+    cmd += ' --m-metadata-file %s' % meta
+    cmd += ' --m-metadata-column %s' % test
+    cmd += ' --p-test-size %s' % self.config.predict['test']
+    cmd += ' --p-step %s' % self.config.predict['step']
+    cmd += ' --p-cv %s' % self.config.predict['cv']
+    cmd += ' --p-random-state 1324'
+    cmd += ' --p-n-estimators %s' % self.config.predict['n']
+    cmd += ' --p-estimator  %s' % est
+    if self.config.predict['optim']:
+        cmd += ' --p-optimize-feature-selection'
+    else:
+        cmd += ' --p-no-optimize-feature-selection'
+    if self.config.predict['tune']:
+        cmd += ' --p-parameter-tuning'
+    else:
+        cmd += ' --p-no-parameter-tuning'
+    cmd += ' --o-sample-estimator %s_sample-estimator.qza' % rad
+    cmd += ' --o-feature-importance %s_feature-importance.qza' % rad
+    cmd += ' --o-predictions %s_predictions.qza' % rad
+    cmd += ' --o-model-summary %s_model-summary.qzv' % rad
+    cmd += ' --o-accuracy-results %s_accuracy.qzv' % rad
+    cmd += ' --o-probabilities %s_probabilities.qza' % rad
+    cmd += ' --o-heatmap %s_heatmap.qzv' % rad
+    cmd += ' --o-training-targets %s_training-targets.qza' % rad
+    cmd += ' --o-test-targets %s_test-targets.qza' % rad
+    cmd += ' --p-missing-samples'
+    nodes = self.config.run_params['classify']['nodes']
+    cpus = self.config.run_params['classify']['cpus']
+    qiime_env = self.config.qiime_env
+    if float(qiime_env.split('-')[1]) >= 2020.8 and 'phylo' in cmd:
+        cmd += ' --p-threads %s' % (int(nodes) * int(cpus))
+    else:
+        cmd += ' --p-n-jobs %s' % (int(nodes) * int(cpus))
+
+    io_update(self, i_f=[qza, meta], o_d=, key=dat)
+    return cmd
+
+
 def write_ctf(
         self,
         dat: str,

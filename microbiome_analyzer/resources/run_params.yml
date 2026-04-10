@@ -273,6 +273,17 @@ beta:
   scratch:
   machine: 
   chunks:
+classify:
+  time: "48"
+  nodes: "1"
+  cpus: "8"
+  mem: "20"
+  mem_dim: "gb"
+  env: "qiime2-2023.2"
+  partition:
+  scratch:
+  machine:
+  chunks:
 deicode:
   time: "4"
   nodes: "1"
