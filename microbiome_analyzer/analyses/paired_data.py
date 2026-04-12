@@ -378,6 +378,10 @@ class PairedData(object):
             self.merge_subsets_apply()
 
     def make_mmvec_pairs_table(self, project):
+        print("-----------------------------")
+        print("project.datasets")
+        print(project.datasets)
+        print("-----------------------------")
         mmvec_dat_cols = ['pair', 'omic', 'dataset', 'is_mb']
         mmvecs = []
         for pair, paired in self.pairs.items():
