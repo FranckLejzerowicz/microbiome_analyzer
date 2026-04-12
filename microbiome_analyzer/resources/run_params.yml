@@ -284,6 +284,15 @@ classify:
   scratch:
   machine:
   chunks:
+  estimators:
+  - "RandomForestClassifier"
+  n: 100
+  test: 0.2
+  cv: 5
+  tune: no
+  optim: no
+  step: 0.05
+  missing: "error"
 deicode:
   time: "4"
   nodes: "1"

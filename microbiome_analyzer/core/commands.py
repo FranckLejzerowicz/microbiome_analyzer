@@ -934,14 +934,15 @@ def write_beta(
     return cmd
 
 
-def write_classif(
+def write_classify(
         self,
         dat: str,
         qza: str,
         meta: str,
         test: str,
         est: str,
-        rad: str
+        rad: str,
+        ps: dict
 ) -> str:
     """
     Predicts a categorical sample metadata column using a supervised learning
@@ -957,6 +958,7 @@ def write_classif(
     test : str
     est : str
     rad : str
+    ps : dict
 
     Returns
     -------
@@ -966,20 +968,21 @@ def write_classif(
     cmd += ' --i-table %s' % qza
     cmd += ' --m-metadata-file %s' % meta
     cmd += ' --m-metadata-column %s' % test
-    cmd += ' --p-test-size %s' % self.config.predict['test']
-    cmd += ' --p-step %s' % self.config.predict['step']
-    cmd += ' --p-cv %s' % self.config.predict['cv']
+    cmd += ' --p-test-size %s' % ps['test']
+    cmd += ' --p-step %s' % ps['step']
+    cmd += ' --p-cv %s' % ps['cv']
     cmd += ' --p-random-state 1324'
-    cmd += ' --p-n-estimators %s' % self.config.predict['n']
+    cmd += ' --p-n-estimators %s' % ps['n']
     cmd += ' --p-estimator  %s' % est
-    if self.config.predict['optim']:
+    if ps['optim']:
         cmd += ' --p-optimize-feature-selection'
     else:
         cmd += ' --p-no-optimize-feature-selection'
-    if self.config.predict['tune']:
+    if ps['tune']:
         cmd += ' --p-parameter-tuning'
     else:
         cmd += ' --p-no-parameter-tuning'
+    cmd += ' --p-missing-samples %s' % ps['missing']
     cmd += ' --o-sample-estimator %s_sample-estimator.qza' % rad
     cmd += ' --o-feature-importance %s_feature-importance.qza' % rad
     cmd += ' --o-predictions %s_predictions.qza' % rad
@@ -989,7 +992,6 @@ def write_classif(
     cmd += ' --o-heatmap %s_heatmap.qzv' % rad
     cmd += ' --o-training-targets %s_training-targets.qza' % rad
     cmd += ' --o-test-targets %s_test-targets.qza' % rad
-    cmd += ' --p-missing-samples'
     nodes = self.config.run_params['classify']['nodes']
     cpus = self.config.run_params['classify']['cpus']
     qiime_env = self.config.qiime_env

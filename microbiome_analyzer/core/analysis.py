@@ -18,7 +18,7 @@ import itertools as its
 from microbiome_analyzer.core.datasets import Datasets, Data
 from microbiome_analyzer.core.commands import (
     run_summary, run_import, run_export, write_rarefy, write_fasta,
-    write_collapse, write_sepp, write_alpha, write_feat_filter, write_classif,
+    write_collapse, write_sepp, write_alpha, write_feat_filter, write_classify,
     write_barplots, write_krona, write_tabulate, write_alpha_correlation,
     write_alpha_rarefaction, write_alpha_group_significance,
     write_volatility, write_beta, write_rpca, write_ctf, write_pcoa,
@@ -474,20 +474,22 @@ class AnalysisPrep(object):
                 metrics.append(user_metric)
         return metrics
 
-    def get_estimators(self, user_estimators: tuple) -> list:
+    def get_estimators(self) -> list:
         """
         Collect the ML classification estimators from a resources file.
         """
         estimators = []
+        user_estimators = self.config.predict.get(
+            'estimators', self.config.run_params['classify'])
         with open('%s/%s_estimators.txt' % (RESOURCES, self.analysis)) as f:
             for line in f:
-                line_strip = line.strip()
-                if len(line_strip):
+                ref = line.strip()
+                if len(ref):
                     if user_estimators:
-                        if line_strip in user_estimators:
-                            estimators.append(line_strip)
+                        if ref in user_estimators:
+                            estimators.append(ref)
                     else:
-                        estimators.append(line_strip)
+                        estimators.append(ref)
         for user_estimator in user_estimators:
             if user_estimator not in estimators:
                 estimators.append(user_estimator)
@@ -784,9 +786,19 @@ class AnalysisPrep(object):
             tests.append(test)
         return tests
 
+    def get_classify_params(self, rad):
+        params = {}
+        suf = rad
+        for k in ['n', 'test', 'cv', 'tune', 'optim', 'step', 'missing']:
+            v = self.config.predict.get(
+                k, self.config.run_params['classify'][k])
+            suf += '_%s-%s' % (k, v)
+            params[k] = v
+            return params, suf
+
     def classify(self):
         self.analysis = 'classify'
-        estimators = self.get_estimators(self.config.predict['estimators'])
+        estimators = self.get_estimators()
         for dat, data in self.project.datasets.items():
             if 'global' in self.config.predict:
                 dat_cols = self.config.predict['global']
@@ -811,15 +823,13 @@ class AnalysisPrep(object):
                             continue
                         for est in estimators:
                             rad = '%s/%s' % (test_dir, est)
-                            for k, v in self.config.predict.items():
-                                if k != 'estimators':
-                                    rad += '_%s-%s' % (k, v)
-                            qzv = '%s_accuracy.qzv' % rad
+                            ps, suf = self.get_classify_params(self, rad)
+                            qzv = '%s_accuracy.qzv' % suf
                             classifs.setdefault((est, cohort), []).append(
                                 (cv, test, qzv))
                             if self.config.force or to_do(qzv):
-                                cmd = write_classif(
-                                    self, dat, qza, meta, test, est, rad)
+                                cmd = write_classify(
+                                    self, dat, qza, meta, test, est, suf, ps)
                                 self.register_provenance(dat, (qzv,), cmd)
                                 self.cmds.setdefault(dat, []).append(cmd)
                 data.classifs[raref] = classifs
