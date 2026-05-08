@@ -133,23 +133,26 @@ def check_vals(
 
 
 def add_q2_type(meta_pd: pd.DataFrame, meta: str, cv: str, tests: list,
-                add_q2: bool = False, n=4) -> bool:
+                add_q2: bool = False, n=4, typ='categorical') -> bool:
     cvs = []
     for test in tests:
-        meta_pd = meta_pd.replace({test: dict(
-            (x, x.replace('(', '').replace(')', '').replace('/', ''))
-            for x in meta_pd[test].astype(str).unique() if str(x) != 'nan'
-            and x != x.replace('(', '').replace(')', '').replace('/', ''))})
-        cv_pd = meta_pd[test].fillna('NA').value_counts()
-        cv_pd = cv_pd[cv_pd >= n]
-        if cv_pd.size == 1:
-            return True
-        if sum(cv_pd) < (n*2):
-            return True
-        meta_pd = meta_pd.loc[meta_pd[test].isin(cv_pd.index)]
+        if typ == 'categorical':
+            meta_pd = meta_pd.replace({test: dict(
+                (x, x.replace('(', '').replace(')', '').replace('/', ''))
+                for x in meta_pd[test].astype(str).unique() if str(x) != 'nan'
+                and x != x.replace('(', '').replace(')', '').replace('/', ''))})
+            cv_pd = meta_pd[test].fillna('NA').value_counts()
+            cv_pd = cv_pd[cv_pd >= n]
+            if cv_pd.size == 1:
+                return True
+            if sum(cv_pd) < (n*2):
+                return True
+            meta_pd = meta_pd.loc[meta_pd[test].isin(cv_pd.index)]
+        else:
+            cv_pd = meta_pd[test].fillna('NA').value_counts()
         if add_q2:
             q2types = pd.DataFrame(
-                [(['#q2:types'] + ['categorical'] * (meta_pd.shape[1] - 1))],
+                [(['#q2:types'] + [typ] * (meta_pd.shape[1] - 1))],
                 columns=meta_pd.columns.tolist())
             meta_pd = pd.concat([q2types, meta_pd])
         cv_pd = pd.DataFrame(cv_pd).reset_index()
@@ -158,7 +161,10 @@ def add_q2_type(meta_pd: pd.DataFrame, meta: str, cv: str, tests: list,
         cvs.append(cv_pd)
     cv_pd = pd.concat(cvs)
     cv_pd.to_csv(rep(cv), index=False, sep='\t', header=False)
-    meta_pd.fillna('NA').to_csv(rep(meta), index=False, sep='\t')
+    if typ == 'categorical':
+        meta_pd.fillna('NA').to_csv(rep(meta), index=False, sep='\t')
+    else:
+        meta_pd.to_csv(rep(meta), index=False, sep='\t')
     return False
 
 
