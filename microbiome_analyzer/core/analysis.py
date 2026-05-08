@@ -803,7 +803,7 @@ class AnalysisPrep(object):
                 k, self.config.run_params['classify'][k])
             suf += '_%s-%s' % (k, v)
             params[k] = v
-            return params, suf
+        return params, suf
 
     def classify(self):
         self.analysis = 'classify'
