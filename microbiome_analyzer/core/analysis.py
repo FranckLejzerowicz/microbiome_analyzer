@@ -774,7 +774,8 @@ class AnalysisPrep(object):
                 self.messages.add('%s has no variable %s' % (mess, test))
                 continue
             try:
-                float(meta[test])
+                for i in meta[test].fillna(0.):
+                    float(i)
                 tests.append((test, 'numeric'))
             except ValueError:
                 meta_vc = meta[test].value_counts()
