@@ -798,7 +798,8 @@ class AnalysisPrep(object):
     def get_classify_params(self, rad):
         params = {}
         suf = rad
-        for k in ['n', 'test', 'cv', 'tune', 'optim', 'step', 'missing']:
+        for k in ['n', 'test', 'cv', 'tune', 'optim', 'step', 'missing',
+                  'stratify']:
             v = self.config.predict.get(
                 k, self.config.run_params['classify'][k])
             suf += '_%s-%s' % (k, v)
