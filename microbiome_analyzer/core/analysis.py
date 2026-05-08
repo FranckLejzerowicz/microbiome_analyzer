@@ -9,6 +9,7 @@
 import re
 import os
 import glob
+import yaml
 import pandas as pd
 import pkg_resources
 from os.path import basename, dirname, isdir, isfile, splitext
@@ -474,25 +475,26 @@ class AnalysisPrep(object):
                 metrics.append(user_metric)
         return metrics
 
-    def get_estimators(self) -> list:
+    def get_estimators(self) -> dict:
         """
         Collect the ML classification estimators from a resources file.
         """
-        estimators = []
+        estimators = {'categorical': [], 'numeric': []}
         user_estimators = self.config.predict.get(
             'estimators', self.config.run_params['classify'])
-        with open('%s/%s_estimators.txt' % (RESOURCES, self.analysis)) as f:
-            for line in f:
-                ref = line.strip()
-                if len(ref):
-                    if user_estimators:
-                        if ref in user_estimators:
-                            estimators.append(ref)
+        with open('%s/estimators.yml' % RESOURCES) as file:
+            d = yaml.safe_load(file)
+            for typ, refs in d.items():
+                for ref in refs:
+                    if user_estimators[typ]:
+                        if ref in user_estimators[typ]:
+                            estimators[typ].append(ref)
                     else:
-                        estimators.append(ref)
-        for user_estimator in user_estimators:
-            if user_estimator not in estimators:
-                estimators.append(user_estimator)
+                        estimators[typ].append(ref)
+        for typ, user_ests in user_estimators.items():
+            for user_est in user_ests:
+                if user_est not in estimators[typ]:
+                    estimators[typ].append(user_est)
         return estimators
 
     def get_features_subsets(self, dat, subset, dat_subset, data,
@@ -766,26 +768,30 @@ class AnalysisPrep(object):
         meta = data.metadata.copy()
         meta = meta.loc[meta.sample_name.isin(sams)]
         columns = set(meta.columns)
-        message = '[%s] %s (subset "%s")' % (self.analysis, data.source, cohort)
+        mess = '[%s] %s (subset "%s")' % (self.analysis, data.source, cohort)
         for test in dat_tests:
             if test not in columns:
-                self.messages.add('%s has no variable %s' % (message, test))
+                self.messages.add('%s has no variable %s' % (mess, test))
                 continue
-            meta_vc = meta[test].value_counts()
-            if meta_vc.size > (meta.shape[0] * .8):
-                self.messages.add('%s "%s" has too many (%s) factors' % (
-                    message, test, meta_vc.size))
-                continue
-            if meta_vc.size == 1:
-                if 'var-%s' % test not in cohort:
-                    self.messages.add('%s "%s" has 1 factor' % (message, test))
-                continue
-            meta_vc = meta_vc[meta_vc >= n]
-            if not meta_vc.size >= 2:
-                self.messages.add('%s "%s" has <2 factors with 4 samples' % (
-                    message, test))
-                continue
-            tests.append(test)
+            try:
+                float(meta[test])
+                tests.append((test, 'numeric'))
+            except ValueError:
+                meta_vc = meta[test].value_counts()
+                if meta_vc.size > (meta.shape[0] * .8):
+                    self.messages.add('%s "%s" has too many (%s) factors' % (
+                        mess, test, meta_vc.size))
+                    continue
+                if meta_vc.size == 1:
+                    if 'var-%s' % test not in cohort:
+                        self.messages.add('%s "%s" has 1 factor' % (mess, test))
+                    continue
+                meta_vc = meta_vc[meta_vc >= n]
+                if not meta_vc.size >= 2:
+                    self.messages.add(
+                        '%s "%s" has <2 factors with 4 samples' % (mess, test))
+                    continue
+                tests.append((test, 'categorical'))
         return tests
 
     def get_classify_params(self, rad):
@@ -814,24 +820,24 @@ class AnalysisPrep(object):
                     tests = self.check_testing(dat_cols, data, cohort, sams, 4)
                     if tests:
                         self.get_output(dat, cohort)
-                    for test in tests:
+                    for (test, typ) in tests:
                         test_dir = '%s/%s_%s' % (self.out, raref, test)
                         cv = '%s/cv.tsv' % test_dir
                         meta = '%s/meta.tsv' % test_dir
                         make_fp_dir(meta)
                         meta_pd = subset_meta(
                             data.metadata, sams, variables, test)
-                        if add_q2_type(meta_pd, meta, cv, [test], True, 4):
+                        if add_q2_type(meta_pd, meta, cv, [test], True, 4, typ):
                             continue
-                        for est in estimators:
+                        for est in estimators[typ]:
                             rad = '%s/%s' % (test_dir, est)
-                            ps, suf = self.get_classify_params(self, rad)
+                            ps, suf = self.get_classify_params(rad)
                             qzv = '%s_accuracy.qzv' % suf
                             classifs.setdefault((est, cohort), []).append(
                                 (cv, test, qzv))
                             if self.config.force or to_do(qzv):
-                                cmd = write_classify(
-                                    self, dat, qza, meta, test, est, suf, ps)
+                                cmd = write_classify(self, dat, qza, meta, test,
+                                                     est, suf, ps, typ)
                                 self.register_provenance(dat, (qzv,), cmd)
                                 self.cmds.setdefault(dat, []).append(cmd)
                 data.classifs[raref] = classifs
@@ -847,6 +853,7 @@ class AnalysisPrep(object):
                 perms = {}
                 for cohort, (sams, variables) in data.subsets[raref].items():
                     tests = self.check_testing(dat_tests, data, cohort, sams, 4)
+                    tests = [x for x, t in tests if t == 'categorical']
                     if tests:
                         self.get_output(dat, cohort)
                     for test in tests:
