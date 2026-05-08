@@ -966,6 +966,7 @@ def write_classify(
     -------
     cmd : str
     """
+    print(ps)
     if typ == 'categorical':
         cmd = 'qiime sample-classifier classify-samples'
     else:
