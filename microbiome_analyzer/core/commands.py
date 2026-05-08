@@ -942,7 +942,8 @@ def write_classify(
         test: str,
         est: str,
         rad: str,
-        ps: dict
+        ps: dict,
+        typ: str
 ) -> str:
     """
     Predicts a categorical sample metadata column using a supervised learning
@@ -959,12 +960,16 @@ def write_classify(
     est : str
     rad : str
     ps : dict
+    typ: str
 
     Returns
     -------
     cmd : str
     """
-    cmd = 'qiime sample-classifier classify-samples'
+    if typ == 'categorical':
+        cmd = 'qiime sample-classifier classify-samples'
+    else:
+        cmd = 'qiime sample-classifier regress-samples'
     cmd += ' --i-table %s' % qza
     cmd += ' --m-metadata-file %s' % meta
     cmd += ' --m-metadata-column %s' % test
@@ -974,6 +979,11 @@ def write_classify(
     cmd += ' --p-random-state 1324'
     cmd += ' --p-n-estimators %s' % ps['n']
     cmd += ' --p-estimator  %s' % est
+    if typ == 'numeric':
+        if ps['stratify']:
+            cmd += ' --p-stratify'
+        else:
+            cmd += ' --p-no-stratify'
     if ps['optim']:
         cmd += ' --p-optimize-feature-selection'
     else:
@@ -988,10 +998,11 @@ def write_classify(
     cmd += ' --o-predictions %s_predictions.qza' % rad
     cmd += ' --o-model-summary %s_model-summary.qzv' % rad
     cmd += ' --o-accuracy-results %s_accuracy.qzv' % rad
-    cmd += ' --o-probabilities %s_probabilities.qza' % rad
-    cmd += ' --o-heatmap %s_heatmap.qzv' % rad
-    cmd += ' --o-training-targets %s_training-targets.qza' % rad
-    cmd += ' --o-test-targets %s_test-targets.qza' % rad
+    if typ == 'categorical':
+        cmd += ' --o-probabilities %s_probabilities.qza' % rad
+        cmd += ' --o-heatmap %s_heatmap.qzv' % rad
+        cmd += ' --o-training-targets %s_training-targets.qza' % rad
+        cmd += ' --o-test-targets %s_test-targets.qza' % rad
     nodes = self.config.run_params['classify']['nodes']
     cpus = self.config.run_params['classify']['cpus']
     qiime_env = self.config.qiime_env
