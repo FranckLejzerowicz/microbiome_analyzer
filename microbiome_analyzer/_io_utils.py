@@ -215,7 +215,7 @@ def subset_dm(
 def subset_meta(
         meta_pd: pd.DataFrame,
         sams: list,
-        variables: list,
+        variables: list = [],
         test: str = '',
         terms: list = [],
         col: str='sample_name'
@@ -241,8 +241,8 @@ def subset_meta(
     # init new metadata as being a copy of the input, and a columns names set
     new_meta_pd, cols = meta_pd.copy(), set()
     # first subset to the selected samples for the column with sample names
+    new_meta_pd = new_meta_pd.loc[new_meta_pd[col].isin(sams)]
     if variables:
-        new_meta_pd = new_meta_pd.loc[new_meta_pd[col].isin(sams)]
         # if variables are given for subset, also keep these in the metadata
         cols.update(variables)
     if test:
