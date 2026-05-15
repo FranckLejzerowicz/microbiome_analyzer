@@ -72,7 +72,7 @@ class AnalysisPrep(object):
         print('-'* 30)
 
     def get_output(self, dat, cohort=''):
-        self.out = '%s/%s/%s' % (self.dir, self.analysis, dat)
+        self.out = '/'.join([self.dir, self.analysis, dat.replace('/', '__')])
         if cohort:
             cohort = cohort.replace('(', '').replace(')', '').replace(
                 ' ', '_').replace(',', '_')
@@ -828,8 +828,7 @@ class AnalysisPrep(object):
                         cv = '%s/cv.tsv' % test_dir
                         meta = '%s/meta.tsv' % test_dir
                         make_fp_dir(meta)
-                        meta_pd = subset_meta(
-                            data.metadata, sams, variables, test)
+                        meta_pd = subset_meta(data.metadata, sams, [], test)
                         if add_q2_type(meta_pd, meta, cv, [test], True, 4, typ):
                             continue
                         for est in estimators[typ]:
