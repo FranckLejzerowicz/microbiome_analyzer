@@ -71,8 +71,11 @@ class AnalysisPrep(object):
             print(' -', dat)
         print('-'* 30)
 
-    def get_output(self, dat, cohort=''):
-        self.out = '/'.join([self.dir, self.analysis, dat.replace('/', '__')])
+    def get_output(self, dat, cohort='', prefix=''):
+        odir = self.dir
+        if prefix:
+            odir += '/%s' % prefix
+        self.out = '/'.join([odir, self.analysis, dat.replace('/', '__')])
         if cohort:
             cohort = cohort.replace('(', '').replace(')', '').replace(
                 ' ', '_').replace(',', '_')
@@ -1282,7 +1285,7 @@ class AnalysisPrep(object):
                                       ('umap', data.umap)]:
                 for raref, ordis in data_ordis.items():
                     for cohort, metrics in ordis.items():
-                        self.get_output((typ + '/' + dat), cohort)
+                        self.get_output(dat, cohort, typ)
                         for (ordi, _, metric) in metrics:
                             if to_do(ordi):
                                 continue

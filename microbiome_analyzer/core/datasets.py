@@ -64,7 +64,7 @@ class Data(object):
         self.samples = set()
         self.seqs = None
         self.source = dataset
-        self.subset = ''
+        self.subset = 'all_features'
         self.subsets = {}
         self.tax = None
         self.taxa = None
