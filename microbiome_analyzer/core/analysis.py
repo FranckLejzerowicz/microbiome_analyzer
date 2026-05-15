@@ -826,7 +826,6 @@ class AnalysisPrep(object):
                     if tests:
                         self.get_output(dat, cohort)
                     for test, typ in tests.items():
-                        print(test, typ)
                         test_dir = '%s/%s%s' % (self.out, test, raref)
                         cv = '%s/cv.tsv' % test_dir
                         meta = '%s/meta.tsv' % test_dir
