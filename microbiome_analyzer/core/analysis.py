@@ -651,7 +651,7 @@ class AnalysisPrep(object):
         for dat, data in self.project.datasets.items():
             for raref, metrics_alphas in data.alpha.items():
                 for method in ['spearman', 'pearson']:
-                    self.get_output('%s/%s' % (dat, method))
+                    self.get_output(dat, method)
                     for (qza, _, metric) in metrics_alphas:
                         if to_do(qza):
                             continue
@@ -896,7 +896,7 @@ class AnalysisPrep(object):
         self.analysis = 'beta'
         metrics = self.get_metrics(self.config.betas)
         for dat, data in self.project.datasets.items():
-            self.get_output(data.path)
+            self.get_output(dat)
             for raref, qza in data.qza.items():
                 betas = []
                 for metric in metrics:
@@ -999,7 +999,6 @@ class AnalysisPrep(object):
                     if data.data[raref].shape[0] < 10:
                         continue
                     self.get_output(dat, cohort)
-                    # self.get_output(data.path, cohort)
                     ordi = '%s/ordination%s.qza' % (self.out, raref)
                     qzv = '%s/ordination%s.qzv' % (self.out, raref)
                     qurro = '%s/qurro%s.qzv' % (self.out, raref)
@@ -1047,7 +1046,8 @@ class AnalysisPrep(object):
                     continue
                 for cohort, (sams, variables_) in data.subsets[raref].items():
                     variables = list(set(variables_ + list(time_subj.values())))
-                    self.get_output(data.path, '%s/%s' % (cohort, ts))
+                    self.get_output(dat, '%s/%s' % (cohort, ts))
+                    # self.get_output(data.path, '%s/%s' % (cohort, ts))
                     tax_filt = '%s/taxonomy%s.qza' % (self.out, raref)
                     sam_traj = '%s/sample-trajectory%s.qza' % (self.out, raref)
                     fea_traj = '%s/feature-trajectory%s.qza' % (self.out, raref)
@@ -1102,7 +1102,8 @@ class AnalysisPrep(object):
                 if to_do(qza):
                     continue
                 for cohort in data.subsets[raref]:
-                    self.get_output(data.path, '%s/%s' % (cohort, ts))
+                    self.get_output(dat, '%s/%s' % (cohort, ts))
+                    # self.get_output(data.path, '%s/%s' % (cohort, ts))
                     qzv = '%s/volatility%s.qzv' % (self.out, raref)
                     i_f, o_f = [data.meta], [qzv]
                     if self.config.force or to_do(qzv):
@@ -1348,7 +1349,7 @@ class AnalysisPrep(object):
             for raref, pcoas in data.pcoa.items():
                 qza = data.qza[raref]
                 for cohort, metrics in pcoas.items():
-                    self.get_output(data.path, cohort)
+                    self.get_output(dat, cohort)
                     for (pcoa, _, metric) in metrics:
                         if not isfile(pcoa):
                             continue
