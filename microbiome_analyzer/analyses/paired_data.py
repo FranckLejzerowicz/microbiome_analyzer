@@ -259,8 +259,8 @@ class PairedData(object):
             meta_dir = self.get_output('common/metadata/%s/%s' % (pair, subset))
             mmvec_d = mmvec.iloc[0, :].to_dict()
             dat1_, dat2_ = mmvec_d['dataset1'], mmvec_d['dataset2']
-            dat1 = dat1_.replace('/', '__')
-            dat2 = dat2_.replace('/', '__')
+            dat1 = dat1_.replace('/', '')
+            dat2 = dat2_.replace('/', '')
             prev1, prev2 = mmvec_d['prevalence1'], mmvec_d['prevalence2']
             abun1, abun2 = mmvec_d['abundance1'], mmvec_d['abundance2']
             qza1, meta1 = self.get_dataset_path(dat1_, filter_, subset)
@@ -358,8 +358,8 @@ class PairedData(object):
             dat = row['dataset']
             filter_ = row['filter']
             subset = row['subset']
-            self.get_output('datasets/%s/%s' % (dat.replace('/', '__'), subset))
-            rad = '%s_%s' % (dat.replace('/', '__'), filter_)
+            self.get_output('datasets/%s/%s' % (dat.replace('/', ''), subset))
+            rad = '%s_%s' % (dat.replace('/', ''), filter_)
             tsv = '%s/tab_%s.tsv' % (self.out, rad)
             qza = '%s.qza' % splitext(tsv)[0]
             meta = '%s/meta_%s.tsv' % (self.out, rad)
@@ -589,7 +589,7 @@ class PairedData(object):
             pair, filter_, subset = row['pair'], row['filter'], row['subset']
             d1_, p1, a1 = row['dataset1'], row['prevalence1'], row['abundance1']
             d2_, p2, a2 = row['dataset2'], row['prevalence2'], row['abundance2']
-            d1, d2 = d1_.replace('/', '__'), d2_.replace('/', '__')
+            d1, d2 = d1_.replace('/', ''), d2_.replace('/', '')
             for p, params in params_pd.iterrows():
                 res_dir = self.get_res_dir(params)
                 self.get_output('paired/%s/%s/%s_%s-%s__%s_%s-%s/%s' % (
