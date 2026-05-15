@@ -224,13 +224,13 @@ class DiffModels(object):
         paths = []
         if self.songbirds.shape[0]:
             for r, row in self.songbirds.iterrows():
-                dataset = row['dataset']
+                dataset = row['dataset'].replace('/', '')
                 filter_ = row['filter']
                 subset = row['subset']
                 for analysis in ['songbird']:
                     self.analysis = analysis
                     self.get_output('datasets/%s/%s' % (dataset, subset))
-                    rad = '%s_%s' % (dataset.replace('/', '_'), filter_)
+                    rad = '%s_%s' % (dataset, filter_)
                     tsv = '%s/tab_%s.tsv' % (self.out, rad)
                     qza = '%s.qza' % splitext(tsv)[0]
                     meta = '%s/meta_%s.tsv' % (self.out, rad)
@@ -441,7 +441,7 @@ class DiffModels(object):
     @staticmethod
     def get_dat_pair_dir(dat, pair):
         if pair:
-            return '%s/%s' % (dat.replace('/', '__'), pair)
+            return '%s/%s' % (dat.replace('/', ''), pair)
         else:
             return '%s/unpaired' % dat
 
@@ -658,11 +658,11 @@ class DiffModels(object):
         skip = False
         not_in_meta = set(variables).difference(set(meta_pd.columns.values))
         if not_in_meta:
-            print(set(variables))
-            print(set(meta_pd.columns.values))
-            print(not_in_meta)
-            print(self.model)
-            print(self.formula)
+            # print(set(variables))
+            # print(set(meta_pd.columns.values))
+            # print(not_in_meta)
+            # print(self.model)
+            # print(self.formula)
             self.models_issues['var'].setdefault(meta_fp, []).append(
                 [not_in_meta, self.model, self.formula])
             skip = True
@@ -708,7 +708,6 @@ class DiffModels(object):
         if self.models_issues['var']:
             print('\n## [songbird] Variables(s) missing in metadata:')
             for fp, (not_in, mod, form) in self.models_issues['var'].items():
-                print("")
                 print("##-----file: %s" % rep(fp))
                 print("##     model: %s -> %s" % (mod, form))
                 print("##     missing: %s" % ', '.join(sorted(not_in)))
@@ -720,7 +719,6 @@ class DiffModels(object):
                 print("")
                 print("##-----file: %s" % rep(fp))
                 for (not_in, mod, form, v) in issues:
-                    print("")
                     print("##-----file: %s" % rep(fp))
                     print("##     model: %s -> %s" % (mod, form))
                     print("##     variable: %s" % v)
