@@ -627,6 +627,7 @@ class AnalysisPrep(object):
         self.analysis = 'alpha'
         metrics = self.get_metrics(self.config.alphas)
         for dat, data in self.project.datasets.items():
+            print('alpha', dat)
             for raref, qza in data.qza.items():
                 if to_do(qza):
                     continue
