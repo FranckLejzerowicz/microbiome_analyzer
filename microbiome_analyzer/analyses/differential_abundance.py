@@ -441,7 +441,7 @@ class DiffModels(object):
     @staticmethod
     def get_dat_pair_dir(dat, pair):
         if pair:
-            return '%s/%s' % (dat, pair)
+            return '%s/%s' % (dat.replace('/', '__'), pair)
         else:
             return '%s/unpaired' % dat
 
@@ -496,8 +496,7 @@ class DiffModels(object):
                 add_dir = 'filt_f%s_s%s' % tuple([x[1] for x in filt_list])
                 p_dir += add_dir
             elif name == 'params':
-                add_dir = '%s_%s_%s_%s_%s_%s' % tuple(
-                    [x[1] for x in params_list])
+                add_dir = '_'.join([str(x[1]) for x in params_list])
                 p_dir += '/' + add_dir
                 text += 'Songbird run parameters:\n\n'
                 for param_list in params_list:
