@@ -75,7 +75,7 @@ class AnalysisPrep(object):
         odir = self.dir
         if prefix:
             odir += '/%s' % prefix
-        self.out = '/'.join([odir, self.analysis, dat.replace('/', '__')])
+        self.out = '/'.join([odir, self.analysis, dat])
         if cohort:
             cohort = cohort.replace('(', '').replace(')', '').replace(
                 ' ', '_').replace(',', '_')
@@ -631,7 +631,7 @@ class AnalysisPrep(object):
                 if to_do(qza):
                     continue
                 alphas = []
-                self.get_output(dat)
+                self.get_output(data.path)
                 for metric in metrics:
                     qza_o = '%s/alpha%s_%s.qza' % (self.out, raref, metric)
                     tsv_o = '%s.tsv' % splitext(qza_o)[0]
