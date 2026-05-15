@@ -763,8 +763,8 @@ class AnalysisPrep(object):
                         self.cmds.setdefault(dat, []).append(cmd)
         self.register_io_command()
 
-    def check_testing(self, dat_tests, data, cohort, sams, n=4) -> list:
-        tests = []
+    def check_testing(self, dat_tests, data, cohort, sams, n=4) -> dict:
+        tests = {}
         meta = data.metadata.copy()
         meta = meta.loc[meta.sample_name.isin(sams)]
         columns = set(meta.columns)
@@ -776,7 +776,7 @@ class AnalysisPrep(object):
             try:
                 for i in meta[test].fillna(0.):
                     float(i)
-                tests.append((test, 'numeric'))
+                tests[test] = 'numeric'
             except ValueError:
                 meta_vc = meta[test].value_counts()
                 if meta_vc.size > (meta.shape[0] * .8):
@@ -792,7 +792,7 @@ class AnalysisPrep(object):
                     self.messages.add(
                         '%s "%s" has <2 factors with 4 samples' % (mess, test))
                     continue
-                tests.append((test, 'categorical'))
+                tests[test] = 'categorical'
         return tests
 
     def get_classify_params(self, rad):
@@ -822,7 +822,7 @@ class AnalysisPrep(object):
                     tests = self.check_testing(dat_cols, data, cohort, sams, 4)
                     if tests:
                         self.get_output(dat, cohort)
-                    for (test, typ) in tests:
+                    for test, typ in tests.items():
                         print(test, typ)
                         test_dir = '%s/%s%s' % (self.out, test, raref)
                         cv = '%s/cv.tsv' % test_dir
@@ -856,7 +856,7 @@ class AnalysisPrep(object):
                 perms = {}
                 for cohort, (sams, variables) in data.subsets[raref].items():
                     tests = self.check_testing(dat_tests, data, cohort, sams, 4)
-                    tests = [x for x, t in tests if t == 'categorical']
+                    tests = [x for x, t in tests.items() if t == 'categorical']
                     if tests:
                         self.get_output(dat, cohort)
                     for test in tests:
