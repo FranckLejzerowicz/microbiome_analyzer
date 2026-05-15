@@ -556,15 +556,13 @@ class PairedData(object):
     def get_mmvec_pd(self, mmvec):
         self.mmvec_pd = pd.DataFrame(
             mmvec, columns=[
-                'pair', 'filter', 'subset',  # 'case',
-                'omic1', 'omic2', 'pr1', 'ab1', 'pr2', 'ab2', 'n_common',
-                'meta_common_fp', 'omic1_common_fp', 'omic2_common_fp',
-                'omic1_common_qza', 'omic2_common_qza', 'mmvec_parameters',
-                'mmvec_out'
-            ])
+                'pair', 'filter', 'subset', 'omic1', 'omic2',
+                'pr1', 'ab1', 'pr2', 'ab2', 'n_common', 'meta_common_fp',
+                'omic1_common_fp', 'omic2_common_fp', 'omic1_common_qza',
+                'omic2_common_qza', 'mmvec_parameters', 'mmvec_out'])
 
     def get_output(self, dat) -> str:
-        out = '%s/%s/%s' % (self.dir, self.analysis, dat)
+        out = '/'.join([self.dir, self.analysis, dat])
         if not isdir(rep(out)):
             os.makedirs(rep(out))
         self.out = out
@@ -589,8 +587,9 @@ class PairedData(object):
         for r, row in self.mmvecs.iterrows():
             self.process_params_combinations(row, params_pd, mess)
             pair, filter_, subset = row['pair'], row['filter'], row['subset']
-            d1, p1, a1 = row['dataset1'], row['prevalence1'], row['abundance1']
-            d2, p2, a2 = row['dataset2'], row['prevalence2'], row['abundance2']
+            d1_, p1, a1 = row['dataset1'], row['prevalence1'], row['abundance1']
+            d2_, p2, a2 = row['dataset2'], row['prevalence2'], row['abundance2']
+            d1, d2 = d1_.replace('/', '__'), d2_.replace('/', '__')
             for p, params in params_pd.iterrows():
                 res_dir = self.get_res_dir(params)
                 self.get_output('paired/%s/%s/%s_%s-%s__%s_%s-%s/%s' % (

@@ -113,7 +113,7 @@ class DiffModels(object):
         else:
             if 'global' in self.config.diff_abund['filtering']:
                 for fname, p_a in self.config.diff_abund[
-                    'filtering']['global'].items():
+                        'filtering']['global'].items():
                     for dat in models.keys():
                         if fname not in filtering:
                             filtering[fname] = {}
