@@ -502,7 +502,7 @@ class AnalysisPrep(object):
 
     def get_features_subsets(self, dat, subset, dat_subset, data,
                              data_subset, feats, raref):
-        print(data.keys())
+        print(data.__dict__.keys())
         print(data.path)
         self.get_output(data.path)
         tsv_subset = '%s/%s/table%s.tsv' % (self.out, subset, raref)
