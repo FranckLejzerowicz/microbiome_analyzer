@@ -502,9 +502,7 @@ class AnalysisPrep(object):
 
     def get_features_subsets(self, dat, subset, dat_subset, data,
                              data_subset, feats, raref):
-        print(data.__dict__.keys())
-        print(data.path)
-        self.get_output(data.path)
+        self.get_output(dat)
         tsv_subset = '%s/%s/table%s.tsv' % (self.out, subset, raref)
         make_fp_dir(tsv_subset)
         biom_subset = '%s.biom' % splitext(tsv_subset)[0]
@@ -534,6 +532,8 @@ class AnalysisPrep(object):
         if self.config.feature_subsets.get('reverse_only'):
             reverses = [True]
         for dat, data in self.project.datasets.items():
+            print("dat, data.filt")
+            print(dat, data.filt)
             if dat not in self.config.feature_subsets:
                 continue
             for subset_, regex in self.config.feature_subsets[dat].items():
