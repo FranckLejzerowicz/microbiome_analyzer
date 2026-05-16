@@ -398,7 +398,7 @@ class AnalysisPrep(object):
             data = self.project.datasets[dat]
             split_levels, empties = get_split_levels(levels, data.taxa[1])
             data.collapsed = split_levels
-            self.get_output(data.path)
+            self.get_output(dat)
             for tax, level in split_levels.items():
                 dat_tax = '%s/tx-%s' % (dat, tax)
                 data_tax = Data(dat_tax)
