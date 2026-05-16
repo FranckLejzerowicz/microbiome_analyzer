@@ -1359,12 +1359,11 @@ class AnalysisPrep(object):
                         if not isfile(pcoa):
                             continue
                         qzv = '%s/empress%s_%s.qzv' % (self.out, raref, metric)
-                        if self.config.force or not isfile(qzv):
-                            cmd = write_empress(
-                                self, dat, qza, pcoa, qzv, data.meta,
-                                feat_metas, data.tree)
-                            self.register_provenance(dat, (qzv, pcoa,), cmd)
-                            self.cmds.setdefault(dat, []).append(cmd)
+                        cmd = write_empress(
+                            self, dat, qza, pcoa, qzv, data.meta,
+                            feat_metas, data.tree)
+                        self.register_provenance(dat, (qzv, pcoa,), cmd)
+                        self.cmds.setdefault(dat, []).append(cmd)
         self.register_io_command()
 
     # def empress_biplot(self):

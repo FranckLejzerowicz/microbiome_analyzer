@@ -73,13 +73,17 @@ def runner(**kwargs):
     project.get_precomputed_taxonomy()
     if 'taxonomy' not in config.skip:
         analysis.taxonomy()
+    logging.info('  - Get taxonomic levels')
     project.get_taxo_levels()
+    logging.info('  - Obtaining phylogeny')
     project.get_precomputed_trees()
     analysis.import_trees()
 
     if 'wol' not in config.skip:
+        logging.info('  - Shear the Web Of Life phylogeny (woltka input only)')
         analysis.shear_tree()
     if config.sepp_tree and 'sepp' not in config.skip:
+        logging.info('  - Placing ASV into reference phylogeny')
         analysis.sepp()
     if config.filt_only:
         project.delete_non_filtered()
@@ -87,88 +91,121 @@ def runner(**kwargs):
     #     analysis.make_pies()
 
     if config.feature_subsets and 'feature_subsets' not in config.skip:
+        logging.info('  - Making feature subsets')
         analysis.subset_features()
     if config.collapse and 'collapse' not in config.skip:
+        logging.info('  - Collapsing features based on taxonomy')
         analysis.collapse_taxa()
 
     analysis.show_datasets()
     analysis.make_edits()
 
     if 'alpha' not in config.skip:
+        logging.info('  - Measuring alpha diversity')
         analysis.alpha()
         if 'alpha_correlations' not in config.skip:
+            logging.info('    - Correlations vs numeric metadata variables')
             analysis.alpha_correlations()
         if 'alpha_merge' not in config.skip:
+            logging.info('    - Merging across diversity indices')
             analysis.merge_alpha()
             analysis.merge_metadata()
         if 'alpha_rarefaction' not in config.skip:
+            logging.info('    - Drawing rarefaction curves')
             analysis.alpha_rarefaction()
         if 'alpha_group_significance' not in config.skip:
+            logging.info('    - Testing for categorical metadata variables')
             analysis.alpha_group_significance()
 
+    logging.info('  - Making sample subsets')
     project.get_meta_subsets()
 
     if config.phate and 'phate' not in config.skip:
+        logging.info('  - Running PHATE ordinations')
         analysis.phate()
     if 'barplot' not in config.skip:
+        logging.info('  - Drawing barplots')
         analysis.barplot()
     if 'krona' not in config.skip:
+        logging.info('  - Drawing Krona plots')
         analysis.krona()
 
     if config.predict and 'classify' not in config.skip:
+        logging.info('  - Predicting metadata (classification and regression)')
         analysis.classify()
 
     if 'beta' not in config.skip:
+        logging.info('  - Measuring beta diversity')
         analysis.beta()
         if 'pcoa' not in config.skip:
+            logging.info('    - Making PCoA ordinations')
             analysis.pcoa()
         if 'tsne' not in config.skip:
+            logging.info('    - Making t-SNE ordinations')
             analysis.tsne()
         if 'umap' not in config.skip:
+            logging.info('    - Making UMAP ordinations')
             analysis.umap()
         if 'emperor' not in config.skip:
+            logging.info('    - Plotting ordinations in EMPeror')
             analysis.emperor()
         if config.biplot and 'biplot' not in config.skip:
+            logging.info('    - Making PCoA ordinations (incl. features)')
             analysis.biplots()
             if 'emperor_biplot' not in config.skip:
+                logging.info('    - Plotting ordinations in EMPeror (biplots)')
                 analysis.emperor_biplot()
         if 'rpca' not in config.skip:
+            logging.info('    - Running Robust PCA')
             analysis.rpca()
         if config.permanova and 'permanova' not in config.skip:
+            logging.info('    - Testing with PERMANOVA/PERMDISP (per variable)')
             analysis.permanova()
         # summarize_permanova(
         #     datasets_folder, permanovas, prjct_nm, qiime_env, p_chmod, noloc,
         #     slurm, split, run_params['permanova'], filt_raref, jobs, chunkt)
         if config.adonis and 'adonis' not in config.skip:
+            logging.info('    - Testing PERMANOVA in adonis (>1 variable)')
             analysis.adonis()
         if config.procrustes and 'procrustes' not in config.skip:
+            logging.info('    - Procrustes and PROTests')
             analysis.procrustes_mantel('procrustes')
         if config.mantel and 'mantel' not in config.skip:
+            logging.info('    - Mantel correlations tests')
             analysis.procrustes_mantel('mantel')
         if config.nestedness and 'nestedness' not in config.skip:
+            logging.info('    - Measuring nestedness')
             Nestedness(config, project)
         if config.dm_decay and 'dm_decay' not in config.skip:
+            logging.info('    - Measuring Distance-based decay vs sampling')
             DmDecay(config, project)
         if config.geo_decay and 'geo_decay' not in config.skip:
+            logging.info('    - Measuring Distance-based decay vs geography')
             pass
         if config.time_subject:
             if 'ctf' not in config.skip:
+                logging.info('    - CTF analysis')
                 analysis.ctf()
             if 'volatility' not in config.skip:
+                logging.info('    - Temporal plots')
                 analysis.volatility()
 
     if config.doc and 'doc' not in config.skip:
+        logging.info('  - Dissimilarity-Overlap curves')
         DOC(config, project)
     if config.sourcetracking and 'sourcetracking' not in config.skip:
+        logging.info('  - Sourcetracking (sourcetracker2 and FEAST)')
         Sourcetracking(config, project)
 
     paired_datasets = PairedData(config, project)
     if config.mmvec_pairs and 'mmvec' not in config.skip:
+        logging.info('  - Co-occurrence probability measurement with MMVEC')
         paired_datasets.make_train_test()
         paired_datasets.mmvec()
 
     differentials = DiffModels(config, project)
     if config.diff_abund and 'songbird' not in config.skip:
+        logging.info('  - Differential abundance measurement with SONGBIRD')
         differentials.prep_songbirds(paired_datasets.mmvec_pd)
         differentials.make_train_test()
         differentials.songbird()
@@ -176,11 +213,13 @@ def runner(**kwargs):
             differentials.make_qurros()
 
     if 'empress' not in config.skip:
+        logging.info('  - Plotting phylogeny incl. feature metadata')
         analysis.empress()
     # if 'empress_biplot' not in config.skip:
     #     analysis.empress_biplot()
 
     if config.mmvec_pairs and 'mmbird' not in config.skip:
+        logging.info('  - Integrating differentials in co-occurrence biplots')
         post_analyses = PostAnalysis(config, project)
         post_analyses.mmbird(paired_datasets, differentials)
 
