@@ -391,6 +391,7 @@ class AnalysisPrep(object):
             if dat in Datasets.raw_filt))
         project_coll = {}
         for dat, data in self.project.datasets.items():
+            print(dat)
             torm = []
             if data.source not in collapse_taxo:
                 continue
@@ -398,7 +399,11 @@ class AnalysisPrep(object):
             data = self.project.datasets[dat]
             split_levels, empties = get_split_levels(levels, data.taxa[1])
             data.collapsed = split_levels
-            self.get_output(dat)
+            if data.filt:
+                suffix = 'filt-%s/sub-%s' % (data.filt, data.subset)
+            else:
+                suffix = 'filt-nan/sub-%s' % data.subset
+            self.get_output(data.source, suffix)
             for tax, level in split_levels.items():
                 dat_tax = '%s/tx-%s' % (dat, tax)
                 data_tax = Data(dat_tax)
