@@ -863,16 +863,16 @@ class AnalysisPrep(object):
     def permanova(self):
         self.analysis = 'permanova'
         for dat, data in self.project.datasets.items():
-            if dat not in self.config.permanova:
+            if data.source not in self.config.permanova:
                 continue
-            dat_tests = self.config.permanova[dat]
+            dat_tests = self.config.permanova[data.source]
             for raref, dms_metrics in data.beta.items():
                 perms = {}
                 for cohort, (sams, variables) in data.subsets[raref].items():
                     tests = self.check_testing(dat_tests, data, cohort, sams, 4)
                     tests = [x for x, t in tests.items() if t == 'categorical']
                     if tests:
-                        self.get_output(dat, cohort)
+                        self.get_output(data.path, cohort)
                     for test in tests:
                         cv = '%s/cv%s_%s.tsv' % (self.out, raref, test)
                         meta = '%s/meta%s_%s.tsv' % (self.out, raref, test)
@@ -911,7 +911,7 @@ class AnalysisPrep(object):
         self.analysis = 'beta'
         metrics = self.get_metrics(self.config.betas)
         for dat, data in self.project.datasets.items():
-            self.get_output(dat)
+            self.get_output(data.path)
             for raref, qza in data.qza.items():
                 betas = []
                 for metric in metrics:
@@ -963,7 +963,7 @@ class AnalysisPrep(object):
                     continue
                 r2s = {}
                 for cohort, (sams, variables) in data.subsets[raref].items():
-                    self.get_output(dat, cohort)
+                    self.get_output(data.path, cohort)
                     r_scripts = []
                     for model, (formula, stratas) in data.adonis.items():
                         variables = re.split('[*/+-]', formula)
@@ -1009,11 +1009,11 @@ class AnalysisPrep(object):
                 if to_do(qza):
                     continue
                 diffs = '%s/songbird/%s/differentials.tsv' % (
-                    self.dir, dat)
+                    self.dir, dat.replace('/', ''))
                 for cohort, (sams, variables) in data.subsets[raref].items():
                     if data.data[raref].shape[0] < 10:
                         continue
-                    self.get_output(dat, cohort)
+                    self.get_output(data.path, cohort)
                     ordi = '%s/ordination%s.qza' % (self.out, raref)
                     qzv = '%s/ordination%s.qzv' % (self.out, raref)
                     qurro = '%s/qurro%s.qzv' % (self.out, raref)
@@ -1061,7 +1061,7 @@ class AnalysisPrep(object):
                     continue
                 for cohort, (sams, variables_) in data.subsets[raref].items():
                     variables = list(set(variables_ + list(time_subj.values())))
-                    self.get_output(dat, '%s/%s' % (cohort, ts))
+                    self.get_output(data.path, '%s/%s' % (cohort, ts))
                     # self.get_output(data.path, '%s/%s' % (cohort, ts))
                     tax_filt = '%s/taxonomy%s.qza' % (self.out, raref)
                     sam_traj = '%s/sample-trajectory%s.qza' % (self.out, raref)
@@ -1109,15 +1109,15 @@ class AnalysisPrep(object):
     def volatility(self):
         self.analysis = 'volatility'
         for dat, data in self.project.datasets.items():
-            if dat not in self.config.time_subject:
+            if data.source not in self.config.time_subject:
                 continue
-            time_subj = self.config.time_subject[dat]
+            time_subj = self.config.time_subject[data.source]
             ts = '-'.join(map(str, [time_subj['time'], time_subj['subject']]))
             for raref, qza in data.qza.items():
                 if to_do(qza):
                     continue
                 for cohort in data.subsets[raref]:
-                    self.get_output(dat, '%s/%s' % (cohort, ts))
+                    self.get_output(data.path, '%s/%s' % (cohort, ts))
                     # self.get_output(data.path, '%s/%s' % (cohort, ts))
                     qzv = '%s/volatility%s.qzv' % (self.out, raref)
                     i_f, o_f = [data.meta], [qzv]
@@ -1144,7 +1144,7 @@ class AnalysisPrep(object):
             for raref, dms_metrics in data.beta.items():
                 tsnes = {}
                 for grp, (sams, variables) in data.subsets[raref].items():
-                    self.get_output(dat, grp)
+                    self.get_output(data.path, grp)
                     meta_fp = '%s/meta%s.tsv' % (self.out, raref)
                     meta = subset_meta(data.metadata, sams, variables)
                     meta.to_csv(rep(meta_fp), index=False, sep='\t')
@@ -1169,7 +1169,7 @@ class AnalysisPrep(object):
             for raref, dms_metrics in data.beta.items():
                 umaps = {}
                 for grp, (sams, variables) in data.subsets[raref].items():
-                    self.get_output(dat, grp)
+                    self.get_output(data.path, grp)
                     meta_fp = '%s/meta%s.tsv' % (self.out, raref)
                     meta = subset_meta(data.metadata, sams, variables)
                     meta.to_csv(rep(meta_fp), index=False, sep='\t')
@@ -1194,7 +1194,7 @@ class AnalysisPrep(object):
             for raref, dms_metrics in data.beta.items():
                 pcoas = {}
                 for grp, (sams, variables) in data.subsets[raref].items():
-                    self.get_output(dat, grp)
+                    self.get_output(data.path, grp)
                     meta_fp = '%s/meta%s.tsv' % (self.out, raref)
                     meta = subset_meta(data.metadata, sams, variables)
                     meta.to_csv(rep(meta_fp), index=False, sep='\t')
@@ -1297,7 +1297,7 @@ class AnalysisPrep(object):
                                       ('umap', data.umap)]:
                 for raref, ordis in data_ordis.items():
                     for cohort, metrics in ordis.items():
-                        self.get_output(dat, cohort, typ)
+                        self.get_output(data.path, cohort, typ)
                         for (ordi, _, metric) in metrics:
                             if to_do(ordi):
                                 continue
@@ -1319,7 +1319,7 @@ class AnalysisPrep(object):
                 biplots = {}
                 qza, tsv = data.qza[raref], data.tsv[raref]
                 for cohort, metrics in pcoas.items():
-                    self.get_output(dat, cohort)
+                    self.get_output(data.path, cohort)
                     for (pcoa, meta, metric) in metrics:
                         if to_do(pcoa):
                             continue
@@ -1341,7 +1341,7 @@ class AnalysisPrep(object):
             tax = data.taxa[1]
             for raref, biplots in data.biplot.items():
                 for cohort, metrics in biplots.items():
-                    self.get_output(dat, cohort)
+                    self.get_output(data.path, cohort)
                     for (biplot, biplot_tax, metric) in metrics:
                         if to_do(biplot):
                             continue
@@ -1364,7 +1364,7 @@ class AnalysisPrep(object):
             for raref, pcoas in data.pcoa.items():
                 qza = data.qza[raref]
                 for cohort, metrics in pcoas.items():
-                    self.get_output(dat, cohort)
+                    self.get_output(data.path, cohort)
                     for (pcoa, _, metric) in metrics:
                         if not isfile(pcoa):
                             continue
@@ -1430,7 +1430,7 @@ class AnalysisPrep(object):
                 phates = {}
                 subsets_update = {}
                 for cohort, (sams, variables) in data.subsets[raref].items():
-                    self.get_output(dat, cohort)
+                    self.get_output(data.path, cohort)
                     meta_tsv = '%s/meta%s.tsv' % (self.out, raref)
                     new_qza = '%s/tab%s.qza' % (self.out, raref)
                     new_tsv = '%s/tab%s.tsv' % (self.out, raref)
