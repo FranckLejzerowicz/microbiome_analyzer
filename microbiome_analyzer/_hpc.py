@@ -152,7 +152,7 @@ def get_scratch_area(scratch: str, default: str) -> str:
         scratch_folder = default
     else:
         if not isdir(ret):
-            mk = input('"%s" does not exist: create it? [Y/n]: ')
+            mk = input('"%s" does not exist: create it? [Y/n]: ' % ret)
             if not mk or mk.lower() == 'y':
                 try:
                     os.makedirs(ret)

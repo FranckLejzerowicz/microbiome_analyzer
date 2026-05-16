@@ -174,7 +174,7 @@ class AnalysesConfig(object):
         conda_envs : set
             Conda environments.
         """
-        for conda_env in subprocess.getoutput('conda env list').split('\n'):
+        for env in subprocess.getoutput('conda env list').split('\n'):
             if env.startswith('#') or '*' in env or len(env.split()) != 2:
                 continue
             name, path = env.split()
