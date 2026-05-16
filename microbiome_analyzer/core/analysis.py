@@ -398,7 +398,7 @@ class AnalysisPrep(object):
             data = self.project.datasets[dat]
             split_levels, empties = get_split_levels(levels, data.taxa[1])
             data.collapsed = split_levels
-            self.get_output(dat)
+            self.get_output(data.path)
             for tax, level in split_levels.items():
                 dat_tax = '%s/tx-%s' % (dat, tax)
                 data_tax = Data(dat_tax)
@@ -502,7 +502,7 @@ class AnalysisPrep(object):
 
     def get_features_subsets(self, dat, subset, dat_subset, data,
                              data_subset, feats, raref):
-        self.get_output(dat)
+        self.get_output(data.path)
         tsv_subset = '%s/%s/table%s.tsv' % (self.out, subset, raref)
         make_fp_dir(tsv_subset)
         biom_subset = '%s.biom' % splitext(tsv_subset)[0]
@@ -571,8 +571,6 @@ class AnalysisPrep(object):
                             data_subset.read_biom(raref)
                             if data_subset.data:
                                 feature_subsets[dat_subset] = data_subset
-        print("self.project.datasets.keys()")
-        print(self.project.datasets.keys())
         self.project.datasets.update(feature_subsets)
         self.register_io_command()
 

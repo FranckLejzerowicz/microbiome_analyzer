@@ -93,6 +93,7 @@ def runner(**kwargs):
     if config.feature_subsets and 'feature_subsets' not in config.skip:
         logging.info('  - Making feature subsets')
         analysis.subset_features()
+
     if config.collapse and 'collapse' not in config.skip:
         logging.info('  - Collapsing features based on taxonomy')
         analysis.collapse_taxa()
