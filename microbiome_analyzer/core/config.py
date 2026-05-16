@@ -48,12 +48,10 @@ class AnalysesConfig(object):
         self.set_config_email(logging)
         self.set_config_scratches(logging)
         self.get_directives()
-        self.get_conda_envs()
-
         self.check_input()
         self.parse_yamls()
         self.get_project_name()  # project name for jobs
-        self.get_conda_envs()
+        self.get_conda_envs(logging)
         self.get_analyses()
         self.get_readmes()
         self.get_run_params(logging)  # default (e.g. memory)
@@ -166,7 +164,7 @@ class AnalysesConfig(object):
             logging.info('%s is not an existing conda environment' % env)
             sys.exit(1)
 
-    def get_conda_envs(self):
+    def get_conda_envs(self, logging):
         """Get the names of the conda environments.
 
         Returns
