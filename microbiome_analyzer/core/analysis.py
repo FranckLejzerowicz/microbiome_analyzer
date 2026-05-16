@@ -532,8 +532,7 @@ class AnalysisPrep(object):
         if self.config.feature_subsets.get('reverse_only'):
             reverses = [True]
         for dat, data in self.project.datasets.items():
-            print("dat, data.filt")
-            print(dat, data.filt)
+            print(dat, data.filt, data.source)
             if dat not in self.config.feature_subsets:
                 continue
             for subset_, regex in self.config.feature_subsets[dat].items():
