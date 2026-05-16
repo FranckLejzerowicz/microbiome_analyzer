@@ -133,17 +133,17 @@ class Datasets(object):
         self.key_dir = None
         self.dirs = set()
 
-    def collect_datasets(self):
+    def collect_datasets(self, logging):
         for dat in self.config.datasets:
             data = Data(dat)
             tsv = '%s/data/%s/table.tsv' % (self.dir, dat)
             biom = '%s.biom' % splitext(tsv)[0]
             if to_do(biom) and to_do(tsv):
-                print('[skipping] Not tsv/biom table for %s' % dat)
+                logging.info('[skipping] Not tsv/biom table for %s' % dat)
                 continue
             meta = '%s/metadata/%s/metadata.tsv' % (self.dir, dat)
             if to_do(meta):
-                print('[skipping] Not metadata table for %s' % dat)
+                logging.info('[skipping] Not metadata table for %s' % dat)
                 continue
             data.meta = meta
             data.tsv[''] = tsv

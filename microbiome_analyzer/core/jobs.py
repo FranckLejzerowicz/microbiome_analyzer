@@ -7,10 +7,12 @@
 # ----------------------------------------------------------------------------
 
 import os
-import subprocess
+# import subprocess
 import numpy as np
 from os.path import dirname, isdir, splitext
 from microbiome_analyzer._scratch import get_roundtrip, rep
+from microbiome_analyzer.core.slurm import (
+    set_directives, set_preamble, set_scratching, set_tmpdir)
 
 import pkg_resources
 RESOURCES = pkg_resources.resource_filename("microbiome_analyzer", "resources")
@@ -118,8 +120,8 @@ class CreateScripts(object):
 
     def write_chunks(self, chunk_keys):
         with open(self.sh, 'w') as sh:
-            if self.config.jobs:
-                sh.write('rm -rf $TMPDIR\n')
+            # if self.config.jobs:
+            #     sh.write('rm -rf $TMPDIR\n')
             if self.config.cleanup and self.config.jobs:
                 cleanup = 'cleanup rm -rf ${TMPDIR}'
                 if self.params['scratch']:
@@ -128,8 +130,8 @@ class CreateScripts(object):
             for key in chunk_keys:
                 for cmd in self.cmds[key]:
                     sh.write('%s\n' % cmd)
-            if self.params['scratch'] and self.config.jobs:
-                sh.write('rm -rf $TMPDIR\n')
+            # if self.params['scratch'] and self.config.jobs:
+            #     sh.write('rm -rf $TMPDIR\n')
 
     def get_job_name(self, chunk: str):
         self.job_name = self.nlss + '.' + self.config.prjct_nm
@@ -138,54 +140,79 @@ class CreateScripts(object):
     def write_script(self):
         if self.config.jobs:
             self.prep_script()
-            self.call_cmd()
+            # self.call_cmd()
         else:
             self.job_fps.append('%s.sh' % splitext(self.sh)[0])
 
+    # def call_cmd(self):
+    #     cmd = ' '.join(self.cmd)
+    #     subprocess.call(cmd.split())
+    #     os.remove(self.sh)
+
     def prep_script(self) -> None:
-        # mandatory options
-        self.cmd = [
-            'Xhpc',
-            '-i', self.sh,
-            '-j', self.job_name,
-            '-t', str(self.params['time']),
-            '-c', str(self.params['cpus']),
-            '-M', str(self.params['mem']), self.params['mem_dim'],
-            '--no-stat', '--no-abspath', '--no-email']
-        # whether the cpus requests is per node
-        if self.params['nodes']:
-            self.cmd.extend(['-n', str(self.params['nodes'])])
-        # always provide an account
-        if self.config.account:
-            self.cmd.extend(['-a', self.config.account])
-        # get the job script file path and use it
         job_script = '%s.slm' % splitext(self.sh)[0]
         if self.config.torque:
-            self.cmd.append('--torque')
             job_script = '%s.pbs' % splitext(self.sh)[0]
         self.job_fps.append(job_script)
-        self.cmd.extend(['-o', job_script])
-        # machine-specific setup: env activating and slurm partition
-        if self.params['machine']:
-            self.cmd.append('--%s' % self.params['machine'])
-        if self.params['partition']:
-            self.cmd.append('--p-partition %s' % self.params['partition'])
-        # whether an environment must be used for the current software
-        if self.params['env']:
-            self.cmd.extend(['-e', self.params['env']])
-        # setup the scratch location to be used for the current software
-        if isinstance(self.params['scratch'], int):
-            self.cmd.extend(['--localscratch', str(self.params['scratch'])])
-        elif self.params['scratch'] == 'scratch':
-            self.cmd.append('--scratch')
-        elif self.params['scratch'] == 'userscratch':
-            self.cmd.append('--userscratch')
-        self.cmd.append('--quiet')
 
-    def call_cmd(self):
-        cmd = ' '.join(self.cmd)
-        subprocess.call(cmd.split())
+        with open(job_script, 'w') as o:
+            o.write('\n'.join(set_directives(self)))
+            o.write('\n# ------ directives END ------\n\n')
+            o.write('\n'.join(set_preamble(self, job_script)))
+            o.write('\n# ------ preamble END ------\n\n')
+            o.write('\n'.join(set_scratching(self)))
+            o.write('\n# ------ scratching END ------\n\n')
+            if 'TMPDIR' in os.environ:
+                o.write('\n'.join(set_tmpdir(self)))
+                o.write('\n# ------ tmpdir END ------\n\n')
+            with open(self.sh) as f:
+                for line in f:
+                    o.write(line)
+            o.write('\n# ------ commands END ------\n\n')
+            # if 'TMPDIR' in os.environ:
+            #     o.write('\n\nrm -rf ${TMPDIR}\n')
+            #     o.write('# ------ clear END ------\n\n')
+            o.write('\necho "Done!"\n')
         os.remove(self.sh)
+        #
+        # # mandatory options
+        # self.cmd = [
+        #     'Xhpc',
+        #     '-i', self.sh,
+        #     '-j', self.job_name,
+        #     '-t', str(self.params['time']),
+        #     '-c', str(self.params['cpus']),
+        #     '-M', str(self.params['mem']), self.params['mem_dim'],
+        #     '--no-stat', '--no-abspath', '--no-email']
+        # # whether the cpus requests is per node
+        # if self.params['nodes']:
+        #     self.cmd.extend(['-n', str(self.params['nodes'])])
+        # # always provide an account
+        # if self.config.account:
+        #     self.cmd.extend(['-a', self.config.account])
+        # # # get the job script file path and use it
+        # # job_script = '%s.slm' % splitext(self.sh)[0]
+        # # if self.config.torque:
+        # #     self.cmd.append('--torque')
+        # #     job_script = '%s.pbs' % splitext(self.sh)[0]
+        # # self.job_fps.append(job_script)
+        # # self.cmd.extend(['-o', job_script])
+        # # machine-specific setup: env activating and slurm partition
+        # if self.params['machine']:
+        #     self.cmd.append('--%s' % self.params['machine'])
+        # if self.params['partition']:
+        #     self.cmd.append('--p-partition %s' % self.params['partition'])
+        # # whether an environment must be used for the current software
+        # if self.params['env']:
+        #     self.cmd.extend(['-e', self.params['env']])
+        # # setup the scratch location to be used for the current software
+        # if isinstance(self.params['scratch'], int):
+        #     self.cmd.extend(['--localscratch', str(self.params['scratch'])])
+        # elif self.params['scratch'] == 'scratch':
+        #     self.cmd.append('--scratch')
+        # elif self.params['scratch'] == 'userscratch':
+        #     self.cmd.append('--userscratch')
+        # self.cmd.append('--quiet')
 
     def write_jobs(self):
         self.get_jobs_dir()

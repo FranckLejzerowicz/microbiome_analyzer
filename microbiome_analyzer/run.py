@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import logging
 from microbiome_analyzer.core.config import AnalysesConfig
 from microbiome_analyzer.core.datasets import Datasets
 from microbiome_analyzer.core.jobs import CreateScripts
@@ -20,25 +21,55 @@ from microbiome_analyzer.analyses.sourcetracking import Sourcetracking
 # from routine_qiime2_analyses._routine_q2_qemistree import run_qemistree
 
 
+def set_log():
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(message)s')
+    # Using StreamHandler writing to console
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    ch.setFormatter(formatter)
+    # Add the two Handlers
+    logger.addHandler(ch)
+
+
 def runner(**kwargs):
     """
     Main qiime2 functions writer.
+
+    Parameters
+    ----------
+    kwargs : dict
+        All arguments passed in command line, including defaults
     """
+    set_log()
+    kwargs['logging'] = logging
+    kwargs['command'] = 'run'
+    logging.info('\n>>> `microbiome_analyzer run` started >>>\n')
+
+    logging.info('* Reading configuration for tools and analyses')
     config = AnalysesConfig(**kwargs)
-    config.init()
+    config.init(logging)
 
+    logging.info('* Collect the data associated with each dataset')
     project = Datasets(config)
-    project.collect_datasets()
+    project.collect_datasets(logging)
 
+    logging.info('* Preparing analyses for:')
     analysis = AnalysisPrep(config, project)
+    logging.info('  - Importing datasets to QIIME2')
     analysis.import_datasets()
     if config.filt3d:
+        logging.info('  - Exploring feature counts (vs prevalence/abundance)')
         analysis.explore_filtering()
+    logging.info('  - Filtering samples and features')
     analysis.filter()
     if config.rarefy:
+        logging.info('  - Rarefying features in samples')
         analysis.rarefy()
     # if config.qemistree and 'qemistree' not in config.skip:
     #     analysis.run_qemistree()
+    logging.info('  - Obtaining taxonomy (user-defined or analysis)')
     project.get_precomputed_taxonomy()
     if 'taxonomy' not in config.skip:
         analysis.taxonomy()
@@ -154,10 +185,13 @@ def runner(**kwargs):
         post_analyses.mmbird(paired_datasets, differentials)
 
     scripting = CreateScripts(config, project)
+    logging.info('* Creating output folders')
     scripting.make_dirs()
+    logging.info('* Writing command lines')
     scripting.writing(AnalysisPrep)
     if len(scripting.run):
         m = '\n< PLEASE CONSIDER CHECKING THE COMMAND LINE SCRIPTS MANUALLY >'
-        print(m)
+        logging.info(m)
         scripting.display()  # show the scripts to run
     # scripting.write_scripts(AnalysisPrep.analyses_commands)
+    logging.info('\n<<< `microbiome_analyzer run` completed <<<\n')

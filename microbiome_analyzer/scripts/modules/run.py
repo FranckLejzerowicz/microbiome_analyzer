@@ -7,7 +7,6 @@
 # ----------------------------------------------------------------------------
 
 import click
-
 from microbiome_analyzer.run import runner
 from microbiome_analyzer import __version__
 
@@ -232,10 +231,17 @@ from microbiome_analyzer import __version__
     "--cleanup/--no-cleanup", default=False, show_default=True,
     help="Whether to cleanup the TMPDIR and SCRATCH_FOLDER (specific to NRIS)")
 @click.option(
+    "--config-email/--no-config-email", default=False, show_default=True,
+    help="Show current email and/or edit it")
+@click.option(
+    "--config-scratch/--no-config-scratch", default=False,
+    show_default=True, help="Show current scratch folders and/or edit them")
+@click.option(
     "-x", "--chunks", required=False, show_default=False,
     type=int, default=None,
     help="Maximum number of jobs at which extra jobs will be added in chunks")
 @click.version_option(__version__, prog_name="microbiome_analyzer")
+
 
 def run(
         datasets,
@@ -288,6 +294,8 @@ def run(
         userscratch,
         move_back,
         cleanup,
+        config_email,
+        config_scratch,
         chunks
 ):
     """Write jobs for your pipeline configuration."""
@@ -342,5 +350,7 @@ def run(
         userscratch=userscratch,
         move_back=move_back,
         cleanup=cleanup,
+        config_email=config_email,
+        config_scratch=config_scratch,
         chunks=chunks
     )

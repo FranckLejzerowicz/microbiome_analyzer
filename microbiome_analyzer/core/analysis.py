@@ -72,10 +72,10 @@ class AnalysisPrep(object):
         print('-'* 30)
 
     def get_output(self, dat, cohort='', prefix=''):
-        odir = self.dir
+        out_dir = self.dir
         if prefix:
-            odir += '/%s' % prefix
-        self.out = '/'.join([odir, self.analysis, dat])
+            out_dir += '/%s' % prefix
+        self.out = '/'.join([out_dir, self.analysis, dat])
         if cohort:
             cohort = cohort.replace('(', '').replace(')', '').replace(
                 ' ', '_').replace(',', '_')

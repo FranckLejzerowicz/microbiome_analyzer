@@ -20,6 +20,7 @@ from datetime import datetime as dt
 from os.path import abspath, dirname, exists, isfile, isdir
 from microbiome_analyzer._inputs import read_yaml_file, read_meta_pd
 from microbiome_analyzer._formats import check_format
+from microbiome_analyzer._hpc import *
 
 RESOURCES = pkg_resources.resource_filename("microbiome_analyzer", "resources")
 
@@ -37,20 +38,78 @@ class AnalysesConfig(object):
         self.analyses = {}
         self.run_params = {}
         self.train_test_dict = {}
-        self.conda_envs = set()
+        self.conda_envs = {}
+        self.home = '%s/.microbiome_analyzer' % os.environ['HOME']
+        self.scratchs = {'scratch': '', 'userscratch': ''}
+        self.directives = {'shebang': '#!/bin/bash'}
 
-    def init(self):
+    def init(self, logging):
+        self.set_config_dir(logging)
+        self.set_config_email(logging)
+        self.set_config_scratches(logging)
+        self.get_directives()
+        self.get_conda_envs()
+
         self.check_input()
         self.parse_yamls()
         self.get_project_name()  # project name for jobs
         self.get_conda_envs()
         self.get_analyses()
         self.get_readmes()
-        self.get_run_params()  # default (e.g. memory)
+        self.get_run_params(logging)  # default (e.g. memory)
         self.get_filt_raref_suffix()  # job suffix (e.g. _flt)
         self.get_train_test_dict()
         if self.jobs:
             self.check_xpbs_install()  # Xpbs must be installed to prepare jobs
+
+    def set_config_dir(self, logging):
+        if not isdir(self.home):
+            logging.info('This is your first use of microbiome_analyzer')
+            logging.info('-> Creating %s' % self.home)
+            os.makedirs(self.home)
+
+    def set_config_email(self, logging):
+        email_fp = '%s/email.txt' % self.home
+        if isfile(email_fp):
+            email = edit_config(self, logging, email_fp)
+        else:
+            email = create_config(logging, email_fp)
+        self.email = email
+
+    def set_config_scratches(self, logging) -> None:
+        """
+        Collect the scratch folder paths from the scratch config file.
+        """
+        for scratch in ['scratch', 'userscratch']:
+            scratch_fp = '%s/%s.txt' % (self.home, scratch)
+            if isfile(scratch_fp):
+                scratch_path = edit_scratch(self, logging, scratch_fp, scratch)
+            else:
+                scratch_path = create_scratch(self, scratch_fp, scratch)
+            self.scratchs[scratch] = scratch_path
+
+    def get_directives(self) -> None:
+        """Collect all the directives for the Torque or Slurm job.
+        This results in extending the `args` dictionary with the "directives"
+        key, pointing to the list of job directives.
+
+        Parameters
+        ----------
+        self
+            All config attributes
+        """
+        for set_directive in (
+            set_environment,
+            set_account,
+            set_partition,
+            set_job,
+            set_localscratch,
+            set_email,
+            set_stdout_stderr,
+            set_time,
+            set_memory
+        ):
+            set_directive(self)
 
     def parse_yamls(self):
         self.subsets['ALL'] = {}
@@ -88,7 +147,7 @@ class AnalysesConfig(object):
         if self.prjct_nm == '':
             self.prjct_nm = self.project_name
 
-    def check_env(self, env: str = None) -> None:
+    def check_env(self, logging, env: str = None) -> None:
         """Checks that the qiime2 environment
         exists (i.e., is in the set if discovered
         conda environments.
@@ -104,7 +163,7 @@ class AnalysesConfig(object):
         if env:
             conda_env = env
         if conda_env not in self.conda_envs:
-            print('%s is not an existing conda environment' % env)
+            logging.info('%s is not an existing conda environment' % env)
             sys.exit(1)
 
     def get_conda_envs(self):
@@ -116,11 +175,15 @@ class AnalysesConfig(object):
             Conda environments.
         """
         for conda_env in subprocess.getoutput('conda env list').split('\n'):
-            if len(conda_env) and conda_env[0] != '#':
-                self.conda_envs.add(conda_env.split()[0])
-        self.check_env()
+            if env.startswith('#') or '*' in env or len(env.split()) != 2:
+                continue
+            name, path = env.split()
+            self.conda_envs[name] = path
+            # if len(conda_env) and conda_env[0] != '#':
+            #     self.conda_envs.add(conda_env.split()[0])
+        self.check_env(logging)
 
-    def check_run_params(self, run_params_user: dict):
+    def check_run_params(self, logging, run_params_user: dict):
         """Verify that the keys/values passed for an analysis are valid.
 
         Parameters
@@ -141,19 +204,19 @@ class AnalysesConfig(object):
                         self.run_params[analysis][param] = param_val
                 elif param == 'env':
                     # check that qiime2 environment exists
-                    self.check_env(param_val)
+                    self.check_env(logging, param_val)
                     self.run_params[analysis][param] = param_val
                 else:
                     self.run_params[analysis][param] = param_val
 
-    def get_run_params(self):
+    def get_run_params(self, logging):
         """Get the run parameters based on the default
         values, that are possibly updated by the user.
         """
         self.set_default_params()
         self.set_global_scratch()
         self.set_global_chunks()
-        self.set_user_params()
+        self.set_user_params(logging)
 
     def set_default_params(self):
         # read default run parameters (one set for each analysis)
@@ -201,7 +264,7 @@ class AnalysesConfig(object):
                 print('* Set default number of jobs: %s per step' % self.chunks)
                 self.run_params[analysis]['chunks'] = self.chunks
 
-    def set_user_params(self):
+    def set_user_params(self, logging):
         """If the user defined alternative paramters for one of more analysis
         steps, the corresponding yaml file contaiing these parameters is read
         and the parameters are used to update the default parameters
@@ -209,10 +272,10 @@ class AnalysesConfig(object):
         """
         # update these run parameters is file is passed
         if self.run_params_fp and isfile(self.run_params_fp):
-            print('* Updating parameters form user config:', self.run_params_fp)
+            logging.info('* Updating user parameters: %s' % self.run_params_fp)
             run_params_update = read_yaml_file(self.run_params_fp)
             # update these run parameters is file is passed
-            self.check_run_params(run_params_update)
+            self.check_run_params(logging, run_params_update)
 
     def get_filt_raref_suffix(self):
         """Create a suffix based on passed config to denote whether the run
