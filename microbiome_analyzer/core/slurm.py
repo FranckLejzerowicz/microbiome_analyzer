@@ -93,7 +93,7 @@ def set_preamble(self, job_script: str) -> list:
                 'conda deactivate &>/dev/null'
             ])
         else:
-            env.append('source \\$(conda info --base)/etc/profile.d/conda.sh')
+            env.append('source $(conda info --base)/etc/profile.d/conda.sh')
         env.append('conda activate %s' % self.params['env'])
         if self.params['machine'] == "saga":
             env.append('module purge')
