@@ -147,7 +147,7 @@ def set_directives(self) -> list:
     directives = self.config.directives
     ds.extend([directives['shebang'], directives['environment']])
     if self.config.account:
-        ds.append(self.config.account)
+        ds.append(directives['account'])
     if self.params['partition']:
         ds.append('%s%s' % (directives['partition'], self.params['partition']))
     else:
