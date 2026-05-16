@@ -234,6 +234,9 @@ from microbiome_analyzer import __version__
     "--config-email/--no-config-email", default=False, show_default=True,
     help="Show current email and/or edit it")
 @click.option(
+    "--send-email/--no-send-email", default=False, show_default=True,
+    help="Whether to send email on success")
+@click.option(
     "--config-scratch/--no-config-scratch", default=False,
     show_default=True, help="Show current scratch folders and/or edit them")
 @click.option(
@@ -295,6 +298,7 @@ def run(
         move_back,
         cleanup,
         config_email,
+        send_email,
         config_scratch,
         chunks
 ):
@@ -352,5 +356,6 @@ def run(
         cleanup=cleanup,
         config_email=config_email,
         config_scratch=config_scratch,
+        send_email=send_email,
         chunks=chunks
     )

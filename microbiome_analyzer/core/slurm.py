@@ -161,7 +161,8 @@ def set_directives(self) -> list:
         ds.append('%s%sG' % (localscratch, self.params['scratch']))
     elif directives['localscratch']:
         ds.append('%s%sG' % (localscratch, directives['localscratch']))
-    ds.append(directives['email'])
+    if self.config.send_email:
+        ds.append(directives['email'])
     ds.append(directives['oe'])
     ds.append('%s%s:00:00' % (directives['time'], self.params['time']))
     ds.append(''.join([directives['mem'],
