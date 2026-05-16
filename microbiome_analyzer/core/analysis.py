@@ -391,7 +391,6 @@ class AnalysisPrep(object):
             if dat in Datasets.raw_filt))
         project_coll = {}
         for dat, data in self.project.datasets.items():
-            print(dat)
             torm = []
             if data.source not in collapse_taxo:
                 continue
@@ -426,8 +425,7 @@ class AnalysisPrep(object):
                     if to_do(tax_tsv) or to_do(tax_biom) or to_do(tax_qzv):
                         cmd += write_collapse(
                             self, dat, data.qza[raref], data.tax[1], tax_qza,
-                            tax_tsv, tax_qzv, data.meta, tax_meta, level,
-                            empties[tax])
+                            tax_tsv, tax_qzv, tax_meta, level, empties[tax])
                     else:
                         data_tax.tsv[raref] = tax_tsv
                         data_tax.biom[raref] = tax_biom

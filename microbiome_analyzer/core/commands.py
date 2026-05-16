@@ -330,7 +330,6 @@ def write_collapse(
         collapsed_qza: str,
         collapsed_tsv: str,
         collapsed_qzv: str,
-        meta_fp: str,
         collapsed_meta: str,
         level: int,
         remove_empty: set
