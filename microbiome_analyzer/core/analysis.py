@@ -571,6 +571,8 @@ class AnalysisPrep(object):
                             data_subset.read_biom(raref)
                             if data_subset.data:
                                 feature_subsets[dat_subset] = data_subset
+        print("self.project.datasets.keys()")
+        print(self.project.datasets.keys())
         self.project.datasets.update(feature_subsets)
         self.register_io_command()
 
