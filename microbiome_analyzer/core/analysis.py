@@ -847,7 +847,8 @@ class AnalysisPrep(object):
                         if add_q2_type(meta_pd, meta, cv, [test], True, 4, typ):
                             continue
                         for est in estimators[typ]:
-                            rad = '%s/%s' % (test_dir, est)
+                            rad = '%s/%s' % (
+                                test_dir, est.replace('[', '').replace(']', ''))
                             ps, suf = self.get_classify_params(rad)
                             qzv = '%s_accuracy.qzv' % suf
                             classifs.setdefault((est, cohort), []).append(
