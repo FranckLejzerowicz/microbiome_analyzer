@@ -667,7 +667,7 @@ class AnalysisPrep(object):
         for dat, data in self.project.datasets.items():
             for raref, metrics_alphas in data.alpha.items():
                 for method in ['spearman', 'pearson']:
-                    self.get_output(dat, method)
+                    self.get_output(data.path, method)
                     for (qza, _, metric) in metrics_alphas:
                         if to_do(qza):
                             continue
@@ -684,7 +684,7 @@ class AnalysisPrep(object):
     def merge_alpha(self):
         self.analysis = 'alpha_merge'
         for dat, data in self.project.datasets.items():
-            self.get_output(dat)
+            self.get_output(data.path)
             for raref, alphas in data.alpha.items():
                 qza_out = '%s/alphas%s.qzv' % (self.out, raref)
                 tsv_out = '%s.tsv' % splitext(qza_out)[0]
@@ -748,7 +748,7 @@ class AnalysisPrep(object):
     def alpha_rarefaction(self):
         self.analysis = 'alpha_rarefaction'
         for dat, data in self.project.datasets.items():
-            self.get_output(dat)
+            self.get_output(data.path)
             for raref, alphas in data.alpha.items():
                 for (qza, tab, m) in alphas:
                     if to_do(qza):
@@ -765,7 +765,7 @@ class AnalysisPrep(object):
         self.analysis = 'alpha_group_significance'
         for dat, data in self.project.datasets.items():
             for raref, metrics_alphas in data.alpha.items():
-                self.get_output(dat)
+                self.get_output(data.path)
                 for (qza, _, metric) in metrics_alphas:
                     if to_do(qza):
                         continue
@@ -828,16 +828,16 @@ class AnalysisPrep(object):
         for dat, data in self.project.datasets.items():
             if 'global' in self.config.predict:
                 dat_cols = self.config.predict['global']
-            elif dat not in self.config.predict:
+            elif data.source not in self.config.predict:
                 continue
             else:
-                dat_cols = self.config.predict[dat]
+                dat_cols = self.config.predict[data.source]
             for raref, qza in data.qza.items():
                 classifs = {}
                 for cohort, (sams, variables) in data.subsets[raref].items():
                     tests = self.check_testing(dat_cols, data, cohort, sams, 4)
                     if tests:
-                        self.get_output(dat, cohort)
+                        self.get_output(data.path, cohort)
                     for test, typ in tests.items():
                         test_dir = '%s/%s%s' % (self.out, test, raref)
                         cv = '%s/cv.tsv' % test_dir
