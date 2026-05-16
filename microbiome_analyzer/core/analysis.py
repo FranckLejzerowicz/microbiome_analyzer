@@ -503,10 +503,10 @@ class AnalysisPrep(object):
     def get_features_subsets(self, dat, subset, dat_subset, data,
                              data_subset, feats, raref):
         if data.filt:
-            self.get_output(dat, 'sub-', 'filt-%s' % data.filt)
+            self.get_output(dat, 'sub-%s' % subset, 'filt-%s' % data.filt)
         else:
-            self.get_output(dat, 'sub-', 'filt-nan')
-        tsv_subset = '%s/%s/table%s.tsv' % (self.out, subset, raref)
+            self.get_output(dat, 'sub-%s' % subset, 'filt-nan')
+        tsv_subset = '%s/table%s.tsv' % (self.out, raref)
         make_fp_dir(tsv_subset)
         biom_subset = '%s.biom' % splitext(tsv_subset)[0]
         qza_subset = '%s.qza' % splitext(tsv_subset)[0]
@@ -538,6 +538,10 @@ class AnalysisPrep(object):
             if data.source not in self.config.feature_subsets:
                 continue
             for sub_, regex in self.config.feature_subsets[data.source].items():
+                print()
+                print(dat)
+                print(data.source)
+                print(sub_)
                 for reverse in reverses:
                     feats = find_matching_features(data, regex, reverse)
                     if not feats:
