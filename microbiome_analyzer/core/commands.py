@@ -1308,7 +1308,8 @@ def write_rpca(
         if not to_do(diffs):
             new_diffs = '%s.diffs.txt' % splitext(ordi_tsv)[0]
             set1 = '%s_set1.txt' % splitext(ordi_tsv)[0]
-            cmd += 'cut -f 1 %s | tail -n +3 | sort > %s\n' % (diffs, set1)
+            cmd += 'cut -f 1 %s | tail -n +2 | sort > %s\n' % (diffs, set1)
+            # cmd += 'cut -f 1 %s | tail -n +3 | sort > %s\n' % (diffs, set1)
             add = '%s_add.txt' % splitext(ordi_tsv)[0]
             cmd += 'comm -13 %s %s > %s\n' % (set1, ordi_set, add)
             cmd += 'cat %s %s > %s\n' % (diffs, add, new_diffs)
