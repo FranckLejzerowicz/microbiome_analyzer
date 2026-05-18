@@ -590,8 +590,8 @@ class AnalysisPrep(object):
         steps = ['filt-', 'tx-', 'sub-']
         edits = pd.DataFrame([[
             d.filt, d.taxon, d.subset] for d in self.project.datasets.values()
-        ], columns=steps, index=self.project.datasets.keys()).fillna('nan')
-        # edits = edits.loc[:, edits.astype(bool).sum() > 0].T.to_dict()
+        ], columns=steps, index=self.project.datasets.keys())
+        edits = edits.fillna('nan').T.to_dict()
         for dat, data in self.project.datasets.items():
             data.path = data.source
             for step in steps:
