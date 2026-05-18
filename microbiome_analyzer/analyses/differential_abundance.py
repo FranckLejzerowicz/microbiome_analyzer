@@ -443,7 +443,7 @@ class DiffModels(object):
         if pair:
             return '%s/%s' % (dat.replace('/', ''), pair)
         else:
-            return '%s/unpaired' % dat
+            return '%s/unpaired' % dat.replace('/', '')
 
     def get_dirs(
             self,

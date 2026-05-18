@@ -598,7 +598,7 @@ class PairedData(object):
                 nul_dir, nul_rnk, nul_rdn, nul_stt = self.get_out('null')
                 summary = '%s/paired-summary.qzv' % self.out
                 mmvec.append([
-                    pair, filter_, subset, d1, d2, p1, a1, p2, a2,
+                    pair, filter_, subset, d1_, d2_, p1, a1, p2, a2,
                     len(row['common_sams']), row['meta_fp'], row['new_tsv1'],
                     row['new_tsv2'], row['new_qza1'], row['new_qza2'],
                     'mmvec_out__%s' % res_dir, self.out])
