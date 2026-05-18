@@ -217,10 +217,11 @@ class CreateScripts(object):
     def write_jobs(self):
         self.get_jobs_dir()
         self.get_nlss_nm()
-        for chunk, chunk_keys in self.chunks.items():
-            self.sh = '%s/run_%s.sh' % (self.jobs_dir, chunk.replace('/', '_'))
+        for chk, chunk_keys in self.chunks.items():
+            self.sh = '%s/run_%s_%s.sh' % (
+                self.jobs_dir, self.config.project_name, chk.replace('/', '_'))
             self.write_chunks(chunk_keys)
-            self.get_job_name(chunk)
+            self.get_job_name(chk)
             self.write_script()
 
     def get_main_sh(self, local=''):
