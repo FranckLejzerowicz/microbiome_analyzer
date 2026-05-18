@@ -1767,10 +1767,10 @@ def write_adonis(
         R scripts line
     """
     def adonis_collector(n, s, me, r, f):
-        r.append("res[[%s]]$strata <- '%s'" % (n, s))
-        r.append("res[[%s]]$metric <- '%s'" % (n, me))
-        r.append("res[[%s]]$formula <- '%s'" % (n, f))
-        r.append("res[[%s]]$factors <- row.names(res[[%s]])" % (n, n))
+        r.append("res[[%s]][['strata']] <- '%s'" % (n, s))
+        r.append("res[[%s]][['metric']] <- '%s'" % (n, me))
+        r.append("res[[%s]][['formula']] <- '%s'" % (n, f))
+        r.append("res[[%s]][['factors']] <- row.names(res[[%s]])" % (n, n))
         r.append("row.names(res[[%s]]) <- NULL" % n)
 
     i_f = [meta_fp]
