@@ -445,7 +445,7 @@ class Nestedness(object):
                 tab = data.data[raref]
                 tab_sams = set(pd.Series(tab.ids(axis='sample')))
                 for grp, (sams, variables) in data.subsets[raref].items():
-                    self.get_output(dat, grp)
+                    self.get_output(data.path, grp)
                     meta_fp = '%s/meta%s.tsv' % (self.out, raref)
                     meta = subset_meta(data.metadata, sams, variables)
                     if meta.shape[0] < 10:
