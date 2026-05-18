@@ -71,11 +71,11 @@ class AnalysisPrep(object):
             print(' -', dat)
         print('-'* 30)
 
-    def get_output(self, dat, cohort='', prefix=''):
-        out_dir = self.dir
-        if prefix:
-            out_dir += '/%s' % prefix
-        self.out = '/'.join([out_dir, self.analysis, dat])
+    def get_output(self, dat, cohort='', alt_analysis=''):
+        analysis = self.analysis
+        if alt_analysis:
+            analysis = alt_analysis
+        self.out = '/'.join([self.dir, analysis, dat])
         if cohort:
             cohort = cohort.replace('(', '').replace(')', '').replace(
                 ' ', '_').replace(',', '_')
@@ -604,7 +604,7 @@ class AnalysisPrep(object):
         for dat, data in self.project.datasets.items():
             if data.taxon or not data.taxa:
                 continue
-            self.get_output(dat)
+            self.get_output(data.path)
             for raref, qza in data.qza.items():
                 if to_do(qza):
                     continue
@@ -622,7 +622,7 @@ class AnalysisPrep(object):
         for dat, data in self.project.datasets.items():
             if data.taxon or not data.taxa:
                 continue
-            self.get_output(dat)
+            self.get_output(data.path)
             for raref, qza in data.qza.items():
                 if to_do(qza):
                     continue
