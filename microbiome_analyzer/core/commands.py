@@ -937,6 +937,7 @@ def write_classify(
         self,
         dat: str,
         qza: str,
+        new_qza: str,
         meta: str,
         test: str,
         est: str,
@@ -954,6 +955,7 @@ def write_classify(
     self
     dat : str
     qza : str
+    new_qza : str
     meta : str
     test : str
     est : str
@@ -965,11 +967,20 @@ def write_classify(
     -------
     cmd : str
     """
-    if typ == 'categorical':
-        cmd = 'qiime sample-classifier classify-samples'
-    else:
-        cmd = 'qiime sample-classifier regress-samples'
+
+    cmd = 'qiime feature-table filter-samples'
     cmd += ' --i-table %s' % qza
+    cmd += ' --p-min-frequency 10'
+    cmd += ' --p-min-features 10'
+    cmd += ' --p-filter-empty-features'
+    cmd += ' --m-metadata-file %s' % meta
+    cmd += ' --o-filtered-table %s\n' % new_qza
+
+    if typ == 'categorical':
+        cmd += 'qiime sample-classifier classify-samples'
+    else:
+        cmd += 'qiime sample-classifier regress-samples'
+    cmd += ' --i-table %s' % new_qza
     cmd += ' --m-metadata-file %s' % meta
     cmd += ' --m-metadata-column %s' % test
     cmd += ' --p-test-size %s' % ps['test']
@@ -992,16 +1003,6 @@ def write_classify(
     else:
         cmd += ' --p-no-parameter-tuning'
     cmd += ' --p-missing-samples %s' % ps['missing']
-    cmd += ' --o-sample-estimator %s_sample-estimator.qza' % rad
-    cmd += ' --o-feature-importance %s_feature-importance.qza' % rad
-    cmd += ' --o-predictions %s_predictions.qza' % rad
-    cmd += ' --o-model-summary %s_model-summary.qzv' % rad
-    cmd += ' --o-accuracy-results %s_accuracy.qzv' % rad
-    if typ == 'categorical':
-        cmd += ' --o-probabilities %s_probabilities.qza' % rad
-        cmd += ' --o-heatmap %s_heatmap.qzv' % rad
-        cmd += ' --o-training-targets %s_training-targets.qza' % rad
-        cmd += ' --o-test-targets %s_test-targets.qza' % rad
     nodes = self.config.run_params['classify']['nodes']
     cpus = self.config.run_params['classify']['cpus']
     qiime_env = self.config.qiime_env
@@ -1009,7 +1010,17 @@ def write_classify(
         cmd += ' --p-threads %s' % (int(nodes) * int(cpus))
     else:
         cmd += ' --p-n-jobs %s' % (int(nodes) * int(cpus))
-
+    if typ == 'categorical':
+        cmd += ' --o-probabilities %s_probabilities.qza' % rad
+        cmd += ' --o-heatmap %s_heatmap.qzv' % rad
+        cmd += ' --o-training-targets %s_training-targets.qza' % rad
+        cmd += ' --o-test-targets %s_test-targets.qza' % rad
+    cmd += ' --o-sample-estimator %s_sample-estimator.qza' % rad
+    cmd += ' --o-feature-importance %s_feature-importance.qza' % rad
+    cmd += ' --o-predictions %s_predictions.qza' % rad
+    cmd += ' --o-model-summary %s_model-summary.qzv' % rad
+    cmd += ' --o-accuracy-results %s_accuracy.qzv\n' % rad
+    cmd += 'rm %s\n' % new_qza
     io_update(self, i_f=[qza, meta], o_d=dirname(rad), key=dat)
     return cmd
 

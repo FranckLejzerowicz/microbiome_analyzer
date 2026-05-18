@@ -850,12 +850,14 @@ class AnalysisPrep(object):
                             rad = '%s/%s' % (
                                 test_dir, est.replace('[', '').replace(']', ''))
                             ps, suf = self.get_classify_params(rad)
+                            new_qza = '%s_filtered.qza' % suf
                             qzv = '%s_accuracy.qzv' % suf
                             classifs.setdefault((est, cohort), []).append(
                                 (cv, test, qzv))
                             if self.config.force or to_do(qzv):
-                                cmd = write_classify(self, dat, qza, meta, test,
-                                                     est, suf, ps, typ)
+                                cmd = write_classify(
+                                    self, dat, qza, new_qza, meta, test, est,
+                                    suf, ps, typ)
                                 self.register_provenance(dat, (qzv,), cmd)
                                 self.cmds.setdefault(dat, []).append(cmd)
                 data.classifs[raref] = classifs
