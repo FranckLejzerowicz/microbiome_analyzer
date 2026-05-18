@@ -134,7 +134,7 @@ class CreateScripts(object):
             #     sh.write('rm -rf $TMPDIR\n')
 
     def get_job_name(self, chunk: str):
-        self.job_name = self.nlss + '.' + self.config.prjct_nm
+        self.job_name = self.nlss + '.' + self.config.project_name
         self.job_name += '.' + chunk.replace('/', '_')
 
     def write_script(self):
@@ -224,7 +224,8 @@ class CreateScripts(object):
             self.write_script()
 
     def get_main_sh(self, local=''):
-        self.main = '%s/%s/run%s.sh' % (rep(self.dir), self.analysis, local)
+        self.main = '/'.join([rep(self.dir), self.analysis])
+        self.main += '/run_%s%s.sh' % (self.config.project_name, local)
         self.run['%s%s' % (self.analysis, local)] = self.main
 
     def write_main(self):
