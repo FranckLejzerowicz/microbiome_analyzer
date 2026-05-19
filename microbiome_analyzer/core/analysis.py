@@ -975,6 +975,8 @@ class AnalysisPrep(object):
                             data.metadata, sams, variables, '', terms)
                         cv = '%s/cv_%s%s.tsv' % (self.out, model, raref)
                         meta = '%s/meta_%s%s.tsv' % (self.out, model, raref)
+                        print("model")
+                        print(model)
                         if add_q2_type(meta_pd, meta, cv, terms):
                             continue
                         out = '%s/r2%s_%s.txt' % (self.out, raref, model)
