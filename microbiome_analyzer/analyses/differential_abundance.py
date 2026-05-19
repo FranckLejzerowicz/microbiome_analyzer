@@ -774,9 +774,11 @@ class DiffModels(object):
             print("dat")
             print(dat)
             print(self.songbird_models)
-            print("-------------")
+            print(to_do(qza))
             if dat not in self.songbird_models or to_do(qza):
                 continue
+            print("-------------")
+
             pair_dir = self.get_dat_pair_dir(dat, pair)
             meta_pd = read_meta_pd(rep(meta_fp))
             models = self.check_metadata_models(
