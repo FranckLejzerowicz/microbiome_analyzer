@@ -1247,9 +1247,10 @@ class AnalysisPrep(object):
                         continue
                     sams2 = data2.subsets[r2][cohort][0]
                     sams = list(set(sams1) & set(sams2))
-                    if len(sams) < 8:
+                    if len(sams) < 6:
                         continue
                     path = p1.replace(dat1, dat1 + r1 + '__' + dat2 + r2)
+                    print(path)
                     self.get_output(pair, cohort)
                     write_meta = True
                     for edx, ((d1, t1, m1), (d2, t2, m2)) in enumerate(
