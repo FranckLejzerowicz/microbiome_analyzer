@@ -163,6 +163,7 @@ class DiffModels(object):
         if filts_df:
             self.songbirds = pd.DataFrame(filts_df, columns=[
                 'dataset', 'is_mb', 'filter', 'prevalence', 'abundance'])
+        print(self.songbirds)
 
     def prep_songbirds(self, mmvec_pd):
         self.get_songbirds_filts()
@@ -808,7 +809,6 @@ class DiffModels(object):
                         self.get_output('%s/b-%s' % (dat_dir, model_base))
                         out_paths = self.get_out_paths(
                             o_dir, model_base, baselines)
-                        print(out_paths)
                         # convergence = self.check_stats_convergence(out_paths)
                         cmd, fcmd, bcmd, skip = write_songbird(
                             self, dat, qza, new_qza, new_meta, nsams, params,
