@@ -265,8 +265,12 @@ class DiffModels(object):
         train_tests = {}
         train = train_test_d['train']
         meta_tt_pd = meta_pd.set_index('sample_name').copy()
-        if 'datasets' in train_test_d and dat in train_test_d['datasets']:
-            for tt, vars_ in train_test_d['datasets'][dat].items():
+        if dat in train_test_d.get('datasets') or 'global' in train_test_d:
+            if 'global' in train_test_d:
+                d = train_test_d['global']
+            else:
+                d = train_test_d['datasets'][dat]
+            for tt, vars_ in d.items():
                 vars_pd = meta_tt_pd[vars_].copy()
                 vars_pd = vars_pd.loc[~vars_pd.isna().any(axis=1)]
                 vars_pd = rename_duplicate_columns(vars_pd)
