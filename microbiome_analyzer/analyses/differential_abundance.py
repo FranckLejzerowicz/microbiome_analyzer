@@ -785,6 +785,7 @@ class DiffModels(object):
                 mess = self.get_train_example(meta_pd, params)
                 print("1 dat:", dat, 'pair:', pair, "pair_dir", pair_dir)
                 if mess:
+                    print("mess", mess)
                     self.print_message_or_not(messages, mess)
                     continue
                 print("2 dat:", dat, 'pair:', pair, "pair_dir", pair_dir)
