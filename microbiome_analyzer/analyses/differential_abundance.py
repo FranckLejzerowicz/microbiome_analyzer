@@ -152,6 +152,7 @@ class DiffModels(object):
                 subsets_fp, columns=['dataset', 'subset', 'subsets', 'pair'])
             self.songbirds = self.songbirds.merge(
                 subsets, on=['dataset'], how='outer')
+        print(self.songbirds)
 
     def get_songbirds_filts(self):
         filts_df = []
@@ -792,15 +793,6 @@ class DiffModels(object):
                     new_meta = '%s/metadata.tsv' % o_dir
                     if skip_subset(variables, meta_pd):
                         continue
-                    print("--------------------")
-                    print("dat")
-                    print(dat, pair)
-                    print(p)
-                    print(self.songbird_models)
-                    print(model)
-                    print(dat_dir)
-                    print(to_do(qza))
-                    print("-- no skip_subset --")
                     nsams = self.new_meta(meta_pd, new_meta, variables, params)
                     if dat in self.baselines and model in self.baselines[dat]:
                         if self.baselines[dat][model]:
