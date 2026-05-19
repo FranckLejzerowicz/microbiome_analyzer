@@ -776,21 +776,22 @@ class DiffModels(object):
             qza, pair, meta_fp = row['qza'], row['pair'], row['meta']
             dat, filt, subset = row['dataset'], row['filter'], row['subset']
             if dat not in self.songbird_models or to_do(qza):
-                print("dat:", dat)
                 continue
             pair_dir = self.get_dat_pair_dir(dat, pair)
-            print("dat:", dat, 'pair:', pair, "pair_dir", pair_dir)
             meta_pd = read_meta_pd(rep(meta_fp))
             models = self.check_metadata_models(
                 meta_fp, meta_pd, self.songbird_models[dat])
             for p, params in params_pd.iterrows():
                 mess = self.get_train_example(meta_pd, params)
+                print("1 dat:", dat, 'pair:', pair, "pair_dir", pair_dir)
                 if mess:
                     self.print_message_or_not(messages, mess)
                     continue
+                print("2 dat:", dat, 'pair:', pair, "pair_dir", pair_dir)
                 filt_list, params_list = self.get_filt_params(params)
                 baselines, model_baselines = {}, {'1': '1'}
                 for model, (formula, variables) in models.items():
+                    print("3 dat:", dat, 'pair:', pair, "pair_dir", pair_dir)
                     dat_dir, p_dir, o_dir = self.get_dirs(
                         pair_dir, filt, subset, filt_list, params_list, model)
                     new_qza = '%s/tab.qza' % o_dir
