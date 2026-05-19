@@ -975,10 +975,11 @@ class AnalysisPrep(object):
                             data.metadata, sams, variables, '', terms)
                         cv = '%s/cv_%s%s.tsv' % (self.out, model, raref)
                         meta = '%s/meta_%s%s.tsv' % (self.out, model, raref)
-                        if add_q2_type(meta_pd, meta, cv, terms):
-                            continue
-                        print("model")
-                        print(model)
+                        meta_pd.to_csv(rep(meta), index=False, sep='\t')
+                        # if add_q2_type(meta_pd, meta, cv, terms):
+                        #     continue
+                        # print("model")
+                        # print(model)
                         out = '%s/r2%s_%s.txt' % (self.out, raref, model)
                         if self.config.force or to_do(out):
                             r2s.setdefault(cohort, []).append((model, out))
