@@ -287,7 +287,6 @@ class DiffModels(object):
                 d = sb.iloc[0, :].to_dict()
                 fps = ['dataset', 'tsv', 'qza', 'meta']
                 dat, tsv, qza, meta_fp = [d[x] for x in fps]
-                print(dat, meta_fp)
                 meta_subset = read_meta_pd(rep(meta_fp))
                 train_tests = self.make_train_test_column(
                     rep(meta_fp), meta_subset, dat)
@@ -788,16 +787,12 @@ class DiffModels(object):
                 meta_fp, meta_pd, self.songbird_models[dat])
             for p, params in params_pd.iterrows():
                 mess = self.get_train_example(meta_pd, params)
-                print("1 dat:", dat, 'pair:', pair, "pair_dir", pair_dir)
                 if mess:
-                    print("mess", mess)
                     self.print_message_or_not(messages, mess)
                     continue
-                print("2 dat:", dat, 'pair:', pair, "pair_dir", pair_dir)
                 filt_list, params_list = self.get_filt_params(params)
                 baselines, model_baselines = {}, {'1': '1'}
                 for model, (formula, variables) in models.items():
-                    print("3 dat:", dat, 'pair:', pair, "pair_dir", pair_dir)
                     dat_dir, p_dir, o_dir = self.get_dirs(
                         pair_dir, filt, subset, filt_list, params_list, model)
                     new_qza = '%s/tab.qza' % o_dir
