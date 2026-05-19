@@ -175,8 +175,8 @@ class DiffModels(object):
         for rdx, row in enumerate(mmvec_pd.values):
             pair, _, subset, dat1, dat2, prev1, abun1, prev2, abun2 = row[:9]
             meta_fp, tsv1, tsv2, qza1, qza2 = row[10:15]
-            filt1 = '%s-%s' % (prev1, abun1)
-            filt2 = '%s-%s' % (prev2, abun2)
+            filt1 = '%s_%s' % (prev1, abun1)
+            filt2 = '%s_%s' % (prev2, abun2)
             mmvecs.append([
                 dat1, filt1, prev1, abun1, subset, pair, tsv1, qza1, meta_fp])
             mmvecs.append([
