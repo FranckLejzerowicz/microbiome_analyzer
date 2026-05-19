@@ -770,15 +770,8 @@ class DiffModels(object):
         for r, row in self.songbirds.iterrows():
             qza, pair, meta_fp = row['qza'], row['pair'], row['meta']
             dat, filt, subset = row['dataset'], row['filter'], row['subset']
-            print("-------------")
-            print("dat")
-            print(dat)
-            print(self.songbird_models)
-            print(to_do(qza))
             if dat not in self.songbird_models or to_do(qza):
                 continue
-            print("-------------")
-
             pair_dir = self.get_dat_pair_dir(dat, pair)
             meta_pd = read_meta_pd(rep(meta_fp))
             models = self.check_metadata_models(
@@ -797,7 +790,15 @@ class DiffModels(object):
                     new_meta = '%s/metadata.tsv' % o_dir
                     if skip_subset(variables, meta_pd):
                         continue
-                    print("-----no skip_subset--------")
+                    print("--------------------")
+                    print("dat")
+                    print(dat, pair)
+                    print(p)
+                    print(self.songbird_models)
+                    print(model)
+                    print(dat_dir)
+                    print(to_do(qza))
+                    print("-- no skip_subset --")
                     nsams = self.new_meta(meta_pd, new_meta, variables, params)
                     if dat in self.baselines and model in self.baselines[dat]:
                         if self.baselines[dat][model]:
@@ -807,6 +808,7 @@ class DiffModels(object):
                         self.get_output('%s/b-%s' % (dat_dir, model_base))
                         out_paths = self.get_out_paths(
                             o_dir, model_base, baselines)
+                        print(out_paths)
                         # convergence = self.check_stats_convergence(out_paths)
                         cmd, fcmd, bcmd, skip = write_songbird(
                             self, dat, qza, new_qza, new_meta, nsams, params,
