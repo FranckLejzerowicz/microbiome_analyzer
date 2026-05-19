@@ -164,7 +164,8 @@ class DiffModels(object):
         if filts_df:
             self.songbirds = pd.DataFrame(filts_df, columns=[
                 'dataset', 'is_mb', 'filter', 'prevalence', 'abundance'])
-        print(self.songbirds)
+        print(self.songbirds[[
+                'dataset', 'filter', 'prevalence', 'abundance']])
 
     def prep_songbirds(self, mmvec_pd):
         self.get_songbirds_filts()
@@ -188,7 +189,7 @@ class DiffModels(object):
             mmvecs_pd = pd.DataFrame(mmvecs, columns=self.songbirds.columns)
             self.songbirds = pd.concat([self.songbirds, mmvecs_pd])
         print("merge")
-        print(self.songbirds)
+        print(self.songbirds[['dataset', 'pair']])
 
     def make_datasets_paths(self):
         self.get_datasets_paths()
@@ -778,6 +779,7 @@ class DiffModels(object):
                 print("dat:", dat)
                 continue
             pair_dir = self.get_dat_pair_dir(dat, pair)
+            print("dat:", dat, 'pair:', pair, "pair_dir", pair_dir)
             meta_pd = read_meta_pd(rep(meta_fp))
             models = self.check_metadata_models(
                 meta_fp, meta_pd, self.songbird_models[dat])
