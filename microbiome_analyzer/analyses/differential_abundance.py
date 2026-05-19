@@ -797,6 +797,7 @@ class DiffModels(object):
                     new_meta = '%s/metadata.tsv' % o_dir
                     if skip_subset(variables, meta_pd):
                         continue
+                    print("-----no skip_subset--------")
                     nsams = self.new_meta(meta_pd, new_meta, variables, params)
                     if dat in self.baselines and model in self.baselines[dat]:
                         if self.baselines[dat][model]:
