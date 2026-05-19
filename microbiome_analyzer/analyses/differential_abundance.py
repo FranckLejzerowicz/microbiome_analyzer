@@ -200,10 +200,14 @@ class DiffModels(object):
                 subsets = row_d['subsets']
                 meta_pd = get_subset_pd(data.metadata, dat, subset, subsets)
                 meta_pd.to_csv(rep(meta), index=False, sep='\t')
+                print("make_datasets_paths - dat", dat)
                 if not self.config.force and not (to_do(tsv) or to_do(qza)):
+                    print(1)
                     continue
                 if not data.data:
+                    print(2)
                     continue
+                print(3)
                 tsv_pd = data.data[''].to_dataframe(dense=True)[
                     meta_pd.sample_name.tolist()]
                 preval, abund = row_d['prevalence'], row_d['abundance']
