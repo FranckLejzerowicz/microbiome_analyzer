@@ -283,6 +283,7 @@ class DiffModels(object):
                 d = sb.iloc[0, :].to_dict()
                 fps = ['dataset', 'tsv', 'qza', 'meta']
                 dat, tsv, qza, meta_fp = [d[x] for x in fps]
+                print(dat, meta_fp)
                 meta_subset = read_meta_pd(rep(meta_fp))
                 train_tests = self.make_train_test_column(
                     rep(meta_fp), meta_subset, dat)
