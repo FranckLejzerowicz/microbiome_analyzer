@@ -265,7 +265,7 @@ class DiffModels(object):
         train_tests = {}
         train = train_test_d['train']
         meta_tt_pd = meta_pd.set_index('sample_name').copy()
-        if dat in train_test_d.get('datasets') or 'global' in train_test_d:
+        if 'global' in train_test_d or dat in train_test_d.get('datasets', {}):
             if 'global' in train_test_d:
                 d = train_test_d['global']
             else:
