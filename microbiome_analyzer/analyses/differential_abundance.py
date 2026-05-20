@@ -817,12 +817,13 @@ class DiffModels(object):
                                 p_dir.replace('/', '__'), model),
                             subset, out_paths['diff'], model_base,
                             out_paths['html'], pair])
+                        grp = '%s-%s-%s' % (pair, model, dat)
                         if cmd:
-                            self.cmds.setdefault(dat, []).append(cmd)
+                            self.cmds.setdefault(grp, []).append(cmd)
                         if fcmd:
-                            self.fcmds.setdefault(dat, []).append(fcmd)
+                            self.fcmds.setdefault(grp, []).append(fcmd)
                         if bcmd:
-                            self.bcmds.setdefault(dat, []).append(bcmd)
+                            self.bcmds.setdefault(grp, []).append(bcmd)
         if songbird:
             self.get_songbird_pd(songbird)
 
