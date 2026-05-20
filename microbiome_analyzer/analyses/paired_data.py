@@ -591,6 +591,7 @@ class PairedData(object):
             d2_, p2, a2 = row['dataset2'], row['prevalence2'], row['abundance2']
             d1, d2 = d1_.replace('/', ''), d2_.replace('/', '')
             for p, params in params_pd.iterrows():
+                print(d1_, d1, d2_, d2, pair)
                 res_dir = self.get_res_dir(params)
                 self.get_output('paired/%s/%s/%s_%s-%s__%s_%s-%s/%s' % (
                     pair, subset, d1, p1, a1, d2, p2, a2, res_dir))
