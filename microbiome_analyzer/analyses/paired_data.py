@@ -585,13 +585,13 @@ class PairedData(object):
         self.analysis = 'mmvec'
         params_pd = self.get_params_combinations()
         for r, row in self.mmvecs.iterrows():
+            print(r, row)
             self.process_params_combinations(row, params_pd, mess)
             pair, filter_, subset = row['pair'], row['filter'], row['subset']
             d1_, p1, a1 = row['dataset1'], row['prevalence1'], row['abundance1']
             d2_, p2, a2 = row['dataset2'], row['prevalence2'], row['abundance2']
             d1, d2 = d1_.replace('/', ''), d2_.replace('/', '')
             for p, params in params_pd.iterrows():
-                print(d1_, d1, d2_, d2, pair)
                 res_dir = self.get_res_dir(params)
                 self.get_output('paired/%s/%s/%s_%s-%s__%s_%s-%s/%s' % (
                     pair, subset, d1, p1, a1, d2, p2, a2, res_dir))
