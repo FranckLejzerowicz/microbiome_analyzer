@@ -259,7 +259,6 @@ class AnalysesConfig(object):
             # if at least one chunk is told to be used
             if self.chunks:
                 # then collect this number of chunks/jobs for the key "chunks"
-                print('* Set default number of jobs: %s per step' % self.chunks)
                 self.run_params[analysis]['chunks'] = self.chunks
 
     def set_user_params(self, logging):
