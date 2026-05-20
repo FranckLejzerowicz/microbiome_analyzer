@@ -212,7 +212,7 @@ class PairedData(object):
                     d = tt_d['global']
                 else:
                     d = tt_d['datasets'][dat]
-                for tt, vars_ in d['datasets'][dat].items():
+                for tt, vars_ in d.items():
                     vars_pd = meta_tt_pd[vars_].copy()
                     vars_pd = vars_pd.loc[~vars_pd.isna().any(axis=1)]
                     vars_pd = rename_duplicate_columns(vars_pd)
