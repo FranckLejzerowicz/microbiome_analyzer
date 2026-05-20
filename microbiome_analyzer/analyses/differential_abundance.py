@@ -261,15 +261,15 @@ class DiffModels(object):
         return None
 
     def make_train_test_column(self, meta_fp, meta_pd, dat) -> dict:
-        train_test_d = self.config.train_test_dict
+        tt_d = self.config.train_test_dict
         train_tests = {}
-        train = train_test_d['train']
+        train = tt_d['train']
         meta_tt_pd = meta_pd.set_index('sample_name').copy()
-        if 'global' in train_test_d or dat in train_test_d.get('datasets', {}):
-            if 'global' in train_test_d:
-                d = train_test_d['global']
+        if 'global' in tt_d or dat in tt_d.get('datasets', {}):
+            if 'global' in tt_d:
+                d = tt_d['global']
             else:
-                d = train_test_d['datasets'][dat]
+                d = tt_d['datasets'][dat]
             for tt, vars_ in d.items():
                 vars_pd = meta_tt_pd[vars_].copy()
                 vars_pd = vars_pd.loc[~vars_pd.isna().any(axis=1)]

@@ -201,19 +201,23 @@ class PairedData(object):
             return train_samples
         return None
 
-    def make_train_test_column(self, meta_fp, train_test_d,
-                               meta_pd, dat1, dat2) -> dict:
+    def make_train_test_column(self, meta_fp, meta_pd, dat1, dat2) -> dict:
+        tt_d = self.config.train_test_dict
         train_tests = {}
-        train = train_test_d['train']
+        train = tt_d['train']
         meta_tt_pd = meta_pd.set_index('sample_name').copy()
         for dat in [dat1, dat2]:
-            if 'datasets' in train_test_d and dat in train_test_d['datasets']:
-                for tt, vars_ in train_test_d['datasets'][dat].items():
+            if 'global' in tt_d or dat in tt_d.get('datasets', {}):
+                if 'global' in tt_d:
+                    d = tt_d['global']
+                else:
+                    d = tt_d['datasets'][dat]
+                for tt, vars_ in d['datasets'][dat].items():
                     vars_pd = meta_tt_pd[vars_].copy()
                     vars_pd = vars_pd.loc[~vars_pd.isna().any(axis=1)]
                     vars_pd = rename_duplicate_columns(vars_pd)
-                    trains = self.get_traintests(meta_fp, vars_pd, vars_,
-                                                 str(train), tt)
+                    trains = self.get_traintests(
+                        meta_fp, vars_pd, vars_, str(train), tt)
                     if trains:
                         train_tests[tt] = trains
                 break
@@ -301,8 +305,7 @@ class PairedData(object):
                     d[x] for x in fps]
                 meta_subset = read_meta_pd(rep(meta_fp))
                 train_tests = self.make_train_test_column(
-                    rep(meta_fp), self.config.train_test_dict,
-                    meta_subset, dat1, dat2)
+                    rep(meta_fp), meta_subset, dat1, dat2)
                 rewrite = False
                 meta_subset_cols = set(meta_subset.columns)
                 for train_col, train_samples in train_tests.items():
@@ -585,15 +588,12 @@ class PairedData(object):
         self.analysis = 'mmvec'
         params_pd = self.get_params_combinations()
         for r, row in self.mmvecs.iterrows():
-            print(r, row)
             self.process_params_combinations(row, params_pd, mess)
             pair, filter_, subset = row['pair'], row['filter'], row['subset']
             d1_, p1, a1 = row['dataset1'], row['prevalence1'], row['abundance1']
             d2_, p2, a2 = row['dataset2'], row['prevalence2'], row['abundance2']
             d1, d2 = d1_.replace('/', ''), d2_.replace('/', '')
-            print(d1_, d1, d2_, d2, pair)
             for p, params in params_pd.iterrows():
-                print(p)
                 res_dir = self.get_res_dir(params)
                 self.get_output('paired/%s/%s/%s_%s-%s__%s_%s-%s/%s' % (
                     pair, subset, d1, p1, a1, d2, p2, a2, res_dir))
