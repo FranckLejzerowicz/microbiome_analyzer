@@ -108,7 +108,7 @@ def check_vals(
 ):
     meta_pd_vars = set(meta_pd.columns.tolist())
     if var not in meta_pd_vars:
-        print('[%s][%s] no variable %s in "%s"' % (dat, analysis, var, data.dat))
+        print('[%s][%s] no variable %s in "%s"' % (dat, analysis, var, dat))
         return True
     else:
         factors = meta_pd[var].unique()
