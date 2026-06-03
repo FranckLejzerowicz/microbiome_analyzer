@@ -1,0 +1,7 @@
+{
+    "main": "The `volatility` folder contains jobs and their outputs to show the longitudinal volatility of sample metadata and/or feature frequencies  across time",
+    "qiime2 command": "`qiime longitudinal volatility`",
+    "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/longitudinal/#q2-action-longitudinal-volatility,
+    "dataset": "the first folders in `volatility` are each of the datasets.",
+    "version": "Generated from configuration file"
+}

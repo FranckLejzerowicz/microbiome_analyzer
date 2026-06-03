@@ -373,8 +373,8 @@ class AnalysesConfig(object):
                     self.analyses.append(('Kruskal-Wallis for alpha diversity',
                                           'alpha_group_significance'))
 
-        # if self.time_subject and 'volatility' not in self.skip:
-        #     self.analyses.append(('Volatility analysis', 'volatility'))
+        if self.time_subject and 'volatility' not in self.skip:
+            self.analyses.append(('Volatility analysis', 'volatility'))
         # if self.time_subject and 'ctf' not in self.skip:
         #     self.analyses.append(('Compositional Tensor Factorisation analysis',
         #                           'ctf'))
