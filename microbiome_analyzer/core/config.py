@@ -375,9 +375,9 @@ class AnalysesConfig(object):
 
         if self.time_subject and 'volatility' not in self.skip:
             self.analyses.append(('Volatility analysis', 'volatility'))
-        # if self.time_subject and 'ctf' not in self.skip:
-        #     self.analyses.append(('Compositional Tensor Factorisation analysis',
-        #                           'ctf'))
+        if self.time_subject and 'ctf' not in self.skip:
+            self.analyses.append(('Compositional Tensor Factorisation analysis',
+                                  'ctf'))
         if 'rpca' not in self.skip:
             self.analyses.append(('Robust-Principal Componenz Analysis',
                                   'rpca'))
