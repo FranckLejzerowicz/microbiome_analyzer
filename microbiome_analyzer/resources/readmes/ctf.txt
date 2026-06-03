@@ -1,0 +1,9 @@
+{
+    "main": "The `ctf` folder contains jobs and their outputs to perform analyses of inter-individual variation using repeated measure experimental designs (e.g. time series) while accounting for repeated measures, compositionality, and sparsity in microbiome data",
+    "reference": "Martino, C. and Shenhav, L. et al. Context-aware dimensionality reduction deconvolutes gut microbial community dynamics. Nat. Biotechnol. (2020) doi:10.1038/s41587-020-0660-7",
+    "qiime2 command": "`qiime longitudinal volatility`",
+    "doi": "https://doi.org/10.1038/s41587-020-0660-7",
+    "dataset": "the first folders in `ctf` are each of the datasets.",
+    "output": "For each tested variable",
+    "version": "Generated from configuration file"
+}
