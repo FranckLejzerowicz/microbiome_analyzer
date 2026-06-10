@@ -155,6 +155,7 @@ from microbiome_analyzer import __version__
         'phate',
         'krona',
         'rpca',
+        'ctf',
         'beta',
         'deicode',
         'pcoa',
@@ -206,6 +207,10 @@ from microbiome_analyzer import __version__
     "--filt-only/--no-filt-only", default=False, show_default=True,
     help="Only process the filtered version (and not also the raw) "
          "version of each dataset")
+@click.option(
+    "--incidences/--no-incidences", default=True, show_default=True,
+    help="Whether to count features/samples/reads frequencies per feature"
+         "for various sample, prevalence, and relative abundance thresholds")
 @click.option(
     "-filt3d", "--filt3d", required=False, show_default=False,
     help="Levels for the exploration of filtering. Must be a yaml file")
@@ -288,6 +293,7 @@ def run(
         alphas,
         betas,
         account,
+        incidences,
         filt3d,
         filt_only,
         jobs,
@@ -345,6 +351,7 @@ def run(
         alphas=alphas,
         betas=betas,
         account=account,
+        incidences=incidences,
         filt3d_fp=filt3d,
         filt_only=filt_only,
         jobs=jobs,

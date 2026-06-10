@@ -10,6 +10,7 @@ import re
 import os
 import glob
 import yaml
+import numpy as np
 import pandas as pd
 import pkg_resources
 from os.path import basename, dirname, isdir, isfile, splitext
@@ -151,6 +152,62 @@ class AnalysisPrep(object):
             biom = data.data['']
             for pv, ab in its.product(*[defaults['preval'], defaults['abund']]):
                 filter_3d(dat, pv, ab, defaults, biom, targeted, rep(self.out))
+
+    @staticmethod
+    def get_incidences(pbiom, dat, mins, minp, mina):
+        tab = pbiom.copy()
+        relab = (tab / tab.sum()).fillna(0)
+        tab = tab.where(relab >= mina, other=0)
+        tab = tab.loc[tab.sum(1) > 0, tab.sum() > 0]
+        f, s = tab.shape
+        n = round(tab.sum().describe(), 3)
+        n = n.drop(index=['25%', '50%', '75%'])
+        n.index = ['ASVs'] + ['reads_%s' % x for x in n.index[1:]]
+        pres = n.to_dict()
+        pres['features'] = f
+        pres['samples'] = s
+        pres['dataset'] = dat
+        pres['min_sample_reads'] = mins
+        if minp >= 1:
+            pres['min_prevalence_number'] = minp
+        else:
+            pres['min_prevalence_percent'] = minp
+        pres['min_abundance_percent'] = mina
+        return pres
+
+    def explore_incidences(self):
+        self.analysis = 'incidences'
+        for dat, data in self.project.datasets.items():
+            self.get_output(dat)
+            biom = data.data[''].to_dataframe()
+            sams = biom.sum()
+            smax = sams.max()
+            res = []
+            min_sams = [0, 1000, 2000, 5000, 10000, 50000]
+            min_prevs = [x/1000 for x in range(1, 21)]
+            min_abunds = [round(x/1000, 3) for x in np.logspace(0, 3, 10)][:-1]
+            for mins in min_sams:
+                if mins > smax:
+                    continue
+                sbiom = biom.loc[:, sams >= mins]
+                prevs = (sbiom > 0).sum(axis=1)
+                for minp in sorted(prevs.unique())[::-1][1:]:
+                    pbiom = sbiom.loc[prevs >= minp, :]
+                    for mina in min_abunds:
+                        incd = self.get_incidences(pbiom, dat, mins, minp, mina)
+                        res.append(incd)
+                prevs = (sbiom > 0).sum(axis=1) / sbiom.shape[1]
+                for minp in min_prevs:
+                    pbiom = sbiom.loc[prevs >= minp, :]
+                    for mina in min_abunds:
+                        incd = self.get_incidences(pbiom, dat, mins, minp, mina)
+                        res.append(incd)
+            res_pd = pd.DataFrame(res)
+            res_pd['ASVs'] = res_pd['ASVs'].astype(int)
+            res_pd['reads_min'] = res_pd['reads_min'].astype(int)
+            res_pd['reads_max'] = res_pd['reads_max'].astype(int)
+            res_fpo = '%s/amounts_per_prevalence.tsv' % rep(self.out)
+            res_pd.to_csv(res_fpo, index=False, sep='\t')
 
     def filter(self):
         self.analysis = 'filter'
