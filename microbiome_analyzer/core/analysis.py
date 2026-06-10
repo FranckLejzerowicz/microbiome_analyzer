@@ -154,28 +154,25 @@ class AnalysisPrep(object):
                 filter_3d(dat, pv, ab, defaults, biom, targeted, rep(self.out))
 
     @staticmethod
-    def get_incidences(pbiom, dat, mins, minp, mina):
+    def get_incidences(pbiom, mins, minp, mina):
         tab = pbiom.copy()
         relab = (tab / tab.sum()).fillna(0)
         tab = tab.where(relab >= mina, other=0)
         tab = tab.loc[tab.sum(1) > 0, tab.sum() > 0]
-        f, s = tab.shape
         pdata = round((tab > 0).sum(1).describe(), 3)
-        pdata.index = ['samples'] + ['feature_prevalence_%s' % x for x in
-                                     pdata.index[1:]]
+        pdata.index = ['features'] + [
+            'features_prevalence_%s' % x for x in pdata.index[1:]]
         ndata = round(tab.sum().describe(), 3)
-        # ndata = ndata.drop(index=['25%', '50%', '75%'])
-        ndata.index = ['features'] + ['reads_%s' % x for x in ndata.index[1:]]
+        ndata.index = ['samples'] + [
+            'samples_reads_%s' % x for x in ndata.index[1:]]
         pres = ndata.to_dict()
-        pres['samples'] = s
-        pres['dataset'] = dat
         pres['min_sample_reads'] = mins
         pres.update(pdata)
         if minp >= 1:
-            pres['min_prevalence_number'] = minp
+            pres['min_n_prevalence'] = minp
         else:
-            pres['min_prevalence_percent'] = minp
-        pres['min_abundance_percent'] = mina
+            pres['min_%s_prevalence' % "%"] = 100 * minp
+        pres['min_%s_abundance' % "%"] = 100 * mina
         return pres
 
     def explore_incidences(self, log):
@@ -197,24 +194,31 @@ class AnalysisPrep(object):
                 sbiom = biom.loc[:, sams >= mins]
                 prevs = (sbiom > 0).sum(axis=1)
                 for minp in sorted(prevs.unique())[::-1][1:]:
-                    log.info('    *** min prevalence (data): %s' % minp)
+                    log.info('    *** min prevalence (data): %s' % (100 * minp))
                     pbiom = sbiom.loc[prevs >= minp, :]
                     for mina in min_abunds:
-                        incd = self.get_incidences(pbiom, dat, mins, minp, mina)
-                        res.append(incd)
+                        res.append(self.get_incidences(pbiom, mins, minp, mina))
                 prevs = (sbiom > 0).sum(axis=1) / sbiom.shape[1]
                 for minp in min_prevs:
-                    log.info('    *** Prevalence (1-20%s): %s' % ("%", minp))
+                    log.info('    *** Prevalence (0.1-20%s): %s' % (
+                        "%", (100 * minp)))
                     pbiom = sbiom.loc[prevs >= minp, :]
                     for mina in min_abunds:
-                        incd = self.get_incidences(pbiom, dat, mins, minp, mina)
-                        res.append(incd)
-            res_pd = pd.DataFrame(res)
-            res_pd['ASVs'] = res_pd['ASVs'].astype(int)
-            res_pd['reads_min'] = res_pd['reads_min'].astype(int)
-            res_pd['reads_max'] = res_pd['reads_max'].astype(int)
-            res_fpo = '%s/amounts_per_prevalence.tsv' % rep(self.out)
-            res_pd.to_csv(res_fpo, index=False, sep='\t')
+                        res.append(self.get_incidences(pbiom, mins, minp, mina))
+            r = pd.DataFrame(res)
+            r['features'] = r['features'].astype(int)
+            r['samples'] = r['samples'].astype(int)
+            r['features_prevalence_min'] = r['features_prevalence_min'].astype(int)
+            r['features_prevalence_max'] = r['features_prevalence_max'].astype(int)
+            r['samples_reads_min'] = r['samples_reads_min'].astype(int)
+            r['samples_reads_max'] = r['samples_reads_max'].astype(int)
+            r['dataset'] = dat
+            ord = ['dataset', 'min_sample_reads', 'min_n_prevalence',
+                   'min_%s_prevalence' % "%", 'min_%s_abundance' % "%",
+                   'samples', 'features']
+            r = r[ord + [x for x in r.columns if x not in ord]]
+            res_fpo = '%s/incidences.tsv' % rep(self.out)
+            r.to_csv(res_fpo, index=False, sep='\t')
 
     def filter(self):
         self.analysis = 'filter'
