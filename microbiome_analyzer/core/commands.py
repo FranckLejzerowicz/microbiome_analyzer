@@ -177,6 +177,14 @@ def run_export(
     return cmd
 
 
+def run_incidences(dat, tsv, inc_fpo):
+    cmd = 'python3 %s/incidences.py' % RESOURCES
+    cmd += ' -i %s' % tsv
+    cmd += ' -d %s' % dat
+    cmd += ' -o %s\n' % inc_fpo
+    return cmd
+
+
 def write_rarefy(
         qza: str,
         qza_out: str,

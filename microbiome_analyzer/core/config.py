@@ -330,6 +330,8 @@ class AnalysesConfig(object):
         ]
         if self.filt3d:
             self.analyses.append(('Explore filtering (in 3D)', 'filter3d'))
+        if self.incidences:
+            self.analyses.append(('Explore incidences', 'incidences'))
         if self.filter:
             self.analyses.append(('Rare sequence filtering', 'filter'))
         if self.rarefy:

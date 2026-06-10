@@ -53,7 +53,7 @@ phylogeny:
   scratch:
   machine: 
   chunks:
-filter3d:
+incidences:
   time: "4"
   nodes: "1"
   cpus: "1"
@@ -63,6 +63,17 @@ filter3d:
   partition:
   scratch:
   machine: 
+  chunks:
+filter3d:
+  time: "4"
+  nodes: "1"
+  cpus: "1"
+  mem: "1"
+  mem_dim: "gb"
+  env: "qiime2-2023.2"
+  partition:
+  scratch:
+  machine:
   chunks:
 filter:
   time: "4"

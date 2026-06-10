@@ -1,0 +1,8 @@
+{
+    "main": "The script processes a microbial feature table to generate a comprehensive incidence and metadata summary across varying filtering thresholds. It systematically filters the data using combinations of minimum sample read counts, minimum feature prevalence (both absolute count and percentage-based), and minimum relative abundance, then calculates descriptive statistics for the remaining features and samples.",
+    "reference": "McMurdie, P.J. and Holmes, S., 2014. Waste not, want not: why rarefying microbiome data is inadmissible. PLoS computational biology, 10(4), p.e1003531.",
+    "doi": "https://doi.org/10.1371/journal.pcbi.1003531",
+    "dataset": "Passed as a command-line argument via the `-d` flag to label the resulting output dataset column.",
+    "output": "An incidence table file:\n- Passed via the `-o` flag: a tab-separated (.tsv) file containing dataset labels, filtering thresholds (`min_sample_reads`, `min_n_prevalence`, etc.), and statistical summaries of remaining samples and features.\n",
+    "version": "Copyright (c) 2026, Franck Lejzerowicz. Distributed under the terms of the Modified BSD License."
+}

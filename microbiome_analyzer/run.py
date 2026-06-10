@@ -61,7 +61,7 @@ def runner(**kwargs):
     analysis.import_datasets()
     if config.incidences:
         logging.info('  - Exploring incidences')
-        analysis.explore_incidences(logging)
+        analysis.explore_incidences()
     if config.filt3d:
         logging.info('  - Exploring feature counts (vs prevalence/abundance)')
         analysis.explore_filtering()

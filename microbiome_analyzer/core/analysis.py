@@ -10,7 +10,6 @@ import re
 import os
 import glob
 import yaml
-import numpy as np
 import pandas as pd
 import pkg_resources
 from os.path import basename, dirname, isdir, isfile, splitext
@@ -19,14 +18,15 @@ import itertools as its
 
 from microbiome_analyzer.core.datasets import Datasets, Data
 from microbiome_analyzer.core.commands import (
-    run_summary, run_import, run_export, write_rarefy, write_fasta,
-    write_collapse, write_sepp, write_alpha, write_feat_filter, write_classify,
-    write_barplots, write_krona, write_tabulate, write_alpha_correlation,
-    write_alpha_rarefaction, write_alpha_group_significance,
-    write_volatility, write_beta, write_rpca, write_ctf, write_pcoa,
-    write_biplot, write_emperor,  write_emperor_biplot, write_empress,
-    write_permanova_permdisp, write_adonis, write_tsne, write_umap,
-    write_procrustes, write_mantel, write_phate, write_tree)
+    run_summary, run_import, run_export, run_incidences, write_rarefy,
+    write_fasta, write_collapse, write_sepp, write_alpha, write_feat_filter,
+    write_classify, write_barplots, write_krona, write_tabulate,
+    write_alpha_correlation, write_alpha_rarefaction,
+    write_alpha_group_significance, write_volatility, write_beta, write_rpca,
+    write_ctf, write_pcoa, write_biplot, write_emperor,
+    write_emperor_biplot, write_empress, write_permanova_permdisp,
+    write_adonis, write_tsne, write_umap, write_procrustes, write_mantel,
+    write_phate, write_tree)
 from microbiome_analyzer.analyses.filter import (
     no_filtering, get_filt, filtering_thresholds, harsh_filtering, filter_3d)
 from microbiome_analyzer.analyses.rarefy import get_digit_depth
@@ -153,72 +153,18 @@ class AnalysisPrep(object):
             for pv, ab in its.product(*[defaults['preval'], defaults['abund']]):
                 filter_3d(dat, pv, ab, defaults, biom, targeted, rep(self.out))
 
-    @staticmethod
-    def get_incidences(pbiom, mins, minp, mina):
-        tab = pbiom.copy()
-        relab = (tab / tab.sum()).fillna(0)
-        tab = tab.where(relab >= mina, other=0)
-        tab = tab.loc[tab.sum(1) > 0, tab.sum() > 0]
-        pdata = round((tab > 0).sum(1).describe(), 3)
-        pdata.index = ['features'] + [
-            'features_prevalence_%s' % x for x in pdata.index[1:]]
-        ndata = round(tab.sum().describe(), 3)
-        ndata.index = ['samples'] + [
-            'samples_reads_%s' % x for x in ndata.index[1:]]
-        pres = ndata.to_dict()
-        pres['min_sample_reads'] = mins
-        pres.update(pdata)
-        if minp >= 1:
-            pres['min_n_prevalence'] = minp
-        else:
-            pres['min_%s_prevalence' % "%"] = 100 * minp
-        pres['min_%s_abundance' % "%"] = 100 * mina
-        return pres
-
-    def explore_incidences(self, log):
+    def explore_incidences(self):
         self.analysis = 'incidences'
         for dat, data in self.project.datasets.items():
             self.get_output(dat)
-            biom = data.data[''].to_dataframe()
-            sams = biom.sum()
-            smax = sams.max()
-            res = []
-            min_sams = [0, 1000, 2000, 5000, 10000, 50000]
-            min_prevs = [x/1000 for x in range(1, 21)]
-            min_abunds = [round(x/1000, 3) for x in np.logspace(0, 3, 10)][:-1]
-            log.info('    * dataset:\t%s' % dat)
-            for mins in min_sams:
-                log.info('    ** min sample reads: %s' % mins)
-                if mins > smax:
-                    continue
-                sbiom = biom.loc[:, sams >= mins]
-                prevs = (sbiom > 0).sum(axis=1)
-                for minp in sorted(prevs.unique())[::-1][1:]:
-                    log.info('    *** min prevalence (data): %s' % (100 * minp))
-                    pbiom = sbiom.loc[prevs >= minp, :]
-                    for mina in min_abunds:
-                        res.append(self.get_incidences(pbiom, mins, minp, mina))
-                prevs = (sbiom > 0).sum(axis=1) / sbiom.shape[1]
-                for minp in min_prevs:
-                    log.info('    *** Prevalence (0.1-20%s): %s' % (
-                        "%", (100 * minp)))
-                    pbiom = sbiom.loc[prevs >= minp, :]
-                    for mina in min_abunds:
-                        res.append(self.get_incidences(pbiom, mins, minp, mina))
-            r = pd.DataFrame(res)
-            r['features'] = r['features'].astype(int)
-            r['samples'] = r['samples'].astype(int)
-            r['features_prevalence_min'] = r['features_prevalence_min'].astype(int)
-            r['features_prevalence_max'] = r['features_prevalence_max'].astype(int)
-            r['samples_reads_min'] = r['samples_reads_min'].astype(int)
-            r['samples_reads_max'] = r['samples_reads_max'].astype(int)
-            r['dataset'] = dat
-            ord = ['dataset', 'min_sample_reads', 'min_n_prevalence',
-                   'min_%s_prevalence' % "%", 'min_%s_abundance' % "%",
-                   'samples', 'features']
-            r = r[ord + [x for x in r.columns if x not in ord]]
-            res_fpo = '%s/incidences.tsv' % rep(self.out)
-            r.to_csv(res_fpo, index=False, sep='\t')
+            tsv = data.tsv['']
+            inc_fpo = '%s/incidences.tsv' % self.out
+            cmd = run_incidences(dat, tsv, inc_fpo)
+            self.register_provenance(dat, (tsv, ), cmd)
+            if to_do(inc_fpo) :
+                io_update(self, i_f=tsv, o_f=inc_fpo, key=dat)
+                self.cmds.setdefault(dat, []).append(cmd)
+        self.register_io_command()
 
     def filter(self):
         self.analysis = 'filter'
