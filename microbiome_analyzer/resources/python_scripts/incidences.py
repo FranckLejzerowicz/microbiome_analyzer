@@ -50,7 +50,7 @@ def filter_and_describe(pbiom, mins, minp, mina):
 def get_incidences(data, sams, smax):
     res = []
     min_sams = [0, 1000, 2000, 5000, 10000, 50000]
-    min_prevs = [x / 1000 for x in range(1, 21)]
+    min_prevs = [x / 100 for x in range(1, 21)]
     min_abunds = [0] + [round(x / 1000, 3) for x in np.logspace(0, 3, 10)][:-1]
     for mins in min_sams:
         if mins > smax:
