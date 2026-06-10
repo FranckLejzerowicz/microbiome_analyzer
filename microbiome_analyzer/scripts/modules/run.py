@@ -208,7 +208,7 @@ from microbiome_analyzer import __version__
     help="Only process the filtered version (and not also the raw) "
          "version of each dataset")
 @click.option(
-    "--incidences/--no-incidences", default=False, show_default=True,
+    "--incidences/--no-incidences", default=True, show_default=True,
     help="Whether to count features/samples/reads frequencies per feature"
          "for various sample, prevalence, and relative abundance thresholds")
 @click.option(
