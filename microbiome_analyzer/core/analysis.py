@@ -160,14 +160,17 @@ class AnalysisPrep(object):
         tab = tab.where(relab >= mina, other=0)
         tab = tab.loc[tab.sum(1) > 0, tab.sum() > 0]
         f, s = tab.shape
-        n = round(tab.sum().describe(), 3)
-        n = n.drop(index=['25%', '50%', '75%'])
-        n.index = ['ASVs'] + ['reads_%s' % x for x in n.index[1:]]
-        pres = n.to_dict()
-        pres['features'] = f
+        pdata = round((tab > 0).sum(1).describe(), 3)
+        pdata.index = ['samples'] + ['feature_prevalence_%s' % x for x in
+                                     pdata.index[1:]]
+        ndata = round(tab.sum().describe(), 3)
+        # ndata = ndata.drop(index=['25%', '50%', '75%'])
+        ndata.index = ['features'] + ['reads_%s' % x for x in ndata.index[1:]]
+        pres = ndata.to_dict()
         pres['samples'] = s
         pres['dataset'] = dat
         pres['min_sample_reads'] = mins
+        pres.update(pdata)
         if minp >= 1:
             pres['min_prevalence_number'] = minp
         else:
@@ -175,7 +178,7 @@ class AnalysisPrep(object):
         pres['min_abundance_percent'] = mina
         return pres
 
-    def explore_incidences(self):
+    def explore_incidences(self, log):
         self.analysis = 'incidences'
         for dat, data in self.project.datasets.items():
             self.get_output(dat)
@@ -186,18 +189,22 @@ class AnalysisPrep(object):
             min_sams = [0, 1000, 2000, 5000, 10000, 50000]
             min_prevs = [x/1000 for x in range(1, 21)]
             min_abunds = [round(x/1000, 3) for x in np.logspace(0, 3, 10)][:-1]
+            log.info('    * dataset:\t%s' % dat)
             for mins in min_sams:
+                log.info('    ** min sample reads: %s' % mins)
                 if mins > smax:
                     continue
                 sbiom = biom.loc[:, sams >= mins]
                 prevs = (sbiom > 0).sum(axis=1)
                 for minp in sorted(prevs.unique())[::-1][1:]:
+                    log.info('    *** min prevalence (data): %s' % minp)
                     pbiom = sbiom.loc[prevs >= minp, :]
                     for mina in min_abunds:
                         incd = self.get_incidences(pbiom, dat, mins, minp, mina)
                         res.append(incd)
                 prevs = (sbiom > 0).sum(axis=1) / sbiom.shape[1]
                 for minp in min_prevs:
+                    log.info('    *** Prevalence (1-20%s): %s' % ("%", minp))
                     pbiom = sbiom.loc[prevs >= minp, :]
                     for mina in min_abunds:
                         incd = self.get_incidences(pbiom, dat, mins, minp, mina)

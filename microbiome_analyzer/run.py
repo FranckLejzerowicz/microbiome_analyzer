@@ -60,7 +60,8 @@ def runner(**kwargs):
     logging.info('  - Importing datasets to QIIME2')
     analysis.import_datasets()
     if config.incidences:
-        analysis.explore_incidences()
+        logging.info('  - Exploring incidences')
+        analysis.explore_incidences(logging)
     if config.filt3d:
         logging.info('  - Exploring feature counts (vs prevalence/abundance)')
         analysis.explore_filtering()
