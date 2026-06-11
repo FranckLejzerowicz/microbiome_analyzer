@@ -26,31 +26,17 @@ def get_args():
 
 
 def filter_and_describe(pbiom, mins, minp, mina):
-    print()
-    print()
-    print()
-    print("mins:", mins)
-    print("minp:", minp)
-    print("mina:", mina)
     tab = pbiom.copy()
-    print(tab)
     relab = (tab / tab.sum()).fillna(0)
-    print(relab)
     tab = tab.where(relab >= mina, other=0)
-    print(tab)
     tab = tab.loc[tab.sum(1) > 0, tab.sum() > 0]
-    print(tab)
     pdata = round((tab > 0).sum(1).describe(), 3)
     pdata.index = ['log10(features)'] + [
         'features_prevalence_%s' % x for x in pdata.index[1:]]
     pdata['log10(features)'] = np.log10(pdata['log10(features)'])
-    print("pdata")
-    print(pdata)
     ndata = round(tab.sum().describe(), 3)
     ndata.index = ['samples'] + [
         'samples_reads_%s' % x for x in ndata.index[1:]]
-    print("ndata")
-    print(ndata)
     pres = ndata.to_dict()
     pres['min_sample_reads'] = mins
     pres.update(pdata.to_dict())
@@ -66,7 +52,7 @@ def get_incidences(data, sams, smax):
     res = []
     min_sams = [0, 1000, 2000, 5000, 10000, 50000]
     min_prevs = [x / 100 for x in range(1, 21)]
-    min_abunds = [0] + [round(x / 1000, 3) for x in np.logspace(0, 3, 10)][:-1]
+    min_abunds = [0] + [round(x / 1000, 3) for x in np.logspace(0, 2, 8)]
     for mins in min_sams:
         if mins > smax:
             continue
