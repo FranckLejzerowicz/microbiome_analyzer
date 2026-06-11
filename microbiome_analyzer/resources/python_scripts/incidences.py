@@ -43,12 +43,16 @@ def filter_and_describe(pbiom, mins, minp, mina):
     pdata = round((tab > 0).sum(1).describe(), 3)
     pdata.index = ['features'] + [
         'features_prevalence_%s' % x for x in pdata.index[1:]]
+    print("pdata")
+    print(pdata)
     ndata = round(tab.sum().describe(), 3)
     ndata.index = ['samples'] + [
         'samples_reads_%s' % x for x in ndata.index[1:]]
+    print("ndata")
+    print(ndata)
     pres = ndata.to_dict()
     pres['min_sample_reads'] = mins
-    pres.update(pdata)
+    pres.update(pdata.to_dict())
     if minp >= 1:
         pres['min_n_prevalence'] = minp
     else:
