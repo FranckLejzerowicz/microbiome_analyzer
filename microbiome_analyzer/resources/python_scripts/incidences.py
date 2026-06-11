@@ -79,7 +79,7 @@ def incidences(filin, filou, dat):
     first_columns = [
         'dataset', 'min_sample_reads', 'min_n_prevalence',
         'min_%s_prevalence' % "%", 'min_%s_abundance' % "%", 'samples',
-        'features']
+        'log10(features)']
     other_columns = [x for x in incidences_pd.columns if x not in first_columns]
     incidences_pd = incidences_pd[first_columns + other_columns]
     incidences_pd.to_csv(filou, index=False, sep='\t')
