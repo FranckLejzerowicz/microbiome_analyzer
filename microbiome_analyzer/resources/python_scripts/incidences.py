@@ -41,8 +41,9 @@ def filter_and_describe(pbiom, mins, minp, mina):
     tab = tab.loc[tab.sum(1) > 0, tab.sum() > 0]
     print(tab)
     pdata = round((tab > 0).sum(1).describe(), 3)
-    pdata.index = ['features'] + [
+    pdata.index = ['log10(features)'] + [
         'features_prevalence_%s' % x for x in pdata.index[1:]]
+    pdata['log10(features)'] = np.log10(pdata['log10(features)'])
     print("pdata")
     print(pdata)
     ndata = round(tab.sum().describe(), 3)
