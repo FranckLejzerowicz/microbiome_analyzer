@@ -161,7 +161,7 @@ class AnalysisPrep(object):
             inc_fpo = '%s/incidences.tsv' % self.out
             cmd = run_incidences(dat, tsv, inc_fpo)
             self.register_provenance(dat, (tsv, ), cmd)
-            if to_do(inc_fpo) :
+            if to_do(inc_fpo):
                 io_update(self, i_f=tsv, o_f=inc_fpo, key=dat)
                 self.cmds.setdefault(dat, []).append(cmd)
         self.register_io_command()

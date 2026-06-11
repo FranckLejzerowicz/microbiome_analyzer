@@ -26,10 +26,20 @@ def get_args():
 
 
 def filter_and_describe(pbiom, mins, minp, mina):
+    print()
+    print()
+    print()
+    print("mins:", mins)
+    print("minp:", minp)
+    print("mina:", mina)
     tab = pbiom.copy()
+    print(tab)
     relab = (tab / tab.sum()).fillna(0)
+    print(relab)
     tab = tab.where(relab >= mina, other=0)
+    print(tab)
     tab = tab.loc[tab.sum(1) > 0, tab.sum() > 0]
+    print(tab)
     pdata = round((tab > 0).sum(1).describe(), 3)
     pdata.index = ['features'] + [
         'features_prevalence_%s' % x for x in pdata.index[1:]]
