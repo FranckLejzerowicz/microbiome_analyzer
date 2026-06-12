@@ -81,47 +81,65 @@ class PairedData(object):
         else:
             return dat, 0
 
+    @staticmethod
+    def fill_filt(mmvec_pairs, dats, filt, name, vals):
+        for pair, dats_pair in mmvec_pairs.items():
+            if pair not in filt:
+                filt[pair] = {}
+            if name not in filt[pair]:
+                filt[pair][name] = {}
+            for dat in dats_pair:
+                dats.append(dat)
+                filt[pair][name][dat] = vals
+
     def get_filtering(self, mmvec_pairs: dict) -> dict:
         """
         Get the parameters for songbird passed by the user.
         """
         dats = []
-        filtering = {}
-        for pair, dats_pair in mmvec_pairs.items():
-            if pair not in filtering:
-                filtering[pair] = {'0_0': {}}
-            for dat in dats_pair:
-                dats.append(dat)
-                filtering[pair]['0_0'][dat] = ['0', '0']
+        filt = {}
+        # for pair, dats_pair in mmvec_pairs.items():
+        #     if pair not in filtering:
+        #         filtering[pair] = {'0_0': {}}
+        #     for dat in dats_pair:
+        #         dats.append(dat)
+        #         filtering[pair]['0_0'][dat] = ['0', '0']
         if 'filtering' not in self.config.mmvec_pairs:
             print('No filtering thresholds set in '
                   '%s\n:' % self.config.mmvec_pairs_fp)
-        if self.config.mmvec_pairs.get('filtering'):
+            self.fill_filt(mmvec_pairs, dats, filt, '0_0', ['0', '0'])
+            # for pair, dats in mmvec_pairs.items():
+            #     if pair not in filtering:
+            #         filtering[pair] = {'0_0': {}}
+            #     for dat in dats:
+            #         dats.append(dat)
+            #         filtering[pair]['0_0'][dat] = ['0', '0']
+
+        else:
             if 'global' in self.config.mmvec_pairs['filtering']:
-                for filt_name, prev_abund in self.config.mmvec_pairs[
+                for name, vals in self.config.mmvec_pairs[
                         'filtering']['global'].items():
-                    if filt_name == '0_0':
-                        continue
-                    for pair, dats_pair in mmvec_pairs.items():
-                        if pair not in filtering:
-                            filtering[pair] = {}
-                        if filt_name not in filtering[pair]:
-                            filtering[pair][filt_name] = {}
-                        for dat in dats_pair:
-                            dats.append(dat)
-                            filtering[pair][filt_name][dat] = prev_abund
+                    self.fill_filt(mmvec_pairs, dats, filt, name, vals)
+                    # for pair, dats_pair in mmvec_pairs.items():
+                    #     if pair not in filt:
+                    #         filt[pair] = {}
+                    #     if name not in filt[pair]:
+                    #         filt[pair][name] = {}
+                    #     for dat in dats_pair:
+                    #         dats.append(dat)
+                    #         filt[pair][name][dat] = vals
             for pair, pair_d in self.config.mmvec_pairs['filtering'].items():
                 if pair == 'global':
                     continue
-                filtering[pair] = {}
-                for filt_name, dats_d in pair_d.items():
-                    filtering[pair][filt_name] = {}
-                    for dat_, prev_abund in dats_d.items():
+                filt[pair] = {}
+                for name, dats_d in pair_d.items():
+                    filt[pair][name] = {}
+                    for dat_, vals in dats_d.items():
                         # print(pair, filt_name, dat, prev_abund)
                         dat = self.get_dat_mb_or_not(dat_)
                         if dat in dats:
-                            filtering[pair][filt_name][dat] = prev_abund
-        return filtering
+                            filt[pair][name][dat] = vals
+        return filt
 
     def get_mmvec_params(self) -> dict:
         """
