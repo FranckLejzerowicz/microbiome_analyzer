@@ -97,11 +97,12 @@ class Data(object):
 
     def get_dtypes(self):
         for col in self.metadata.columns:
+            self.num[col] = 0
             try:
                 float(self.metadata[col])
                 self.num[col] = 1
             except TypeError:
-                self.num[col] = 0
+                pass
         print(self.num)
 
     def read_meta_pd(self):
