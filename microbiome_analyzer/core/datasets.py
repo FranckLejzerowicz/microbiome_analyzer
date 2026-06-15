@@ -98,6 +98,7 @@ class Data(object):
     def get_dtypes(self):
         for col in self.metadata.columns:
             self.num[col] = 0
+            print(self.metadata[col])
             try:
                 float(self.metadata[col])
                 self.num[col] = 1
