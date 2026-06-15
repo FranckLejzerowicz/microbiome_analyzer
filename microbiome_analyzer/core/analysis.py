@@ -204,6 +204,7 @@ class AnalysisPrep(object):
             data_filt.filt = filt
             data_filt.metadata = data.metadata.copy()
             data_filt.source = data.source
+            data_filt.num = data.num
             qza_to_do = to_do(qza_filt)
             meta_to_do = to_do(data_filt.meta)
             cmd = ''
@@ -586,6 +587,7 @@ class AnalysisPrep(object):
                     data_subset.tree = data.tree
                     data_subset.seqs = data.seqs
                     data_subset.source = data.source
+                    data_subset.num = data.num
                     data_subset.subset = subset
                     for raref, tab in data.data.items():
                         tsv, biom, qza = self.get_features_subsets(

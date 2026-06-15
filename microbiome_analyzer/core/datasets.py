@@ -102,7 +102,6 @@ class Data(object):
                 self.metadata[col].astype(float)
             except ValueError:
                 self.num[col] = 0
-        print(self.num)
 
     def read_meta_pd(self):
         meta_pd = read_meta_pd(rep(self.meta), 'sample_name')
