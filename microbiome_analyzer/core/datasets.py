@@ -48,6 +48,7 @@ class Data(object):
         self.filts = None
         self.meta = ''
         self.metadata = pd.DataFrame()
+        self.num = {}
         self.pcoa = {}
         self.path = None
         self.perms = {}
@@ -93,6 +94,14 @@ class Data(object):
             data_pd = data_pd.loc[(data_pd.sum(1) > 0), :]
         self.samples = set(data_pd.columns)
         self.data[''] = convert_to_biom(data_pd)
+
+    def get_dtypes(self):
+        for col in self.metadata.columns:
+            try:
+                float(self.metadata[col])
+                self.num[col] = 1
+            except ValueError:
+                self.num[col] = 0
 
     def read_meta_pd(self):
         meta_pd = read_meta_pd(rep(self.meta), 'sample_name')
@@ -153,6 +162,7 @@ class Datasets(object):
             else:
                 data.read_tsv()
             data.read_meta_pd()
+            data.get_dtypes()
             data.check_gid_or_dna()
             data.feat_meta = self.get_feat_meta(dat)
             self.datasets[dat] = data

@@ -970,6 +970,13 @@ class AnalysisPrep(object):
                         stratas = set([x for x in stratas if x in variables])
                         data.adonis[mod] = [var, list(stratas)]
 
+    @staticmethod
+    def invalid(data, meta_pd, terms):
+        for t in terms:
+            if not data.num[t] and meta_pd[t].nunique() < 2:
+                return True
+        return False
+
     def adonis(self):
         self.analysis = 'adonis'
         self.get_models_stratas()
@@ -990,6 +997,8 @@ class AnalysisPrep(object):
                         cv = '%s/cv_%s%s.tsv' % (self.out, model, raref)
                         meta = '%s/meta_%s%s.tsv' % (self.out, model, raref)
                         meta_pd.to_csv(rep(meta), index=False, sep='\t')
+                        if self.invalid(data, meta_pd, terms):
+                            continue
                         # if add_q2_type(meta_pd, meta, cv, terms):
                         #     continue
                         # print("model")
