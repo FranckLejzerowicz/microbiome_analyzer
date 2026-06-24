@@ -178,7 +178,8 @@ from microbiome_analyzer import __version__
         'doc',
         'mmvec',
         'songbird',
-        'mmbird'
+        'mmbird',
+        'xmmvec'
     ]))
 @click.option(
     "-As", "--alphas", default=None, show_default=True, multiple=True,

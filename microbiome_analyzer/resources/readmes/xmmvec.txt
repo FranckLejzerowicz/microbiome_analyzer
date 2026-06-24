@@ -1,0 +1,5 @@
+{
+    "main": "The `xmmvec` folder only contains the jobs that add to the `mmvec` outputs (see `mmvec` folder), which mainly consist of visualizations of the microbe-metabolite co-occurrences and inferred interactions.\n\nIt is done by calling Xmmvec\n.",
+    "github": "https://github.com/FranckLejzerowicz/xmmvec",
+     "version": "Generated from configuration file"
+}

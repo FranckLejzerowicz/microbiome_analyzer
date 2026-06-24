@@ -462,9 +462,13 @@ class AnalysesConfig(object):
             if 'qurro' not in self.skip:
                 self.analyses.append(('Log-fold change visualization',
                                       'qurro'))
-        if self.mmvec_pairs and 'mmbird' not in self.skip:
-            self.analyses.append(('Integrating interactions and differentials',
-                                  'mmbird'))
+        if self.mmvec_pairs:
+            if 'mmbird' not in self.skip:
+                self.analyses.append(
+                    ('Integrating interactions and differentials', 'mmbird'))
+            if 'xmmvec' not in self.skip:
+                self.analyses.append(
+                    ('Interactive heatmap conditional', 'xmmvec'))
 
     def get_readmes(self):
         for (_, analysis) in self.analyses:
