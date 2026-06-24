@@ -538,7 +538,6 @@ class PostAnalysis(object):
             pc_sb_correlations.append(cur_pc_sb_correlations)
 
             cmd = ''
-            xcmd = ''
             if pair in self.highlights:
                 pair_highlights = self.highlights[pair]
                 for highlight, feats_scopes in pair_highlights.items():
@@ -560,7 +559,7 @@ class PostAnalysis(object):
                 cmd += get_biplot_commands(
                     self, pair, ordi_edit_fp, qza, qzv, omic_feature,
                     omic_sample, meta1, meta2, n_ordi_feats, max_r)
-            xcmd += get_xmmvec_commands(
+            xcmds[pair] = get_xmmvec_commands(
                 self, pair, ordi_edit_fp, omic1, omic2, meta1, meta2)
 
             topn = 5
