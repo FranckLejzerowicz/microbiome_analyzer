@@ -2501,23 +2501,23 @@ def get_xmmvec_commands(
         cmd += '\nXmmvec'
         cmd += ' --i-ranks-path %s' % ranks_fp
         cmd += ' --o-ranks-explored %s' % ranks_html
-        cmd += ' --p-omic1-name %s' % omic1
-        cmd += ' --p-omic2-name %s' % omic2
+        cmd += ' --p-omic1-name %s' % omic2
+        cmd += ' --p-omic2-name %s' % omic1
         if nrows > 50:
             cmd += ' --p-omic1-max 50'
         if ncols > 50:
             cmd += ' --p-omic2-max 50'
         if self.xmmvecs and pair in self.xmmvecs:
-            cmd += ' --p-omic1-metadata %s' % meta1_fp
-            cmd += ' --p-omic2-metadata %s' % meta2_fp
-            if omic1 in self.xmmvecs[pair]:
-                if 'color_variable' in self.xmmvecs[pair][omic1]:
-                    cmd += ' --p-omic1-column %s' % self.xmmvecs[
-                        pair][omic1]['color_variable']
+            cmd += ' --p-omic1-metadata %s' % meta2_fp
+            cmd += ' --p-omic2-metadata %s' % meta1_fp
             if omic2 in self.xmmvecs[pair]:
                 if 'color_variable' in self.xmmvecs[pair][omic2]:
-                    cmd += ' --p-omic2-column %s' % self.xmmvecs[
+                    cmd += ' --p-omic1-column %s' % self.xmmvecs[
                         pair][omic2]['color_variable']
+            if omic1 in self.xmmvecs[pair]:
+                if 'color_variable' in self.xmmvecs[pair][omic1]:
+                    cmd += ' --p-omic2-column %s' % self.xmmvecs[
+                        pair][omic1]['color_variable']
         cmd += '\n'
         io_update(self, i_f=[ranks_fp, meta1_fp, meta2_fp], o_f=ranks_html,
                   key=pair)
@@ -2569,7 +2569,7 @@ def write_sourcetracking(
         nodes = self.config.run_params['sourcetracking']['nodes']
         cpus = self.config.run_params['sourcetracking']['cpus']
         ncpu = int(nodes) * int(cpus)
-    cmd += ' --p-st2-config %s' % self.params_yml
+    # cmd += ' --p-st2-config %s' % self.params_yml
     cmd += ' --p-cpus %s' % ncpu
     cmd += ' --verbose\n'
     return cmd

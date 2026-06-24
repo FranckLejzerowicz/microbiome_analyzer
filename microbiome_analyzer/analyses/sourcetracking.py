@@ -34,7 +34,8 @@ class Sourcetracking(object):
         self.ios = {}
         self.cmds = {}
         self.params = {
-            'methods': ['sourcetracker', 'feast'],
+            # 'methods': ['sourcetracker', 'feast'],
+            'methods': ['feast'],
             'estimators': [
                 'RandomForestClassifier',
                 'GradientBoostingClassifier',
