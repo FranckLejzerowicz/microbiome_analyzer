@@ -262,7 +262,7 @@ class PostAnalysis(object):
     def write_feat_meta_pd(self, o, f, o_, f_, ranks):
         fm_fp = '%s/feature_metadata_%s_%s__%s_%s.tsv' % (
             self.out, o.replace('/', '__'), f, o_.replace('/', '__'), f_)
-        drops = [col for col in ranks.columns if ranks[col].unique().size == 1]
+        drops = [col for col in ranks.columns if ranks[col].nunique() == 1]
         fm_pd = ranks.drop(columns=drops)
         fm_pd.to_csv(rep(fm_fp), index=False, sep='\t')
         fm_pd.set_index('Feature ID', inplace=True)
@@ -275,30 +275,37 @@ class PostAnalysis(object):
         return qza, qzv
 
     @staticmethod
-    def edit_ordi_qzv(ordi, ordi_fp, highlight, regexes_list, meta, meta_pd):
+    def edit_ordi_qzv(ordi, ordi_fp, highlight, feats_scopes, meta, meta_pd):
 
-        to_keep_feats = {}
-        for regex in regexes_list:
-            to_keep_feats[
-                regex.lower()] = ordi.features.index.str.lower().str.contains(
-                regex.lower())
-        to_keep_feats_pd = pd.DataFrame(to_keep_feats)
-        to_keep_feats = to_keep_feats_pd.any(axis=1)
-        feats_subset_list = ordi.features.index[to_keep_feats].tolist()
+        scope = set()
+        for typ, fs in feats_scopes.items():
+            if typ == 'taxa':
+                d = meta_pd.copy()
+                v = d['Taxon']
+            elif typ == 'ids':
+                d = ordi.features.copy()
+                v = d.index
+            else:
+                continue
+            for f in fs:
+                scope.update(set(d[v.str.contains(f)].index))
+        # scope_list = ordi.features.index[list(scope)].tolist()
 
-        if feats_subset_list:
-            ordi_edit = '%s_%s%s' % (
-                splitext(ordi_fp)[0], highlight, splitext(ordi_fp)[1])
-            ordi.features = ordi.features.loc[feats_subset_list, :].copy()
+        # if scope_list:
+        rad, ext = splitext(ordi_fp)
+        ordi_edit = '%s_%s%s' % (rad, highlight, ext)
+        if scope:
+            ordi_scope = list(scope & set(ordi.features.index))
+            ordi.features = ordi.features.loc[ordi_scope, :].copy()
             ordi.write(rep(ordi_edit))
             n_edit = ordi.features.shape[0]
 
             meta_edit = '%s_%s%s' % (
                 splitext(meta)[0], highlight, splitext(meta)[1])
-            meta_edit_pd = meta_pd.loc[feats_subset_list, :].copy()
+            meta_scope = list(scope & set(meta_pd.index))
+            meta_edit_pd = meta_pd.loc[meta_scope, :].copy()
             meta_edit_pd.to_csv(rep(meta_edit), index=True, sep='\t')
         else:
-            ordi_edit = ''
             meta_edit = ''
             n_edit = 0
         return n_edit, meta_edit, ordi_edit
@@ -501,6 +508,7 @@ class PostAnalysis(object):
         return cmd
 
     def get_pair_cmds(self, omics_pairs):
+        xcmds = {}
         crowdeds = [0, 1]
         pc_sb_correlations = []
         pre_paired_fp = '%s/mmvec_pre_paired-heatmaps.py' % RESOURCES
@@ -530,16 +538,17 @@ class PostAnalysis(object):
             pc_sb_correlations.append(cur_pc_sb_correlations)
 
             cmd = ''
+            xcmd = ''
             if pair in self.highlights:
                 pair_highlights = self.highlights[pair]
-                for highlight, regexes_list in pair_highlights.items():
+                for highlight, feats_scopes in pair_highlights.items():
                     n_edit, meta_edit, ordi_edit_fp = self.edit_ordi_qzv(
-                        ordi, ordi_fp, highlight, regexes_list, meta1, meta_pd1)
+                        ordi, ordi_fp, highlight, feats_scopes, meta2, meta_pd2)
                     if n_edit:
                         qza, qzv = self.get_qzs(ordi_edit_fp)
                         cmd += get_biplot_commands(
                             self, pair, ordi_edit_fp, qza, qzv, omic_feature,
-                            omic_sample, meta_edit, meta2, n_edit, max_r)
+                            omic_sample, meta1, meta_edit, n_edit, max_r)
             ordi_edit_fp = ordi_fp
             qza, qzv = self.get_qzs(ordi_edit_fp)
             for crowded in crowdeds:
@@ -551,7 +560,7 @@ class PostAnalysis(object):
                 cmd += get_biplot_commands(
                     self, pair, ordi_edit_fp, qza, qzv, omic_feature,
                     omic_sample, meta1, meta2, n_ordi_feats, max_r)
-            cmd += get_xmmvec_commands(
+            xcmd += get_xmmvec_commands(
                 self, pair, ordi_edit_fp, omic1, omic2, meta1, meta2)
 
             topn = 5
@@ -563,10 +572,10 @@ class PostAnalysis(object):
                                                          topn)
             if self.xmmvecs.get('paired_heatmaps'):
                 cmd += self.get_paired_heatmaps_command(
-                    pair, ranks_fp, omic1_common, omic2_common, meta1,
+                    pair, ranks_fp, omic1_common, omic2_common, meta2,
                     features_names, topn, heat, pre_paired_fp)
             self.cmds.setdefault(pair, []).append(cmd)
-        return pc_sb_correlations
+        return pc_sb_correlations, xcmds
 
     def show_mmvec_issues(self):
         if self.mmvec_issues:
@@ -585,10 +594,9 @@ class PostAnalysis(object):
         self.get_omics_songbirds_taxa()
         self.get_mmvec_res()
         self.show_mmvec_issues()
-        # self.mmvec_songbird_pd.to_csv('%s/6_mmvec_songbird_pd.csv' % debug_dir)
         omics_pairs = [tuple(x) for x in self.mmvec_songbird_pd[
             ['omic_subset_filt1', 'omic_subset_filt2']].values.tolist()]
-        pc_sb_correlations = self.get_pair_cmds(omics_pairs)
+        pc_sb_correlations, xcmds = self.get_pair_cmds(omics_pairs)
         self.analysis = 'mmbird'
         if len(pc_sb_correlations):
             self.get_output()
@@ -602,6 +610,11 @@ class PostAnalysis(object):
                 print('\t\t==> No good songbird model to '
                       'make correlations with mmvec PCs...')
         self.register_io_command()
+        if xcmds:
+            self.analysis = 'xmmvec'
+            for pair, xcmd in xcmds.items():
+                self.cmds.setdefault(pair, []).append(xcmd)
+            self.register_io_command()
 
     def register_io_command(self):
         AnalysisPrep.analyses_commands[self.analysis] = dict(self.cmds)
