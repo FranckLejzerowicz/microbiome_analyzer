@@ -2569,7 +2569,7 @@ def write_sourcetracking(
         nodes = self.config.run_params['sourcetracking']['nodes']
         cpus = self.config.run_params['sourcetracking']['cpus']
         ncpu = int(nodes) * int(cpus)
-    # cmd += ' --p-st2-config %s' % self.params_yml
+    cmd += ' --p-config %s' % self.params_yml
     cmd += ' --p-cpus %s' % ncpu
     cmd += ' --verbose\n'
     return cmd
