@@ -954,11 +954,14 @@ class AnalysisPrep(object):
                 data.beta[raref] = betas
         self.register_io_command()
 
-    def get_models_stratas(self):
-        strata = ''
+    def get_models_configs(self):
         yml = self.config.adonis
-        if 'strata' in yml and 'global' in yml:
+        strata = ''
+        if 'strata' in yml and 'global' in yml['strata']:
             strata = yml['strata']['global']
+        perms = ''
+        if 'perms' in yml and 'global' in yml['perms']:
+            perms = yml['perms']['global']
         for dat, data in self.project.datasets.items():
             source = data.source
             variables = set(data.metadata.columns)
@@ -966,11 +969,16 @@ class AnalysisPrep(object):
                 for mod, var in yml['models'][source].items():
                     terms = set(re.split('[*/+-]', var))
                     if sorted(variables & terms) == sorted(terms):
-                        stratas = list([strata])
+                        cur = [var]
                         if 'strata' in yml and source in yml['strata']:
-                            stratas.extend(yml['strata'][source].get(mod, []))
-                        stratas = set([x for x in stratas if x in variables])
-                        data.adonis[mod] = [var, list(stratas)]
+                            cur.append(yml['strata'][source].get(mod, strata))
+                        else:
+                            cur.append(strata)
+                        if 'perms' in yml and source in yml['perms']:
+                            cur.append(yml['perms'][source].get(mod, perms))
+                        else:
+                            cur.append(perms)
+                        data.adonis[mod] = cur
 
     @staticmethod
     def invalid(data, meta_pd, terms):
@@ -981,7 +989,7 @@ class AnalysisPrep(object):
 
     def adonis(self):
         self.analysis = 'adonis'
-        self.get_models_stratas()
+        self.get_models_configs()
         for dat, data in self.project.datasets.items():
             for raref, dms_metrics_ in data.beta.items():
                 dms_metrics = [x for x in dms_metrics_ if isfile(rep(x[0]))]
@@ -991,7 +999,7 @@ class AnalysisPrep(object):
                 for cohort, (sams, variables) in data.subsets[raref].items():
                     self.get_output(data.path, cohort)
                     r_scripts = []
-                    for model, (formula, stratas) in data.adonis.items():
+                    for model, (formula, stratas, perms) in data.adonis.items():
                         variables = re.split('[*/+-]', formula)
                         terms = list(set(variables + stratas))
                         meta_pd = subset_meta(
