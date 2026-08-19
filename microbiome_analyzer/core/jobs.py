@@ -14,8 +14,8 @@ from microbiome_analyzer._scratch import get_roundtrip, rep
 from microbiome_analyzer.core.slurm import (
     set_directives, set_preamble, set_scratching, set_tmpdir)
 
-import pkg_resources
-RESOURCES = pkg_resources.resource_filename("microbiome_analyzer", "resources")
+import importlib.resources
+RESOURCES = importlib.resources.files("microbiome_analyzer") / "resources"
 
 
 class CreateScripts(object):

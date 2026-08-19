@@ -11,7 +11,6 @@ import os
 import glob
 import yaml
 import pandas as pd
-import pkg_resources
 from os.path import basename, dirname, isdir, isfile, splitext
 from skbio.tree import TreeNode
 import itertools as its
@@ -39,8 +38,8 @@ from microbiome_analyzer._io_utils import (
     add_q2_type, subset_meta, subset_dm, get_wol_tree, get_sepp_tree,
     make_fp_dir)
 
-RESOURCES = pkg_resources.resource_filename(
-    "microbiome_analyzer", "resources")
+import importlib.resources
+RESOURCES = importlib.resources.files("microbiome_analyzer") / "resources"
 
 
 class AnalysisPrep(object):

@@ -68,7 +68,7 @@ setup(
     classifiers=classifiers,
     entry_points={'console_scripts': standalone},
     package_data={
-        'routine_qiime2_analyses': [
+        'microbiome_analyzer': [
             'test/*/*/*',
             'core/readmes/*',
             'resources/run_params.yml',

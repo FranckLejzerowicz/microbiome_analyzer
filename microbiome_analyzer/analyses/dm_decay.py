@@ -7,7 +7,6 @@
 # ----------------------------------------------------------------------------
 
 import os
-import pkg_resources
 import pandas as pd
 
 from os.path import isdir, splitext
@@ -16,8 +15,8 @@ from microbiome_analyzer.core.commands import run_export
 from microbiome_analyzer._io_utils import subset_meta
 from microbiome_analyzer._scratch import io_update, to_do, rep
 
-RESOURCES = pkg_resources.resource_filename(
-    "microbiome_analyzer", "resources/python_scripts")
+import importlib.resources
+RESOURCES = importlib.resources.files("microbiome_analyzer") / "resources/python_scripts"
 
 
 class DmDecay(object):

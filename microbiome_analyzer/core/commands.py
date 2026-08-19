@@ -7,15 +7,14 @@
 # ----------------------------------------------------------------------------
 
 import biom
-import pkg_resources
 import pandas as pd
 from os.path import basename, dirname, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
 from microbiome_analyzer._scratch import io_update, to_do, rep
 
-RESOURCES = pkg_resources.resource_filename(
-    "microbiome_analyzer", "resources/python_scripts")
+import importlib.resources
+RESOURCES = importlib.resources.files("microbiome_analyzer") / "resources/python_scripts"
 
 
 def run_summary(

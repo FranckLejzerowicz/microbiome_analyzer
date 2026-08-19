@@ -12,15 +12,14 @@ import sys
 
 import biom
 import yaml
-import pkg_resources
 import pandas as pd
 
 from os.path import basename, dirname, isfile, isdir, splitext
 from microbiome_analyzer.core.commands import run_export
 from microbiome_analyzer._scratch import to_do, rep
 
-RESOURCES = pkg_resources.resource_filename(
-    "microbiome_analyzer", "resources/wol")
+import importlib.resources
+RESOURCES = importlib.resources.files("microbiome_analyzer") / "resources/wol"
 
 
 def convert_to_biom(data_pd: pd.DataFrame) -> biom.Table:

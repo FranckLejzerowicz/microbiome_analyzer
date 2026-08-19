@@ -17,40 +17,6 @@ from microbiome_analyzer._io_utils import check_vals
 np.set_printoptions(precision=2, suppress=True)
 
 
-# def get_subset(
-#         case_vals: list,
-#         case_var: str,
-#         form: str = None
-# ) -> str:
-#     """
-#     Get the current subset, which is the concatenation of:
-#      - diversity metric.
-#      - metadata variable.
-#      - metadata variable's values.
-#      - formula.
-#
-#     Parameters
-#     ----------
-#     case_vals
-#     case_var
-#     form
-#
-#     Returns
-#     -------
-#
-#     """
-#     if len(case_vals):
-#         case = '%s_%s' % (case_var, '-'.join(
-#             [x.replace('<', 'below').replace('>', 'above') for x in case_vals]
-#         ))
-#     else:
-#         case = case_var
-#     if form:
-#         case = '%s_%s' % (case, form)
-#     case = re.sub('[ /()]', '', case.replace('__', '_'))
-#     return case
-
-
 def get_subset(
         case_var: str,
         form: str = None
@@ -76,44 +42,6 @@ def get_subset(
         case = '%s_%s' % (case, form)
     case = re.sub('[ /()]', '', case.replace('__', '_'))
     return case
-
-
-# def get_subset_pd(
-#         meta_pd: pd.DataFrame,
-#         subset: str,
-#         variable: str,
-#         factors: list
-# ) -> pd.DataFrame:
-#     """
-#     Perform subset.
-#
-#     Parameters
-#     ----------
-#     meta_pd
-#     subset
-#     variable
-#     factors
-#
-#     Returns
-#     -------
-#
-#     """
-#     if 'ALL' in subset:
-#         new_meta_pd = meta_pd.copy()
-#     elif len([x for x in factors if x[0] == '>' or x[0] == '<']):
-#         new_meta_pd = meta_pd.copy()
-#         for case_val in factors:
-#             if case_val[0] == '>':
-#                 new_meta_pd = new_meta_pd[
-#                     new_meta_pd[variable].astype(float) >= float(case_val[1:])
-#                 ].copy()
-#             elif case_val[0] == '<':
-#                 new_meta_pd = new_meta_pd[
-#                     new_meta_pd[variable].astype(float) <= float(case_val[1:])
-#                 ].copy()
-#     else:
-#         new_meta_pd = meta_pd[meta_pd[variable].isin(factors)].copy()
-#     return new_meta_pd
 
 
 def get_subset_pd(

@@ -10,7 +10,6 @@ import os
 import glob
 import sys
 import yaml
-import pkg_resources
 
 from os.path import isdir
 from microbiome_analyzer.core.analysis import AnalysisPrep
@@ -18,8 +17,8 @@ from microbiome_analyzer.core.commands import write_sourcetracking
 from microbiome_analyzer._io_utils import subset_meta
 from microbiome_analyzer._scratch import rep
 
-RESOURCES = pkg_resources.resource_filename(
-    "microbiome_analyzer", "resources")
+import importlib.resources
+RESOURCES = importlib.resources.files("microbiome_analyzer") / "resources"
 
 
 class Sourcetracking(object):

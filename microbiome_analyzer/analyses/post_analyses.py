@@ -9,7 +9,6 @@
 import os
 import glob
 import pandas as pd
-import pkg_resources
 from scipy.stats import spearmanr
 from os.path import dirname, isdir, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
@@ -20,8 +19,8 @@ from microbiome_analyzer.analyses.taxonomy import get_split_taxonomy
 from microbiome_analyzer.core.commands import (
     get_biplot_commands, get_xmmvec_commands)
 
-RESOURCES = pkg_resources.resource_filename(
-    "microbiome_analyzer", "resources/python_scripts")
+import importlib.resources
+RESOURCES = importlib.resources.files("microbiome_analyzer") / "resources/python_scripts"
 debug_dir = '/Users/franck/projects/deepsea/metabarcoding'
 
 

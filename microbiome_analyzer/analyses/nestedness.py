@@ -10,19 +10,17 @@ import os
 import glob
 import numpy as np
 import pandas as pd
-import pkg_resources
 
 from os.path import basename, isdir, isfile, splitext
 from microbiome_analyzer.core.datasets import Datasets
 from microbiome_analyzer.core.analysis import AnalysisPrep
-from microbiome_analyzer.core.metadata import get_sample_subset
 from microbiome_analyzer.core.commands import (
-    write_sample_filter, write_feat_filter, run_export, run_add_metadata)
-from microbiome_analyzer._io_utils import check_vals, subset_meta
+    write_sample_filter,run_export, run_add_metadata)
+from microbiome_analyzer._io_utils import subset_meta
 from microbiome_analyzer._scratch import io_update, to_do, rep
 
-RESOURCES = pkg_resources.resource_filename(
-    "microbiome_analyzer", "resources/python_scripts")
+import importlib.resources
+RESOURCES = importlib.resources.files("microbiome_analyzer") / "resources/python_scripts"
 
 
 class Nestedness(object):
