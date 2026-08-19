@@ -6,15 +6,12 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os
 import sys
-import time
 import yaml
 import json
 import subprocess
 
 import pandas as pd
-import pkg_resources
 import numpy as np
 from datetime import datetime as dt
 from os.path import abspath, dirname, exists, isfile, isdir
@@ -22,7 +19,8 @@ from microbiome_analyzer._inputs import read_yaml_file, read_meta_pd
 from microbiome_analyzer._formats import check_format
 from microbiome_analyzer._hpc import *
 
-RESOURCES = pkg_resources.resource_filename("microbiome_analyzer", "resources")
+import importlib.resources
+RESOURCES = importlib.resources.files("microbiome_analyzer") / "resources"
 
 
 class AnalysesConfig(object):
