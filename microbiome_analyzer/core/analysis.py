@@ -1388,8 +1388,7 @@ class AnalysisPrep(object):
                                                               metric)
                         if self.config.force or to_do(qzv):
                             cmd = write_emperor_biplot(
-                                self, dat, biplot, biplot_tax,
-                                data.meta, qzv, tax)
+                                self, dat, biplot, biplot_tax, data.meta, qzv)
                             self.register_provenance(dat, (qzv, biplot,), cmd)
                             self.cmds.setdefault(dat, []).append(cmd)
         self.register_io_command()
