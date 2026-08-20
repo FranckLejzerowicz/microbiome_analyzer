@@ -4,7 +4,7 @@
     "doi": "https://doi.org/10.1186/2047-217X-2-16",
     "qiime2 command": "`qiime diversity emperor`",
     "qiime2 reference": "https://amplicon-docs.qiime2.org/en/stable/references/plugins/emperor.html#q2-action-emperor-biplot",
-    "dataset": 'the first folders in `emperor_biplot` are the dimensionality reduction techniques (e.g., `pcoa`) and therein, there is one subfolders for each of the datasets.",
+    "dataset": "the first folders in `emperor_biplot` are the dimensionality reduction techniques (e.g., `pcoa`) and therein, there is one subfolders for each of the datasets.",
     "output": "Interactive ordination visualization files:\n- in QIIME2 Artefact format (`.qzv`): `emperor_biplot_<beta_metric>.qzv`\n",
      "version": "Generated from configuration file"
 }
