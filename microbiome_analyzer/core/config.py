@@ -195,6 +195,7 @@ class AnalysesConfig(object):
                 param_val = run_params_user[analysis][param]
                 if param in integer_values:
                     if str(param_val).isdigit():
+                        print(self.run_params)
                         self.run_params[analysis][param] = param_val
                 elif param == 'mem_dim':
                     if param_val in mem_dim:
