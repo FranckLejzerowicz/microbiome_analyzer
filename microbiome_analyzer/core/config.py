@@ -470,6 +470,7 @@ class AnalysesConfig(object):
 
     def get_readmes(self):
         for (_, analysis) in self.analyses:
+            print(RESOURCES)
             with open('%s/readmes/%s.txt' % (RESOURCES, analysis)) as fp:
                 self.readmes[analysis] = json.load(fp)
 
