@@ -405,8 +405,8 @@ class AnalysesConfig(object):
                                       'biplot'))
                 if 'emperor_biplot' not in self.skip:
                     self.analyses.append(('EMPeror biplot', 'emperor_biplot'))
-                if 'empress_biplot' not in self.skip:
-                    self.analyses.append(('EMPress biplot', 'empress_biplot'))
+                #if 'empress_biplot' not in self.skip:
+                #    self.analyses.append(('EMPress biplot', 'empress_biplot'))
 
             if self.permanova and 'permanova' not in self.skip:
                 self.analyses.append(
