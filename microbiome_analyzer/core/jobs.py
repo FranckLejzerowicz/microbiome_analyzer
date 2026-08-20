@@ -266,7 +266,6 @@ class CreateScripts(object):
             self.scripts.append(main_print)
 
     def write_readme(self):
-         = '%s' % self.dir
         readme = '%s/%s/readme.txt' % (self.dir, self.analysis)
         with open(rep(readme), 'w') as o:
             for k_, v in self.config.readmes[self.analysis].items():
