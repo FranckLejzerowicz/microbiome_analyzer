@@ -189,7 +189,7 @@ def get_digit_depth(
     depth : int
         Rarefaction depth
     """
-    if depth_.isdigit():
+    if str(depth_).isdigit():
         depth = int(depth_)
     else:
         depth = int(np.floor(min(tsv_sums)))
