@@ -215,7 +215,6 @@ class CreateScripts(object):
         # self.cmd.append('--quiet')
 
     def write_jobs(self):
-        self.get_jobs_dir()
         self.get_nlss_nm()
         for chk, chunk_keys in self.chunks.items():
             self.sh = '%s/run_%s_%s.sh' % (
@@ -247,6 +246,7 @@ class CreateScripts(object):
             if not len(cmds):
                 continue
             self.analysis = analysis
+            self.get_jobs_dir()
             self.write_readme()
             self.params = self.config.run_params[analysis]
             self.ios = prep.analyses_ios[analysis]
@@ -266,6 +266,7 @@ class CreateScripts(object):
             self.scripts.append(main_print)
 
     def write_readme(self):
+         = '%s' % self.dir
         readme = '%s/%s/readme.txt' % (self.dir, self.analysis)
         with open(rep(readme), 'w') as o:
             for k_, v in self.config.readmes[self.analysis].items():
