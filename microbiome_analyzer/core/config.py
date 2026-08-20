@@ -190,12 +190,10 @@ class AnalysesConfig(object):
         mem_dim = ['kb', 'mb', 'gb']
         integer_values = ['time', 'nodes', 'cpus', 'mem']
         for analysis in list(run_params_user.keys()):
-            print(analysis)
             for param in list(run_params_user[analysis].keys()):
                 param_val = run_params_user[analysis][param]
                 if param in integer_values:
                     if str(param_val).isdigit():
-                        print(self.run_params)
                         self.run_params[analysis][param] = param_val
                 elif param == 'mem_dim':
                     if param_val in mem_dim:
