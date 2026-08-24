@@ -506,16 +506,7 @@ class AnalysisPrep(object):
             d = yaml.safe_load(file)
             for typ, refs in d.items():
                 for ref in refs:
-                    print()
-                    print(typ, refs)
-                    print(ref)
-                    print(estimators)
-                    print(user_estimators)
-                    if user_estimators[typ]:
-                        if ref in user_estimators[typ]:
-                            estimators[typ].append(ref)
-                    else:
-                        estimators[typ].append(ref)
+                    estimators.setdefault(typ, []).append(ref)
         for typ, user_ests in user_estimators.items():
             for user_est in user_ests:
                 if user_est not in estimators[typ]:
