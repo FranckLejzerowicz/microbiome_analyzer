@@ -508,6 +508,10 @@ class AnalysisPrep(object):
                 for ref in refs:
                     if user_estimators[typ]:
                         if ref in user_estimators[typ]:
+                            print()
+                            print(typ, refs)
+                            print(ref)
+                            print(estimators)
                             estimators[typ].append(ref)
                     else:
                         estimators[typ].append(ref)
