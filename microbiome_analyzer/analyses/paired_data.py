@@ -171,10 +171,12 @@ class PairedData(object):
         return params
 
     def get_subsets(self) -> dict:
+        subsets = {'ALL': {}}
         if 'subsets' in self.config.mmvec_pairs:
-            subsets = self.config.mmvec_pairs['subsets']
-        else:
-            subsets = {'ALL': {}}
+            subsets.update(self.config.mmvec_pairs['subsets'])
+#            subsets = self.config.mmvec_pairs['subsets']
+#        else:
+ #           subsets = {'ALL': {}}
         return subsets
 
     def get_mmvec_dicts(self):
