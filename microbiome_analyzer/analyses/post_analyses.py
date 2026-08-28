@@ -193,10 +193,18 @@ class PostAnalysis(object):
             if str(fp) == 'nan':
                 continue
             md = sb.replace('_omic%s_songbird_common_fp' % omic, '')
+            print()
+            print()
+            print()
+            print()
+            print(sb, fp)
             if str(rep(fp)) != 'nan' and not to_do(fp):
                 q2s = self.get_q2s(fp)
+                print()
+                print(q2s)
                 if q2s:
                     diff_pd = self.get_diff_pd(fp)
+                    print(diff_pd)
                     q2_cols = self.get_q2_cols(md, q2s, diff_pd)
                     diff_pd.columns = q2_cols
                     diffs.append(diff_pd)
