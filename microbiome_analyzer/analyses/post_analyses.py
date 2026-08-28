@@ -246,6 +246,9 @@ class PostAnalysis(object):
         self.analysis = 'mmvec'
         for omic in ['1', '2']:
             cs, fps = self.get_mmvec_songbird_pd_cols(omic)
+            print('----------------------')
+            print(cs, fps)
+            print('----------------------')
             ms_pd = self.mmvec_songbird_pd[(cs + fps)].set_index(cs).T.to_dict()
             for (pair, sub, o1, f1, o2, f2), sb_fps in ms_pd.items():
                 self.get_output('metadata/%s/%s' % (pair, sub))
