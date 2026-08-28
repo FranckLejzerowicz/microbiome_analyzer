@@ -263,7 +263,7 @@ def skip_subset(variables, meta_pd):
         print(fs)
         print(meta_pd[v].nunique())
         print('!!!!!!!!!!!!!')
-        if len(fs) == meta_pd[v].nunique():
+        if len(fs) > meta_pd[v].nunique():
             return True
     return False
 
