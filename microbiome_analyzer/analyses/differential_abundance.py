@@ -779,15 +779,8 @@ class DiffModels(object):
         for r, row in self.songbirds.iterrows():
             qza, pair, meta_fp = row['qza'], row['pair'], row['meta']
             dat, filt, subset = row['dataset'], row['filter'], row['subset']
-            print()
-            print()
-            print()
-            print('+++++++++++++++++++++++++++++')
-            print(qza, pair, meta_fp)
-            print(dat, filt, subset)
             if dat not in self.songbird_models or to_do(qza):
                 continue
-            print('+>')
             pair_dir = self.get_dat_pair_dir(dat, pair)
             meta_pd = read_meta_pd(rep(meta_fp))
             models = self.check_metadata_models(
@@ -804,13 +797,8 @@ class DiffModels(object):
                         pair_dir, filt, subset, filt_list, params_list, model)
                     new_qza = '%s/tab.qza' % o_dir
                     new_meta = '%s/metadata.tsv' % o_dir
-                    print()
-                    print('- - - - - - - - - ')
-                    print(model, formula)
-                    print('- - - - - - - - - ')
                     if skip_subset(variables, meta_pd):
                         continue
-                    print('->')
                     nsams = self.new_meta(meta_pd, new_meta, variables, params)
                     if dat in self.baselines and model in self.baselines[dat]:
                         if self.baselines[dat][model]:

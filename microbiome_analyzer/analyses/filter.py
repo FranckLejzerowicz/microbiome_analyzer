@@ -256,13 +256,6 @@ def harsh_filtering(
 
 def skip_subset(variables, meta_pd):
     for v, fs in variables.items():
-        print()
-        print()
-        print('!!!!!!!!!!!!!')
-        print(v)
-        print(fs)
-        print(meta_pd[v].nunique())
-        print('!!!!!!!!!!!!!')
         if len(fs) > meta_pd[v].nunique():
             return True
     return False
