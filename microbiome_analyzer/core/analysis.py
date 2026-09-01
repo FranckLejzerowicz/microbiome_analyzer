@@ -281,7 +281,8 @@ class AnalysisPrep(object):
             qza, tsv = data.tax[1], data.tax[2]
             cmd += get_taxonomy_command(self, dat, data)
             if not to_do(tsv):
-                cmd += get_edit_taxonomy_command(self, dat, data)
+                if to_do(qza):
+                    cmd += get_edit_taxonomy_command(self, dat, data)
             if cmd:
                 self.cmds.setdefault(dat, []).append(cmd)
             self.register_provenance(dat, (data.tax[1], data.tax[2],), cmd)
