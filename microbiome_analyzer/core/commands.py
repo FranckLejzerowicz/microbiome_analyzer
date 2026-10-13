@@ -12,6 +12,7 @@ from os.path import basename, dirname, isfile, splitext
 from skbio.stats.ordination import OrdinationResults
 
 from microbiome_analyzer._scratch import io_update, to_do, rep
+from microbiome_analyzer._inputs import get_qiime_version
 
 import importlib.resources
 RESOURCES = importlib.resources.files("microbiome_analyzer") / "resources/python_scripts"
@@ -83,7 +84,8 @@ def run_import(
     """
     cmd = ''
     infile = input_path
-    qiime_v = self.config.qiime_version
+    params = self.config.run_params[self.analysis]
+    qiime_v = get_qiime_version(params['env'])
     if typ.startswith("FeatureTable"):
         if not input_path.endswith('biom'):
             infile = '%s.biom' % splitext(input_path)[0]
@@ -990,8 +992,8 @@ def write_classify(
     -------
     cmd : str
     """
-
-    qiime_v = self.config.qiime_version
+    params = self.config.run_params['classify']
+    qiime_v = get_qiime_version(params['env'])
     cmd = 'qiime feature-table filter-samples'
     cmd += ' --i-table %s' % qza
     cmd += ' --p-min-frequency 10'
@@ -1080,6 +1082,7 @@ def write_ctf(
     https://github.com/biocore/gemelli
     """
     params = self.config.run_params['ctf']
+    qiime_v = get_qiime_version(params['env'])
     phylo = data.phylo
     tree = data.tree
     tax = data.tax
@@ -1190,7 +1193,6 @@ def write_ctf(
     cmd += ' --o-visualization %s\n\n' % sub_qzv
 
     # Add filtering upfront
-    qiime_v = self.config.qiime_version
     cmd_final = 'qiime feature-table filter-samples'
     cmd_final += ' --i-table %s' % qza_in
     cmd_final += ' --p-min-frequency 1'
@@ -1269,6 +1271,8 @@ def write_rpca(
     -------
     cmd : str
     """
+    params = self.config.run_params['rpca']
+    qiime_v = get_qiime_version(params['env'])
     phylo = data.phylo
     tree = data.tree
     tax = data.tax
@@ -1296,7 +1300,7 @@ def write_rpca(
         i_f.extend([tree[1], tax[1]])
         o_f.extend([tree_qza, tree_nwk, table, taxon, table_tsv])
     else:
-        if float(self.config.qiime_env.split('-')[-1]) >= 2023.5:
+        if float(qiime_v) >= 2023.5:
             cmd += 'qiime gemelli rpca'
         else:
             cmd += 'qiime gemelli auto-rpca'
@@ -1373,7 +1377,6 @@ def write_rpca(
         cmd += ' --m-feature-metadata-file %s' % tax[1]
         # cmd += ' --m-feature-metadata-file %s' % taxa[-1]
 
-
     if data.feat_meta or not to_do(diffs):
         cmd += feat_cmd
     cmd += ' --p-number-of-features %s' % self.config.run_params['rpca'][
@@ -1386,7 +1389,6 @@ def write_rpca(
     else:
         io_update(self, i_f=[ordi, meta], o_f=[qzv, ordi_tsv], key=dat)
 
-    qiime_v = self.config.qiime_version
     cmd_final = ''
     if self.config.jobs:
         cmd_final += 'rm -rf $TMPDIR\n'
@@ -2561,7 +2563,8 @@ def write_sourcetracking(
         sources: list
 ) -> str:
     cmd = ''
-    qiime_v = self.config.qiime_version
+    params = self.config.run_params['sourcetracking']
+    qiime_v = get_qiime_version(params['env'])
     if to_do(new_tsv):
         cmd += 'qiime feature-table filter-samples'
         cmd += ' --i-table %s' % qza

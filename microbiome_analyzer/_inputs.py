@@ -68,6 +68,11 @@ def read_meta_pd(
     )
     return meta_tab_pd
 
+def get_qiime_version(qiime_env):
+    if qiime_env.startswith('rachis'):
+        return float(qiime_env.split('-')[-1])
+    else:
+        return float(qiime_env.split('-')[1])
 
 def get_feature_sample_col(meta_tab: str) -> str:
     """Get the first column of the metadata file.

@@ -14,8 +14,8 @@ import subprocess
 import pandas as pd
 import numpy as np
 from datetime import datetime as dt
-from os.path import abspath, dirname, exists, isfile, isdir
-from microbiome_analyzer._inputs import read_yaml_file, read_meta_pd
+from os.path import abspath, exists, isfile
+from microbiome_analyzer._inputs import read_yaml_file, read_meta_pd, get_qiime_version
 from microbiome_analyzer._formats import check_format
 from microbiome_analyzer._hpc import *
 
@@ -51,7 +51,6 @@ class AnalysesConfig(object):
         self.parse_yamls()
         self.get_project_name()  # project name for jobs
         self.get_conda_envs(logging)
-        self.get_qiime_version()
         self.get_analyses()
         self.get_readmes()
         self.get_run_params(logging)  # default (e.g. memory)
@@ -158,6 +157,7 @@ class AnalysesConfig(object):
             An environment.
         """
         conda_env = self.qiime_env
+        self.qiime_version = get_qiime_version(self.qiime_env)
         if env:
             conda_env = env
         if conda_env not in self.conda_envs:
@@ -180,12 +180,6 @@ class AnalysesConfig(object):
             # if len(conda_env) and conda_env[0] != '#':
             #     self.conda_envs.add(conda_env.split()[0])
         self.check_env(logging)
-
-    def get_qiime_version(self):
-        if self.qiime_env.startswith('rachis'):
-            self.qiime_version = float(self.qiime_env.split('-')[-1])
-        else:
-            self.qiime_version = float(self.qiime_env.split('-')[1])
 
     def check_run_params(self, logging, run_params_user: dict):
         """Verify that the keys/values passed for an analysis are valid.
