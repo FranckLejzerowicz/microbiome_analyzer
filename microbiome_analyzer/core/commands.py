@@ -42,11 +42,14 @@ def run_summary(
     cmd : str
         Qiime2 command.
     """
+    qiime_v = self.config.qiime_version
     cmd = 'qiime feature-table summarize'
     cmd += ' --i-table %s' % input_path
     if metadata_path:
-        cmd += ' --m-sample-metadata-file %s' % metadata_path
-    qiime_v = self.config.qiime_version
+        if qiime_v >= 2026.0:
+            cmd += ' --m-metadata-file %s' % metadata_path
+        else:
+            cmd += ' --m-sample-metadata-file %s' % metadata_path
     if qiime_v >= 2026.0:
         cmd += ' --o-summary %s\n' % output_path
     else:
@@ -937,8 +940,7 @@ def write_beta(
         cmd += ' --p-metric %s' % metric
         nodes = self.config.run_params['beta']['nodes']
         cpus = self.config.run_params['beta']['cpus']
-        qiime_env = self.config.qiime_env
-        if float(qiime_env.split('-')[1]) >= 2020.8 and 'phylo' in cmd:
+        if self.config.qiime_version >= 2020.8 and 'phylo' in cmd:
             cmd += ' --p-threads %s' % (int(nodes) * int(cpus))
         else:
             cmd += ' --p-n-jobs %s' % (int(nodes) * int(cpus))

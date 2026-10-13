@@ -482,8 +482,7 @@ class AnalysisPrep(object):
         with open('%s/%s_metrics.txt' % (RESOURCES, self.analysis)) as f:
             for line in f:
                 line_strip = line.strip()
-                year_version = float(self.config.qiime_env.split('-')[-1])
-                if year_version > 2020.6 and line_strip == 'observed_otus':
+                if self.config.qiime_version > 2020.6 and line_strip == 'observed_otus':
                     line_strip = 'observed_features'
                 if len(line_strip):
                     if user_metrics:
