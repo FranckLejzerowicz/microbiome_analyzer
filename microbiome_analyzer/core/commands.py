@@ -50,7 +50,10 @@ def run_summary(
             cmd += ' --m-metadata-file %s' % metadata_path
         else:
             cmd += ' --m-sample-metadata-file %s' % metadata_path
+    print(qiime_v)
     if qiime_v >= 2026.0:
+        cmd += ' --o-feature-frequencies %s_features.qza' % splitext(output_path)[0]
+        cmd += ' --o-sample-frequencies %s_samples.qza' % splitext(output_path)[0]
         cmd += ' --o-summary %s\n' % output_path
     else:
         cmd += ' --o-visualization %s\n' % output_path
