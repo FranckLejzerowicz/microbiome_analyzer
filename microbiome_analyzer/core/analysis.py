@@ -106,7 +106,7 @@ class AnalysisPrep(object):
             data.qza[''] = qza
             data.biom[''] = biom
             cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
-            cmd += run_summary(qza, qzv, data.meta)
+            cmd += run_summary(self, qza, qzv, data.meta)
             if self.config.force or to_do(qza) or to_do(biom) or to_do(qzv):
                 self.cmds.setdefault(dat, []).append(cmd)
                 io_update(self, i_f=tsv, o_f=[biom, qza, qzv], key=dat)
@@ -222,7 +222,7 @@ class AnalysisPrep(object):
             data_filt_pd.to_csv(rep(tsv_filt), index=True, sep='\t')
             data_filt.data[''] = data_filt_biom
             cmd += run_import(tsv_filt, qza_filt, 'FeatureTable[Frequency]')
-            cmd += run_summary(qza_filt, qzv_filt, data_filt.meta)
+            cmd += run_summary(self, qza_filt, qzv_filt, data_filt.meta)
             flt_cmds += cmd
             self.register_provenance(dat, (tsv_filt, qza_filt), flt_cmds)
             if to_do(qza_filt) or to_do(qzv_filt):
@@ -257,7 +257,7 @@ class AnalysisPrep(object):
                 qzv = '%s.qzv' % splitext(tsv)[0]
                 cmd = write_rarefy(data.qza[''], qza, depth)
                 cmd += run_export(qza, tsv, 'FeatureTable[Frequency]')
-                cmd += run_summary(qza, qzv, data.meta)
+                cmd += run_summary(self, qza, qzv, data.meta)
                 self.register_provenance(dat, (qza,), cmd)
                 if self.config.force or to_do(tsv) or to_do(biom) or to_do(qzv):
                     io_update(self, i_f=data.qza[''], key=dat,
@@ -539,7 +539,7 @@ class AnalysisPrep(object):
             subset_pd.to_csv(rep(meta_subset), index=False, sep='\t')
             cmd = write_feat_filter(data.qza[raref], qza_subset, meta_subset)
             cmd += run_export(qza_subset, tsv_subset, 'FeatureTable')
-            cmd += run_summary(qza_subset, qzv_subset, data_subset.meta)
+            cmd += run_summary(self, qza_subset, qzv_subset, data_subset.meta)
             cmd += '\nrm %s\n\n' % meta_subset
             io_update(self, i_f=[data.qza[raref], meta_subset],
                       o_f=[qza_subset, tsv_subset, qzv_subset], key=dat_subset)

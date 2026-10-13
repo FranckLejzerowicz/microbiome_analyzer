@@ -18,6 +18,7 @@ RESOURCES = importlib.resources.files("microbiome_analyzer") / "resources/python
 
 
 def run_summary(
+        self,
         input_path: str,
         output_path: str,
         metadata_path: str = ''
@@ -43,7 +44,11 @@ def run_summary(
     cmd += ' --i-table %s' % input_path
     if metadata_path:
         cmd += ' --m-sample-metadata-file %s' % metadata_path
-    cmd += ' --o-visualization %s\n' % output_path
+    qiime_env = self.config.qiime_env
+    if float(qiime_env.split('-')[1]) >= 2026.0:
+        cmd += ' --o-summary %s\n' % output_path
+    else:
+        cmd += ' --o-visualization %s\n' % output_path
     return cmd
 
 
@@ -405,7 +410,7 @@ def write_collapse(
     #     io_update(self, i_f=meta_fp, o_f=collapsed_meta, key=dat)
 
     if to_do(collapsed_qzv):
-        cmd += run_summary(collapsed_qza, collapsed_qzv, collapsed_meta)
+        cmd += run_summary(self, collapsed_qza, collapsed_qzv, collapsed_meta)
 
     return cmd
 

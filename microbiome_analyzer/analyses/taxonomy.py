@@ -533,7 +533,7 @@ def fix_collapsed_data(
 
     if to_do(coll_qza):
         cmd += run_import(coll_tsv, coll_qza, 'FeatureTable[Frequency]')
-        cmd += run_summary(coll_qza, coll_qzv, coll_meta)
+        cmd += run_summary(self, coll_qza, coll_qzv, coll_meta)
         io_update(self, i_f=coll_tsv, o_f=coll_qza, key=dat)
     return cmd
 
