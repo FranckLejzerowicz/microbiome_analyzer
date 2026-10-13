@@ -28,6 +28,7 @@ def run_summary(
 
     Parameters
     ----------
+    self
     input_path : str
         Input file to import to qiime2 artefact.
     output_path : str
