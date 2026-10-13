@@ -991,11 +991,13 @@ def write_classify(
     cmd : str
     """
 
+    qiime_v = self.config.qiime_version
     cmd = 'qiime feature-table filter-samples'
     cmd += ' --i-table %s' % qza
     cmd += ' --p-min-frequency 10'
     cmd += ' --p-min-features 10'
-    cmd += ' --p-filter-empty-features'
+    if qiime_v >= 2021:
+        cmd += ' --p-filter-empty-features'
     cmd += ' --m-metadata-file %s' % meta
     cmd += ' --o-filtered-table %s\n' % new_qza
 
@@ -1188,10 +1190,12 @@ def write_ctf(
     cmd += ' --o-visualization %s\n\n' % sub_qzv
 
     # Add filtering upfront
+    qiime_v = self.config.qiime_version
     cmd_final = 'qiime feature-table filter-samples'
     cmd_final += ' --i-table %s' % qza_in
     cmd_final += ' --p-min-frequency 1'
-    cmd_final += ' --p-filter-empty-features'
+    if qiime_v >= 2021:
+        cmd_final += ' --p-filter-empty-features'
     cmd_final += ' --m-metadata-file %s' % meta
     cmd_final += ' --o-filtered-table %s\n\n' % new_qza
 
@@ -1369,6 +1373,7 @@ def write_rpca(
         cmd += ' --m-feature-metadata-file %s' % tax[1]
         # cmd += ' --m-feature-metadata-file %s' % taxa[-1]
 
+
     if data.feat_meta or not to_do(diffs):
         cmd += feat_cmd
     cmd += ' --p-number-of-features %s' % self.config.run_params['rpca'][
@@ -1381,13 +1386,15 @@ def write_rpca(
     else:
         io_update(self, i_f=[ordi, meta], o_f=[qzv, ordi_tsv], key=dat)
 
+    qiime_v = self.config.qiime_version
     cmd_final = ''
     if self.config.jobs:
         cmd_final += 'rm -rf $TMPDIR\n'
     cmd_final += 'qiime feature-table filter-samples'
     cmd_final += ' --i-table %s' % qza_in
     cmd_final += ' --p-min-frequency 1'
-    cmd_final += ' --p-filter-empty-features'
+    if qiime_v >= 2021:
+        cmd_final += ' --p-filter-empty-features'
     cmd_final += ' --m-metadata-file %s' % meta
     cmd_final += ' --o-filtered-table %s\n\n' % new_qza
 
@@ -1529,13 +1536,15 @@ def write_biplot(
     # tab_rel_qza_tmp = '%s_rel_tmp.qza' % splitext(tab_qza)[0]
     # tab_rel_qza = '%s_rel.qza' % splitext(tab_qza)[0]
 
+    qiime_v = self.config.qiime_version
     cmd += '\nqiime feature-table relative-frequency'
     # cmd += ' --i-table %s' % tab_qza
     cmd += ' --i-table %s' % qza
     cmd += ' --o-relative-frequency-table %s\n\n' % tab_rel_qza_tmp
     cmd += '\nqiime feature-table filter-samples'
     cmd += ' --i-table %s' % tab_rel_qza_tmp
-    cmd += ' --p-filter-empty-features'
+    if qiime_v >= 2021:
+        cmd += ' --p-filter-empty-features'
     cmd += ' --m-metadata-file %s' % meta
     cmd += ' --o-filtered-table %s\n\n' % tab_rel_qza
 
@@ -2552,11 +2561,13 @@ def write_sourcetracking(
         sources: list
 ) -> str:
     cmd = ''
+    qiime_v = self.config.qiime_version
     if to_do(new_tsv):
         cmd += 'qiime feature-table filter-samples'
         cmd += ' --i-table %s' % qza
         cmd += ' --p-min-frequency 1'
-        cmd += ' --p-filter-empty-features'
+        if qiime_v >= 2021:
+            cmd += ' --p-filter-empty-features'
         cmd += ' --m-metadata-file %s' % new_meta
         cmd += ' --o-filtered-table %s\n' % new_qza
         cmd += run_export(new_qza, new_tsv, 'FeatureTable')
