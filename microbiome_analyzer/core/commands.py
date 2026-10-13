@@ -46,8 +46,8 @@ def run_summary(
     cmd += ' --i-table %s' % input_path
     if metadata_path:
         cmd += ' --m-sample-metadata-file %s' % metadata_path
-    qiime_env = self.config.qiime_env
-    if float(qiime_env.split('-')[1]) >= 2026.0:
+    qiime_v = self.config.qiime_version
+    if qiime_v >= 2026.0:
         cmd += ' --o-summary %s\n' % output_path
     else:
         cmd += ' --o-visualization %s\n' % output_path

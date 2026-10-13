@@ -37,6 +37,7 @@ class AnalysesConfig(object):
         self.run_params = {}
         self.train_test_dict = {}
         self.conda_envs = {}
+        self.qiime_version = ''
         self.home = '%s/.microbiome_analyzer' % os.environ['HOME']
         self.scratchs = {'scratch': '', 'userscratch': ''}
         self.directives = {'shebang': '#!/bin/bash'}
@@ -50,6 +51,7 @@ class AnalysesConfig(object):
         self.parse_yamls()
         self.get_project_name()  # project name for jobs
         self.get_conda_envs(logging)
+        self.get_qiime_version()
         self.get_analyses()
         self.get_readmes()
         self.get_run_params(logging)  # default (e.g. memory)
@@ -178,6 +180,12 @@ class AnalysesConfig(object):
             # if len(conda_env) and conda_env[0] != '#':
             #     self.conda_envs.add(conda_env.split()[0])
         self.check_env(logging)
+
+    def get_qiime_version(self):
+        if self.qiime_env.startswith('rachis'):
+            self.qiime_version = float(self.qiime_env.split('-')[-1])
+        else:
+            self.qiime_version = float(self.qiime_env.split('-')[1])
 
     def check_run_params(self, logging, run_params_user: dict):
         """Verify that the keys/values passed for an analysis are valid.
