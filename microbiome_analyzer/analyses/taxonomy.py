@@ -248,7 +248,7 @@ def run_taxonomy_wol(self, dat, data) -> str:
                     else:
                         o.write('%s\t%s\n' % (feat, feat.replace('|', '; ')))
         io_update(self, i_f=out_tsv, o_f=out_qza, key=dat)
-        cmd = run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
+        cmd = run_import(self, out_tsv, out_qza, 'FeatureData[Taxonomy]')
     return cmd
 
 
@@ -272,7 +272,7 @@ def run_taxonomy_amplicon(self, dat: str, data) -> str:
     with open(rep(readme), 'w') as o:
         o.write('Taxonomy created using "%s"\n' % classifier_qza)
     if not to_do(out_tsv) and to_do(out_qza):
-        cmd += run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
+        cmd += run_import(self, out_tsv, out_qza, 'FeatureData[Taxonomy]')
         io_update(self, i_f=out_tsv, o_f=out_qza, key=dat)
     else:
         odir_seqs = '%s/sequences/%s' % (self.dir, dat)
@@ -281,7 +281,7 @@ def run_taxonomy_amplicon(self, dat: str, data) -> str:
         if not isdir(rep(odir_seqs)):
             os.makedirs(rep(odir_seqs))
         if self.config.force or to_do(seqs_qza):
-            cmd += write_fasta(seqs_fasta, seqs_qza, data.data[''])
+            cmd += write_fasta(self, seqs_fasta, seqs_qza, data.data[''])
             io_update(self, i_f=seqs_fasta, o_f=seqs_qza, key=dat)
         if self.config.force or to_do(out_qza):
             cmd += write_taxonomy_sklearn(classifier_qza, seqs_qza, out_qza)
@@ -321,7 +321,7 @@ def run_taxonomy_others(
                 o.write('Feature ID\tTaxon\n')
                 for feat in data.data[''].ids(axis='observation'):
                     o.write('%s\t%s\n' % (feat, feat))
-        cmd = run_import(out_tsv, out_qza, 'FeatureData[Taxonomy]')
+        cmd = run_import(self, out_tsv, out_qza, 'FeatureData[Taxonomy]')
         io_update(self, i_f=out_tsv, o_f=out_qza, key=dat)
     return cmd
 
@@ -354,7 +354,7 @@ def get_edit_taxonomy_command(self, dat, data):
     if taxa != taxa_edit:
         tax_pd['Taxon'] = taxa_edit
         tax_pd.to_csv(rep(tax_tsv), index=False, sep='\t')
-        cmd = run_import(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
+        cmd = run_import(self, tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
         io_update(self, i_f=tax_qza, o_f=tax_tsv, key=dat)
     return cmd
 
@@ -489,7 +489,7 @@ def fix_collapsed_data(
         coll_tx_rm_pd = coll_tx_pd.drop(index=remove_empty)
         coll_tx_rm_pd.to_csv(rep(coll_tax_split), sep='\t')
         coll_tax_rm_pd.to_csv(rep(coll_tax_tsv), index=False, sep='\t')
-        cmd += run_import(coll_tax_tsv, coll_tax_qza, 'FeatureData[Taxonomy]')
+        cmd += run_import(self, coll_tax_tsv, coll_tax_qza, 'FeatureData[Taxonomy]')
 
     ids = set(coll_biom.ids(axis='observation'))
     common = remove_empty & ids
@@ -532,7 +532,7 @@ def fix_collapsed_data(
             coll_meta_pd.to_csv(rep(coll_meta), index=False, sep='\t')
 
     if to_do(coll_qza):
-        cmd += run_import(coll_tsv, coll_qza, 'FeatureTable[Frequency]')
+        cmd += run_import(self, coll_tsv, coll_qza, 'FeatureTable[Frequency]')
         cmd += run_summary(self, coll_qza, coll_qzv, coll_meta)
         io_update(self, i_f=coll_tsv, o_f=coll_qza, key=dat)
     return cmd

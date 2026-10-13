@@ -363,7 +363,7 @@ class PairedData(object):
                 write_filtered_tsv(rep(tsv), tsv_pd)
                 io_update(self, o_f=tsv, key=dat)
             if self.config.force or to_do(qza):
-                cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
+                cmd = run_import(self, tsv, qza, 'FeatureTable[Frequency]')
                 io_update(self, o_f=qza, key=dat)
                 if not to_do(tsv):
                     io_update(self, i_f=tsv, key=dat)

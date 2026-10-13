@@ -50,7 +50,6 @@ def run_summary(
             cmd += ' --m-metadata-file %s' % metadata_path
         else:
             cmd += ' --m-sample-metadata-file %s' % metadata_path
-    print(qiime_v)
     if qiime_v >= 2026.0:
         cmd += ' --o-feature-frequencies %s_features.qza' % splitext(output_path)[0]
         cmd += ' --o-sample-frequencies %s_samples.qza' % splitext(output_path)[0]
@@ -61,6 +60,7 @@ def run_summary(
 
 
 def run_import(
+        self,
         input_path: str,
         output_path: str,
         typ: str) -> str:
@@ -83,6 +83,7 @@ def run_import(
     """
     cmd = ''
     infile = input_path
+    qiime_v = self.config.qiime_version
     if typ.startswith("FeatureTable"):
         if not input_path.endswith('biom'):
             infile = '%s.biom' % splitext(input_path)[0]
@@ -99,7 +100,8 @@ def run_import(
         cmd += 'qiime feature-table filter-samples'
         cmd += ' --i-table %s' % output_path_tmp
         cmd += ' --p-min-frequency 1'
-        cmd += ' --p-filter-empty-features'
+        if qiime_v >= 2021:
+            cmd += ' --p-filter-empty-features'
         cmd += ' --o-filtered-table %s\n' % output_path
         cmd += 'rm %s\n' % output_path_tmp
     else:
@@ -225,6 +227,7 @@ def write_rarefy(
 
 
 def write_fasta(
+        self,
         seqs_fasta: str,
         seqs_qza: str,
         biom_table: biom.Table,
@@ -255,7 +258,7 @@ def write_fasta(
     cmd += "#     for seq in tsv_pd.index:\n"
     cmd += "#         o.write('>%s\\n%s\\n' % (seq.strip(), seq.strip()))\n"
     cmd += '# ```:\n'
-    cmd += run_import(seqs_fasta, seqs_qza, 'FeatureData[Sequence]')
+    cmd += run_import(self, seqs_fasta, seqs_qza, 'FeatureData[Sequence]')
     return cmd
 
 
@@ -385,7 +388,7 @@ def write_collapse(
         cmd += run_export(collapsed_qza, collapsed_tsv, 'FeatureTable')
         cmd += 'sed "s/;/|/g" %s > %s.tmp\n' % (collapsed_tsv, collapsed_tsv)
         cmd += 'mv %s.tmp %s\n' % (collapsed_tsv, collapsed_tsv)
-        cmd += run_import(collapsed_tsv, collapsed_qza, 'FeatureTable')
+        cmd += run_import(self, collapsed_tsv, collapsed_qza, 'FeatureTable')
         io_update(self, i_f=[tab_qza, tax_qza], o_f=collapsed_qza, key=dat)
 
     if remove_empty:
@@ -825,6 +828,7 @@ def write_alpha_rarefaction(
 
 
 def write_alpha_group_significance(
+        self,
         qza: str,
         qzv: str,
         meta: str
@@ -849,7 +853,7 @@ def write_alpha_group_significance(
     tmp_tsv = '%s_filt.tsv' % rad
     tmp_qza = '%s_filt.qza' % rad
     cmd = "awk 'NF==2' %s.tsv > %s\n" % (rad, tmp_tsv)
-    cmd += run_import(tmp_tsv, tmp_qza, 'SampleData[AlphaDiversity]')
+    cmd += run_import(self, tmp_tsv, tmp_qza, 'SampleData[AlphaDiversity]')
     cmd += 'qiime diversity alpha-group-significance'
     cmd += ' --i-alpha-diversity %s' % tmp_qza
     cmd += ' --m-metadata-file %s' % meta
@@ -1350,7 +1354,7 @@ def write_rpca(
         cmd += run_export(taxon, taxo_tsv)
         cmd += "awk -F'\\t' '$1 != \"\"' %s > %s.tmp\n" % (taxo_tsv, taxo_tsv)
         cmd += "mv %s.tmp %s\n" % (taxo_tsv, taxo_tsv)
-        cmd += run_import(taxo_tsv, taxon, 'FeatureData[Taxonomy]')
+        cmd += run_import(self, taxo_tsv, taxon, 'FeatureData[Taxonomy]')
 
         cmd += 'qiime empress community-plot'
         cmd += ' --i-tree %s' % tree_qza
@@ -1613,7 +1617,7 @@ def write_emperor_biplot(
         ordi.eigvals = ordi.eigvals[:3]
         ordi.proportion_explained = ordi.proportion_explained[:3]
         ordi.write(rep(biplot_txt))
-    cmd += run_import(biplot_txt, biplot, "PCoAResults % Properties('biplot')")
+    cmd += run_import(self, biplot_txt, biplot, "PCoAResults % Properties('biplot')")
     cmd += 'qiime emperor biplot'
     cmd += ' --i-biplot %s' % biplot
     cmd += ' --m-sample-metadata-file %s' % meta
@@ -1668,7 +1672,7 @@ def write_empress(
             ordi.proportion_explained = ordi.proportion_explained[:3]
             ordi.write(biplot_txt)
         cmd += run_import(
-            biplot_txt, pcoa_biplot, "PCoAResults % Properties('biplot')")
+            self, biplot_txt, pcoa_biplot, "PCoAResults % Properties('biplot')")
         i_f.append(biplot_txt)
     else:
         i_f.append(pcoa_biplot)

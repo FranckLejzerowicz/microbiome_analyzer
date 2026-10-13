@@ -221,7 +221,7 @@ class DiffModels(object):
                     io_update(self, o_f=qza, key=(dat, ''))
                     if not to_do(tsv):
                         io_update(self, i_f=tsv, key=(dat, ''))
-                    cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
+                    cmd = run_import(self, tsv, qza, 'FeatureTable[Frequency]')
                     self.cmds.setdefault(dat, []).append(cmd)
         self.register_io_command()
 
@@ -649,7 +649,7 @@ class DiffModels(object):
                     sbs_pd.index.name = 'Feature ID'
                     sbs_pd = sbs_pd[sorted(sbs_pd.columns)]
                     sbs_pd.to_csv(rep(tsv), sep='\t')
-                    cmd = run_import(tsv, qza, 'FeatureData[Differential]')
+                    cmd = run_import(self, tsv, qza, 'FeatureData[Differential]')
                     io_update(self, i_f=tsv, o_f=qza, key=(dat, ''))
 
     def get_songbird_pd(self, songbird):

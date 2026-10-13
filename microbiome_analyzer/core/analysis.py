@@ -105,7 +105,7 @@ class AnalysisPrep(object):
             tsv = data.tsv['']
             data.qza[''] = qza
             data.biom[''] = biom
-            cmd = run_import(tsv, qza, 'FeatureTable[Frequency]')
+            cmd = run_import(self, tsv, qza, 'FeatureTable[Frequency]')
             cmd += run_summary(self, qza, qzv, data.meta)
             if self.config.force or to_do(qza) or to_do(biom) or to_do(qzv):
                 self.cmds.setdefault(dat, []).append(cmd)
@@ -221,7 +221,7 @@ class AnalysisPrep(object):
             data_filt_pd.index.name = 'Feature ID'
             data_filt_pd.to_csv(rep(tsv_filt), index=True, sep='\t')
             data_filt.data[''] = data_filt_biom
-            cmd += run_import(tsv_filt, qza_filt, 'FeatureTable[Frequency]')
+            cmd += run_import(self, tsv_filt, qza_filt, 'FeatureTable[Frequency]')
             cmd += run_summary(self, qza_filt, qzv_filt, data_filt.meta)
             flt_cmds += cmd
             self.register_provenance(dat, (tsv_filt, qza_filt), flt_cmds)
@@ -295,7 +295,7 @@ class AnalysisPrep(object):
                 continue
             _, qza, nwk = data.tree
             qzv = '%s.qzv' % splitext(qza)[0]
-            cmd = run_import(nwk, qza, 'Phylogeny[Rooted]')
+            cmd = run_import(self, nwk, qza, 'Phylogeny[Rooted]')
             cmd += write_tree(qza, qzv, data)
             if nwk and (self.config.force or not isfile(qzv)):
                 self.cmds.setdefault(dat, []).append(cmd)
@@ -315,7 +315,7 @@ class AnalysisPrep(object):
                 if data.phylo and data.phylo[0] == 'wol':
                     nwk, qza = data.tree[2], data.tree[1]
                     io_update(self, nwk, o_f=qza, key=dat)
-                    cmd = run_import(nwk, qza, "Phylogeny[Rooted]")
+                    cmd = run_import(self, nwk, qza, "Phylogeny[Rooted]")
                     cmd_ = '# Shear WOL tree to genomes in data\n'
                     cmd_ += '#  - WOL tree:\t%s\n' % wol_tree
                     cmd_ += '#  - data:\t%s\n' % rep(data.tsv[''])
@@ -349,7 +349,7 @@ class AnalysisPrep(object):
                     biom_tab = data.data['']
                     seqs_fasta = data.seqs[1]
                     seqs_qza = data.seqs[0]
-                    cmd_seqs = write_fasta(seqs_fasta, seqs_qza, biom_tab, tsv)
+                    cmd_seqs = write_fasta(self, seqs_fasta, seqs_qza, biom_tab, tsv)
                     io_update(self, i_f=seqs_fasta, o_f=seqs_qza, key=dat)
 
                     qza_in = data.tree[0]
@@ -394,7 +394,7 @@ class AnalysisPrep(object):
 
         cmd = ''
         if to_do(tax_qza):
-            cmd = run_import(tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
+            cmd = run_import(self, tax_tsv, tax_qza, 'FeatureData[Taxonomy]')
             io_update(self, i_f=tax_tsv, o_f=tax_qza, key=dat)
         return cmd
 
@@ -783,7 +783,7 @@ class AnalysisPrep(object):
                     qzv = '%s/ags%s_%s.qzv' % (self.out, raref, metric)
                     if self.config.force or to_do(qzv):
                         cmd = write_alpha_group_significance(
-                            qza, qzv, data.meta)
+                            self, qza, qzv, data.meta)
                         io_update(self, i_f=[qza, data.meta],
                                   o_f=qzv, key=dat)
                         self.register_provenance(dat, (qzv,), cmd)
